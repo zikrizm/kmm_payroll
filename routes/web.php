@@ -20,6 +20,7 @@ Route::get('/', function () {
 Route::get('/user-management', 'UserManagementController@index')->name('userManagement.index');
 Route::post('/user-management', 'UserManagementController@store')->name('userManagement.store');
 Route::get('/user-management/show', 'UserManagementController@show')->name('userManagement.show');
+Route::get('/user-management/getComponent', 'UserManagementController@getComponent')->name('userManagement.getComponent');
 Route::post('/user-management/update', 'UserManagementController@update')->name('userManagement.update');
 Route::post('/user-management/delete', 'UserManagementController@destroy')->name('userManagement.destroy');
 // Route::get('/nota/create', 'NotaController@create')->name('nota.create');

@@ -77,10 +77,24 @@ class UserManagementController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show()
+    public function show(Request $request)
     {
-        return view('page.user_management.asides.aside_user_management');
+        return view('page.user_management.user.modal_user_management');
     }
+
+
+     /**
+     * Display the specified resource.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function getComponent(Request $request)
+    {
+        // Log::info("Dfsdfsdfsdfsdfsdfsdf");
+        // return view('page.user_management.user.modal_user_management');
+    }
+
 
     /**
      * Update the specified resource in storage.

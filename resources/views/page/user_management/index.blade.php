@@ -4,13 +4,14 @@
 @endsection
 @section('content')
 <div class="pt-8 h-full flex-1 pb-12 px-8 overflow-y-scroll overflow-x-hidden relative">
-    <div class="py-12 absolute top-0 right-0 h-screen bg-white shadow-md border-l border-gray-200 max-w-[375px] overflow-y-scroll no-scrollbar duration-700"
+    {{-- <div
+        class="py-12 absolute top-0 h-screen bg-white shadow-md border-l border-gray-200 max-w-[375px] overflow-y-scroll no-scrollbar duration-700"
         style="z-index: 99;" id="aside_user_management">
         <button class="absolute top-5 right-5">
             <i class="feather-16" data-feather="x"></i>
         </button>
         <div id="context_aside_user_management"></div>
-    </div>
+    </div> --}}
     <main class="flex flex-col gap-8">
         <hgroup class="flex flex-col gap-8">
             <header>
@@ -21,17 +22,19 @@
             <header>
                 <ul class="flex border-b">
                     <li>
-                        <button
-                            class="text-green-700 mr-4 pt px-1 pb-[19px] text-sm font-medium  border-b-2 border-green-700">Users</button>
+                        <button value="users"
+                            class="mr-4 pt px-1 pb-[19px] text-sm font-medium text-gray-500 btn-sub-menu">Users</button>
                     </li>
                     <li>
-                        <button class="text-gray-500mr-4 pt px-1 pb-[19px] text-sm font-medium">Access
+                        <button value="access_control"
+                            class=" mr-4 pt px-1 pb-[19px] text-sm font-medium text-gray-500 btn-sub-menu">Access
                             control</button>
                     </li>
                 </ul>
             </header>
         </hgroup>
-        <section class="border rounded-xl shadow-md w-max">
+        <div id="content_user_management"></div>
+        {{-- <section class="border rounded-xl shadow-md w-max">
             <header class="px-6 py-5 flex items-center gap-3">
                 <button onclick="getCreateComponent(null)"
                     class="flex gap-2 shadow-xs rounded-lg py-2 px-3.5 text-white text-sm font-medium flex items-center bg-green-600">
@@ -107,12 +110,52 @@
                         class="px-3.5 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50 text-gray-700">Next</button>
                 </div>
             </footer>
-        </section>
+        </section> --}}
     </main>
+</div>
+
+<div class="fixed z-10 inset-0 invisible min-h-screen hidden duration-1000" aria-labelledby="modal-title" role="dialog"
+    aria-modal="true" id="interestModal">
+    <div class="fixed inset-0 bg-gray-500 bg-opacity-50 transition-opacity inner-modal" aria-hidden="true">
+    </div>
+    <div class="flex items-center justify-center p-4 h-full">
+        <div
+            class="flex bg-white rounded-lg text-left h-[95vh] overflow-y-scroll overflow-x-hidde transform transition-all py-4">
+            <div class="sm:flex sm:items-start relative pt-12 pb-8 xs/max:pt-8 xs/max:pb-6">
+                <button
+                    class="absolute top-5 xs/max:top-3 right-5 xs/max:right-3 modal-close hover:bg-gray-100 rounded p-2">
+                    <i class="feather-16" data-feather="x"></i>
+                </button>
+                <div id="context_aside_user_management"></div>
+            </div>
+        </div>
+    </div>
+</div>
 </div>
 
 <script type="module">
     $('.select2').select2();
+    onChangeBtnSubMenu('local_sub_menu_user', (type) => {
+        console.log("Sdfsdfsdf")
+        networkUtils({
+            type:'GET',
+            url:'/user-management/getComponent/',
+            data:{type},
+        }).then(
+            function fulfillHandler(data) {
+                console.log("sdfsdfdata",data)
+                // $('#context_aside_user_management').html(data);
+                // $('.select2').select2();
+                // stroreUserManagement()
+                // onChangeBtnStatus()
+                // openModal('#context_aside_user_management')
+            },
+            function rejectHandler(jqXHR, textStatus, errorThrown) {
+            }
+        ).catch(function errorHandler(error) {
+            console.log("error", error)
+        })
+    })
 </script>
 <script>
     function onChangeBtnStatus () {
@@ -126,20 +169,9 @@
             $('#status-user').val($(this).val());
         });
     }
-
+    
 </script>
 <script type="application/javascript">
-    function networkUtils(options) {
-        return new Promise(function (resolve, reject) {
-            $.ajaxSetup({
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                }
-            });
-            $.ajax(options).done(resolve).fail(reject);
-        });
-    }
-
     function getCreateComponent(id) {
         var url = '/user-management/show';
         if(id != null) url='/user-management/show?id='+id;
@@ -149,16 +181,11 @@
             url:url,
         }).then(
             function fulfillHandler(data) {
-                $('#aside_user_management').css({right: "-100%"});
-                $('#aside_user_management').on('transitionend webkitTransitionEnd oTransitionEnd', function () {
-                    $('#context_aside_user_management').html(data);
-                    $('.select2').select2();
-                    $('#aside_user_management').css({right: "0"});
-                    stroreUserManagement()
-                    onChangeBtnStatus()
-                }); 
-                
-
+                $('#context_aside_user_management').html(data);
+                $('.select2').select2();
+                stroreUserManagement()
+                onChangeBtnStatus()
+                openModal('#context_aside_user_management')
             },
             function rejectHandler(jqXHR, textStatus, errorThrown) {
             }
@@ -166,6 +193,7 @@
             console.log("error", error)
         })
     }
+
     function stroreUserManagement() {
         var url = $('#submit_user_management').attr('action');
         $("#submit_user_management").submit(function(e) {
