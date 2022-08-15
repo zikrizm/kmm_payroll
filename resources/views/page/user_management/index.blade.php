@@ -1,10 +1,10 @@
 @extends('layouts.app')
 @section('css')
-<style></style>
+    <style></style>
 @endsection
 @section('content')
-<div class="pt-8 h-full flex-1 pb-12 px-8 overflow-y-scroll overflow-x-hidden relative">
-    {{-- <div
+    <div class="pt-8 h-full flex-1 pb-12 px-8 overflow-y-scroll overflow-x-hidden relative">
+        {{-- <div
         class="py-12 absolute top-0 h-screen bg-white shadow-md border-l border-gray-200 max-w-[375px] overflow-y-scroll no-scrollbar duration-700"
         style="z-index: 99;" id="aside_user_management">
         <button class="absolute top-5 right-5">
@@ -12,29 +12,29 @@
         </button>
         <div id="context_aside_user_management"></div>
     </div> --}}
-    <main class="flex flex-col gap-8">
-        <hgroup class="flex flex-col gap-8">
-            <header>
-                <p class="text-3xl text-gray-900 font-semibold">User management</p>
-                <p class="text-base text-gray-500 font-normal">Lorem ipsum dolor sit amet consectetur adipisicing elit.
-                </p>
-            </header>
-            <header>
-                <ul class="flex border-b">
-                    <li>
-                        <button value="users"
-                            class="mr-4 pt px-1 pb-[19px] text-sm font-medium text-gray-500 btn-sub-menu">Users</button>
-                    </li>
-                    <li>
-                        <button value="access_control"
-                            class=" mr-4 pt px-1 pb-[19px] text-sm font-medium text-gray-500 btn-sub-menu">Access
-                            control</button>
-                    </li>
-                </ul>
-            </header>
-        </hgroup>
-        <div id="content_user_management"></div>
-        {{-- <section class="border rounded-xl shadow-md w-max">
+        <main class="flex flex-col gap-8">
+            <hgroup class="flex flex-col gap-8">
+                <header>
+                    <p class="text-3xl text-gray-900 font-semibold">User management</p>
+                    <p class="text-base text-gray-500 font-normal">Lorem ipsum dolor sit amet consectetur adipisicing elit.
+                    </p>
+                </header>
+                <header>
+                    <ul class="flex border-b">
+                        <li>
+                            <button value="user"
+                                class="mr-4 pt px-1 pb-[19px] text-sm font-medium text-gray-500 btn-sub-menu">User</button>
+                        </li>
+                        <li>
+                            <button value="access_control"
+                                class=" mr-4 pt px-1 pb-[19px] text-sm font-medium text-gray-500 btn-sub-menu">Access
+                                control</button>
+                        </li>
+                    </ul>
+                </header>
+            </hgroup>
+            <div id="content_page" class="w-full"></div>
+            {{-- <section class="border rounded-xl shadow-md w-max">
             <header class="px-6 py-5 flex items-center gap-3">
                 <button onclick="getCreateComponent(null)"
                     class="flex gap-2 shadow-xs rounded-lg py-2 px-3.5 text-white text-sm font-medium flex items-center bg-green-600">
@@ -111,79 +111,60 @@
                 </div>
             </footer>
         </section> --}}
-    </main>
-</div>
-
-<div class="fixed z-10 inset-0 invisible min-h-screen hidden duration-1000" aria-labelledby="modal-title" role="dialog"
-    aria-modal="true" id="interestModal">
-    <div class="fixed inset-0 bg-gray-500 bg-opacity-50 transition-opacity inner-modal" aria-hidden="true">
+        </main>
     </div>
-    <div class="flex items-center justify-center p-4 h-full">
-        <div
-            class="flex bg-white rounded-lg text-left h-[95vh] overflow-y-scroll overflow-x-hidde transform transition-all py-4">
-            <div class="sm:flex sm:items-start relative pt-12 pb-8 xs/max:pt-8 xs/max:pb-6">
-                <button
-                    class="absolute top-5 xs/max:top-3 right-5 xs/max:right-3 modal-close hover:bg-gray-100 rounded p-2">
-                    <i class="feather-16" data-feather="x"></i>
-                </button>
-                <div id="context_aside_user_management"></div>
+
+    <div class="fixed z-10 inset-0 invisible min-h-screen hidden duration-300" aria-labelledby="modal-title" role="dialog"
+        aria-modal="true" id="interestModal">
+        <div class="fixed inset-0 bg-gray-500 bg-opacity-50 transition-opacity inner-modal" aria-hidden="true">
+        </div>
+        <div class="flex items-center justify-center p-4 h-full">
+            <div
+                class="flex bg-white rounded-lg text-left h-[95vh] overflow-y-scroll overflow-x-hidde transform transition-all py-4">
+                <div class="sm:flex sm:items-start relative pt-8 pb-8 xs/max:pt-6 xs/max:pb-6">
+                    <button class="absolute top-0 right-3 xs/max:top-[-6px] modal-close hover:bg-gray-100 text-red rounded p-2">
+                        <x-icon icon="x" width=16 height=16 viewBox="20 20" strokeWidth=0 />
+                    </button>
+                    <div id="context_aside_user_management"></div>
+                </div>
             </div>
         </div>
     </div>
-</div>
-</div>
+    </div>
 
-<script type="module">
-    $('.select2').select2();
+    <script type="module">
     onChangeBtnSubMenu('local_sub_menu_user', (type) => {
-        console.log("Sdfsdfsdf")
-        networkUtils({
-            type:'GET',
-            url:'/user-management/getComponent/',
-            data:{type},
-        }).then(
-            function fulfillHandler(data) {
-                console.log("sdfsdfdata",data)
-                // $('#context_aside_user_management').html(data);
-                // $('.select2').select2();
-                // stroreUserManagement()
-                // onChangeBtnStatus()
-                // openModal('#context_aside_user_management')
-            },
-            function rejectHandler(jqXHR, textStatus, errorThrown) {
-            }
-        ).catch(function errorHandler(error) {
-            console.log("error", error)
-        })
+        $('.select2').select2();
     })
 </script>
-<script>
-    function onChangeBtnStatus () {
-        $('.btn-status').on('click', function(e) {
-            $('.btn-status').each(function(e) {
-                var hasClass = $(this).hasClass( "bg-gray-100" );
-                if(hasClass)
-                    $(this).removeClass('bg-gray-100')
+    <script>
+        function onChangeBtnStatus() {
+            $('.btn-status').on('click', function(e) {
+                $('.btn-status').each(function(e) {
+                    var hasClass = $(this).hasClass("bg-gray-100");
+                    if (hasClass)
+                        $(this).removeClass('bg-gray-100')
+                });
+                $(this).toggleClass("bg-gray-100");
+                $('#status-user').val($(this).val());
             });
-            $(this).toggleClass("bg-gray-100");
-            $('#status-user').val($(this).val());
-        });
-    }
-    
-</script>
-<script type="application/javascript">
-    function getCreateComponent(id) {
+        }
+    </script>
+    <script type="application/javascript">
+    function getCreateComponent(type, id) {
         var url = '/user-management/show';
-        if(id != null) url='/user-management/show?id='+id;
+        var data = {type};
+        if(id != null) data.id = id;
 
         networkUtils({
             type:'GET',
             url:url,
+            data: data,
         }).then(
             function fulfillHandler(data) {
                 $('#context_aside_user_management').html(data);
                 $('.select2').select2();
-                stroreUserManagement()
+                stroreUserManagement(type)
                 onChangeBtnStatus()
                 openModal('#context_aside_user_management')
             },
@@ -194,11 +175,10 @@
         })
     }
 
-    function stroreUserManagement() {
+    function stroreUserManagement(type) {
         var url = $('#submit_user_management').attr('action');
         $("#submit_user_management").submit(function(e) {
             e.preventDefault();
-            console.log("url", url)
           
             networkUtils({
                 type:'POST',
@@ -219,5 +199,4 @@
         });
     }
 </script>
-
 @endsection

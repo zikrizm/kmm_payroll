@@ -17,12 +17,13 @@
     {{--
     <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.3/css/select2.min.css" rel="stylesheet" /> --}}
     {{-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script> --}}
+    {{-- <script src="https://unpkg.com/feather-icons"></script> --}}
     @vite(['resources/css/app.css','resources/js/app.js'])
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
     @yield('css')
 </head>
 
-<body>
+<body class="dark">
     <div class="flex w-full h-screen">
         @include('partials.drawer')
         @yield('content')

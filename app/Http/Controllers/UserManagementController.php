@@ -3,11 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
-use App\Models\UserAccountBank;
 use Illuminate\Http\Request;
+use App\Models\UserAccountBank;
+use App\Models\Permission;
+use App\Models\Role;
+use App\Models\RoleHasPermission;
+use Illuminate\Contracts\Support\MessageBag;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Validator;
 
 
 class UserManagementController extends Controller
@@ -30,19 +34,31 @@ class UserManagementController extends Controller
      */
     public function store(Request $request)
     {
-        Log::info($request);
+        $type = $request->get('type');
+        switch ($type) {
+            case 'user':
+                $res = $this->storeUser($request);
+                return $res;
+                break;
+            case 'access_control':
+                $res = $this->storeAccessControl($request);
+                return $res;
+                break;
+        }
+    }
 
-
+    public function storeUser(Request $request)
+    {
         try {
             $validator = Validator::make($request->all(), [
                 'name' => 'required|string|max:255',
                 'username' => 'required|string|max:255|unique:users',
                 'email' => 'required|string|email:rfc,dns',
-                // 'phone' => 'required|string|min:11',
                 'password' => 'required|string|min:6',
-                // 'gender' => 'required|string',
                 'role' => 'string|exists:roles,id',
                 'status' => 'required|string',
+                // 'phone' => 'required|string|min:11',
+                // 'gender' => 'required|string',
                 // 'account_name' => 'string',
                 // 'account_number' => 'string',
                 // 'bank_name' => 'string',
@@ -50,22 +66,62 @@ class UserManagementController extends Controller
                 // 'salary' => 'required|string',
                 // 'pay_periodic' => 'required|string',
             ]);
-            $messages = $validator->messages();
-            if ($messages) {
+            if ($validator->fails()) {
                 throw new \Exception($validator->messages());
             } else {
-                $user = new User();
-                $user->name = $request->name;
-                $user->username = $request->username;
-                $user->email = $request->email;
-                // $user->phone = $request->phone;
-                // $user->gender = $request->gender;
-                $user->status = $request->status;
-                $user->password =  Hash::make($request->password);
-                $user->save();
+                Log::info($request);
+                // $user = new User();
+                // $user->name = $request->name;
+                // $user->username = $request->username;
+                // $user->email = $request->email;
+                // $user->status = $request->status;
+                // $user->password =  Hash::make($request->password);
+                // $user->save();
 
-                Log::info($user);
+                // Log::info($user);
             }
+        } catch (\Exception $error) {
+            return $error->getMessage();
+        }
+    }
+
+    public function storeAccessControl(Request $request)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'role_name' => 'required|string|max:255',
+                'roles' => 'required|array',
+            ]);
+            $response = [];
+            if ($validator->fails()) {
+                $response = ['error' => $validator->errors()->first(), 'data' => null];
+            } else {
+                $user = User::where('id', '1')->first();
+                if ($user) {
+                    $role_fields = $request->roles;
+                    $role_name = $request->role_name;
+                    $permissions = Permission::all(['id', 'name']);
+
+                    $role = Role::create(['name' => $role_name]);
+
+                    foreach ($role_fields as $keyRole => $role_field) {
+                        foreach ($permissions as $permission) {
+                            if ($keyRole == $permission->name) {
+                                $roleHasPermission = new RoleHasPermission();
+                                $roleHasPermission->role_id = $role->id;
+                                $roleHasPermission->permission_id = $permission->id;
+
+                                $roleHasPermission->save();
+                            }
+                        }
+                    }
+
+                } else {
+                    $response = ['error' => 'User not found', 'data' => null];
+                }
+            }
+
+            return response()->json($response);
         } catch (\Exception $error) {
             return $error->getMessage();
         }
@@ -79,22 +135,16 @@ class UserManagementController extends Controller
      */
     public function show(Request $request)
     {
-        return view('page.user_management.user.modal_user_management');
+        $type = $request->get('type');
+        switch ($type) {
+            case 'user':
+                return view('page.user_management.user.create', compact('type'));
+                break;
+            case 'access_control':
+                return view('page.user_management.access_control.create', compact('type'));
+                break;
+        }
     }
-
-
-     /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function getComponent(Request $request)
-    {
-        // Log::info("Dfsdfsdfsdfsdfsdfsdf");
-        // return view('page.user_management.user.modal_user_management');
-    }
-
 
     /**
      * Update the specified resource in storage.

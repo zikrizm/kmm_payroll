@@ -21,8 +21,11 @@ module.exports = {
       'sm': { 'max': '639px' },
     },
     extend: {
+      colors: {
+        'gray-dark-mode': '#1e1f20',
+      },
       boxShadow: {
-        'custom2pxGreen' : '0px 0px 2px 2px rgb(21, 128, 62)'
+        'custom2pxGreen': '0px 0px 2px 2px rgb(21, 128, 62)'
       }
     },
   },

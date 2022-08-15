@@ -9,9 +9,11 @@
         </div>
         <hr>
     </header>
-    <form autocomplete="off" action="{{route('userManagement.store')}}" method="POST" id="submit_user_management">
+
+    <form autocomplete="off" action="{{ route('userManagement.store') }}" method="POST" id="submit_user_management">
         @csrf
         <!-- {{ csrf_field() }} -->
+        <input type="hidden" name="type" value="{{ $type }}">
         <main class="px-4 flex flex-col xs/max:gap-6 gap-12 mb-8">
             <section class="flex flex-col gap-4 xs/max:gap-3">
                 <div class="flex flex-col gap-1 gap-1">
@@ -61,11 +63,13 @@
                     <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Status</label>
                     <div class="border rounded-xl xs/max:rounded-lg w-max shadow-sm flex overflow-hidden">
                         <input type="hidden" name="status" id="status-user" value="">
-                        <button type="button" class="text-sm xs/max:text-xs text-normal text-gray-600 px-4 py-1.5 border-r btn-status"
+                        <button type="button"
+                            class="text-sm xs/max:text-xs text-normal text-gray-600 px-4 py-1.5 border-r btn-status"
                             value="active">
                             Active
                         </button>
-                        <button type="button" class="text-sm xs/max:text-xs text-normal text-gray-600 px-4 py-1.5 btn-status"
+                        <button type="button"
+                            class="text-sm xs/max:text-xs text-normal text-gray-600 px-4 py-1.5 btn-status"
                             value="inactive">
                             Inactive
                         </button>
@@ -75,7 +79,8 @@
                     <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Username</label>
                     <input
                         class="py-1.5 px-2.5 text-sm xs/max:text-xs rounded-lg xs/max:rounded shadow-sm border border-gray-300 focus:outline-none focus:ring-2 focus:shadow focus:ring-gray-300 focus:border-transparent"
-                        type="text" placeholder="Enter new your username" name="username" required autocomplete="off" />
+                        type="text" placeholder="Enter new your username" name="username" required
+                        autocomplete="off" />
                 </div>
                 <div class="flex flex-col gap-1">
                     <label class="font-normal text-sm xs/max:text-xs text-gray-500 xs/max:text-xs">Password</label>

@@ -1,12 +1,12 @@
-<nav class="h-full w-[82px] flex justify-center border-r border-grey/200">
+<nav class="h-full w-[82px] flex justify-center border-r border-grey/200 bg-gray-50">
     <section class="flex flex-col ">
         <header class="h-20 w-12 flex justify-center items-center rounded overflow-hidden">
-            <i data-feather="figma"></i>
+            <x-icon icon="figma" width=24 height=24 viewBox="20 20" strokeWidth=0 />
         </header>
         <main class="flex flex-col justify-between flex-1">
             <section class="flex flex-col gap-2">
-                <button class="bg-gray-50 w-12 h-12 flex justify-center items-center rounded-md text-gray-500">
-                    <i data-feather="home"></i>
+                <button class="bg-gray-100 w-12 h-12 flex justify-center items-center rounded-md text-gray-500">
+                    <x-icon icon="home" width=24 height=24 viewBox="20 20" strokeWidth=0 />
                 </button>
                 <button class="w-12 h-12 flex justify-center items-center rounded-md text-gray-500">
                 </button>
@@ -16,12 +16,15 @@
             <section class="flex flex-col gap-2 mb-6">
                 <button class=" w-12 h-12 flex justify-center items-center rounded-md text-gray-500">
                 </button>
-                <button class="bg-gray-50 w-12 h-12 flex justify-center items-center rounded-md text-gray-500">
-                    <i data-feather="users"></i>
+                <button class="bg-gray-100 w-12 h-12 flex justify-center items-center rounded-md text-gray-500">
+                    <x-icon icon="users" width=24 height=24 viewBox="20 20" strokeWidth=0 />
                 </button>
-                <button
-                    class="w-12 h-12 flex justify-center items-center rounded-full overflow-hidden text-gray-500">
-                    <img src="https://pixlr.com/studio/template/6264364c-b8cc-4f4f-92d8-28c69a2b756w/thumbnail.webp" alt="" class="w-full h-full object-cover">
+                <button class="bg-gray-100 w-12 h-12 flex justify-center items-center rounded-md text-gray-500">
+                    <x-icon icon="log-out" width=24 height=24 viewBox="20 20" strokeWidth=0 />
+                </button>
+                <button class="w-12 h-12 mt-4 flex justify-center items-center rounded-full overflow-hidden text-gray-500">
+                    <img src="https://pixlr.com/studio/template/6264364c-b8cc-4f4f-92d8-28c69a2b756w/thumbnail.webp"
+                        alt="" class="w-full h-full object-cover">
                 </button>
             </section>
         </main>

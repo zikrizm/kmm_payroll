@@ -21,33 +21,57 @@ function openModal(NodeNameContent) {
     });
 }
 
-function onChangeBtnSubMenu (localStorageName, callback) {
+function onChangeBtnSubMenu(localStorageName, callback) {
     var x = localStorage.getItem(localStorageName);
-    if(x) {
-        $('.btn-sub-menu').each(function(e) {
+    if (x) {
+        $('.btn-sub-menu').each(function (e) {
             var sameValue = $(this).val() == x;
-            if(sameValue)
-                $(this).addClass('text-green-700 border-b-2 border-green-700 active')
-                
+            if (sameValue) {
+                $(this).addClass('text-green-700 border-b-2 border-green-700 active');
+                getPage(x, callback)
+            }
+
         });
     }
 
-    $('.btn-sub-menu').on('click', function(e) {
-        $('.btn-sub-menu').each(function(e) {
-            var hasClass = $(this).hasClass( "active" );
-            if(hasClass)
+    $('.btn-sub-menu').on('click', function (e) {
+        $('.btn-sub-menu').each(function (e) {
+            var hasClass = $(this).hasClass("active");
+            if (hasClass)
                 $(this).removeClass('text-green-700 border-b-2 border-green-700 active')
-                
+
         });
         $(this).toggleClass("text-green-700 border-b-2 border-green-700 active");
-        
+
         $('#status-user').val($(this).val());
         var type = $(this).val();
         var x = localStorage.getItem(localStorageName);
-    console.log("localStorageName",x == type)
-        if(x != type) {
+        if (x != type) {
             localStorage.setItem(localStorageName, type);
-            callback(type)
+            getPage(type, callback)
         }
+    });
+}
+
+function getPage(type, callback) {
+    networkUtils({
+        type: 'GET',
+        url: '/page',
+        data: { type },
+    }).then(
+        function fulfillHandler(data) {
+            $('#content_page').html(data);
+            callback(type)
+        },
+        function rejectHandler(jqXHR, textStatus, errorThrown) {
+        }
+    ).catch(function errorHandler(error) {
+        console.log("error", error)
+    })
+}
+
+function onSelectAllCheckbox(event, nodeName) {
+    $(nodeName).each(function (e) {
+        $(this).prop('checked', $(event).is(':checked'));
     });
 }
