@@ -1,5 +1,8 @@
 <?php
+<<<<<<< HEAD
 
+=======
+>>>>>>> 744c4124b679ec88d44fab1d53b4f4688671ef3b
 return [
 
     /*
@@ -55,7 +58,10 @@ return [
             'use_path_style_endpoint' => env('AWS_USE_PATH_STYLE_ENDPOINT', false),
             'throw' => false,
         ],
+<<<<<<< HEAD
 
+=======
+>>>>>>> 744c4124b679ec88d44fab1d53b4f4688671ef3b
     ],
 
     /*

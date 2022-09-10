@@ -55,42 +55,4 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
-
-    /**
-     * Get the business that owns the user.
-     */
-    public function business()
-    {
-        return $this->belongsTo(Business::class);
-    }
-
-
-    /**
-     * Creates a new user based on the input provided.
-     *
-     * @return object
-     */
-    public static function create_user($details)
-    {
-        $user = User::create([
-            'surname' => $details['surname'],
-            'first_name' => $details['first_name'],
-            'last_name' => $details['last_name'],
-            'username' => $details['username'],
-            'email' => $details['email'],
-            'is_default' => $details['is_default'],
-            'password' => Hash::make($details['password']),
-        ]);
-
-        return $user;
-    }
-
-
-    public function getStatusboxAttribute()
-    {
-        $classStatus = ($this->status != 'active') ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-700';
-        return ' <div class="rounded-xl pl-2 pr-1.5 py-0.5 w-max ' . $classStatus . '">
-                <p class="text-xs font-normal flex items-center gap-1">' . $this->status . '</p>
-            </div>';
-    }
 }

@@ -1,6 +1,7 @@
 <?php
 
 return [
+<<<<<<< HEAD
     
      /*
     |--------------------------------------------------------------------------
@@ -76,3 +77,16 @@ return [
     'enable_download_pdf' => false,         //Experimental feature
     'invoice_scheme_separator' => '-',
 ];
+=======
+    'permission' => [
+        'view_user',
+        'add_user',
+        'edit_user',
+        'delete_user',
+        'view_employee',
+        'add_employee',
+        'edit_employee',
+        'delete_employee',
+    ],
+];
+>>>>>>> 744c4124b679ec88d44fab1d53b4f4688671ef3b
