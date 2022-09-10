@@ -63,4 +63,24 @@ class User extends Authenticatable
     {
         return $this->belongsTo(Business::class);
     }
+
+     /**
+     * Creates a new user based on the input provided.
+     *
+     * @return object
+     */
+    public static function create_user($details)
+    {
+        $user = User::create([
+            'surname' => $details['surname'],
+            'first_name' => $details['first_name'],
+            'last_name' => $details['last_name'],
+            'username' => $details['username'],
+            'email' => $details['email'],
+            'password' => Hash::make($details['password']),
+        ]);
+
+        return $user;
+    }
+
 }
