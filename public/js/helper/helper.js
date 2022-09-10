@@ -202,18 +202,18 @@ function removePhoto(inputHid, imgID, inputFile, node) {
 
 
 function handletogglebutton(defautlValue) {
-    if(defautlValue) {
-        $('.btn-status').each(function(e) {
+    if (defautlValue) {
+        $('.btn-status').each(function (e) {
             var value = $(this).val();
-            if (value.toLowerCase() == defautlValue.toLowerCase()){
+            if (value.toLowerCase() == defautlValue.toLowerCase()) {
                 $(this).toggleClass("bg-gray-100");
                 $('#togglebutton').val($(this).val());
             }
         });
     }
 
-    $('.btn-status').on('click', function(e) {
-        $('.btn-status').each(function(e) {
+    $('.btn-status').on('click', function (e) {
+        $('.btn-status').each(function (e) {
             var hasClass = $(this).hasClass("bg-gray-100");
             if (hasClass)
                 $(this).removeClass('bg-gray-100')
@@ -256,31 +256,32 @@ function setErorrsformInputs(errors) {
     $('.hint-text').each(function (e) {
         $(this).css('opacity', '0');
     });
-    if (Object.keys(errors).length != 0) {
-        for (const error in errors) {
-            var textError = errors[error][0];
-            $(`.${error}`).text(textError);
-            $(`.${error}`).css('opacity', '1');
-        }
-        var firstErorr = Object.keys(errors)[0];
-        var firstElementParent = document.querySelector(`.${firstErorr}`).parentNode.parentNode;
-        const intersectionObserver = new IntersectionObserver((entries) => {
-            let [entry] = entries;
-            if (entry.isIntersecting) {
-                var nodeNameInput = '';
-                if (firstErorr == 'full_address') {
-                    nodeNameInput = 'textarea[name=' + firstErorr + ']';
-                } else {
-                    nodeNameInput = 'input[name=' + firstErorr + ']';
-                }
-
-                $(`.${firstErorr}`).parent().children().find(nodeNameInput).focus();
+    if (errors) {
+        if (Object.keys(errors).length != 0) {
+            for (const error in errors) {
+                var textError = errors[error][0];
+                $(`.${error}`).text(textError);
+                $(`.${error}`).css('opacity', '1');
             }
-        });
-        intersectionObserver.observe(firstElementParent);
-        firstElementParent.scrollIntoView({ behavior: "smooth" });
-    }
+            var firstErorr = Object.keys(errors)[0];
+            var firstElementParent = document.querySelector(`.${firstErorr}`).parentNode.parentNode;
+            const intersectionObserver = new IntersectionObserver((entries) => {
+                let [entry] = entries;
+                if (entry.isIntersecting) {
+                    var nodeNameInput = '';
+                    if (firstErorr == 'full_address') {
+                        nodeNameInput = 'textarea[name=' + firstErorr + ']';
+                    } else {
+                        nodeNameInput = 'input[name=' + firstErorr + ']';
+                    }
 
+                    $(`.${firstErorr}`).parent().children().find(nodeNameInput).focus();
+                }
+            });
+            intersectionObserver.observe(firstElementParent);
+            firstElementParent.scrollIntoView({ behavior: "smooth" });
+        }
+    }
 }
 
 const Utils = {

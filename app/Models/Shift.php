@@ -33,8 +33,8 @@ class Shift extends Model
     public function getStatusboxAttribute()
     {
         $classStatus = ($this->status != 'active') ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-700';
-        return ' <div class="rounded-xl pl-2 pr-1.5 py-0.5 w-max ' . $classStatus . '">
-                <p class="text-xs font-normal flex items-center gap-1">' . $this->status . '</p>
+        return ' <div class="rounded-xl pl-3 pr-2.5 py-1.5 w-max ' . $classStatus . '">
+                <p class="text-xs font-normal flex items-center gap-1 capitalize">' . $this->status . '</p>
             </div>';
     }
 }

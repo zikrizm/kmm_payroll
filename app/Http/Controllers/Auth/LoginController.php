@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use App\Providers\RouteServiceProvider;
 use Illuminate\Support\Facades\Session;
@@ -59,7 +60,7 @@ class LoginController extends Controller
         return 'username';
     }
 
-    protected function authenticated(Request $request, $user)
+    protected function authenticated(Request $request,User $user)
     {
         if (!$user->business->is_active) {
             Auth::logout();
