@@ -39,3 +39,8 @@
     width: 32px;
     height: 32px;
 }
+
+.bg-red-50.text-red-700 {
+    background-color: rgb(254 242 242);
+    color: rgb(185 28 28);
+}

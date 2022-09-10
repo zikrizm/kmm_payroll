@@ -48,18 +48,18 @@
                     {!! $item->statusBox !!}
                 </td>
                 @canany(['shift.update', 'shift.delete'])
-                <td class="px-4 py-4 bg-transparent rounded-r-xl">
+                <td class="px-4 py-3 bg-transparent rounded-r-xl">
                     <div class="flex justify-end gap-1">
                         @can('shift.delete')
                         <button onclick="open_modal_confirm({{ $item->id }})"
-                            class="p-2.5 cursor-pointer text-gray-500 rounded hover:bg-gray-50 delete-btn">
+                            class="px-2.5 cursor-pointer text-gray-500 rounded hover:bg-gray-50 delete-btn">
                             <x-icon icon="trash-2" width=16 height=16 viewBox="20 20" />
                         </button>
                         @endcan
                         @can('shift.update')
                         <button onclick="get_modal({{ $item->id }})"
-                            class="p-2.5 cursor-pointer text-gray-500 rounded hover:bg-gray-50">
-                            <x-icon icon="edit-2" width=16 height=16 viewBox="20 20" />
+                            class="px-2.5 cursor-pointer text-gray-500 rounded hover:bg-gray-50">
+                            <x-icon icon="edit-2" width=14 height=14 viewBox="20 20" />
                         </button>
                         @endcan
                     </div>

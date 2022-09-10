@@ -34,7 +34,7 @@
         <tbody class="text-sm font-normal text-gray-700">
             @foreach ($users as $item)
             <tr class="cursor-pointer bg-white hover:bg-gray-50">
-                <td class="px-6 py-4 text-left bg-transparent rounded-l-xl">
+                <td class="px-6 py-3 text-left bg-transparent rounded-l-xl">
                     <div class="flex gap-3 items-center">
                         @if ($item->is_default)
                         <span class="flex justify-center items-center rounded-full bg-violet-100 
