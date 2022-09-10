@@ -195,11 +195,8 @@ return [
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
 
-<<<<<<< HEAD
         Spatie\Permission\PermissionServiceProvider::class,
 
-=======
->>>>>>> 744c4124b679ec88d44fab1d53b4f4688671ef3b
     ],
 
     /*
@@ -214,10 +211,7 @@ return [
     */
 
     'aliases' => Facade::defaultAliases()->merge([
-<<<<<<< HEAD
         'FormCustom' => App\View\Components\FormCustom::class,
-    ])->toArray(),
-=======
         'App' => Illuminate\Support\Facades\App::class,
         'Arr' => Illuminate\Support\Arr::class,
         'Artisan' => Illuminate\Support\Facades\Artisan::class,
@@ -256,7 +250,6 @@ return [
         'Validator' => Illuminate\Support\Facades\Validator::class,
         'View' => Illuminate\Support\Facades\View::class,
         'Helper' => App\Helper\Helper::class,
-            ])->toArray(),
->>>>>>> 744c4124b679ec88d44fab1d53b4f4688671ef3b
+    ])->toArray(),
 
 ];
