@@ -40,7 +40,17 @@ class WorkSectionController extends Controller
         try {
             if (request()->ajax()) {
                 $business_id = Session::get('business_id');
-                $work_sections = WorkSection::where('business_id', $business_id)->get();
+                $work_sections = WorkSection::where('business_id', $business_id);
+                if ($request->has('q')) {
+                    $search = $request->q;
+                    $work_sections = $work_sections->where(function ($q) use ($search) {
+                        $q->where('name', 'LIKE', "%" . $search . "%")->orWhere('pay', 'LIKE', "%" . $search . "%")
+                            ->orWhere('per', 'LIKE', "%" . $search . "%")->orWhereHas('shift', function ($query) use ($search) {
+                                return $query->where('name', 'LIKE', "%" . $search . "%");
+                            });
+                    });
+                }
+                $work_sections = $work_sections->orderBy('shift_id', 'ASC')->orderBy('name', 'ASC')->paginate(10);
                 $render =  view('work_section.table', compact('work_sections'))->render();
 
                 return $this->buildRes->RESPONSE_REQ('success', $render, null);

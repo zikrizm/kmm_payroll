@@ -44,9 +44,11 @@
                 </div>
                 <div class="flex flex-col gap-1">
                     <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Start date</label>
-                    <input type="date" name="start_date" value="10/24/1984"
-                        class="py-1.5 px-2.5 text-sm xs/max:text-xs rounded-lg xs/max:rounded shadow-sm border border-gray-300 focus:outline-none focus:ring-2 focus:shadow focus:ring-gray-300 focus:border-transparent" />
-                    <label class="font-normal text-xs text-red-500 xs/max:text-xs"></label>
+                    {!! FormCustom::input('start_date', null, [
+                        'placeholder' => 'Enter new your start date',
+                        'readonly' => true,
+                        'prefixiconname' => 'calendar',
+                    ]) !!}
                 </div>
                 <div class="flex flex-col gap-1">
                     <label class="font-normal text-sm text-gray-500 xs/max:text-xs">website</label>
@@ -167,6 +169,14 @@
 </form>
 <script>
     window.addEventListener('DOMContentLoaded', async (event) => {
+        $(function() {
+            $('input[name="start_date"]').daterangepicker({
+                singleDatePicker: true,
+                showDropdowns: true,
+                minYear: 1901,
+                maxYear: parseInt(moment().format('YYYY'), 10)
+            });
+        })
         $(function() {
             let counterStepper = 1;
             $('#next-button').on('click', async function() {

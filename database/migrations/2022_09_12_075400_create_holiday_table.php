@@ -15,12 +15,13 @@ return new class extends Migration
     {
         Schema::create('holidays', function (Blueprint $table) {
             $table->increments('id');
-
             $table->integer('business_id')->unsigned();
-            $table->integer('name');
-            $table->date('date');
-            $table->enum('status', ['active', 'inactive'])->default('active');
+            $table->string('name');
+            $table->text('notes');
+            $table->dateTime('start_date');
+            $table->dateTime('end_date');
 
+            $table->enum('status',['active','inactive'])->default('active');
             $table->foreign('business_id')->references('id')->on('business')->onDelete('cascade');
             $table->timestamps();
         });

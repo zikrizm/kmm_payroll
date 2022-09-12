@@ -6,8 +6,8 @@
         </button>
         <div class="flex flex-col gap-1">
             <div class="flex items-start gap-2">
-                <div class="rounded-full bg-violet-50 p-2.5 box-border mr-2 text-violet-800">
-                    <x-icon icon="user" width=20 height=20 viewBox="20 20" />
+                <div class="rounded-full bg-violet-100 p-1.5 border-[4px] border-violet-50 box-border mr-2 text-violet-800">
+                    <x-icon icon="user" width=18 height=18 viewBox="20 20" />
                 </div>
                 <div>
                     <p class="text-2xl font-bold text-gray-900 xs/max:text-xl xs/max:font-semibold">New user</p>
@@ -73,22 +73,9 @@
                 {!! FormCustom::input('password', null, [ "placeholder" => 'Enter new your passowrd', 'type' =>
                 'password']) !!}
             </section>
-            <section class="flex flex-col gap-1">
+            <section class="flex flex-col gap-1 mb-4">
                 <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Status*</label>
-                <div class="border rounded-xl xs/max:rounded-lg w-max shadow-sm flex overflow-hidden">
-                    <input type="hidden" name="status" id="status-user" value="">
-                    <button type="button"
-                        class="text-sm xs/max:text-xs text-normal text-gray-600 px-4 py-1.5 border-r btn-status"
-                        value="active">
-                        Active
-                    </button>
-                    <button type="button"
-                        class="text-sm xs/max:text-xs text-normal text-gray-600 px-4 py-1.5 btn-status"
-                        value="inactive">
-                        Inactive
-                    </button>
-                </div>
-                <label class="font-normal text-xs text-red-500 xs/max:text-xs status text-error"></label>
+                {!! FormCustom::togglebutton('status', null, ['Active', 'Inactive'], []) !!}
             </section>
             <section class="flex flex-col gap-1">
                 <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Role*</label>

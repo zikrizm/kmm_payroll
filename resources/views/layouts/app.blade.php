@@ -19,6 +19,7 @@
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
     <link href="{{ asset('css/daterangepicker.css') }}" rel="stylesheet">
     <script type="module" src="{{ asset('js/plugin/daterangepicker.js') }}"></script>
+    <script src="{{ asset('js/plugin/JIC.js') }}" type="text/javascript"></script>
     <script src="{{ asset('js/plugin/moment.min.js') }}" type="text/javascript"></script>
     <script src="{{ asset('js/plugin/autoNumeric.min.js') }}" type="text/javascript"></script>
     <script src="{{ asset('js/helper/helper.js') }}"></script>

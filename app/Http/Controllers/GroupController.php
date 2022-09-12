@@ -40,7 +40,17 @@ class GroupController extends Controller
         try {
             if (request()->ajax()) {
                 $business_id = Session::get('business_id');
-                $groups = Group::where('business_id', $business_id)->get();
+                $groups = Group::where('business_id', $business_id);
+                if ($request->has('q')) {
+                    $search = $request->q;
+                    $groups = $groups->where(function ($q) use ($search) {
+                        $q->where('name', 'LIKE', "%" . $search . "%")->orWhereHas('work_section', function ($query) use ($search) {
+                            return $query->where('name', 'LIKE', "%" . $search . "%");
+                        });
+                    });
+                }
+
+                $groups = $groups->orderBy('work_section_id', 'ASC')->orderBy('name', 'ASC')->paginate(10);
                 $render =  view('group.table', compact('groups'))->render();
 
                 return $this->buildRes->RESPONSE_REQ('success', $render, null);

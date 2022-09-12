@@ -83,7 +83,7 @@
 <div class="w-full h-full flex justify-center items-center">
     <div
         class="w-full rounded-xl border-2 relative border-gray-300 bg-white pb-4 overlow-hidden shadow-md  w-full max-w-[385px]">
-        <div class="bg-green-600 w-full text-center py-1 rounded-t-[10px]">
+        <div class="bg-violet-600 w-full text-center py-1 rounded-t-[10px]">
             <p class="text-white text-center text-lg font-semibold">LOGIN</p>
         </div>
         <div class="w-full py-3">
@@ -125,7 +125,7 @@
             <hr class="my-2" style="border: none; border-top: 1px solid rgba(238, 238, 238, 0.8);">
             <div class="mt-4 items-center flex justify-between">
                 <button type="submit"
-                    class="text-white shadow-md bg-green-600 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-xs inline-flex items-center px-10 py-2.5 text-center ">Login
+                    class="text-white shadow-md bg-violet-600 hover:bg-violet-800 focus:ring-4 focus:ring-violet-300 font-medium rounded-lg text-xs inline-flex items-center px-10 py-2.5 text-center ">Login
                 </button>
                 @if (Route::has('password.request'))
                 <a class="inline-block text-xs right-0 align-baseline font-bold text-sm text-red-500 text-white hover:text-red-400"

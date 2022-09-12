@@ -44,6 +44,9 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('shifts', 'ShiftController', ['except' => ['update']]);
     Route::post('/shifts/{shift}', 'ShiftController@update')->name('shifts.update');
 
+    Route::resource('holidays', 'HolidayController', ['except' => ['update']]);
+    Route::post('/holidays/{holiday}', 'HolidayController@update')->name('holidays.update');
+
     Route::get('/business/settings', 'BusinessController@getBusinessSettings')->name('business.index.settings');
     Route::post('/business/settings', 'BusinessController@updateBusinessSettings')->name('business.update.settings');
     Route::resource('/business/location', 'BusinessLocationController');

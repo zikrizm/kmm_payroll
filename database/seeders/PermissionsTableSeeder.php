@@ -47,6 +47,11 @@ class PermissionsTableSeeder extends Seeder
             ['name' => 'shift.update'],
             ['name' => 'shift.delete'],
 
+            ['name' => 'holiday.view'],
+            ['name' => 'holiday.create'],
+            ['name' => 'holiday.update'],
+            ['name' => 'holiday.delete'],
+
             // ['name' => 'purchase.view'],
             // ['name' => 'purchase.create'],
             // ['name' => 'purchase.update'],

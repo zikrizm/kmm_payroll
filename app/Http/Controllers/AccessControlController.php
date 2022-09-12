@@ -5,9 +5,12 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use App\Utils\ResponseUtil;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use App\Services\Api\ApiServices;
 use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Session;
+use Spatie\Permission\Models\Permission;
 use Illuminate\Support\Facades\Validator;
 
 class AccessControlController extends Controller
@@ -25,7 +28,7 @@ class AccessControlController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
         if (!auth()->user()->can('access-control.view')) {
             abort(403, 'Unauthorized action.');
@@ -33,7 +36,16 @@ class AccessControlController extends Controller
 
         try {
             if (request()->ajax()) {
-                $roles = Role::with('permissions')->get();
+                $business_id = Session::get('business_id');
+                $roles = Role::where('business_id', $business_id)->with('permissions');
+                if ($request->has('q')) {
+                    $search = $request->q;
+                    $roles = $roles->where(function ($q) use ($search) {
+                        $q->where('name', 'LIKE', "%" . $search . "%");
+                    });
+                }
+
+                $roles = $roles->orderBy('name', 'ASC')->paginate(10);
                 $render =  view('role.table', compact('roles'))->render();
 
                 return $this->buildRes->RESPONSE_REQ('success', $render, null);
@@ -60,6 +72,7 @@ class AccessControlController extends Controller
 
         try {
             $render = view('role.create')->render();
+
             return $this->buildRes->RESPONSE_REQ('success', $render, null);
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
@@ -92,6 +105,7 @@ class AccessControlController extends Controller
                 $role_data = $request->only(['name', 'roles']);
                 $role = Role::create([
                     'name' => $role_data['name'],
+                    'business_id' => Session::get('business_id'),
                     'guard_name' => 'web',
                     'is_default' => 0,
                 ]);
@@ -119,46 +133,35 @@ class AccessControlController extends Controller
         }
     }
 
-     /**
+    /**
      * Display the specified resource.
      *
-     * @param  int  $user
+     * @param  int $access_control
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function edit($accessControl, Request $request)
+    public function edit($access_control, Request $request)
     {
         if (!auth()->user()->can('access-control.update') || !$request->ajax()) {
             abort(403, 'Unauthorized action.');
         }
 
         try {
-        //     $business_id = request()->session()->get('user.business_id');
-        // $role = Role::where('business_id', $business_id)
-        //             ->with(['permissions'])
-        //             ->find($id);
-        // $role_permissions = [];
-        // foreach ($role->permissions as $role_perm) {
-        //     $role_permissions[] = $role_perm->name;
-        // }
+            $business_id = Session::get('business_id');
+            $role = Role::where('business_id', $business_id)
+                ->with(['permissions'])
+                ->find($access_control);
+            $role_permissions = [];
+            foreach ($role->permissions as $role_perm) {
+                $role_permissions[] = $role_perm->name;
+            }
 
-        // $selling_price_groups = SellingPriceGroup::where('business_id', $business_id)
-        //                             ->active()
-        //                             ->get();
+            $render = view('role.edit', compact('role_permissions', 'role'))->render();
 
-        // $module_permissions = $this->moduleUtil->getModuleData('user_permissions');
+            return $this->buildRes->RESPONSE_REQ('success', $render, null);
+        } catch (\Exception $e) {
+            Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
 
-        // $common_settings = !empty(session('business.common_settings')) ? session('business.common_settings') : [];
-
-        // return view('role.edit')
-        //     ->with(compact('role', 'role_permissions', 'selling_price_groups', 'module_permissions', 'common_settings'));
-            Log::info($accessControl);
-            // $roles = Role::all();
-            // $user = app(Services::class)->findUserByIdWith($user, ['roles']);
-            // $render = view('manage_user.edit', compact('roles', 'user'))->render();
-
-            // return $this->buildRes->RESPONSE_REQ('success', $render, null);
-        } catch (\Exception $error) {
             return $this->buildRes->RESPONSE_REQ('error', null, 'something wrong');
         }
     }
@@ -175,18 +178,89 @@ class AccessControlController extends Controller
         if (!auth()->user()->can('access-control.update')) {
             abort(403, 'Unauthorized action.');
         }
+
+        try {
+            $role_name = $request->input('name');
+            $permissions = $request->input('roles');
+            $business_id = Session::get('business_id');
+
+            $count = Role::where('name', $role_name . '#' . $business_id)
+                ->where('id', '!=', $id)
+                ->where('business_id', $business_id)
+                ->count();
+                Log::info($count);
+            if ($count == 0) {
+                $role = Role::findOrFail($id);
+                if (!$role->is_default || $role->name == 'Cashier#' . $business_id) {
+                    if ($role->name == 'Cashier#' . $business_id) {
+                        $role->is_default = 0;
+                    }
+
+                    $role->name = $role_name . '#' . $business_id;
+                    $role->save();
+
+                    $this->__createPermissionIfNotExists($permissions);
+
+                    if (!empty($permissions)) {
+                        $role->syncPermissions($permissions);
+                    }
+                    return $this->buildRes->RESPONSE_REQ('success', null, 'Access control update succesfully');
+                } else {
+                    return $this->buildRes->RESPONSE_REQ('error', null, 'Default role cannot be edited');
+                }
+            } else {
+                return $this->buildRes->RESPONSE_REQ('error', null, ['name' => ['Role name already exists']]);
+            }
+        } catch (\Exception $e) {
+            Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
+
+            return $this->buildRes->RESPONSE_REQ('error', null, 'something wrong');
+        }
     }
 
     /**
      * Remove the specified resource from storage.
      *
-     * @param  int  $id
+     * @param  Role $access_control
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy(Role $access_control, Request $request)
     {
         if (!auth()->user()->can('access-control.delete')) {
             abort(403, 'Unauthorized action.');
+        }
+
+        try {
+            $access_control->delete();
+
+            return $this->buildRes->RESPONSE_REQ('success', null, 'Access control delete succesfully');
+        } catch (\Exception $e) {
+            return $this->buildRes->RESPONSE_REQ('error', null, 'something wrong');
+        }
+    }
+
+    /**
+     * Creates new permission if doesn't exist
+     *
+     * @param  array  $permissions
+     * @return void
+     */
+    private function __createPermissionIfNotExists($permissions)
+    {
+        $exising_permissions = Permission::whereIn('name', $permissions)
+                                    ->pluck('name')
+                                    ->toArray();
+
+        $non_existing_permissions = array_diff($permissions, $exising_permissions);
+
+        if (!empty($non_existing_permissions)) {
+            foreach ($non_existing_permissions as $new_permission) {
+                $time_stamp = Carbon::now()->toDateTimeString();
+                Permission::create([
+                    'name' => $new_permission,
+                    'guard_name' => 'web'
+                ]);
+            }
         }
     }
 }

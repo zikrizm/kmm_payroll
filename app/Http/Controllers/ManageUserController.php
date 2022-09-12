@@ -44,7 +44,16 @@ class ManageUserController extends Controller
 
         try {
             if (request()->ajax()) {
-                $users = User::with('roles')->get();
+                $business_id = Session::get('business_id');
+                $users = User::where('business_id', $business_id);
+                if ($request->has('q')) {
+                    $search = $request->q;
+                    $users = $users->where(function ($q) use ($search) {
+                        $q->where('first_name', 'LIKE', "%" . $search . "%")->orWhere('username', 'LIKE', "%" . $search . "%")
+                            ->orWhere('email', 'LIKE', "%" . $search . "%");
+                    });
+                }
+                $users = $users->orderBy('username', 'ASC')->paginate(10);
                 $render =  view('manage_user.table', compact('users'))->render();
 
                 return $this->buildRes->RESPONSE_REQ('success', $render, null);
@@ -72,7 +81,8 @@ class ManageUserController extends Controller
         }
 
         try {
-            $roles = Role::all();
+            $business_id = Session::get('business_id');
+            $roles = Role::where('business_id', $business_id)->get();
             $render = view('manage_user.create', compact('roles'))->render();
 
             return $this->buildRes->RESPONSE_REQ('success', $render, null);
@@ -94,7 +104,6 @@ class ManageUserController extends Controller
         if (!auth()->user()->can('user.create')  || !$request->ajax()) {
             abort(403, 'Unauthorized action.');
         }
-        Log::info($request);
         try {
             $validator = Validator::make($request->all(), $this->rules('POST', null));
 
@@ -144,19 +153,19 @@ class ManageUserController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  int  $user
+     * @param  User $user
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function edit($user, Request $request)
+    public function edit(User $user, Request $request)
     {
         if (!auth()->user()->can('user.update') || !$request->ajax()) {
             abort(403, 'Unauthorized action.');
         }
 
         try {
-            $roles = Role::all();
-            $user = app(Services::class)->findUserByIdWith($user, ['roles']);
+            $business_id = Session::get('business_id');
+            $roles = Role::where('business_id', $business_id)->get();
             $render = view('manage_user.edit', compact('roles', 'user'))->render();
 
             return $this->buildRes->RESPONSE_REQ('success', $render, null);
@@ -177,7 +186,6 @@ class ManageUserController extends Controller
         if (!auth()->user()->can('user.update') || !$request->ajax()) {
             abort(403, 'Unauthorized action.');
         }
-        Log::info($request);
 
         try {
             $validator = Validator::make($request->all(), $this->rules("PUT", $user));
@@ -222,22 +230,23 @@ class ManageUserController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  int  $id
+     * @param  User  $user
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id, Request $request)
+    public function destroy(User $user, Request $request)
     {
         if (!auth()->user()->can('user.delete') || !$request->ajax()) {
             abort(403, 'Unauthorized action.');
         }
 
         try {
-            $user = app(Services::class)->findUserById($id);
             $user->delete();
 
             return $this->buildRes->RESPONSE_REQ('success', null, 'user delete succesfully');
         } catch (\Exception $e) {
+            Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
+
             return $this->buildRes->RESPONSE_REQ('error', null, 'something wrong');
         }
     }

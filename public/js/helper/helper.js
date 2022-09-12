@@ -256,7 +256,7 @@ function setErorrsformInputs(errors) {
     $('.hint-text').each(function (e) {
         $(this).css('opacity', '0');
     });
-    if (errors) {
+    if (typeof errors != 'string') {
         if (Object.keys(errors).length != 0) {
             for (const error in errors) {
                 var textError = errors[error][0];
@@ -283,6 +283,29 @@ function setErorrsformInputs(errors) {
         }
     }
 }
+
+function debounce(func, wait, immediate) {
+    var timeout;
+
+    return function executedFunction() {
+        var context = this;
+        var args = arguments;
+
+        var later = function () {
+            timeout = null;
+            if (!immediate) func.apply(context, args);
+        };
+
+        var callNow = immediate && !timeout;
+
+        clearTimeout(timeout);
+
+        timeout = setTimeout(later, wait);
+
+        if (callNow) func.apply(context, args);
+    };
+};
+
 
 const Utils = {
     table(url, data) {

@@ -5,13 +5,11 @@
                 <th class="py-3 px-6 text-xs font-medium text-gray-500 xs/max:px-4 xs/max:py">
                     <div class="flex items-center gap-2">
                         <p>Name</p>
-                        <x-icon icon="arrow-down" width=12 height=12 viewBox="20 20" />
                     </div>
                 </th>
                 <th class="py-3 px-6 text-xs font-medium text-gray-500">
                     <div class="flex items-center gap-2">
                         <p>Roles field</p>
-                        <x-icon icon="arrow-down" width=12 height=12 viewBox="20 20" />
                     </div>
                 </th>
                 @canany(['access-control.update', 'access-control.delete'])
@@ -42,13 +40,13 @@
                     @if (!$item->is_default)
                     <div class="flex justify-end gap-1">
                         @can('access-control.delete')
-                        <button onclick="openModalConfirm({{ $item->id }})"
+                        <button onclick="open_modal_confirm({{ $item->id }})"
                             class="p-2.5 cursor-pointer text-gray-500 rounded hover:bg-gray-50 delete-btn">
                             <x-icon icon="trash-2" width=16 height=16 viewBox="20 20" />
                         </button>
                         @endcan
                         @can('access-control.update')
-                        <button onclick="getModal({{ $item->id }})"
+                        <button onclick="get_modal({{ $item->id }})"
                             class="p-2.5 cursor-pointer text-gray-500 rounded hover:bg-gray-50">
                             <x-icon icon="edit-2" width=16 height=16 viewBox="20 20" />
                         </button>
@@ -63,14 +61,4 @@
         </tbody>
     </table>
 </div>
-<footer class="flex justify-between items-center pb-4 pt-3">
-    <p class="text-gray-700 text-sm">Page <span>1</span> of <span>7</span></p>
-    <div class="flex gap-3">
-        <button
-            class="bg-white px-3.5 py-2 border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-100 text-gray-500">
-            Prev</button>
-        <button
-            class="bg-white px-3.5 py-2 border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-100 text-gray-500">
-            Next</button>
-    </div>
-</footer>
+<x-ui.pagination-custom :pagination="$roles"/>

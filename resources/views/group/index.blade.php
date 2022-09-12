@@ -5,13 +5,13 @@
 @endsection
 @section('content')
 <div class="h-full flex-1 pb-12 px-8 xs/max:p-4 xs/max:pb-8 overflow-y-auto overflow-x-hidden relative">
-    <main class="flex flex-col gap-2 xs/max:gap-4">
+    <main class="flex flex-col gap-2 xs/max:gap-4 h-full">
         <header class="min-h-[80px] w-full flex justify-between items-center">
             <p class="font-semibold text-2xl text-gray-700 xs/max:text-xl">Group management</p>
             <div class="flex items-center gap-3">
                 <div class="bg-white rounded-10 w-56 h-8 flex items-center relative">
                     <input type="text" placeholder="search .."
-                        class="pl-3 pr-10 flex-1 bg-transparent outline-0 font-normal text-sm">
+                        class="search-input pl-3 pr-10 flex-1 bg-transparent outline-0 font-normal text-sm">
                     <button class="text-gray-500 absolute right-3">
                         <x-icon icon="search" width=16 height=16 viewBox="20 20" />
                     </button>
@@ -23,23 +23,38 @@
                 </button>
             </div>
         </header>
-        <div class="table-content"></div>
+        <div class="table-content flex-1 flex flex-col"></div>
     </main>
 </div>
 <x-modal-confirmation classSubmit="submit-delete-group"></x-modal-confirmation>
+
 <script type="application/javascript">
     window.addEventListener('DOMContentLoaded', (event) => {
         $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
 
-        onInit();
-    });
+        $(".search-input").on('keyup', debounce(function() {
+            onInit(null, $(this).val());
+        }, 250));
 
-    async function onInit() {
+        onInit()
+    });
+    
+    async function onInit(page, q = '') {
         // **
         // * get table ----->
         // *
-        var res = await Utils.table('/groups', null);
+        var res = await Utils.table('/groups?'+(new URLSearchParams({ page, q}).toString()), null);
         $('.table-content').html(res);
+
+        // **
+        // * pagination ----->
+        // *
+        $( ".pagination-custom a" ).bind( "click",async function(e) {
+            e.preventDefault();
+
+            var _page = $(this).attr('href').split('page=')[1];
+            onInit(_page)
+        });
     }
 
     async function get_modal(idGroup) {
