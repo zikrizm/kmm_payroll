@@ -48,8 +48,10 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/holidays/{holiday}', 'HolidayController@update')->name('holidays.update');
 
     Route::get('/business/settings', 'BusinessController@getBusinessSettings')->name('business.index.settings');
-    Route::post('/business/settings', 'BusinessController@updateBusinessSettings')->name('business.update.settings');
-    Route::resource('/business/location', 'BusinessLocationController');
+    Route::post('/business/settings/{business}', 'BusinessController@updateBusinessSettings')->name('business.update.settings');
+
+    Route::resource('/business/locations', 'BusinessLocationController', ['except' => ['update']]);
+    Route::post('/business/locations/{location}', 'BusinessLocationController@update')->name('locations.update');
 
     // Route::get('/page', 'PageController@index')->name('page.index')->middleware('only.ajax');
     Route::get('/user-management', 'PageController@userManagement')->name('page.userManagement');

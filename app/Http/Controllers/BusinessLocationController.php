@@ -2,24 +2,26 @@
 
 namespace App\Http\Controllers;
 
+use App\Utils\BusinessUtil;
 use App\Utils\ResponseUtil;
 use Illuminate\Http\Request;
 use App\Models\BusinessLocation;
+use App\Services\Api\ApiServices;
 use Illuminate\Support\Facades\Log;
-use Spatie\Permission\Models\Permission;
+use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Validator;
 
 class BusinessLocationController extends Controller
 {
-    private $libRes;
+    private $apiService;
+    private $buildRes;
+    private $businessUtil;
 
-    /**
-     * Constructor
-     *
-     * @return void
-     */
-    public function __construct(ResponseUtil $libRes)
+    public function __construct(BusinessUtil $businessUtil, ApiServices $service, ResponseUtil $buildRes)
     {
-        $this->libRes = $libRes;
+        $this->businessUtil = $businessUtil;
+        $this->apiService = $service;
+        $this->buildRes = $buildRes;
     }
 
     /**
@@ -27,119 +29,60 @@ class BusinessLocationController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        // if (!auth()->user()->can('business_settings.access')) {
+        // if (!auth()->user()->can('business-location.view')) {
         //     abort(403, 'Unauthorized action.');
         // }
 
-        if (request()->ajax()) {
-            $locations = BusinessLocation::where('business_id', 2)->with(['business'])->get();
-            $render = view('business_location.table', compact('locations'))->render();
+        try {
+            if (request()->ajax()) {
+                $business_id = Session::get('business_id');
+                $locations = BusinessLocation::where('business_id', $business_id);
+                if ($request->has('q')) {
+                    $search = $request->q;
+                    $locations = $locations->where(function ($q) use ($search) {
+                        $q->where('name', 'LIKE', "%" . $search . "%")->orWhere('country', 'LIKE', "%" . $search . "%")
+                            ->orWhere('state', 'LIKE', "%" . $search . "%")->orWhere('city', 'LIKE', "%" . $search . "%")
+                            ->orWhere('zip_code', 'LIKE', "%" . $search . "%")->orWhere('full_address', 'LIKE', "%" . $search . "%");
+                    });
+                }
 
-            return $this->libRes->RESPONSE_REQ('success', $render, null);
-            // $business_id = request()->session()->get('user.business_id');
+                $locations = $locations->orderBy('name', 'ASC')->paginate(10);
+                $render =  view('business_location.table', compact('locations'))->render();
 
+                return $this->buildRes->RESPONSE_REQ('success', $render, null);
+            }
 
-            //     $locations = BusinessLocation::where('business_locations.business_id', $business_id)
-            //         ->leftjoin(
-            //             'invoice_schemes as ic',
-            //             'business_locations.invoice_scheme_id',
-            //             '=',
-            //             'ic.id'
-            //         )
-            //         ->leftjoin(
-            //             'invoice_layouts as il',
-            //             'business_locations.invoice_layout_id',
-            //             '=',
-            //             'il.id'
-            //         )
-            //         ->leftjoin(
-            //             'invoice_layouts as sil',
-            //             'business_locations.sale_invoice_layout_id',
-            //             '=',
-            //             'sil.id'
-            //         )
-            //         ->leftjoin(
-            //             'selling_price_groups as spg',
-            //             'business_locations.selling_price_group_id',
-            //             '=',
-            //             'spg.id'
-            //         )
-            //         ->select(['business_locations.name', 'location_id', 'landmark', 'city', 'zip_code', 'state',
-            //             'country', 'business_locations.id', 'spg.name as price_group', 'ic.name as invoice_scheme', 'il.name as invoice_layout', 'sil.name as sale_invoice_layout', 'business_locations.is_active']);
+            return view('business_location.index');
+        } catch (\Exception $e) {
+            Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
 
-            //     $permitted_locations = auth()->user()->permitted_locations();
-            //     if ($permitted_locations != 'all') {
-            //         $locations->whereIn('business_locations.id', $permitted_locations);
-            //     }
-
-            //     return Datatables::of($locations)
-            //         ->addColumn(
-            //             'action',
-            //             '<button type="button" data-href="{{action(\'BusinessLocationController@edit\', [$id])}}" class="btn btn-xs btn-primary btn-modal" data-container=".location_edit_modal"><i class="glyphicon glyphicon-edit"></i> @lang("messages.edit")</button>
-            //             <a href="{{route(\'location.settings\', [$id])}}" class="btn btn-success btn-xs"><i class="fa fa-wrench"></i> @lang("messages.settings")</a>
-
-            //             <button type="button" data-href="{{action(\'BusinessLocationController@activateDeactivateLocation\', [$id])}}" class="btn btn-xs activate-deactivate-location @if($is_active) btn-danger @else btn-success @endif"><i class="fa fa-power-off"></i> @if($is_active) @lang("lang_v1.deactivate_location") @else @lang("lang_v1.activate_location") @endif </button>
-            //             '
-            //         )
-            //         ->removeColumn('id')
-            //         ->removeColumn('is_active')
-            //         ->rawColumns([11])
-            //         ->make(false);
+            return $this->buildRes->RESPONSE_REQ('error', null, 'something wrong');
         }
-
-        return view('business_location.index');
     }
 
     /**
-     * Show the form for creating a new resource.
+     * Display the specified resource.
      *
+     * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function create()
+    public function create(Request $request)
     {
-        // if (!auth()->user()->can('business_settings.access')) {
+        // if (!auth()->user()->can('business-location.create') || !request()->ajax()) {
         //     abort(403, 'Unauthorized action.');
         // }
-        // $business_id = request()->session()->get('user.business_id');
 
-        // //Check if subscribed or not, then check for location quota
-        // if (!$this->moduleUtil->isSubscribed($business_id)) {
-        //     return $this->moduleUtil->expiredResponse();
-        // } elseif (!$this->moduleUtil->isQuotaAvailable('locations', $business_id)) {
-        //     return $this->moduleUtil->quotaExpiredResponse('locations', $business_id);
-        // }
+        try {
+            $render = view('business_location.create')->render();
 
-        // $invoice_layouts = InvoiceLayout::where('business_id', $business_id)
-        //                     ->get()
-        //                     ->pluck('name', 'id');
+            return $this->buildRes->RESPONSE_REQ('success', $render, null);
+        } catch (\Exception $e) {
+            Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
 
-        // $invoice_schemes = InvoiceScheme::where('business_id', $business_id)
-        //                     ->get()
-        //                     ->pluck('name', 'id');
-
-        // $price_groups = SellingPriceGroup::forDropdown($business_id);
-
-        // $payment_types = $this->commonUtil->payment_types(null, false, $business_id);
-
-        // //Accounts
-        // $accounts = [];
-        // if ($this->commonUtil->isModuleEnabled('account')) {
-        //     $accounts = Account::forDropdown($business_id, true, false);
-        // }
-
-        $render = view('business_location.create')->render();
-        return $this->libRes->RESPONSE_REQ('success', $render, null);
-
-        // return view('business_location.create')
-        //             ->with(compact(
-        //                 'invoice_layouts',
-        //                 'invoice_schemes',
-        //                 'price_groups',
-        //                 'payment_types',
-        //                 'accounts'
-        //             ));
+            return $this->buildRes->RESPONSE_REQ('error', null, 'something wrong');
+        }
     }
 
     /**
@@ -150,159 +93,135 @@ class BusinessLocationController extends Controller
      */
     public function store(Request $request)
     {
-        // if (!auth()->user()->can('business_settings.access')) {
+        // if (!auth()->user()->can('business-location.create')) {
         //     abort(403, 'Unauthorized action.');
         // }
 
         try {
-            // $business_id = $request->session()->get('user.business_id');
-            $business_id = 2;
+            $validator = Validator::make($request->all(), $this->rules());
 
-            // //Check if subscribed or not, then check for location quota
-            // if (!$this->moduleUtil->isSubscribed($business_id)) {
-            //     return $this->moduleUtil->expiredResponse();
-            // } elseif (!$this->moduleUtil->isQuotaAvailable('locations', $business_id)) {
-            //     return $this->moduleUtil->quotaExpiredResponse('locations', $business_id);
-            // }
+            if ($validator->fails()) {
+                return $this->buildRes->RESPONSE_REQ('error', null, $validator->errors());
+            } else {
+                $location_data = $request->only(['name', 'city', 'state', 'country', 'zip_code', 'full_address', 'mobile', 'alternate_number', 'website']);
+                $location_data['business_id'] = Session::get('business_id');
+                $group = new BusinessLocation($location_data);
+                $group->save();
 
-            $input = $request->only(['name', 'city', 'state', 'country', 'zip_code', 'full_address', 'mobile', 'alternate_number', 'website']);
-
-            $input['business_id'] = $business_id;
-
-            // $input['default_payment_accounts'] = !empty($input['default_payment_accounts']) ? json_encode($input['default_payment_accounts']) : null;
-
-            //Update reference count
-            // $ref_count = $this->moduleUtil->setAndGetReferenceCount('business_location');
-
-            // if (empty($input['location_id'])) {
-            //     $input['location_id'] = $this->moduleUtil->generateReferenceNumber('business_location', $ref_count);
-            // }
-
-            $location = BusinessLocation::create($input);
-            return $this->libRes->RESPONSE_REQ('success', null, 'Create location sukses');
-            //Create a new permission related to the created location
-            // Permission::create(['name' => 'location.' . $location->id]);
-
-            // $output = [
-            //     'success' => true,
-            //     'msg' => __("business.business_location_added_success")
-            // ];
+                return $this->buildRes->RESPONSE_REQ('success', null, 'Add location succesfully');
+            }
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
-            // $output = [
-            //     'success' => false,
-            //     'msg' => __("messages.something_went_wrong")
-            // ];
-        }
 
+            return $this->buildRes->RESPONSE_REQ('error', null, 'something wrong');
+        }
     }
 
     /**
      * Display the specified resource.
-     *
+     *      
      * @param  \App\StoreFront  $storeFront
      * @return \Illuminate\Http\Response
      */
     public function show($id)
     {
-        //
+        if (!auth()->user()->can('business-location.view')) {
+            abort(403, 'Unauthorized action.');
+        }
     }
 
     /**
      * Show the form for editing the specified resource.
      *
+     * @param  BusinessLocation $location
      * @param  \App\StoreFront  $storeFront
      * @return \Illuminate\Http\Response
      */
-    public function edit($id)
+    public function edit(BusinessLocation $location)
     {
-        // if (!auth()->user()->can('business_settings.access')) {
+        // if (!auth()->user()->can('business-location.create') || !request()->ajax()) {
         //     abort(403, 'Unauthorized action.');
         // }
 
-        // $business_id = request()->session()->get('user.business_id');
-        // $location = BusinessLocation::where('business_id', $business_id)
-        //                             ->find($id);
-        // $invoice_layouts = InvoiceLayout::where('business_id', $business_id)
-        //                     ->get()
-        //                     ->pluck('name', 'id');
-        // $invoice_schemes = InvoiceScheme::where('business_id', $business_id)
-        //                     ->get()
-        //                     ->pluck('name', 'id');
+        try {
+            $render = view('business_location.edit', compact('location'))->render();
 
-        // $price_groups = SellingPriceGroup::forDropdown($business_id);
+            return $this->buildRes->RESPONSE_REQ('success', $render, null);
+        } catch (\Exception $e) {
+            Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
 
-        // $payment_types = $this->commonUtil->payment_types(null, false, $business_id);
-
-        // //Accounts
-        // $accounts = [];
-        // if ($this->commonUtil->isModuleEnabled('account')) {
-        //     $accounts = Account::forDropdown($business_id, true, false);
-        // }
-        // $featured_products = $location->getFeaturedProducts(true, false);
-
-        // return view('business_location.edit')
-        //         ->with(compact(
-        //             'location',
-        //             'invoice_layouts',
-        //             'invoice_schemes',
-        //             'price_groups',
-        //             'payment_types',
-        //             'accounts',
-        //             'featured_products'
-        //         ));
+            return $this->buildRes->RESPONSE_REQ('error', null, 'something wrong');
+        }
     }
 
     /**
      * Update the specified resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  \App\StoreFront  $storeFront
+     * @param  BusinessLocation $location
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(BusinessLocation $location, Request $request)
     {
-        // if (!auth()->user()->can('business_settings.access')) {
+        // if (!auth()->user()->can('business-location.update')) {
         //     abort(403, 'Unauthorized action.');
         // }
 
-        // try {
-        //     $input = $request->only(['name', 'landmark', 'city', 'state', 'country',
-        //         'zip_code', 'invoice_scheme_id',
-        //         'invoice_layout_id', 'mobile', 'alternate_number', 'email', 'website', 'custom_field1', 'custom_field2', 'custom_field3', 'custom_field4', 'location_id', 'selling_price_group_id', 'default_payment_accounts', 'featured_products', 'sale_invoice_layout_id']);
+        try {
+            $validator = Validator::make($request->all(), $this->rules());
 
-        //     $business_id = $request->session()->get('user.business_id');
+            if ($validator->fails()) {
+                return $this->buildRes->RESPONSE_REQ('error', null, $validator->errors());
+            } else {
+                $location_data = $request->only(['name', 'city', 'state', 'country', 'zip_code', 'full_address', 'mobile', 'alternate_number', 'website']);
+                $location->update($location_data);
 
-        //     $input['default_payment_accounts'] = !empty($input['default_payment_accounts']) ? json_encode($input['default_payment_accounts']) : null;
+                return $this->buildRes->RESPONSE_REQ('success', null, 'Location update succesfully');
+            }
+        } catch (\Exception $e) {
+            Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
 
-        //     $input['featured_products'] = !empty($input['featured_products']) ? json_encode($input['featured_products']) : null;
+            return $this->buildRes->RESPONSE_REQ('error', null, 'something wrong');
+        }
+    }
 
-        //     BusinessLocation::where('business_id', $business_id)
-        //                     ->where('id', $id)
-        //                     ->update($input);
-
-        //     $output = ['success' => true,
-        //                     'msg' => __('business.business_location_updated_success')
-        //                 ];
-        // } catch (\Exception $e) {
-        //     \Log::emergency("File:" . $e->getFile(). "Line:" . $e->getLine(). "Message:" . $e->getMessage());
-
-        //     $output = ['success' => false,
-        //                     'msg' => __("messages.something_went_wrong")
-        //                 ];
+   /**
+     * Remove the specified resource from storage.
+     *
+     * @param  BusinessLocation $location
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function destroy(BusinessLocation $location, Request $request)
+    {
+        // if (!auth()->user()->can('business-location.delete') || !$request->ajax()) {
+        //     abort(403, 'Unauthorized action.');
         // }
 
-        // return $output;
+        try {
+            $location->delete();
+
+            return $this->buildRes->RESPONSE_REQ('success', null, 'Group delete succesfully');
+        } catch (\Exception $e) {
+            return $this->buildRes->RESPONSE_REQ('error', null, 'something wrong');
+        }
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Rules validation group.
      *
-     * @param  \App\StoreFront  $storeFront
-     * @return \Illuminate\Http\Response
+     * @return array
      */
-    public function destroy($id)
+    public function rules()
     {
-        //
+        return [
+            'name' => 'required|string|max:255',
+            'country' => 'required|string|max:255',
+            'state' => 'required|string|max:255',
+            'city' => 'required|string|max:255',
+            'zip_code' => 'required|string|max:255',
+            'full_address' => 'required|string|max:255',
+            'status' => 'required|string',
+        ];
     }
 }

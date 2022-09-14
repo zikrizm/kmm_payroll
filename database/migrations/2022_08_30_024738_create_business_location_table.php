@@ -26,6 +26,7 @@ return new class extends Migration
             $table->string('mobile')->nullable();
             $table->string('alternate_number')->nullable();
             $table->string('email')->nullable();
+            $table->enum('status',['active','inactive'])->default('active');
             $table->softDeletes();
             $table->timestamps();
 

@@ -100,7 +100,6 @@ class GroupController extends Controller
         if (!auth()->user()->can('group.create')  || !$request->ajax()) {
             abort(403, 'Unauthorized action.');
         }
-        Log::info($request);
         try {
             $validator = Validator::make($request->all(), $this->rules());
 

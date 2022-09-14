@@ -11,6 +11,7 @@ use Illuminate\Support\Carbon;
 use App\Services\Api\ApiServices;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Session;
 use Spatie\Permission\Models\Permission;
 use Illuminate\Support\Facades\Validator;
 
@@ -118,9 +119,9 @@ class BusinessController extends Controller
      */
     public function getBusinessSettings()
     {
-        // $business = $this->apiService->get_departments();
-        // Log::info($business);
-        return view('business.settings');
+        $business_id = Session::get('business_id');
+        $business = Business::where('id', $business_id)->first();
+        return view('business.settings', compact('business'));
     }
 
     /**
@@ -133,7 +134,7 @@ class BusinessController extends Controller
         try {
             Log::info($request);
             $validator = Validator::make($request->all(), [
-                'name' => 'required|max:255',
+                'name' => 'required|string|max:255',
             ]);
 
             if ($validator->fails()) {
@@ -141,24 +142,6 @@ class BusinessController extends Controller
             } else {
                 DB::beginTransaction();
                 $business_details = $request->only(['name', 'start_date']);
-
-
-                // //Create owner.
-                // $owner_details = $request->only(['surname', 'first_name', 'last_name', 'username', 'email', 'password']);
-                // $user = User::create_user($owner_details);
-
-                // $business_details = $request->only(['name', 'start_date']);
-
-                // $business_location = $request->only(['name', 'country', 'state', 'city', 'zip_code', 'full_address', 'website', 'mobile', 'alternate_number']);
-                // //Create the business
-                // $business_details['owner_id'] = $user->id;
-
-                // if (!empty($business_details['start_date'])) {
-                //     $business_details['start_date'] = Carbon::createFromFormat(
-                //         config('constants.default_date_format'),
-                //         $business_details['start_date']
-                //     )->toDateString();
-                // }
 
                 // start_date
                 if (!empty($business_details['start_date'])) {
@@ -171,8 +154,8 @@ class BusinessController extends Controller
                     $business_details['logo'] = $logo_name;
                 }
 
-                // $business_id = request()->session()->get('user.business_id');
-                $business = Business::where('id', 2)->first();
+                $business_id = Session::get('business_id');
+                $business = Business::where('id', $business_id)->first();
 
                 //Update business settings
                 if (!empty($business_details['logo'])) {
@@ -184,19 +167,6 @@ class BusinessController extends Controller
                 $business->fill($business_details);
                 $business->save();
 
-
-                // $business = Business::create_business($business_details);
-
-                // //Update user with business id
-                // $user->business_id = $business->id;
-                // $user->save();
-
-                // $this->businessUtil->newBusinessDefaultResources($business->id, $user->id);
-                // $new_location = $this->businessUtil->addLocation($business->id, $business_location);
-
-                // //create new permission with the new location
-                // Permission::create(['name' => 'location.' . $new_location->id]);
-
                 DB::commit();
                 return $this->buildRes->RESPONSE_REQ('success', null, 'business update succesfully');
             }
@@ -206,5 +176,17 @@ class BusinessController extends Controller
 
             return $this->buildRes->RESPONSE_REQ('error', null, 'something wrong');
         }
+    }
+
+    /**
+     * Rules validation group.
+     *
+     * @return array
+     */
+    public function rules()
+    {
+        return [
+            'name' => 'required|string|max:255',
+        ];
     }
 }

@@ -1,81 +1,86 @@
 @extends('layouts.app')
-@section('title', 'Users')
+@section('title', 'Group')
 @section('css')
 <style></style>
 @endsection
 @section('content')
-<div class="pt-8 h-full flex-1 pb-12 px-8 xs/max:p-4 xs/max:pb-8 overflow-y-auto overflow-x-hidden relative">
-    <main class="flex flex-col gap-8 xs/max:gap-4">
-        <hgroup class="flex flex-col gap-8 xs/max:gap-4">
-            <header>
-                <p class="text-3xl text-gray-900 font-semibold xs/max:text-2xl">Business location</p>
-                <p class="text-base text-gray-500 font-normal xs/max:text-sm">Lorem ipsum dolor sit amet consectetur
-                    adipisicing elit.
-                </p>
-            </header>
-        </hgroup>
-        <section class="border rounded-xl shadow-md w-max lg/max:w-full">
-            @can('user.create')
-            <header class="px-6 py-5 flex items-center gap-3">
-                <button onclick="getModal()"
-                    class="flex gap-2 shadow-xs rounded-lg py-2 px-3.5 text-white text-sm font-medium flex items-center bg-green-600 xs/max:text-xs xs/max:rounded">
+<div class="h-full flex-1 pb-12 px-8 xs/max:p-4 xs/max:pb-8 overflow-y-auto overflow-x-hidden relative">
+    <main class="flex flex-col gap-2 xs/max:gap-4 h-full">
+        <header class="min-h-[80px] w-full flex justify-between items-center">
+            <p class="font-semibold text-2xl text-gray-700 xs/max:text-xl">Business location management</p>
+            <div class="flex items-center gap-3">
+                <div class="bg-white rounded-10 w-56 h-8 flex items-center relative">
+                    <input type="text" placeholder="search .."
+                        class="search-input pl-3 pr-10 flex-1 bg-transparent outline-0 font-normal text-sm">
+                    <button class="text-gray-500 absolute right-3">
+                        <x-icon icon="search" width=16 height=16 viewBox="20 20" />
+                    </button>
+                </div>
+                <button onclick="get_modal()"
+                    class="flex items-center gap-2 shadow-xs rounded-10 h-8 px-3 text-white text-sm font-normal flex items-center bg-violet-600 xs/max:text-xs xs/max:rounded">
                     <x-icon icon="plus" width=16 height=16 viewBox="20 20" />
-                    New location
+                    New business location
                 </button>
-            </header>
-            <hr>
-            @endcan
-            {{-- <section class="px-6 py-5 flex items-center gap-3 border-b border-gray-200">
-                <div class="flex-1 flex">
-                    <select class="select2 w-full max-w-[200px]" name="role" required>
-                        <option value="" selected>All role</option>
-                        @foreach ($roles as $role)
-                        <option value="{{ $role->id }}">{{ $role->name }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="flex-1">
-                    <div className='px-6 py-5 w-full'>
-                        <div
-                            class="rounded-lg xs/max:rounded shadow-sm border border-gray-300 overflow-hidden flex items-center">
-                            <span class="text-gray-500 ml-2 ">
-                                <x-icon icon="search" width=16 height=16 viewBox="20 20" />
-                            </span>
-                            <input
-                                class="py-1.5 px-2.5 text-sm xs/max:text-xs focus:outline-none focus:ring-0 focus:border-transparent flex-1"
-                                type="text" placeholder="Search here" />
-                        </div>
-
-                    </div>
-                </div>
-            </section> --}}
-            <div class="table-content"></div>
-            {{-- <div class="flex justify-center items-center p-4 loading text-gray-500">
-                <x-icon icon="loading" width=25 height=40 viewBox="20 20" />
-            </div> --}}
-        </section>
+            </div>
+        </header>
+        <div class="table-content flex-1 flex flex-col"></div>
     </main>
 </div>
+<x-modal-confirmation classSubmit="submit-delete-business-location"></x-modal-confirmation>
 
 <script type="application/javascript">
     window.addEventListener('DOMContentLoaded', (event) => {
         $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
-        onInit();
+
+        $(".search-input").on('keyup', debounce(function() {
+            onInit(null, $(this).val());
+        }, 250));
+
+        onInit()
     });
-
-    async function onInit() {
-        var res = await Utils.table('/business/location', null);
+    
+    async function onInit(page, q = '') {
+        // **
+        // * get table ----->
+        // *
+        var res = await Utils.table('/business/locations?'+(new URLSearchParams({ page, q}).toString()), null);
         $('.table-content').html(res);
+
+        // **
+        // * pagination ----->
+        // *
+        $( ".pagination-custom a" ).bind( "click",async function(e) {
+            e.preventDefault();
+
+            var _page = $(this).attr('href').split('page=')[1];
+            onInit(_page)
+        });
     }
 
-    async function getModal(idLocation) {
-        var URL = (idLocation) ? '/business/location/' + idLocation + '/edit' : '/business/location/create';
+    async function get_modal(idBusinessLocation) {
+        // **
+        // * open modal form ----->
+        // *
+        var URL = (idBusinessLocation) ? '/business/locations/' + idBusinessLocation + '/edit' : '/business/locations/create';
         var res = await Utils.modal(URL, null);
-        var resSubmit = Utils.submit('.submit-business-location', (data) => { });
+        $('.select2').select2();
+        handletogglebutton((!idBusinessLocation) ? 'active': '')
+
+        // **
+        // * submit form ----->
+        // *
+        var resSubmit = Utils.submit('.submit-location', (data) => { 
+            onInit();
+        });
     }
 
-</script>
-<script type="application/javascript">
-
+    function open_modal_confirm(idBusinessLocation) {
+        // **
+        // * open modal confirm ----->
+        // *
+        Utils.modal_confirm('.submit-delete-business-location', '/business/locations/' + idBusinessLocation, null, () => {
+            onInit();
+        })
+    }
 </script>
 @endsection

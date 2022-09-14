@@ -18,15 +18,18 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
     <link href="{{ asset('css/daterangepicker.css') }}" rel="stylesheet">
+    <link href="{{ asset('css/toastr.min.css') }}" rel="stylesheet">
     <script type="module" src="{{ asset('js/plugin/daterangepicker.js') }}"></script>
     <script src="{{ asset('js/plugin/JIC.js') }}" type="text/javascript"></script>
     <script src="{{ asset('js/plugin/moment.min.js') }}" type="text/javascript"></script>
     <script src="{{ asset('js/plugin/autoNumeric.min.js') }}" type="text/javascript"></script>
+    <script src="{{ asset('js/plugin/toastr.min.js') }}" type="module"></script>
     <script src="{{ asset('js/helper/helper.js') }}"></script>
     <script src="{{ asset('js/remote/api_service.js') }}"></script>
 </head>
 
 <body>
+
     <div id="app">
         {{-- <nav class="navbar navbar-expand-md navbar-light bg-white shadow-sm">
             <div class="container">
@@ -97,6 +100,21 @@
     </div>
 </body>
 @stack('script')
-<script>
+<script type="module">
+    toastr.options= {
+        "progressBar":true,
+        "positionClass":"toast-top-right",
+        "onclick":null,
+        "showDuration":300,
+        "hideDuration":300,
+        "timeOut":5000,
+        "extendedTimeOut":5000,
+        "showEasing":"swing",
+        "hideEasing":"linear",
+        "showMethod":"fadeIn",
+        "hideMethod":"fadeOut"
+    }
+    toastr.options.progressBar = true; 
 </script>
+
 </html>

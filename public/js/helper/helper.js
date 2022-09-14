@@ -252,7 +252,6 @@ function getUrl(type, subMenuStorageName, id) {
 
 
 function setErorrsformInputs(errors) {
-    console.log(errors);
     $('.hint-text').each(function (e) {
         $(this).css('opacity', '0');
     });
@@ -372,12 +371,17 @@ const Utils = {
                 success: function (res) {
                     if (res.response < 200 || res.response >= 300) {
                         // handle Request Error
+                        if (typeof res.msg == 'string')
+                            toastr.error('Error information', res.msg);
                     } else {
                         closeModal({ name: '#confirmation-modal', content: null });
+                        toastr.success('Successfully information', res.msg);
                         callback()
                     }
-                }, statusCode: {
-                    403: () => alert('Anda Tidak Berhak Mengakses Menu ini'),
+                },error: function (error) {
+                    toastr.error('Error information', error.msg);
+                },  statusCode: {
+                    403: () => toastr.warning('Warning information', 'You are not allowed to access this menu'),
                 }
             });
 
@@ -399,15 +403,18 @@ const Utils = {
                 success: function (res) {
                     if (res.response < 200 || res.response >= 300) {
                         setErorrsformInputs(res.msg);
+                        if (typeof res.msg == 'string')
+                            toastr.error('Error information', res.msg);
                     } else {
                         clearError();
                         closeModal({ name: '.main-modal', content: '.content-main-modal' });
+                        toastr.success('Successfully information', res.msg);
                         callback(res);
                     }
                 }, error: function (error) {
-                    console.log(error);
+                    toastr.error('Error information', error.msg);
                 }, statusCode: {
-                    403: () => alert('Anda Tidak Berhak Mengakses Menu ini'),
+                    403: () => toastr.warning('Warning information', 'You are not allowed to access this menu'),
                 }
             });
         })

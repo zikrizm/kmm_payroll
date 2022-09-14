@@ -20,7 +20,7 @@
                     {!! FormCustom::input('name', null, [ "placeholder" => 'Enter new your business name']) !!}
                 </div>
                 <div>
-                    <p class='text-gray-700 text-sm font-medium'>Your photo</p>
+                    <p class='text-gray-700 text-sm font-medium'>Your logo</p>
                     <p class='text-gray-500 text-sm font-normal'>This will be displayed on your profile.</p>
                 </div>
                 <div class='flex justify-between items-start'>
@@ -169,6 +169,7 @@
 </form>
 <script>
     window.addEventListener('DOMContentLoaded', async (event) => {
+        $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
         $(function() {
             $('input[name="start_date"]').daterangepicker({
                 singleDatePicker: true,
