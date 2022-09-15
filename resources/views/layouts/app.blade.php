@@ -25,7 +25,8 @@
     <script src="{{ asset('js/plugin/autoNumeric.min.js') }}" type="text/javascript"></script>
     <script src="{{ asset('js/plugin/toastr.min.js') }}" type="module"></script>
     <script src="{{ asset('js/helper/helper.js') }}"></script>
-    <script src="{{ asset('js/remote/api_service.js') }}"></script>
+    <script src="{{ asset('js/remote/networkUtils.js') }}"></script>
+    <script src="{{ asset('js/remote/apiService.js') }}"></script>
 </head>
 
 <body>

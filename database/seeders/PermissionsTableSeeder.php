@@ -71,7 +71,7 @@ class PermissionsTableSeeder extends Seeder
             // ['name' => 'sales_representative.view'],
             // ['name' => 'expense_report.view'],
 
-            // ['name' => 'business_settings.access'],
+            ['name' => 'business_settings.access'],
             // ['name' => 'barcode_settings.access'],
             // ['name' => 'invoice_settings.access'],
 

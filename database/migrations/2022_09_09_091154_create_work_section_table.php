@@ -18,7 +18,7 @@ return new class extends Migration
             $table->integer('business_id')->unsigned();
             $table->integer('shift_id')->unsigned();
             $table->string('name');
-            $table->integer('per');
+            $table->integer('time_period');
             $table->decimal('pay', 22, 2)->default(0);
             $table->decimal('holiday_req_company_pay', 22, 2)->default(0);
             $table->boolean('accumulated_one_shift')->default(0);

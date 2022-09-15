@@ -219,6 +219,7 @@ class FormCustom extends Component
         try {
             $atr = (object)[
                 "id" => '',
+                "currentName" => '',
                 "class" => '',
                 "errormsg" => '',
                 "label" => '',
@@ -230,6 +231,7 @@ class FormCustom extends Component
 
             if (count($attributes) != 0) {
                 if (!empty($attributes['id'])) $atr->id = $attributes['id'];
+                if (!empty($attributes['currentName'])) $atr->currentName = $attributes['currentName'];
                 if (!empty($attributes['class'])) $atr->class = $attributes['class'];
                 if (!empty($attributes['errormsg'])) $atr->errormsg = $attributes['errormsg'];
                 if (!empty($attributes['label'])) $atr->label = $attributes['label'];

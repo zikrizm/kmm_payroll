@@ -3,11 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\Employee;
+use App\Models\Group;
 use App\Models\WorkSection;
 use App\Utils\BusinessUtil;
 use App\Utils\ResponseUtil;
 use Illuminate\Http\Request;
 use App\Services\Api\ApiServices;
+use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Session;
@@ -40,11 +42,38 @@ class EmployeeController extends Controller
         }
 
         try {
+            $business_id = Session::get('business_id');
+            $employees = Employee::where('business_id', $business_id);
             if (request()->ajax()) {
-                $employees = Employee::all();
+                if ($request->has('q')) {
+                    $search = $request->q;
+                    $employees = $employees->where(function ($q) use ($search) {
+                        $q->where('name', 'LIKE', "%" . $search . "%");
+                    });
+                }
+                $employees = $employees->orderBy('name', 'ASC')->paginate(10);
                 $render =  view('employee.table', compact('employees'))->render();
 
                 return $this->buildRes->RESPONSE_REQ('success', $render, null);
+            } else {
+                // $zkteco_employees = $this->apiService->get_employees();
+                // $employees = $employees->get();
+                // $new_employess = [];
+                // foreach ($zkteco_employees as $zkteco_employee) {
+                //     foreach ($employees as $employee) {
+                //         if (strtolower($employee->name) == strtolower($zkteco_employee->name)) {
+                //             $new_employess[] = [
+                //                 'name' => $zkteco_employee->name,
+                //                 'status' => 'active',
+                //                 'gender' => '',
+                //                 'daily_salary',
+                //                 'pay_component'
+                //             ];
+                //         }
+                //     }
+                // }
+
+                // Log::info(response()->json($new_employess));
             }
 
             return  view('employee.index');
@@ -67,9 +96,12 @@ class EmployeeController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
+
         try {
-            $work_sections = WorkSection::all();
-            $render = view('employee.create', compact('work_sections'))->render();
+            $business_id = Session::get('business_id');
+            $work_sections = WorkSection::where('business_id', $business_id)->get();
+            $groups = Group::where('business_id', $business_id)->get();
+            $render = view('employee.create', compact('work_sections', 'groups'))->render();
 
             return $this->buildRes->RESPONSE_REQ('success', $render, null);
         } catch (\Exception $e) {
@@ -90,14 +122,13 @@ class EmployeeController extends Controller
         if (!auth()->user()->can('employee.create')  || !$request->ajax()) {
             abort(403, 'Unauthorized action.');
         }
-        Log::info($request);
         try {
-            $validator = Validator::make($request->all(), $this->rules('POST', null));
+            $validator = Validator::make($request->all(), $this->rules());
 
             if ($validator->fails()) {
                 return $this->buildRes->RESPONSE_REQ('error', null, $validator->errors());
             } else {
-                $employee_data = $request->only(['name', 'status', 'email', 'gender', 'password']);
+                $employee_data = $request->only(['name', 'status', 'email', 'gender', 'work_section_id', 'group_id', 'daily_salary', 'pay_component']);
                 if (!empty($request->input('password'))) {
                     $employee_data['password'] = Hash::make($request->input('password'));
                 }
@@ -112,7 +143,7 @@ class EmployeeController extends Controller
                 $employee = new Employee($employee_data);
                 $employee->save();
 
-                return $this->buildRes->RESPONSE_REQ('success', null,  'Add employee succesfully');
+                return $this->buildRes->RESPONSE_REQ('success', null,  'Add employee data successfully');
             }
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
@@ -129,7 +160,7 @@ class EmployeeController extends Controller
      */
     public function show($id)
     {
-        if (!auth()->user()->can('user.view')) {
+        if (!auth()->user()->can('employee.view')) {
             abort(403, 'Unauthorized action.');
         }
     }
@@ -138,23 +169,27 @@ class EmployeeController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  int  $user
+     * @param  Employee $employee
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function edit($user, Request $request)
+    public function edit(Employee $employee, Request $request)
     {
-        if (!auth()->user()->can('user.update') || !$request->ajax()) {
+        if (!auth()->user()->can('employee.update') || !$request->ajax()) {
             abort(403, 'Unauthorized action.');
         }
 
         try {
-            $roles = Role::all();
-            $user = app(Services::class)->findUserByIdWith($user, ['roles']);
-            $render = view('manage_user.edit', compact('roles', 'user'))->render();
+            $business_id = Session::get('business_id');
+            $work_sections = WorkSection::where('business_id', $business_id)->get();
+            $groups = Group::where('business_id', $business_id)->get();
+
+            $render = view('employee.edit', compact('work_sections', 'groups'))->render();
 
             return $this->buildRes->RESPONSE_REQ('success', $render, null);
-        } catch (\Exception $error) {
+        } catch (\Exception $e) {
+            Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
+
             return $this->buildRes->RESPONSE_REQ('error', null, 'something wrong');
         }
     }
@@ -163,48 +198,36 @@ class EmployeeController extends Controller
      * Update the specified resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  User  $user
+     * @param  Employee $employee
      * @return \Illuminate\Http\Response
      */
-    public function update(User $user, Request $request)
+    public function update(Employee $employee, Request $request)
     {
-        if (!auth()->user()->can('user.update') || !$request->ajax()) {
+        if (!auth()->user()->can('employee.update') || !$request->ajax()) {
             abort(403, 'Unauthorized action.');
         }
-        Log::info($request);
 
         try {
-            $validator = Validator::make($request->all(), $this->rules("PUT", $user));
+            $validator = Validator::make($request->all(), $this->rules());
 
             if ($validator->fails()) {
                 return $this->buildRes->RESPONSE_REQ('error', null, $validator->errors());
             } else {
-                $user_data = $request->only(['surname', 'first_name', 'last_name', 'status', 'email', 'username', 'password', 'role']);
-
+                $employee_data = $request->only(['name', 'status', 'email', 'gender', 'work_section_id', 'group_id', 'daily_salary', 'pay_component']);
                 if (!empty($request->input('password'))) {
-                    $user_data['password'] = Hash::make($request->input('password'));
+                    $employee_data['password'] = Hash::make($request->input('password'));
                 }
+
+                $employee_data['business_id'] = Session::get('business_id');
 
                 // upload logo
                 $photo_profile = $this->businessUtil->uploadFile($request, 'photo', 'profiles', 'image');
                 if (!empty($photo_profile)) {
-                    $user_data['photo'] = $photo_profile;
+                    $employee_data['photo'] = $photo_profile;
                 }
+                $employee->update($employee_data);
 
-                $user->update($user_data);
-                $role_id = $request->input('role');
-                $user_role = $user->roles->first();
-                $previous_role = !empty($user_role->id) ? $user_role->id : 0;
-                if ($previous_role != $role_id) {
-                    if (!empty($previous_role)) {
-                        $user->removeRole($user_role->name);
-                    }
-
-                    $role = Role::findOrFail($role_id);
-                    $user->assignRole($role->name);
-                }
-
-                return $this->buildRes->RESPONSE_REQ('success', null, 'user update succesfully');
+                return $this->buildRes->RESPONSE_REQ('success', null,  'Update employee data successfully');
             }
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
@@ -216,21 +239,20 @@ class EmployeeController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  int  $id
+     * @param  Employee $employee
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id, Request $request)
+    public function destroy(Employee $employee, Request $request)
     {
-        if (!auth()->user()->can('user.delete') || !$request->ajax()) {
+        if (!auth()->user()->can('employee.delete') || !$request->ajax()) {
             abort(403, 'Unauthorized action.');
         }
 
         try {
-            $user = app(Services::class)->findUserById($id);
-            $user->delete();
+            $employee->delete();
 
-            return $this->buildRes->RESPONSE_REQ('success', null, 'user delete succesfully');
+            return $this->buildRes->RESPONSE_REQ('success', null, 'Delete employee data successfully');
         } catch (\Exception $e) {
             return $this->buildRes->RESPONSE_REQ('error', null, 'something wrong');
         }
@@ -239,42 +261,19 @@ class EmployeeController extends Controller
     /**
      * Rules validation user.
      *
-     * @param  string  $method
-     * @param  User $idUser
      * @return array
      */
-    public function rules($method, $user)
+    public function rules()
     {
-
-        switch ($method) {
-            case 'GET':
-            case 'DELETE':
-            case 'PATCH':
-            case 'POST': {
-                    return [
-                        'first_name' => 'required|string|max:255',
-                        'username' => 'required|string|max:255|unique:users',
-                        'email' => 'required|string|email:rfc,dns|unique:users',
-                        'password' => 'required|string|min:6',
-                        'role' => 'string|exists:roles,id',
-                        'status' => 'required|string',
-                        'image' => 'image|file|max:2000',
-                    ];
-                }
-                break;
-            case 'PUT':
-                return [
-                    'first_name' => 'required|string|max:255',
-                    'username' => 'required|string|max:255|unique:users,username,' . $user->id,
-                    'email' => 'required|string|email:rfc,dns|unique:users,email,' . $user->id,
-                    'password' => 'required|string|min:6',
-                    'role' => 'string|exists:roles,id',
-                    'status' => 'required|string',
-                    'image' => 'image|file|max:2000',
-                ];
-                break;
-            default:
-                break;
-        }
+        return [
+            'name' => 'required|string|max:255',
+            'gender' => 'required|string',
+            'email' => 'required|nullable|email|unique:users|max:255',
+            'work_section_id' => 'string|exists:work_sections,id',
+            'group_id' => 'string|exists:groups,id',
+            'daily_salary' => 'required|string',
+            'pay_component' => 'string',
+            'status' => 'required|string',
+        ];
     }
 }

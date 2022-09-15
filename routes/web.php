@@ -24,12 +24,12 @@ Route::post('/business/register', 'BusinessController@storeBusinessRegister')->n
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/home', 'HomeController@index')->name('home.index');
-    Route::get('logout', '\App\Http\Controllers\Auth\LoginController@logout')->name('logout');
-    
-    Route::resource('users', 'ManageUserController',['except' => ['update']]);
+    Route::get('/get-token-zkteco', 'HomeController@get_token_zkteco')->name('get_token_zkteco')->middleware('only.ajax');
+
+    Route::resource('users', 'ManageUserController', ['except' => ['update']]);
     Route::post('/users/{user}', 'ManageUserController@update')->name('users.update');
-    
-    Route::resource('employees', 'EmployeeController',['except' => ['update']]);
+
+    Route::resource('employees', 'EmployeeController', ['except' => ['update']]);
     Route::post('/employees/{employee}', 'EmployeeController@update')->name('employees.update');
 
     Route::resource('access-controls', 'AccessControlController', ['except' => ['update']]);
@@ -59,4 +59,6 @@ Route::middleware(['auth'])->group(function () {
 
     // Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
     // Route::middleware('role:admin')->get('/dashboard', [App\Http\Controllers\HomeController::class, 'index'])->name('dashboard');
+
+    Route::get('logout', '\App\Http\Controllers\Auth\LoginController@logout')->name('logout');
 });

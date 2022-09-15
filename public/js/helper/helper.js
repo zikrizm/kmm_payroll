@@ -201,13 +201,15 @@ function removePhoto(inputHid, imgID, inputFile, node) {
 }
 
 
-function handletogglebutton(defautlValue) {
+function handletogglebutton(defautlValue, currentName) {
     if (defautlValue) {
-        $('.btn-status').each(function (e) {
+        $('.btn-status.' + currentName).each(function (e) {
             var value = $(this).val();
+            console.log('defautlValue', defautlValue)
+            console.log('value', value)
             if (value.toLowerCase() == defautlValue.toLowerCase()) {
                 $(this).toggleClass("bg-gray-100");
-                $('#togglebutton').val($(this).val());
+                $('.' + currentName).val($(this).val());
             }
         });
     }
@@ -219,7 +221,7 @@ function handletogglebutton(defautlValue) {
                 $(this).removeClass('bg-gray-100')
         });
         $(this).toggleClass("bg-gray-100");
-        $('#togglebutton').val($(this).val());
+        $('.' + currentName).val($(this).val());
     });
 }
 
@@ -252,9 +254,11 @@ function getUrl(type, subMenuStorageName, id) {
 
 
 function setErorrsformInputs(errors) {
+    console.log('errors', errors)
     $('.hint-text').each(function (e) {
         $(this).css('opacity', '0');
     });
+    console.log('typeof errors', typeof errors)
     if (typeof errors != 'string') {
         if (Object.keys(errors).length != 0) {
             for (const error in errors) {
@@ -372,15 +376,15 @@ const Utils = {
                     if (res.response < 200 || res.response >= 300) {
                         // handle Request Error
                         if (typeof res.msg == 'string')
-                            toastr.error('Error information', res.msg);
+                            toastr.error(res.msg, 'Error information');
                     } else {
                         closeModal({ name: '#confirmation-modal', content: null });
-                        toastr.success('Successfully information', res.msg);
+                        toastr.success(res.msg, 'Successfully information');
                         callback()
                     }
-                },error: function (error) {
-                    toastr.error('Error information', error.msg);
-                },  statusCode: {
+                }, error: function (error) {
+                    toastr.error(error.msg, 'Error information');
+                }, statusCode: {
                     403: () => toastr.warning('Warning information', 'You are not allowed to access this menu'),
                 }
             });
@@ -403,21 +407,56 @@ const Utils = {
                 success: function (res) {
                     if (res.response < 200 || res.response >= 300) {
                         setErorrsformInputs(res.msg);
-                        if (typeof res.msg == 'string')
-                            toastr.error('Error information', res.msg);
+                        if (typeof res.msg == 'string') {
+                            toastr.error(res.msg, 'Error information');
+                        }
+                        // else {
+                        //     if (Object.keys(res.msg).length != 0) {
+                        //         for (const error in res.msg) {
+                        //             toastr.error(res.msg[error][0], 'Error information');
+                        //         }
+                        //     }
+                        // }
+
+                        callback(null);
                     } else {
                         clearError();
                         closeModal({ name: '.main-modal', content: '.content-main-modal' });
-                        toastr.success('Successfully information', res.msg);
+                        toastr.success(res.msg, 'Successfully information');
                         callback(res);
                     }
                 }, error: function (error) {
-                    toastr.error('Error information', error.msg);
+                    toastr.error(error.msg, 'Error information');
                 }, statusCode: {
                     403: () => toastr.warning('Warning information', 'You are not allowed to access this menu'),
                 }
             });
         })
 
+    }
+}
+
+class Toggle {
+    button(name, default_value, option) {
+        if (default_value) {
+            $('.btn-toggle-custom' + name).each(function (e) {
+                var value = $(this).val();
+
+                if (value.toLowerCase() == default_value.toLowerCase()) {
+                    $(this).toggleClass("bg-gray-100");
+                    $(this).parent().children(':first-child').val($(this).val());
+                }
+            });
+        }
+
+        $('.btn-toggle-custom' + name).on('click', function (e) {
+            $('.btn-toggle-custom' + name).each(function (e) {
+                var hasClass = $(this).hasClass("bg-gray-100");
+                if (hasClass) $(this).removeClass('bg-gray-100')
+            });
+
+            $(this).toggleClass("bg-gray-100");
+            $(this).parent().children(':first-child').val($(this).val());
+        });
     }
 }

@@ -1,13 +1,15 @@
 <main class="flex flex-col gap-8  pt-4 w-[375px] xs/max:w-[280px]">
     <header class="px-4 flex flex-col gap-5 pt-4 xs/max:gap-3 relative">
-        <button class="absolute top-[-5px] right-3 xs/max:top-[-6px] modal-close hover:bg-gray-100 
+        <button
+            class="absolute top-[-5px] right-3 xs/max:top-[-6px] modal-close hover:bg-gray-100 
         text-red rounded p-2">
             <x-icon icon="x" width=16 height=16 viewBox="20 20" />
         </button>
         <div class="flex flex-col gap-1">
             <div class="flex items-start gap-2">
-                <div class="rounded-full bg-violet-50 p-2.5 box-border mr-2 text-violet-800">
-                    <x-icon icon="user" width=20 height=20 viewBox="20 20" />
+                <div
+                    class="rounded-full bg-violet-100 p-1.5 border-[4px] border-violet-50 box-border mr-2 text-violet-800">
+                    <x-icon icon="user" width=18 height=18 viewBox="20 20" />
                 </div>
                 <div>
                     <p class="text-2xl font-bold text-gray-900 xs/max:text-xl xs/max:font-semibold">Employee</p>
@@ -19,7 +21,8 @@
         </div>
         <hr>
     </header>
-    <form autocomplete="off" action="{{ route('employees.update', ['employee' => $employee->id]) }}" method="POST" class="submit-employee">
+    <form autocomplete="off" action="{{ route('employees.update', ['employee' => $employee->id]) }}" method="POST"
+        class="submit-employee">
         @csrf
         <!-- {{ csrf_field() }} -->
         <main class="px-4 flex flex-col gap-4 xs/max:gap-3 mb-8">
@@ -48,34 +51,50 @@
             </div>
             <section class="flex flex-col gap-1">
                 <label class="font-normal text-sm text-gray-500 xs/max:text-xs">name*</label>
-                {!! FormCustom::input('name', $employee->name, [ "placeholder" => 'Enter new your name']) !!}
+                {!! FormCustom::input('name', $employee->name, ['placeholder' => 'Enter new your name']) !!}
             </section>
             <section class="flex flex-col gap-1">
                 <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Email*</label>
-                {!! FormCustom::input('email', $employee->email, [ "placeholder" => 'Enter new your email', 'type' => 'email'])
-                !!}
+                {!! FormCustom::input('email', $employee->email, ['placeholder' => 'Enter new your email', 'type' => 'email']) !!}
             </section>
             <section class="flex flex-col gap-1">
-                <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Password*</label>
-                {!! FormCustom::input('password', null, [ "placeholder" => 'Enter new your password', 'type' =>
-                'password']) !!}
+                <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Gender*</label>
+                {!! FormCustom::togglebutton('gender', $employee->gender, ['Pria', 'Wanita'], []) !!}
             </section>
-            <section class="flex flex-col gap-1">
+            <section class="flex flex-col gap-1 mb-4">
                 <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Status*</label>
-                <div class="border rounded-xl xs/max:rounded-lg w-max shadow-sm flex overflow-hidden">
-                    <input type="hidden" name="status" id="status-user" value="{{ $user->status }}">
-                    <button type="button"
-                        class="text-sm xs/max:text-xs text-normal text-gray-600 px-4 py-1.5 border-r btn-status {{ $user->status == 'active' ? 'bg-gray-100' : '' }}"
-                        value="active">
-                        Active
-                    </button>
-                    <button type="button"
-                        class="text-sm xs/max:text-xs text-normal text-gray-600 px-4 py-1.5 btn-status {{ $user->status == 'inactive' ? 'bg-gray-100' : '' }}"
-                        value="inactive">
-                        Inactive
-                    </button>
-                </div>
-                <label class="font-normal text-xs text-red-500 xs/max:text-xs status text-error"></label>
+                {!! FormCustom::togglebutton('status', $employee->status, ['Active', 'Inactive'], []) !!}
+            </section>
+            <section class="flex flex-col gap-1">
+                <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Work section*</label>
+                <select class="select2" name="work_section_id" required>
+                    <option value="" disabled selected>Silahkan Pilih</option>
+                    @foreach ($work_sections as $work_section)
+                        <option value="{{ $work_section->id }}"
+                            {{ $employee->work_section_id == $work_section->id ? 'selected' : '' }}>
+                            {{ $work_section->name }}</option>
+                    @endforeach
+                </select>
+                <label class="font-normal text-xs text-red-500 xs/max:text-xs role text-error"></label>
+            </section>
+            <section class="flex flex-col gap-1">
+                <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Group*</label>
+                <select class="select2" name="group_id" required>
+                    <option value="" disabled selected>Silahkan Pilih</option>
+                    @foreach ($groups as $group)
+                        <option value="{{ $group->id }}" {{ $employee->group_id == $group->id ? 'selected' : '' }}>
+                            {{ $group->name }}</option>
+                    @endforeach
+                </select>
+                <label class="font-normal text-xs text-red-500 xs/max:text-xs role text-error"></label>
+            </section>
+            <section class="flex flex-col gap-1">
+                <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Daily salary*</label>
+                {!! FormCustom::input('daily_salary', $employee->daily_salary, ['class' => 'number', 'placeholder' => '-', 'prefixtext' => 'Rp']) !!}
+            </section>
+            <section class="flex flex-col gap-1">
+                <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Pay component*</label>
+                {!! FormCustom::input('pay_component', $employee->pay_component, ['class' => 'number', 'placeholder' => '-', 'prefixtext' => 'Rp']) !!}
             </section>
         </main>
         <hr>

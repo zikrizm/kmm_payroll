@@ -25,6 +25,7 @@ return new class extends Migration
             $table->decimal('daily_salary', 22, 4)->default(0);
             $table->decimal('pay_component', 22, 4)->default(0);
             $table->enum('status', ['active', 'inactive'])->default('active');
+            $table->enum('payment_period', ['mounthly', 'weekly', 'daily'])->default('weekly');
 
             $table->foreign('business_id')->references('id')->on('business')->onDelete('cascade');
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');

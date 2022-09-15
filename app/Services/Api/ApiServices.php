@@ -5,21 +5,28 @@ namespace App\Services\Api;
 use App\Services\Api\NetworkUtils;
 use Illuminate\Support\Facades\Log;
 use App\Exceptions\DataNotFoundException;
+use App\Models\ZktecoSettings;
 
 class ApiServices extends NetworkUtils
 {
 
     public function get_token_zkteco()
     {
-        $data = [
-            'username' => 'admin',
-            'password' => 'ciptakanjuara123',
-        ];
-        $res = $this->emitter('POST', '/jwt-api-token-auth', $data);
-        if ($res['response'] < 200 || $res['response'] >= 300) {
-            throw new DataNotFoundException($res->msg);
+        $zkteco_setting = ZktecoSettings::where('is_login', true)->first();
+        if ($zkteco_setting) {
+            $data = [
+                'username' => $zkteco_setting->username,
+                'password' => $zkteco_setting->password,
+            ];
+
+            $res = (object)$this->emitter('POST', "jwt-api-token-auth/", $data);
+            if ($res->response < 200 || $res->response >= 300) {
+                return $res;
+            } else {
+                return $res;
+            }
         } else {
-            return $res['data'];
+            return $this->buildRes->RESPONSE_REQ('error', null, 'No user logged into bio time API');
         }
     }
 

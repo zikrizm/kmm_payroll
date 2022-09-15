@@ -46,7 +46,6 @@ class BusinessController extends Controller
     public function storeBusinessRegister(Request $request)
     {
         try {
-            Log::info($request);
             $validator = Validator::make($request->all(), [
                 'name' => 'required|max:255',
                 'country' => 'required|max:255',
@@ -119,6 +118,9 @@ class BusinessController extends Controller
      */
     public function getBusinessSettings()
     {
+        if (!auth()->user()->can('business_settings.access') || !$request->ajax()) {
+            abort(403, 'Unauthorized action.');
+        }
         $business_id = Session::get('business_id');
         $business = Business::where('id', $business_id)->first();
         return view('business.settings', compact('business'));
@@ -131,8 +133,10 @@ class BusinessController extends Controller
      */
     public function updateBusinessSettings(Request $request)
     {
+        if (!auth()->user()->can('business_settings.access') || !$request->ajax()) {
+            abort(403, 'Unauthorized action.');
+        }
         try {
-            Log::info($request);
             $validator = Validator::make($request->all(), [
                 'name' => 'required|string|max:255',
             ]);

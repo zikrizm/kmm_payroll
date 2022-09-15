@@ -2,17 +2,31 @@
 
 namespace App\Http\Controllers;
 
+use App\Utils\BusinessUtil;
+use App\Utils\ResponseUtil;
 use Illuminate\Http\Request;
+use App\Services\Api\ApiServices;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Session;
 
 class HomeController extends Controller
 {
+
+    private $apiService;
+    private $buildRes;
+    private $businessUtil;
+
     /**
      * Create a new controller instance.
      *
      * @return void
      */
-    public function __construct()
+    public function __construct(BusinessUtil $businessUtil, ApiServices $service, ResponseUtil $buildRes)
     {
+        $this->businessUtil = $businessUtil;
+        $this->apiService = $service;
+        $this->buildRes = $buildRes;
         $this->middleware('auth');
     }
 
@@ -21,8 +35,32 @@ class HomeController extends Controller
      *
      * @return \Illuminate\Contracts\Support\Renderable
      */
-    public function index()
+    public function index(Request $request)
     {
-        return view('page.home.index');
+
+        try {
+            return view('page.home.index');
+        } catch (\Exception $e) {
+            Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
+        }
+    }
+
+
+    public function get_token_zkteco(Request $request)
+    {
+        try {
+            $res = $this->apiService->get_token_zkteco();
+            if ($res && $res->status != 'error') {
+                Session::put('token_zkteco', $res->data->token);
+
+                return $this->buildRes->RESPONSE_REQ('success', null, ['success' => 'Get token zkteco succesfully']);
+            } else {
+                return $this->buildRes->RESPONSE_REQ('error', null, $res->msg);
+            }
+        } catch (\Exception $e) {
+            Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
+
+            return $this->buildRes->RESPONSE_REQ('error', null, ['something_wrong' => ['Something wrong']]);
+        }
     }
 }

@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             PermissionsTableSeeder::class,
             UserTableSeeder::class,
+            ZktecoSettingsTabelSeeder::class,
         ]);
     }
 }
