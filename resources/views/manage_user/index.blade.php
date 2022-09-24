@@ -23,21 +23,54 @@
                 </button>
             </div>
         </header>
-        <div class="table-content flex-1 flex flex-col"></div>
+        <div class="table-content flex flex-col bg-white rounded-lg p-3">
+            <table class="table table-bordered yajra-datatable">
+                <thead>
+                    <tr>
+                        <th>username</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
     </main>
 </div>
-<x-modal-confirmation classSubmit="submit-delete-user" > </x-modal-confirmation>
+<x-modal-confirmation classSubmit="submit-delete-user"> </x-modal-confirmation>
+<script type="module">
+    $(function () {
+                $('.select2').select2();
+            var table = $('.yajra-datatable').DataTable({
+                processing: true,
+                serverSide: true,
+                ajax: "{{ route('users.index') }}",
+                columns: [
+                    {data: 'username', name: 'username'},
+                    // {data: 'email', name: 'email'},
+                    // {data: 'username', name: 'username'},
+                    // {data: 'phone', name: 'phone'},
+                    // {data: 'dob', name: 'dob'},
+                    // {
+                    //     data: 'action', 
+                    //     name: 'action', 
+                    //     orderable: true, 
+                    //     searchable: true
+                    // },
+                ]
+            });
+            
+        });
+</script>
 <script type="application/javascript">
-    window.addEventListener('DOMContentLoaded', (event) => {
-        $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
-        $('.select2').select2();
+    // window.addEventListener('DOMContentLoaded', (event) => {
+    //     $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
+    //     $('.select2').select2();
 
-        $(".search-input").on('keyup', debounce(function() {
-            onInit(null, $(this).val());
-        }, 250));
+    //     // $(".search-input").on('keyup', debounce(function() {
+    //     //     onInit(null, $(this).val());
+    //     // }, 250));
 
-        onInit()
-    });
+    //     onInit()
+    // });
 
     async function onInit(page, q = '') {
         // **
@@ -64,7 +97,8 @@
         var URL = (idUser) ? '/users/' + idUser + '/edit' : '/users/create';
         var res = await Utils.modal(URL, null);
         $('.select2').select2();
-        handletogglebutton((!idUser) ? 'active': '');
+        var toggle = new Toggle();
+        var toggleStatus = toggle.button('status', (!idUser) ? 'active': '', {})
 
         // **
         // * submit form ----->

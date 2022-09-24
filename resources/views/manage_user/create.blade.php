@@ -6,7 +6,8 @@
         </button>
         <div class="flex flex-col gap-1">
             <div class="flex items-start gap-2">
-                <div class="rounded-full bg-violet-100 p-1.5 border-[4px] border-violet-50 box-border mr-2 text-violet-800">
+                <div
+                    class="rounded-full bg-violet-100 p-1.5 border-[4px] border-violet-50 box-border mr-2 text-violet-800">
                     <x-icon icon="user" width=18 height=18 viewBox="20 20" />
                 </div>
                 <div>
@@ -70,7 +71,7 @@
             </section>
             <section class="flex flex-col gap-1">
                 <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Password*</label>
-                {!! FormCustom::input('password', null, [ "placeholder" => 'Enter new your passowrd', 'type' =>
+                {!! FormCustom::input('password', null, [ "placeholder" => 'Enter new your password', 'type' =>
                 'password']) !!}
             </section>
             <section class="flex flex-col gap-1 mb-4">

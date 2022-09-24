@@ -188,7 +188,6 @@ class AccessControlController extends Controller
                 ->where('id', '!=', $id)
                 ->where('business_id', $business_id)
                 ->count();
-                Log::info($count);
             if ($count == 0) {
                 $role = Role::findOrFail($id);
                 if (!$role->is_default || $role->name == 'Cashier#' . $business_id) {

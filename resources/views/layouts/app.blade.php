@@ -15,18 +15,45 @@
     <link href="https://fonts.googleapis.com/css?family=Nunito" rel="stylesheet">
 
     <!-- Scripts -->
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @vite([
+    'resources/js/app.js',
+    'resources/plugins/Select2/css/select2.min.css',
+    'resources/plugins/Select2/js/select2.full.min.js',
+    'resources/plugins/Toastr/toastr.min.css',
+    'resources/plugins/Toastr/toastr.min.js',
+    // 'resources/plugins/DataTables002/datatables.min.css',
+    // 'resources/plugins/DataTables002/datatables.min.js',
+    'resources/css/app.css',
+    'resources/css/custom.css',
+    // 'resources/plugins/DataTables/DataTables-1.10.16/js/jquery.dataTables.min.js',
+    // 'resources/plugins/DataTables/datatables.min.js',
+    // 'resources/plugins/DataTables/pdfmake-0.1.32/pdfmake.min.js',
+    // 'resources/plugins/DataTables/pdfmake-0.1.32/vfs_fonts.js',
+    // 'resources/plugins/DataTables/DataTables-1.10.16/css/dataTables.jqueryui.min.css',
+    // 'resources/plugins/DataTables/DataTables-1.10.16/js/dataTables.jqueryui.min.js',
+    // 'resources/plugins/DataTables/pdfmake-0.1.32/pdfmake.js',
+    // 'resources/plugins/DataTables/pdfmake-0.1.32/vfs_fonts.js',
+    // 'resources/plugins/DataTables/datatables.js',
+    ])
+
+    <script src="{{ asset('js/Helper/helper.js') }}"></script>
+    <script src="{{ asset('js/Remote/network_utils.js') }}"></script>
+    <script src="{{ asset('js/Remote/api_service.js') }}"></script>
+
+    {{--
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
     <link href="{{ asset('css/daterangepicker.css') }}" rel="stylesheet">
     <link href="{{ asset('css/toastr.min.css') }}" rel="stylesheet">
+    <link href="{{ asset('css/datatables.min.css') }}" rel="stylesheet">
     <script type="module" src="{{ asset('js/plugin/daterangepicker.js') }}"></script>
     <script src="{{ asset('js/plugin/JIC.js') }}" type="text/javascript"></script>
     <script src="{{ asset('js/plugin/moment.min.js') }}" type="text/javascript"></script>
     <script src="{{ asset('js/plugin/autoNumeric.min.js') }}" type="text/javascript"></script>
     <script src="{{ asset('js/plugin/toastr.min.js') }}" type="module"></script>
+    <script src="{{ asset('js/plugin/datatables.min.js') }}" type="module"></script>
     <script src="{{ asset('js/helper/helper.js') }}"></script>
     <script src="{{ asset('js/remote/networkUtils.js') }}"></script>
-    <script src="{{ asset('js/remote/apiService.js') }}"></script>
+    <script src="{{ asset('js/remote/apiService.js') }}"></script> --}}
 </head>
 
 <body>
@@ -89,7 +116,7 @@
         </nav> --}}
 
         <div class="flex w-full h-screen">
-            @include('partials.asidebar')
+            @include('partials.menus.menu')
             <div class="flex flex-col h-full flex-1 overflow-auto bg-white">
                 @include('partials.header')
                 <main class="w-full bg-light-bg flex-1">
@@ -106,7 +133,7 @@
         "progressBar":true,
         "positionClass":"toast-top-right",
         "onclick":null,
-        "showDuration":300,
+        "showDuration":1000,
         "hideDuration":300,
         "timeOut":5000,
         "extendedTimeOut":5000,
@@ -115,7 +142,6 @@
         "showMethod":"fadeIn",
         "hideMethod":"fadeOut"
     }
-    toastr.options.progressBar = true; 
 </script>
 
 </html>

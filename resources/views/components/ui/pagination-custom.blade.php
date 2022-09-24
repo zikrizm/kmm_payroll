@@ -1,6 +1,7 @@
 @if ($pagination->count() != 0)
 <footer class="flex justify-between items-center pb-4 pt-3">
-    <p class="text-gray-700 text-sm">Page <span>{{ $pagination->currentPage() }}</span> of <span>{{ $pagination->lastPage()
+    <p class="text-gray-700 text-sm">Page <span>{{ $pagination->currentPage() }}</span> of <span>{{
+            $pagination->lastPage()
             }}</span></p>
     <div class="flex gap-3 pagination-custom">
         @if (!$pagination->onFirstPage())

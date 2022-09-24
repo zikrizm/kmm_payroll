@@ -53,7 +53,7 @@
                 <div class="flex items-start gap-3">
                     <div class="flex-1 flex flex-col gap-1">
                         <label class="text-sm font-normal text-gray-500">Per minute*</label>
-                        {!! FormCustom::input('payment_period', null, [ "placeholder" => '-', 'class' => 'number']) !!}
+                        {!! FormCustom::input('time_period', null, [ "placeholder" => '-', 'class' => 'number']) !!}
                     </div>
                     <div class="flex-2 flex flex-col gap-1">
                         <label class="text-sm font-normal text-gray-500">Pay*</label>

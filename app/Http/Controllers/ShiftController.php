@@ -201,7 +201,7 @@ class ShiftController extends Controller
         try {
             $shift->delete();
 
-            return $this->buildRes->RESPONSE_REQ('success', null, 'user delete succesfully');
+            return $this->buildRes->RESPONSE_REQ('success', null, 'Shift delete succesfully');
         } catch (\Exception $e) {
             return $this->buildRes->RESPONSE_REQ('error', null, 'something wrong');
         }

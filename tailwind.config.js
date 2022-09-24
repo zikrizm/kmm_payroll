@@ -24,6 +24,7 @@ module.exports = {
     },
     extend: {
       colors: {
+        'violet-25' : '#f8f7ff',
         'gray-dark-mode': '#1e1f20',
         'light-primary': '#3A36DB',
         'light-secondary': '#FF69B4',

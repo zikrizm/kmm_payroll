@@ -65,8 +65,8 @@
         var res = await Utils.modal(URL, null);
         $(".select2").select2()
         var anElement = new AutoNumeric.multiple('.number',{decimalPlaces:0,minimumValue: 0});
-        handletogglebutton((!idWorkSection) ? 'active': '')
-
+        var toggle = new Toggle();
+        var toggleStatus = toggle.button('status', (!idWorkSection) ? 'active': '', {})
         // **
         // * submit form ----->
         // *

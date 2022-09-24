@@ -1,4 +1,4 @@
-<main class="flex flex-col gap-8  pt-4 w-[375px] xs/max:w-[280px]">
+<main class="flex flex-col gap-8 pt-4 w-full">
     <header class="px-4 flex flex-col gap-5 pt-4 xs/max:gap-3 relative">
         <button
             class="absolute top-[-5px] right-3 xs/max:top-[-6px] modal-close hover:bg-gray-100 
@@ -25,7 +25,7 @@
         @csrf
         <!-- {{ csrf_field() }} -->
         <main class="px-4 flex flex-col gap-4 xs/max:gap-3 mb-8">
-            <div>
+            {{-- <div>
                 <p class='text-gray-700 text-sm font-medium'>Your photo</p>
                 <p class='text-gray-500 text-sm font-normal'>This will be displayed on your profile.</p>
             </div>
@@ -52,13 +52,19 @@
                 <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Status*</label>
                 {!! FormCustom::togglebutton('status', null, ['Active', 'Inactive'], []) !!}
             </section>
-            <section class="flex flex-col gap-1">
-                <label class="font-normal text-sm text-gray-500 xs/max:text-xs">name*</label>
-                {!! FormCustom::input('name', null, ['placeholder' => 'Enter new your name']) !!}
-            </section>
-            <section class="flex flex-col gap-1">
-                <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Email</label>
-                {!! FormCustom::input('email', null, ['placeholder' => 'Enter new your email', 'type' => 'email']) !!}
+            <section class="flex gap-3">
+                <section class="flex flex-1 flex-col gap-1">
+                    <label class="font-normal text-sm text-gray-500 xs/max:text-xs">First_name*</label>
+                    {!! FormCustom::input('first_name', null, ['placeholder' => 'Enter new your first name']) !!}
+                </section>
+                <section class="flex flex-1 flex-col gap-1">
+                    <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Last name</label>
+                    {!! FormCustom::input('last_name', null, ['placeholder' => 'Enter new your last name']) !!}
+                </section>
+                <section class="flex flex-1 flex-col gap-1">
+                    <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Nickname</label>
+                    {!! FormCustom::input('nickname', null, ['placeholder' => 'Enter new your nickname']) !!}
+                </section>
             </section>
             <section class="flex flex-col gap-1">
                 <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Gender*</label>
@@ -101,7 +107,7 @@
             <section class="flex flex-col gap-1">
                 <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Pay component*</label>
                 {!! FormCustom::input('pay_component', null, ['class' => 'number', 'placeholder' => '-', 'prefixtext' => 'Rp']) !!}
-            </section>
+            </section> --}}
         </main>
         <hr>
         <footer class="flex justify-end items-center gap-3 p-4  pb-6">

@@ -21,7 +21,7 @@ return new class extends Migration
             $table->dateTime('start_date');
             $table->dateTime('end_date');
 
-            $table->enum('status',['active','inactive'])->default('active');
+            // $table->enum('status',['active','inactive'])->default('active');
             $table->foreign('business_id')->references('id')->on('business')->onDelete('cascade');
             $table->timestamps();
         });

@@ -64,8 +64,8 @@
         var URL = (idGroup) ? '/groups/' + idGroup + '/edit' : '/groups/create';
         var res = await Utils.modal(URL, null);
         $('.select2').select2();
-        handletogglebutton((!idGroup) ? 'active': '')
-
+        var toggle = new Toggle();
+        var toggleStatus = toggle.button('status', (!idGroup) ? 'active': '', {})
         // **
         // * submit form ----->
         // *

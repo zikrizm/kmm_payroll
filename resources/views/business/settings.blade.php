@@ -45,7 +45,7 @@
         $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
        
         var resSubmit = Utils.submit('.submit-business-setting', (data) => { 
-
+            $('#remove-img').addClass('hidden');
         });
 
         $(function() {

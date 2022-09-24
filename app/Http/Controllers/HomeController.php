@@ -50,17 +50,11 @@ class HomeController extends Controller
     {
         try {
             $res = $this->apiService->get_token_zkteco();
-            if ($res && $res->status != 'error') {
-                Session::put('token_zkteco', $res->data->token);
-
+                Session::put('token_zkteco', $res['data']['token']);
                 return $this->buildRes->RESPONSE_REQ('success', null, ['success' => 'Get token zkteco succesfully']);
-            } else {
-                return $this->buildRes->RESPONSE_REQ('error', null, $res->msg);
-            }
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
-
-            return $this->buildRes->RESPONSE_REQ('error', null, ['something_wrong' => ['Something wrong']]);
+            return $this->buildRes->RESPONSE_REQ('error', null, unserialize($e->getMessage()));
         }
     }
 }

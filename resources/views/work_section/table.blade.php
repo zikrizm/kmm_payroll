@@ -34,10 +34,10 @@
                     <p class="text-gray-500 text-sm font-normal truncate xs/max:w-12">{{ $item->name }}</p>
                 </td>
                 <td class="px-6 py-3 text-left bg-transparent">
-                    <p class="text-gray-500 text-sm font-normal truncate xs/max:w-12">{{ $item->shift->name }}</p>
+                    <p class="text-gray-500 text-sm font-normal truncate xs/max:w-12">{{ $item->shift_id->name }}</p>
                 </td>
                 <td class="px-6 py-3 text-left bg-transparent">
-                    <p class="text-gray-500 text-sm font-normal truncate xs/max:w-12">per {{ $item->payment_period }} menit (Rp) @convert($item->pay)
+                    <p class="text-gray-500 text-sm font-normal truncate xs/max:w-12">per {{ $item->time_period }} menit (Rp) @convert($item->pay)
                     </p>
                 </td>
                 <td class="px-6 py-3 text-left bg-transparent">

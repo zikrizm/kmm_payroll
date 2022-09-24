@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\View;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -26,6 +27,22 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
+        Blade::directive('zkPhoto', function ($url) {
+            return config('constants.api_zkteco') . $url;
+        });
+
+        Blade::directive('activeMenu', function ($subMenus, $class) {
+            return in_array(request()->segment(1), $subMenus) ? $class : '';
+        });
+
+        Blade::directive('activeSubMenu', function ($url) {
+            return config('constants.api_zkteco') . $url;
+        });
+
+        Blade::directive('zkPhoto', function ($url) {
+            return config('constants.api_zkteco') . $url;
+        });
+
         Blade::directive('convert', function ($money) {
             return "Rp. <?php echo number_format($money, 2); ?>";
         });

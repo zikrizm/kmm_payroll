@@ -45,7 +45,7 @@ class WorkSectionController extends Controller
                     $search = $request->q;
                     $work_sections = $work_sections->where(function ($q) use ($search) {
                         $q->where('name', 'LIKE', "%" . $search . "%")->orWhere('pay', 'LIKE', "%" . $search . "%")
-                            ->orWhere('payment_period', 'LIKE', "%" . $search . "%")->orWhereHas('shift', function ($query) use ($search) {
+                            ->orWhere('time_period', 'LIKE', "%" . $search . "%")->orWhereHas('shift', function ($query) use ($search) {
                                 return $query->where('name', 'LIKE', "%" . $search . "%");
                             });
                     });
@@ -107,7 +107,7 @@ class WorkSectionController extends Controller
             if ($validator->fails()) {
                 return $this->buildRes->RESPONSE_REQ('error', null, $validator->errors());
             } else {
-                $work_section_data = $request->only(['name', 'shift_id', 'status', 'payment_period', 'pay']);
+                $work_section_data = $request->only(['name', 'shift_id', 'status', 'time_period', 'pay']);
                 $work_section_data['pay'] = str_replace(',', '', $work_section_data['pay']);
                 $work_section_data['business_id'] = Session::get('business_id');
                 $work_section = new WorkSection($work_section_data);
@@ -181,7 +181,7 @@ class WorkSectionController extends Controller
             if ($validator->fails()) {
                 return $this->buildRes->RESPONSE_REQ('error', null, $validator->errors());
             } else {
-                $work_section_data = $request->only(['name', 'shift_id', 'status', 'payment_period', 'pay']);
+                $work_section_data = $request->only(['name', 'shift_id', 'status', 'time_period', 'pay']);
                 $work_section_data['pay'] = str_replace(',', '', $work_section_data['pay']);
                 $work_section->update($work_section_data);
 
@@ -227,7 +227,7 @@ class WorkSectionController extends Controller
             'name' => 'required|string|max:255',
             'shift_id' => 'required|exists:shifts,id',
             'status' => 'required|string',
-            'payment_period' => 'required|numeric',
+            'time_period' => 'required|numeric',
             'pay' => 'required',
         ];
     }

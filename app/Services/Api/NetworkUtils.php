@@ -29,7 +29,7 @@ class NetworkUtils
      */
     public function __construct(ResponseUtil $buildRes)
     {
-        $this->api_zkteco = 'http://192.168.2.20:80/';
+        $this->api_zkteco = config('constants.api_zkteco');
         $this->buildRes = $buildRes;
     }
 
@@ -50,10 +50,12 @@ class NetworkUtils
             // **
             // * HTTP CLIENT HEADER ----->
             // *
+            $token = 'JWT ' . Session::get('token_zkteco');
             $headers = [
                 'Content-Type' => 'application/json',
-                'Authorization' => 'JWT ' . Session::get('token_zkteco'),
+                'Authorization' => $token,
             ];
+
 
             if (strtolower($method) == 'get') {
                 // **
@@ -69,11 +71,12 @@ class NetworkUtils
                     ->post($this->api_zkteco . $url, $data);
             }
 
+            Log::info(Session::get('token_zkteco'));
             Log::info($res->body());
             Log::info($res->status());
             Log::info($res->failed());
 
-            $data = (object)json_decode($res->body(), true);
+            $data = json_decode($res->body(), true);
             if ($res->failed()) {
                 return $this->buildRes->RESPONSE_REQ('error', null, $data);
             }

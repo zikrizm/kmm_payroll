@@ -6,6 +6,7 @@ use Exception;
 
 class ApiException extends Exception
 {
+
     /**
      * Report the exception.
      *

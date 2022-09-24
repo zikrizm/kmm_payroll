@@ -287,6 +287,13 @@ function setErorrsformInputs(errors) {
     }
 }
 
+function handleMessageError(messagess) {
+    for (const message in messagess) {
+        toastr.error(messagess[message], 'Error information');
+    }
+}
+
+
 function debounce(func, wait, immediate) {
     var timeout;
 
@@ -310,21 +317,33 @@ function debounce(func, wait, immediate) {
 };
 
 
-const Utils = {
-    table(url, data) {
+let utils = {
+    table: (url, data) => {
         return new Promise((resolve, reject) => {
             $.ajax({
                 type: 'GET',
                 url: url,
                 data: data,
                 cache: false,
-                success: function (res) {
-                    if (res.response < 200 || res.response >= 300) {
-                        // handle Request Error
-                        console.log(res);
-                    } else {
-                        resolve(res.data)
-                    }
+                success: function (_response) {
+                    console.log(_response)
+                    handleMessageError(_response.msg)
+                    handleMessageError(_response.msg)
+                    handleMessageError(_response.msg)
+                    handleMessageError(_response.msg)
+                    handleMessageError(_response.msg)
+                    handleMessageError(_response.msg)
+                    handleMessageError(_response.msg)
+                    // if (_response.response < 200 || _response.response >= 300) {
+                    //     // handle Request Error
+                    //     if (_response.msg) {
+                    //         for (const msg in _response.msg) {
+                    //             toastr.error(_response.msg[msg], 'Error information');
+                    //         }
+                    //     }
+                    // } else {
+                    //     resolve(_response.data)
+                    // }
                 }, error: function (error) {
                     console.log(error);
                 }, statusCode: {
@@ -343,7 +362,6 @@ const Utils = {
                 url: url,
                 cache: false,
                 success: function (res) {
-                    console.log(res.status);
                     if (res.response < 200 || res.response >= 300) {
                         // handle Request Error
                         console.log(res);
@@ -410,14 +428,6 @@ const Utils = {
                         if (typeof res.msg == 'string') {
                             toastr.error(res.msg, 'Error information');
                         }
-                        // else {
-                        //     if (Object.keys(res.msg).length != 0) {
-                        //         for (const error in res.msg) {
-                        //             toastr.error(res.msg[error][0], 'Error information');
-                        //         }
-                        //     }
-                        // }
-
                         callback(null);
                     } else {
                         clearError();
@@ -432,11 +442,10 @@ const Utils = {
                 }
             });
         })
-
     }
-}
+};
 
-class Toggle {
+class toggle {
     button(name, default_value, option) {
         if (default_value) {
             $('.btn-toggle-custom' + name).each(function (e) {

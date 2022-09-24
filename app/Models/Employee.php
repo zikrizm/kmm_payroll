@@ -8,6 +8,9 @@ use Illuminate\Database\Eloquent\Model;
 class Employee extends Model
 {
     use HasFactory;
+    protected $appens = [
+        'statusbox',
+    ];
 
     /**
      * The attributes that aren't mass assignable.
@@ -15,4 +18,16 @@ class Employee extends Model
      * @var array
      */
     protected $guarded = ['id'];
+
+    public function getGenderAttribute($gender)
+    {
+        return (strtolower($gender) == 'm' ? 'Male' : 'Female');
+    }
+    public function getStatusboxAttribute()
+    {
+        $classStatus = ($this->status != 'active') ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-700';
+        return ' <div class="rounded-xl pl-3 pr-2.5 py-1 w-max ' . $classStatus . '">
+                <p class="text-xs font-normal flex items-center gap-1 capitalize">' . $this->status . '</p>
+            </div>';
+    }
 }

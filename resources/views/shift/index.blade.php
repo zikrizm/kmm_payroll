@@ -43,7 +43,7 @@
         // **
         // * get table ----->
         // *
-        var res = await Utils.table('/shifts?'+(new URLSearchParams({ page, q}).toString()), null);
+        var res = await utils.table('/shifts?'+(new URLSearchParams({ page, q}).toString()), null);
         $('.table-content').html(res);
 
         // **
@@ -62,13 +62,14 @@
         // * open modal form ----->
         // *
         var URL = (idShift) ? '/shifts/' + idShift + '/edit' : '/shifts/create';
-        var res = await Utils.modal(URL, null);
-        handletogglebutton((!idShift) ? 'active': '')
+        var res = await utils.modal(URL, null);
+        var toggle = new Toggle();
+        var toggleStatus = toggle.button('status', (!idShift) ? 'active': '', {})
 
         // **
         // * submit form ----->
         // *
-        var resSubmit = Utils.submit('.submit-shift', (data) => { 
+        var resSubmit = utils.submit('.submit-shift', (data) => { 
             onInit();
         });
     }
@@ -77,7 +78,7 @@
         // **
         // * open modal confirm ----->
         // *
-        Utils.modal_confirm('.submit-delete-shift', '/shifts/' + idShift, null, () => {
+        utils.modal_confirm('.submit-delete-shift', '/shifts/' + idShift, null, () => {
             onInit();
         })
     }

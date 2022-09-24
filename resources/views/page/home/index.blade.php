@@ -31,36 +31,16 @@
     window.addEventListener('DOMContentLoaded', async (event) => {
         $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
 
-
-
-        let res = await ApiService.get_token_zkteco();
-        console.log(res);
-
-        // $(".search-input").on('keyup', debounce(function() {
-        //     onInit(null, $(this).val());
-        // }, 250));
-
-        // onInit();
+        onInit();
     });
 
-    // async function onInit(page, q = '') {
-    //     // **
-    //     // * get table ----->
-    //     // *
-    //     var res = await Utils.table('/work-sections?'+(new URLSearchParams({ page, q}).toString()), null);
-    //     $('.table-content').html(res);
-
-
-    //     // **
-    //     // * pagination ----->
-    //     // *
-    //     $( ".pagination-custom a" ).bind( "click",async function(e) {
-    //         e.preventDefault();
-
-    //         var _page = $(this).attr('href').split('page=')[1];
-    //         onInit(_page)
-    //     });
-    // }
+    async function onInit() {
+        // **
+        // * get token zkteco ----->
+        // *
+        let res = await ApiService.get_token_zkteco();
+        console.log(res);
+    }
 
     // async function get_modal(idWorkSection) {
     //     // **

@@ -116,9 +116,9 @@ class BusinessController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function getBusinessSettings()
+    public function getBusinessSettings(Request $request)
     {
-        if (!auth()->user()->can('business_settings.access') || !$request->ajax()) {
+        if (!auth()->user()->can('business_settings.access')) {
             abort(403, 'Unauthorized action.');
         }
         $business_id = Session::get('business_id');

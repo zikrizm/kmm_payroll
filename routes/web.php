@@ -42,7 +42,8 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/groups/{group}', 'GroupController@update')->name('groups.update');
 
     Route::resource('shifts', 'ShiftController', ['except' => ['update']]);
-    Route::post('/shifts/{shift}', 'ShiftController@update')->name('shifts.update');
+    Route::resource('break-time', 'ShiftController', ['except' => ['update']]);
+    Route::post('/break-time/{break_time}', 'ShiftController@update')->name('break_time.update');
 
     Route::resource('holidays', 'HolidayController', ['except' => ['update']]);
     Route::post('/holidays/{holiday}', 'HolidayController@update')->name('holidays.update');
@@ -57,8 +58,22 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/user-management', 'PageController@userManagement')->name('page.userManagement');
     Route::get('/company-profile', 'PageController@companyProfile')->name('page.companyProfile');
 
+
+
     // Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
     // Route::middleware('role:admin')->get('/dashboard', [App\Http\Controllers\HomeController::class, 'index'])->name('dashboard');
+
+    Route::resource('user', 'ManageUserController', ['except' => ['update']]);
+    Route::resource('role', 'RoleController', ['except' => ['update']]);
+    Route::resource('employee', 'EmployeeController', ['except' => ['update']]);
+
+    Route::resource('department', 'DepartmentController', ['except' => ['update']]);
+    Route::resource('position', 'PositionController', ['except' => ['update']]);
+    Route::resource('area', 'AreaController', ['except' => ['update']]);
+
+    Route::resource('break-time', 'BreakTimeController', ['except' => ['update']]);
+    Route::resource('timetable', 'TimetableController', ['except' => ['update']]);
+    Route::resource('shift', 'ShiftController', ['except' => ['update']]);
 
     Route::get('logout', '\App\Http\Controllers\Auth\LoginController@logout')->name('logout');
 });

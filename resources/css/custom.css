@@ -1,0 +1,77 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap');
+
+* {
+    font-family: 'Inter', sans-serif;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+
+/* Hide scrollbar for IE, Edge and Firefox */
+.no-scrollbar {
+    -ms-overflow-style: none;
+    /* IE and Edge */
+    scrollbar-width: none;
+    /* Firefox */
+}
+
+.feather-16 {
+    width: 16px;
+    height: 16px;
+}
+
+.feather-18 {
+    width: 18px;
+    height: 18px;
+}
+
+.feather-24 {
+    width: 24px;
+    height: 24px;
+}
+
+.feather-32 {
+    width: 32px;
+    height: 32px;
+}
+
+.bg-red-50.text-red-700 {
+    background-color: rgb(254 242 242);
+    color: rgb(185 28 28);
+}
+.select2-container--default .select2-selection--single {
+    border: 1px solid #d1d5db !important;
+    height: 36px !important;
+    display: flex !important;
+    align-items: center !important;
+    border-radius: 8px !important;
+}
+.select2-container--default .select2-selection--single .select2-container--open {
+    border: 1px solid #d1d5db !important;
+    height: 36px !important;
+    display: flex !important;
+    align-items: center !important;
+    border-radius: 8px 0 8px 0 !important;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__arrow {
+    top: unset !important;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__rendered {
+    /* color: red; */
+    font-size: 14px;
+}
+
+.select2-results__option[aria-selected] {
+    font-size: 14px;
+}
+
+.select2-container--default .select2-results__option--highlighted[aria-selected] {
+    background-color: rgb(192 132 252);
+}
+
+.select2-results__option {
+    font-size: 14px;
+}

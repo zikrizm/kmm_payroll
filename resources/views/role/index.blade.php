@@ -44,7 +44,7 @@
          // **
         // * get table ----->
         // *
-        var res = await Utils.table('/access-controls?'+(new URLSearchParams({ page, q}).toString()), null);
+        var res = await utils.table('/access-controls?'+(new URLSearchParams({ page, q}).toString()), null);
         $('.table-content').html(res);
 
         // **
@@ -63,12 +63,12 @@
         // * open modal form ----->
         // *
         var URL = (idRole) ? '/access-controls/' + idRole + '/edit' : '/access-controls/create';
-        var res = await Utils.modal(URL, null);
+        var res = await utils.modal(URL, null);
 
         // **
         // * submit form ----->
         // *
-        var resSubmit = Utils.submit('.submit-role', (data) => {
+        var resSubmit = utils.submit('.submit-role', (data) => {
             onInit();
          });
     }
@@ -77,7 +77,7 @@
         // **
         // * open modal confirm ----->
         // *
-        Utils.modal_confirm('.submit-delete-role', '/access-controls/' + idRole, null, () => {
+        utils.modal_confirm('.submit-delete-role', '/access-controls/' + idRole, null, () => {
             onInit();
         })
     }

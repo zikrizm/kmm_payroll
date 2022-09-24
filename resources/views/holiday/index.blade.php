@@ -65,8 +65,9 @@
         // *
         var URL = (idHoliday) ? '/holidays/' + idHoliday + '/edit' : '/holidays/create';
         var res = await Utils.modal(URL, null);
-        handletogglebutton((!idHoliday) ? 'active': '')
-
+        var toggle = new Toggle();
+        var toggleStatus = toggle.button('status', (!idHoliday) ? 'active': '', {});
+        
         let stV = $('input[name="start_date"]').val() ?? '';
         let etV = $('input[name="end_date"]').val() ?? '';
 
