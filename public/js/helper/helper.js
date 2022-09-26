@@ -328,12 +328,6 @@ let utils = {
                 success: function (_response) {
                     console.log(_response)
                     handleMessageError(_response.msg)
-                    handleMessageError(_response.msg)
-                    handleMessageError(_response.msg)
-                    handleMessageError(_response.msg)
-                    handleMessageError(_response.msg)
-                    handleMessageError(_response.msg)
-                    handleMessageError(_response.msg)
                     // if (_response.response < 200 || _response.response >= 300) {
                     //     // handle Request Error
                     //     if (_response.msg) {
@@ -445,7 +439,7 @@ let utils = {
     }
 };
 
-class toggle {
+class Toggle {
     button(name, default_value, option) {
         if (default_value) {
             $('.btn-toggle-custom' + name).each(function (e) {

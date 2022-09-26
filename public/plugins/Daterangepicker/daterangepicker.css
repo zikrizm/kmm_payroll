@@ -1,8 +1,8 @@
 .applyBtn {
-  background-color: rgb(109 40 217);
+  background-color: rgb(109 40 217) !important;
   border-radius: 4px;
   padding: 8px 20px !important;
-  color: white;
+  color: white !important;
 }
 .cancelBtn {
   background-color:  rgb(209 213 219);

@@ -1,5 +1,4 @@
 import _ from 'lodash';
-import $ from 'jquery';
 import 'bootstrap';
 
 window._ = _;
@@ -10,6 +9,7 @@ window._ = _;
  * for JavaScript based Bootstrap features such as modals and tabs. This
  * code may be modified to fit the specific needs of your application.
  */
+ import $ from 'jquery';
 
 try {
     window.jQuery = window.$ = $;

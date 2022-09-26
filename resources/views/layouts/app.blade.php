@@ -1,12 +1,12 @@
 <!doctype html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="str_replace('_', '-', app()->getLocale()) }}">
 
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <!-- CSRF Token -->
-    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="csrf-token" content="csrf_token() }}">
 
     <title>@yield('title') - {{ config('app.name', 'Laravel') }}</title>
 
@@ -14,134 +14,269 @@
     <link rel="dns-prefetch" href="//fonts.gstatic.com">
     <link href="https://fonts.googleapis.com/css?family=Nunito" rel="stylesheet">
 
+    <!-- Styling -->
+    <link href="{{ asset('plugins/Daterangepicker/daterangepicker.css') }}" rel="stylesheet">
+
     <!-- Scripts -->
-    @vite([
-    'resources/js/app.js',
-    'resources/plugins/Select2/css/select2.min.css',
-    'resources/plugins/Select2/js/select2.full.min.js',
-    'resources/plugins/Toastr/toastr.min.css',
-    'resources/plugins/Toastr/toastr.min.js',
-    // 'resources/plugins/DataTables002/datatables.min.css',
-    // 'resources/plugins/DataTables002/datatables.min.js',
-    'resources/css/app.css',
-    'resources/css/custom.css',
-    // 'resources/plugins/DataTables/DataTables-1.10.16/js/jquery.dataTables.min.js',
-    // 'resources/plugins/DataTables/datatables.min.js',
-    // 'resources/plugins/DataTables/pdfmake-0.1.32/pdfmake.min.js',
-    // 'resources/plugins/DataTables/pdfmake-0.1.32/vfs_fonts.js',
-    // 'resources/plugins/DataTables/DataTables-1.10.16/css/dataTables.jqueryui.min.css',
-    // 'resources/plugins/DataTables/DataTables-1.10.16/js/dataTables.jqueryui.min.js',
-    // 'resources/plugins/DataTables/pdfmake-0.1.32/pdfmake.js',
-    // 'resources/plugins/DataTables/pdfmake-0.1.32/vfs_fonts.js',
-    // 'resources/plugins/DataTables/datatables.js',
-    ])
+    @vite(['resources/js/app.js', 'resources/plugins/Select2/css/select2.min.css', 'resources/plugins/Select2/js/select2.full.min.js', 'resources/plugins/Toastr/toastr.css', 'resources/plugins/Toastr/toastr.js', 'resources/plugins/JIC/JIC.js', 'resources/css/app.css', 'resources/css/custom.css'])
 
+    <script src="{{ asset('plugins/Moment/moment.js') }}" type="text/javascript"></script>
+    <script src="{{ asset('plugins/AutoNumeric/autoNumeric.js') }}" type="text/javascript"></script>
+    <script src="{{ asset('plugins/Daterangepicker/daterangepicker.js') }}" type="module"></script>
+    <script src="{{ asset('js/Remote/networkUtils.js') }}"></script>
+    <script src="{{ asset('js/Remote/apiService.js') }}"></script>
     <script src="{{ asset('js/Helper/helper.js') }}"></script>
-    <script src="{{ asset('js/Remote/network_utils.js') }}"></script>
-    <script src="{{ asset('js/Remote/api_service.js') }}"></script>
-
-    {{--
-    <link href="{{ asset('css/app.css') }}" rel="stylesheet">
-    <link href="{{ asset('css/daterangepicker.css') }}" rel="stylesheet">
-    <link href="{{ asset('css/toastr.min.css') }}" rel="stylesheet">
-    <link href="{{ asset('css/datatables.min.css') }}" rel="stylesheet">
-    <script type="module" src="{{ asset('js/plugin/daterangepicker.js') }}"></script>
-    <script src="{{ asset('js/plugin/JIC.js') }}" type="text/javascript"></script>
-    <script src="{{ asset('js/plugin/moment.min.js') }}" type="text/javascript"></script>
-    <script src="{{ asset('js/plugin/autoNumeric.min.js') }}" type="text/javascript"></script>
-    <script src="{{ asset('js/plugin/toastr.min.js') }}" type="module"></script>
-    <script src="{{ asset('js/plugin/datatables.min.js') }}" type="module"></script>
-    <script src="{{ asset('js/helper/helper.js') }}"></script>
-    <script src="{{ asset('js/remote/networkUtils.js') }}"></script>
-    <script src="{{ asset('js/remote/apiService.js') }}"></script> --}}
 </head>
 
 <body>
+    <div class="w-full h-screen flex">
+        <aside class="w-64 h-full bg-white border-r border-gray-200 flex flex-col justify-between gap-4 px-3">
+            <div class="flex-1">
+                <header class="h-20 w-full">
 
-    <div id="app">
-        {{-- <nav class="navbar navbar-expand-md navbar-light bg-white shadow-sm">
-            <div class="container">
-                <a class="navbar-brand" href="{{ url('/') }}">
-                    {{ config('app.name', 'Laravel') }}
-                </a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
-                    data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
-                    aria-expanded="false" aria-label="{{ __('Toggle navigation') }}">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-
-                <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                    <!-- Left Side Of Navbar -->
-                    <ul class="navbar-nav me-auto">
-
-                    </ul>
-
-                    <!-- Right Side Of Navbar -->
-                    <ul class="navbar-nav ms-auto">
-                        <!-- Authentication Links -->
-                        @guest
-                        @if (Route::has('login'))
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ route('login') }}">{{ __('Login') }}</a>
-                        </li>
-                        @endif
-
-                        @if (Route::has('register'))
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ route('register') }}">{{ __('Register') }}</a>
-                        </li>
-                        @endif
-                        @else
-                        <li class="nav-item dropdown">
-                            <a id="navbarDropdown" class="nav-link dropdown-toggle" href="#" role="button"
-                                data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
-                                {{ Auth::user()->name }}
-                            </a>
-
-                            <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                                <a class="dropdown-item" href="{{ route('logout') }}" onclick="event.preventDefault();
-                                                     document.getElementById('logout-form').submit();">
-                                    {{ __('Logout') }}
-                                </a>
-
-                                <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
-                                    @csrf
-                                </form>
+                </header>
+                <main class="flex flex-col gap-2">
+                    <a href="{{ route('home.index') }}"
+                        class="flex items-center justify-between p-2.5 rounded-lg w-full @activemenu(home)">
+                        <div class="flex items-center gap-2.5">
+                            <span class="text-gray-600">
+                                <x-icon icon="home" width=18 height=18 viewBox="20 20" />
+                            </span>
+                            <p class="text-sm font-medium text-gray-600">Dashboard</p>
+                        </div>
+                    </a>
+                    @canany(['department.view', 'position.view', 'area.view'])
+                        <section
+                            class="my-dropdown-menu flex items-center justify-between p-2.5 rounded-lg w-full @activemenu(organization)"
+                            data-dropdown-toggle="dropdown-menu-organization">
+                            <div class="flex items-center gap-2.5">
+                                <span class="text-gray-600">
+                                    <x-icon icon="layers" width=18 height=18 viewBox="20 20" />
+                                </span>
+                                <p class="text-sm font-medium text-gray-600">Organization</p>
                             </div>
-                        </li>
-                        @endguest
-                    </ul>
-                </div>
-            </div>
-        </nav> --}}
+                            <span class="text-gray-500 chevron-icon duration-300">
+                                <x-icon icon="chevron-down" width=18 height=18 viewBox="20 20" />
+                            </span>
+                        </section>
+                        <div id="dropdown-menu-organization" class="flex flex-col gap-1 @activemenu(organization_sub_menu)">
+                            @can('department.view')
+                                <a href="{{ route('department.index') }}"
+                                    class="flex items-center justify-between p-2.5 rounded-lg w-full @activemenu(department)">
+                                    <div class="flex items-center gap-2.5">
+                                        <div class="w-5"></div>
+                                        <p class="text-sm font-medium text-gray-600">Department</p>
+                                    </div>
+                                </a>
+                            @endcan
+                            @can('position.view')
+                                <a href="{{ route('position.index') }}"
+                                    class="flex items-center justify-between p-2.5 rounded-lg w-full @activemenu(position)">
+                                    <div class="flex items-center gap-2.5">
+                                        <div class="w-5"></div>
+                                        <p class="text-sm font-medium text-gray-600">Position</p>
+                                    </div>
+                                </a>
+                            @endcan
+                            @can('area.view')
+                                <a href="{{ route('area.index') }}"
+                                    class="flex items-center justify-between p-2.5 rounded-lg w-full @activemenu(area)">
+                                    <div class="flex items-center gap-2.5">
+                                        <div class="w-5"></div>
+                                        <p class="text-sm font-medium text-gray-600">Area</p>
+                                    </div>
+                                </a>
+                            @endcan
+                        </div>
+                    @endcanany
 
-        <div class="flex w-full h-screen">
-            @include('partials.menus.menu')
-            <div class="flex flex-col h-full flex-1 overflow-auto bg-white">
-                @include('partials.header')
-                <main class="w-full bg-light-bg flex-1">
-                    @yield('content')
+                    @canany(['user.view', 'role.view'])
+                        <section
+                            class="my-dropdown-menu flex items-center justify-between p-2.5 rounded-lg w-full @activemenu(user)"
+                            data-dropdown-toggle="dropdown-menu-user">
+                            <div class="flex items-center gap-2.5">
+                                <span class="text-gray-600">
+                                    <x-icon icon="User" width=18 height=18 viewBox="20 20" />
+                                </span>
+                                <p class="text-sm font-medium text-gray-600">User</p>
+                            </div>
+                            <span class="text-gray-500 chevron-icon duration-300">
+                                <x-icon icon="chevron-down" width=18 height=18 viewBox="20 20" />
+                            </span>
+                        </section>
+                        <div id="dropdown-menu-user" class="flex flex-col gap-1 @activemenu(user_sub_menu)">
+                            @can('user.view')
+                                <a href="{{ route('user.index') }}"
+                                    class="flex items-center justify-between p-2.5 rounded-lg w-full @activemenu(user)">
+                                    <div class="flex items-center gap-2.5">
+                                        <div class="w-5"></div>
+                                        <p class="text-sm font-medium text-gray-600">User</p>
+                                    </div>
+                                </a>
+                            @endcan
+                            @can('role.view')
+                                <a href="{{ route('role.index') }}"
+                                    class="flex items-center justify-between p-2.5 rounded-lg w-full @activemenu(role)">
+                                    <div class="flex items-center gap-2.5">
+                                        <div class="w-5"></div>
+                                        <p class="text-sm font-medium text-gray-600">Role</p>
+                                    </div>
+                                </a>
+                            @endcan
+                        </div>
+                    @endcanany
+
+                    @canany(['break-time.view', 'timetable.view', 'shift.view'])
+                        <section
+                            class="my-dropdown-menu flex items-center justify-between p-2.5 rounded-lg w-full @activemenu(shift)"
+                            data-dropdown-toggle="dropdown-menu-shift">
+                            <div class="flex items-center gap-2.5">
+                                <span class="text-gray-600">
+                                    <x-icon icon="clock" width=18 height=18 viewBox="20 20" />
+                                </span>
+                                <p class="text-sm font-medium text-gray-600">Shift</p>
+                            </div>
+                            <span class="text-gray-500 chevron-icon duration-300">
+                                <x-icon icon="chevron-down" width=18 height=18 viewBox="20 20" />
+                            </span>
+                        </section>
+                        <div id="dropdown-menu-shift" class="flex flex-col gap-1 @activemenu(shift_sub_menu)">
+                            <a href="{{ route('break-time.index') }}"
+                                class="flex items-center justify-between p-2.5 rounded-lg w-full @activemenu(break-time)">
+                                <div class="flex items-center gap-2.5">
+                                    <div class="w-5"></div>
+                                    <p class="text-sm font-medium text-gray-600">Break time</p>
+                                </div>
+                            </a>
+                            <a href="{{ route('timetable.index') }}"
+                                class="flex items-center justify-between p-2.5 rounded-lg w-full @activemenu(timetable)">
+                                <div class="flex items-center gap-2.5">
+                                    <div class="w-5"></div>
+                                    <p class="text-sm font-medium text-gray-600">Timetable</p>
+                                </div>
+                            </a>
+                            <a href="{{ route('shift.index') }}"
+                                class="flex items-center justify-between p-2.5 rounded-lg w-full @activemenu(shift)">
+                                <div class="flex items-center gap-2.5">
+                                    <div class="w-5"></div>
+                                    <p class="text-sm font-medium text-gray-600">Shift</p>
+                                </div>
+                            </a>
+                        </div>
+                    @endcanany
+
+                    @canany(['settings.view', 'location.view'])
+                        <section
+                            class="my-dropdown-menu flex items-center justify-between p-2.5 rounded-lg w-full @activemenu(setting)"
+                            data-dropdown-toggle="dropdown-menu-setting">
+                            <div class="flex items-center gap-2.5">
+                                <span class="text-gray-600">
+                                    <x-icon icon="settings" width=18 height=18 viewBox="20 20" />
+                                </span>
+                                <p class="text-sm font-medium text-gray-600">Setting</p>
+                            </div>
+                            <span class="text-gray-500 chevron-icon duration-300">
+                                <x-icon icon="chevron-down" width=18 height=18 viewBox="20 20" />
+                            </span>
+                        </section>
+                        <div id="dropdown-menu-setting" class="flex flex-col gap-1 @activemenu(setting_sub_menu)">
+                            <a href="{{ route('settings.index') }}"
+                                class="flex items-center justify-between p-2.5 rounded-lg w-full @activemenu(settings)">
+                                <div class="flex items-center gap-2.5">
+                                    <div class="w-5"></div>
+                                    <p class="text-sm font-medium text-gray-600">Settings</p>
+                                </div>
+                            </a>
+                            <a href="{{ route('location.index') }}"
+                                class="flex items-center justify-between p-2.5 rounded-lg w-full @activemenu(location)">
+                                <div class="flex items-center gap-2.5">
+                                    <div class="w-5"></div>
+                                    <p class="text-sm font-medium text-gray-600">Location</p>
+                                </div>
+                            </a>
+                        </div>
+                    @endcanany
                 </main>
             </div>
-        </div>
-        <x-modal-form-input-data></x-modal-form-input-data>
+            <hr>
+            <footer class="flex items-center justify-between pb-8 w-full">
+                <div class="flex items-center gap-2 ">
+                    <div class="w-10 h-10 rounded-full bg-gray-100 overflow-hidden">
+                        <img src="{{ Auth::user()->photo ? asset('storage/profiles/' . Auth::user()->photo . '') : '' }}"
+                            alt="" class="w-full h-full object-cover">
+                    </div>
+                    <div class="flex flex-col justify-center text-sm">
+                        <p class="text-gray-900 font-medium text-sm truncate w-28">{{ Auth::user()->surname }}
+                            {{ Auth::user()->first_name }} {{ Auth::user()->last_name }} </p>
+                        <p class="text-gray-500 runcate w-28 text-sm">{{ Auth::user()->username }}</p>
+                    </div>
+                </div>
+                <form action="{{ route('logout') }}">
+                    {{ csrf_field() }}
+                    <button class="text-gray-500 mt-2.5 cursor-pointer">
+                        <x-icon icon="log-out" width=16 height=16 viewBox="20 20" />
+                    </button>
+                </form>
+            </footer>
+        </aside>
+        @yield('content')
     </div>
+    <x-ui.main-modal></x-ui.main-modal>
 </body>
 @stack('script')
-<script type="module">
-    toastr.options= {
-        "progressBar":true,
-        "positionClass":"toast-top-right",
-        "onclick":null,
-        "showDuration":1000,
-        "hideDuration":300,
-        "timeOut":5000,
-        "extendedTimeOut":5000,
-        "showEasing":"swing",
-        "hideEasing":"linear",
-        "showMethod":"fadeIn",
-        "hideMethod":"fadeOut"
+<script type="application/javascript">
+    window.addEventListener('DOMContentLoaded', (event) => {
+        $('.my-dropdown-menu').each(function (e) {
+            $(this).on('click', function(e) {
+                let currentSubMenuClass = $(this).data('dropdown-toggle');
+                $('#'+ currentSubMenuClass).toggle('hidden');
+                if($(this).hasClass('active')) {
+                    $(this).removeClass('active bg-gray-100');
+                    $(this).children('.chevron-icon').removeClass('rotate-180')
+                } else {
+                    $(this).addClass('active bg-gray-100');
+                    $(this).children('.chevron-icon').addClass('rotate-180')
+                }
+            })
+        });
+
+         $(".search-data-input").on('keyup', debounce(function() {
+            let searchUrl = $(this).data('search-url');
+            let field = { q: this.value };
+            get_data_sort_data(searchUrl, field)
+        }, 250));
+    });
+
+    function resetSortTable() {
+        $('.sort-table').each(function(e) {
+            $(this).removeClass('active');
+            $(this).children('.sort-icon').removeClass('rotate-180');
+        })
     }
+
+    function sort_data(event) {
+        let sortKey = $(event).data('sort-key');
+        let sortUrl = $(event).data('sort-url');
+        let isActive = $(event).hasClass('active');
+
+        // Reset sort table
+        resetSortTable();
+        // Build Data sort table
+        let field = {
+            sort: { name: sortKey, order: (isActive) ? 'DESC': 'ASC'},
+            q: $('.search-data-input').val(),
+        };
+        // Get Data sort table
+        get_data_sort_data(sortUrl, field);
+    }
+
+    async function get_data_sort_data(url, data) {
+        var res = await ApiService.get_table(url, data );
+        $('.table-content').html(res);
+    }
+
+
+   
 </script>
 
 </html>

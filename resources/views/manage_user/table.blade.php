@@ -1,94 +1,86 @@
-<div class="w-full">
-    <table class="border-separate border-spacing-y-2 w-full">
-        <thead class="">
-            <tr class="text-left">
-                <th class="py-3 px-4 text-xs font-medium text-gray-500 xs/max:px-4 xs/max:py">
-                    <div class="flex items-center gap-2">
-                        <p>Name & Email</p>
+<main class='border border-gray-200 rounded-lg shadow-sm w-max overflow-hidden'>
+    <table class='table border-collapse w-full'>
+        <thead class='border-b border-gray-200 bg-gray-50'>
+            <tr class=''>
+                <th class='text-left'>
+                    <div class='flex items-center'>
+                        <div class='pl-4 py-2 flex items-center'>
+                            {!! FormCustom::checkbox() !!}
+                        </div>
+                        <div class='px-6 py-3 cursor-pointer flex-1'>
+                            <x-ui.sort-table text="Name & Email" url="{{ route('user.index') }}" field="first_name"
+                                order="{{ $order }}" />
+                        </div>
                     </div>
                 </th>
-                <th class="py-3 px-4 text-xs font-medium text-gray-500">
-                    <div class="flex items-center gap-2">
-                        <p>Username</p>
-                    </div>
+                <th class='px-6 py-3 text-left cursor-pointer'>
+                    <x-ui.sort-table text="Username" url="{{ route('user.index') }}" field="username"
+                        order="{{ $order }}" />
                 </th>
-                <th class="py-3 px-4 text-xs font-medium text-gray-500">
-                    <div class="flex items-center gap-2">
-                        <p>Role</p>
-                    </div>
+                <th class='px-6 py-3 text-left cursor-pointer'>
+                    <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Role</p>
                 </th>
-                <th class="py-3 px-4 text-xs font-medium text-gray-500">
-                    <div class="flex items-center gap-2">
-                        <p>Status</p>
-                    </div>
+                <th class='px-6 py-3 text-left cursor-pointer'>
+                    <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Status</p>
                 </th>
                 @canany(['user.update', 'user.delete'])
-                <th class="py-3 px-4"></th>
+                    <th class='px-6 py-3 text-left text-gray-500 text-xs font-medium'></th>
                 @endcanany
             </tr>
         </thead>
-        <tbody class="text-sm font-normal text-gray-700">
+        <tbody>
             @foreach ($users as $item)
-            <tr class="cursor-pointer bg-white hover:bg-gray-50">
-                <td class="px-4 py-3 text-left bg-transparent rounded-l-xl">
-                    <div class="flex gap-3 items-center">
-                        @if ($item->is_default)
-                        <span class="flex justify-center items-center rounded-full bg-violet-100 
-                            h-10 min-w-[40px] min-h-[40px] border-[6px] border-violet-50 text-violet-600">
-                            <x-icon icon="user" width=18 height=18 viewBox="20 20" />
-                        </span>
-                        @else
-                        <img src="{{ ($item->photo) ? asset('storage/profiles/'.$item->photo.''): ''}}" alt=""
-                            class="w-10 object-contain h-10 min-w-[40px] min-h-[40px] rounded-full">
-                        @endif
-                        <div>
-                            <p class="text-gray-900 text-sm font-medium truncate sm/max:w-12">
-                                {{ $item->surname }} {{ $item->first_name }} {{ $item->last_name }}</p>
-                            <p class="text-gray-500 text-sm font-normal truncate sm/max:w-12">
-                                {{ $item->email }}
-                            </p>
+                <tr class='hover:bg-gray-50 border-b border-gray-200 cursor-pointer'>
+                    <td class='text-left'>
+                        <div class="flex items-center">
+                            <div class="pl-4 py-2 ">
+                                {!! FormCustom::checkbox() !!}
+                            </div>
+                            <div class="flex gap-3 items-center px-6 py-3">
+                                <img src="" alt=""
+                                    class="w-10 object-contain h-10 min-w-[40px] min-h-[40px] rounded-full">
+                                <div>
+                                    <p class="text-gray-900 text-sm font-medium truncate sm/max:w-12">
+                                        {{ $item->surname }} {{ $item->first_name }} {{ $item->last_name }}
+                                    </p>
+                                    <p class="text-gray-500 text-sm font-normal truncate sm/max:w-12">
+                                        {{ $item->email }}
+                                    </p>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-
-                </td>
-                <td class="px-4 py-3 text-left bg-transparent">
-                    <p class="text-gray-500 text-sm font-normal truncate xs/max:w-12">{{ $item->username }}</p>
-                </td>
-                <td class="px-4 py-3 text-left bg-transparent">
-                    <p class="text-gray-500 text-sm font-normal truncate xs/max:w-12 ">
+                    </td>
+                    <td class='px-6 py-4 text-gray-500 text-sm'>
+                        {{ $item->username }}
+                    </td>
+                    <td class='px-6 py-4 text-gray-500 text-sm'>
                         @foreach ($item->roles as $role)
-                        {{ $role->name }}
+                            {{ $role->name }}
                         @endforeach
-                    </p>
-                </td>
-                <td class="px-4 py-3 text-left bg-transparent">
-                    {!! $item->statusBox !!}
-                </td>
-
-                @canany(['user.update', 'user.delete'])
-                <td class="px-4 py-4 bg-transparent rounded-r-xl">
-                    <div class="flex justify-end gap-1">
-                        @if (!$item->is_default)
-                        @can('user.delete')
-                        <button onclick="open_modal_confirm({{ $item->id }})"
-                            class="px-2.5 cursor-pointer text-gray-500 rounded hover:bg-gray-50 delete-btn">
-                            <x-icon icon="trash-2" width=16 height=16 viewBox="20 20" />
-                        </button>
-                        @endcan
-                        @endif
-                        @can('user.update')
-                        <button onclick="get_modal({{ $item->id }})"
-                            class="px-2.5 cursor-pointer text-gray-500 rounded hover:bg-gray-50">
-                            <x-icon icon="edit-2" width=16 height=16 viewBox="20 20" />
-                        </button>
-                        @endcan
-
-                    </div>
-                </td>
-                @endcanany
-            </tr>
+                    </td>
+                    <td class='px-6 py-4 text-gray-500 text-sm'>
+                        {!! $statusbox !!}
+                    </td>
+                    <td class='px-4 py-4'>
+                        <div class='flex gap-1'>
+                            <button class='p-2.5 cursor-pointer text-gray-500 delete-btn'>
+                                <x-icon icon="trash-2" width=18 height=18 viewBox="20 20" />
+                            </button>
+                            <button class='p-2.5 cursor-pointer text-gray-500 edit-btn'
+                                onclick="get_modal({{ $item->id }})">
+                                <x-icon icon="edit" width=18 height=18 viewBox="20 20" />
+                            </button>
+                        </div>
+                    </td>
+                </tr>
             @endforeach
         </tbody>
     </table>
-</div>
-<x-ui.pagination-custom :pagination="$users" />
+    <footer class='flex justify-between items-center px-6 pt-3 pb-4'>
+        <p class='text-gray-700 text-sm'>Page <span>1</span> of <span>30</span></p>
+        <div class='flex gap-3'>
+            <button class='px-3.5 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50'>Previous</button>
+            <button class='px-3.5 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50'>Next</button>
+        </div>
+    </footer>
+</main>

@@ -69,7 +69,20 @@ class NetworkUtils
                 // *
                 $res = Http::withHeaders($headers)->timeout(2)
                     ->post($this->api_zkteco . $url, $data);
+            } else if (strtolower($method) == 'put') {
+                // **
+                // * HTTP CLIENT PUT ----->
+                // *
+                $res = Http::withHeaders($headers)->timeout(2)
+                    ->post($this->api_zkteco . $url, $data);
+            } else if (strtolower($method) == 'delete') {
+                // **
+                // * HTTP CLIENT DELETE ----->
+                // *
+                $res = Http::withHeaders($headers)->timeout(2)
+                    ->post($this->api_zkteco . $url, $data);
             }
+
 
             Log::info(Session::get('token_zkteco'));
             Log::info($res->body());

@@ -45,52 +45,25 @@ class ManageUserController extends Controller
         try {
             if (request()->ajax()) {
                 $business_id = Session::get('business_id');
+                $users = User::where('business_id', $business_id);
+                Log::info("Sdfsdfsdfsdf");
+                if ($request->has('q')) {
+                    $search = $request->q;
+                    $users = $users->where(function ($q) use ($search) {
+                        $q->where('first_name', 'LIKE', "%" . $search . "%")->orWhere('username', 'LIKE', "%" . $search . "%")
+                            ->orWhere('email', 'LIKE', "%" . $search . "%");
+                    });
+                }
+                $order = null;
+                if ($request->has('sort')) {
+                    $sort = $request->sort;
+                    $order = $sort['order'];
+                    $users->orderBy($sort['name'], $sort['order']);
+                }
+                $users = $users->paginate(10);
+                $render =  view('manage_user.table', compact('users', 'order'))->render();
 
-                $users = User::where('business_id', $business_id)
-                    ->select(['id', 'username'])->get();
-
-                return Datatables::of($users)
-                    // ->editColumn('username', '{{$username}} @if(empty($allow_login)) <span class="label bg-gray">@lang("lang_v1.login_not_allowed")</span>@endif')
-                    // ->addColumn(
-                    //     'role',
-                    //     function ($row) {
-                    //         $role_name = $this->moduleUtil->getUserRoleName($row->id);
-                    //         return $role_name;
-                    //     }
-                    // )
-                    // ->addColumn(
-                    //     'action',
-                    //     '@can("user.update")
-                    //                 <a href="{{action(\'ManageUserController@edit\', [$id])}}" class="btn btn-xs btn-primary"><i class="glyphicon glyphicon-edit"></i> @lang("messages.edit")</a>
-                    //                 &nbsp;
-                    //             @endcan
-                    //             @can("user.view")
-                    //             <a href="{{action(\'ManageUserController@show\', [$id])}}" class="btn btn-xs btn-info"><i class="fa fa-eye"></i> @lang("messages.view")</a>
-                    //             &nbsp;
-                    //             @endcan
-                    //             @can("user.delete")
-                    //                 <button data-href="{{action(\'ManageUserController@destroy\', [$id])}}" class="btn btn-xs btn-danger delete_user_button"><i class="glyphicon glyphicon-trash"></i> @lang("messages.delete")</button>
-                    //             @endcan'
-                    // )
-                    // ->filterColumn('full_name', function ($query, $keyword) {
-                    //     $query->whereRaw("CONCAT(COALESCE(surname, ''), ' ', COALESCE(first_name, ''), ' ', COALESCE(last_name, '')) like ?", ["%{$keyword}%"]);
-                    // })
-                    // ->removeColumn('id')
-                    ->rawColumns(['action', 'username'])
-                    ->make(true);
-                // $business_id = Session::get('business_id');
-                // $users = User::where('business_id', $business_id);
-                // if ($request->has('q')) {
-                //     $search = $request->q;
-                //     $users = $users->where(function ($q) use ($search) {
-                //         $q->where('first_name', 'LIKE', "%" . $search . "%")->orWhere('username', 'LIKE', "%" . $search . "%")
-                //             ->orWhere('email', 'LIKE', "%" . $search . "%");
-                //     });
-                // }
-                // $users = $users->orderBy('username', 'ASC')->paginate(10);
-                // $render =  view('manage_user.table', compact('users'))->render();
-
-                // return $this->buildRes->RESPONSE_REQ('success', $render, null);
+                return $this->buildRes->RESPONSE_REQ('success', $render, null);
             }
 
             $roles = Role::all();

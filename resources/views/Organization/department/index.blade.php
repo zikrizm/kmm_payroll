@@ -23,7 +23,7 @@
                 </button>
             </div>
         </header>
-        <div class="table-content flex flex-col bg-white p-2 rounded"></div>
+        {{-- <div class="table-content flex flex-col bg-white p-2 rounded"></div> --}}
     </main>
 </div>
 <x-modal-confirmation classSubmit="submit-delete-department"></x-modal-confirmation>
@@ -32,12 +32,12 @@
     window.addEventListener('DOMContentLoaded', (event) => {
         $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
 
-        $(".search-input").on('keyup', debounce(function() {
-            onInit(null, $(this).val());
-        }, 250));
+        // $(".search-input").on('keyup', debounce(function() {
+        //     onInit(null, $(this).val());
+        // }, 250));
 
 
-        onInit();
+        // onInit();
     });
 
     async function onInit(page, q = '') {
