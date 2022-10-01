@@ -12,12 +12,7 @@ class Controller extends BaseController
 {
     use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
 
-    protected $site_settings = "sdfddff";
-
     public function __construct() 
     {
-        // Fetch the Site Settings object
-        parent::__construct();
-        View::share('site_settings', $this->site_settings);
     }
 }

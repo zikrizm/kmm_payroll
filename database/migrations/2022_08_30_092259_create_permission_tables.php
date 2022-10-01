@@ -72,8 +72,7 @@ class CreatePermissionTables extends Migration
                 ->on($tableNames['roles'])
                 ->onDelete('cascade');
 
-            $table->primary(['permission_id', 'role_id']);
-            $table->timestamp('created_at')->default(DB::raw('CURRENT_TIMESTAMP'));
+             $table->timestamp('created_at')->default(DB::raw('CURRENT_TIMESTAMP'));
             $table->timestamp('updated_at')->default(DB::raw('CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP'));
 
             Cache::forget('spatie.permission.cache');

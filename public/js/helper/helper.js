@@ -69,7 +69,9 @@ function openModal(modal) {
 }
 
 function closeModal(modal) {
+    // * HIDDE MODAL ----->
     $(modal.name).addClass('invisible hidden');
+    // * REMOVE CONTENT MODAL ----->
     if (modal.content) $(modal.content).html('')
 }
 
@@ -168,6 +170,13 @@ function clearError() {
         $(this).text('');
     });
 }
+
+function clearErrorFormInputs() {
+    $('.text-error').each(function (e) {
+        $(this).text('');
+    });
+}
+
 function checkIsSamePassword(mainPass, confPass) {
     if ($('input[name=' + mainPass + ']').val() != $('input[name=' + confPass + ']').val()) {
         return {
@@ -253,40 +262,68 @@ function getUrl(type, subMenuStorageName, id) {
 }
 
 
-function setErorrsformInputs(errors) {
-    console.log('errors', errors)
+function hideAllHintText() {
     $('.hint-text').each(function (e) {
-        $(this).css('opacity', '0');
+        $(this).css('display', 'none');
     });
-    console.log('typeof errors', typeof errors)
-    if (typeof errors != 'string') {
-        if (Object.keys(errors).length != 0) {
-            for (const error in errors) {
-                var textError = errors[error][0];
-                $(`.${error}`).text(textError);
-                $(`.${error}`).css('opacity', '1');
-            }
-            var firstErorr = Object.keys(errors)[0];
-            var firstElementParent = document.querySelector(`.${firstErorr}`).parentNode.parentNode;
+}
+
+function insertHintText(errors) {
+    for (const error in errors) {
+        var textError = errors[error][0];
+        $(`.${error}`).text(textError);
+        $(`.${error}`).css('display', 'flex');
+    }
+}
+
+function setErorrsformInputs(errors) {
+    try {
+        if (!errors) return;
+        if (Object.keys(errors).length == 0) return;
+
+        // * Hide all hint text input ----->
+        hideAllHintText();
+        // * Insert hint text input ----->
+        insertHintText(errors);
+
+        var firstError = Object.keys(errors)[0];
+        var firstErrorNode = document.querySelector('.' + firstError);
+        if (firstErrorNode) {
+            var firstErrorParentNode = firstErrorNode.parentNode.parentNode;
             const intersectionObserver = new IntersectionObserver((entries) => {
                 let [entry] = entries;
                 if (entry.isIntersecting) {
                     var nodeNameInput = '';
-                    if (firstErorr == 'full_address') {
-                        nodeNameInput = 'textarea[name=' + firstErorr + ']';
+                    if (firstError == 'full_address') {
+                        nodeNameInput = 'textarea[name=' + firstError + ']';
                     } else {
-                        nodeNameInput = 'input[name=' + firstErorr + ']';
+                        nodeNameInput = 'input[name=' + firstError + ']';
                     }
 
-                    $(`.${firstErorr}`).parent().children().find(nodeNameInput).focus();
+                    $('.' + firstError).parent().children().find(nodeNameInput).focus();
+                    intersectionObserver.unobserve(firstErrorParentNode);
                 }
             });
-            intersectionObserver.observe(firstElementParent);
-            firstElementParent.scrollIntoView({ behavior: "smooth" });
+            intersectionObserver.observe(firstErrorParentNode);
+            firstErrorParentNode.scrollIntoView({ behavior: "smooth" });
+        } else {
+            console.log(errors)
+            handleMessageError(errors)
         }
+    } catch (error) {
+        handleMessageError({ error })
     }
 }
 
+function handleMessage(_response) {
+    // **
+    // * SHOW NOTIFICATION ----->
+    // *
+    for (const msg in _response.msg) {
+        if (_response.status == 'error') toastr.error(_response.msg[msg], 'Error information')
+        else toastr.success(_response.msg[msg], 'Successfully information');
+    }
+}
 function handleMessageError(messagess) {
     for (const message in messagess) {
         toastr.error(messagess[message], 'Error information');
@@ -461,5 +498,15 @@ class Toggle {
             $(this).toggleClass("bg-gray-100");
             $(this).parent().children(':first-child').val($(this).val());
         });
+    }
+}
+
+
+
+function convertLocalTimezone(date, dateFormat) {
+    if (dateFormat) {
+        var dateUTC = moment.utc(date);
+        var localDate = dateUTC.local();
+        return localDate.format(dateFormat);
     }
 }

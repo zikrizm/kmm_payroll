@@ -3,11 +3,15 @@
 namespace App\Services\Api;
 
 use Exception;
+use DOMDocument;
 use App\Models\ZktecoSettings;
 use App\Services\Api\NetworkUtils;
 use Illuminate\Support\Facades\Log;
-use App\Exceptions\DataNotFoundException;
+use Illuminate\Support\Facades\Http;
 use App\Exceptions\ResponseExeception;
+use Illuminate\Support\Facades\Session;
+use App\Exceptions\DataNotFoundException;
+
 
 class ApiServices extends NetworkUtils
 {
@@ -21,7 +25,7 @@ class ApiServices extends NetworkUtils
                 'password' => $zkteco_setting->password,
             ];
 
-            $res = $this->emitter('POST', "jwt-api-token-auth/", $data);
+            $res = $this->emitter('POST', "/jwt-api-token-auth/", $data);
             if ($res['response'] < 200 || $res['response'] >= 300) {
                 throw new Exception(serialize($res['msg']));
             } else {
@@ -32,27 +36,63 @@ class ApiServices extends NetworkUtils
         }
     }
 
+    public function get_token_upload_employee_photo()
+    {
+        $content = file_get_contents(config('constants.api_zkteco') . 'vlRegister/');
 
-    public function get_employees()
+        $doc = new DOMDocument();
+        libxml_use_internal_errors(true);
+        $doc->loadHTML($content);
+        $inputs = $doc->getElementsByTagName("input");
+        $csrfmiddlewaretoken = '';
+        foreach ($inputs as $input) {
+            if ($input->getAttribute("name") == "csrfmiddlewaretoken") {
+                $csrfmiddlewaretoken = $input->getAttribute("value");
+            }
+        }
+
+        return $csrfmiddlewaretoken;
+    }
+
+
+    public function post_employee_photo($data)
     {
         $data = [
-            "page" => null,
-            "page_size" => null,
-            "emp_code" => null,
-            "emp_code_incontains" => null,
-            "first_name" => null,
-            "first_name_incontains" => null,
-            "last_name_incontains" => null,
-            "last_name" => null,
-            "department" => null,
-            "areas" => null,
+            'user_capture' => $data['user_capture'] ?? null,
+            'employee_code' => $data['employee_code'] ?? null,
+            'csrfmiddlewaretoken' => $data['csrfmiddlewaretoken'] ?? null,
+            'remark' => $data['remark'] ?? null,
+        ];
+        $res = $this->emitter('POST', "/vlRegister/", $data);
+        if ($res['response'] < 200 || $res['response'] >= 300) {
+            // throw new ResponseExeception($res['msg']);
+        } else {
+            return $res['data'];
+        }
+    }
+
+
+    public function get_employees($data)
+    {
+        $data = [
+            'page' => $data['page'] ?? null,
+            'page_size' => $data['page_size'] ?? null,
+            'employee_icontains' => $data['employee_icontains'] ?? null,
+            'emp_code' => $data['emp_code'] ?? null,
+            'emp_code_icontains' => $data['emp_code_icontains'] ?? null,
+            'first_name' => $data['first_name'] ?? null,
+            'first_name_icontains' => $data['first_name_icontains'] ?? null,
+            'last_name' => $data['last_name'] ?? null,
+            'last_name_icontains' => $data['last_name_icontains'] ?? null,
+            'department' => $data['department'] ?? null,
+            'areas' => $data['areas'] ?? null,
+            'ordering' => $data['ordering'] ?? null,
         ];
         $res = $this->emitter('GET', "/personnel/api/employees/", $data);
         if ($res['response'] < 200 || $res['response'] >= 300) {
-            // throw new Exception(serialize($res['msg']));
-            return collect($res);
+            // throw new ResponseExeception($res['msg']);
         } else {
-            return collect($res);
+            return $res['data'];
         }
     }
 
@@ -69,57 +109,80 @@ class ApiServices extends NetworkUtils
     public function create_employee($data)
     {
         $data = [
-            'id' => null,
-            'emp_code' => $data['emp_code'],
-            'first_name' => $data['first_name'],
-            'last_name' => $data['last_name'],
-            'area' => $data['area'],
-            'department' => $data['department'],
-            'hire_date' => $data['hire_date'],
-            'gender' => $data['gender'],
-            'mobile' => $data['mobile'],
-            'national' => $data['national'],
-            'address' => $data['address'],
-            'email' => $data['email'],
-            'app_status' => $data['app_status'],
-            'app_role' => $data['app_role'],
-            'first_name' => $data['first_name'],
-            'last_name' => $data['last_name'],
-            'nickname' => $data['nickname'],
+            "id" => null,
+            "emp_code" => $data["emp_code"] ?? null,
+            "first_name" => $data["first_name"] ?? null,
+            "last_name" => $data["last_name"] ?? null,
+            "nickname" => $data["nickname"] ?? null,
+            "photo" => $data["photo"] ?? null,
+            "hire_date" => $data["hire_date"] ?? null,
+            "birthday" => $data["birthday"] ?? null,
+            "gender" => $data["gender"] ?? null,
+
+            "verify_mode" => $data["verify_mode"] ?? null,
+            "emp_type" => $data["emp_type"] ?? null,
+            "contact_tel" => $data["contact_tel"] ?? null,
+            "office_tel" => $data["office_tel"] ?? null,
+            "mobile" => $data["mobile"] ?? null,
+            "national" => $data["national"] ?? null,
+            "city" => $data["city"] ?? null,
+            "address" => $data["address"] ?? null,
+            "postcode" => $data["postcode"] ?? null,
+            "email" => $data["email"] ?? null,
+            "religion" => $data["religion"] ?? null,
+            "app_status" => $data["app_status"] ?? null,
+            "app_role" => $data["app_role"] ?? null,
+
+            "department" => $data["department"] ?? null,
+            "position" => $data["position"] ?? null,
+            "area" => $data["area"] ?? null,
         ];
         $res = $this->emitter('POST', "/personnel/api/employees/", $data);
         if ($res['response'] < 200 || $res['response'] >= 300) {
-            // throw new ResponseExeception($res['msg']);
+            return $res;
         } else {
-            return $res['data'];
+            $res['msg'] = ['success' => 'Add employee succesfully'];
+            return $res;
         }
     }
 
     public function update_employee($data)
     {
         $data = [
-            'emp_code' => $data['emp_code'],
-            'first_name' => $data['first_name'],
-            'last_name' => $data['last_name'],
-            'area' => $data['area'],
-            'department' => $data['department'],
-            'hire_date' => $data['hire_date'],
-            'gender' => $data['gender'],
-            'mobile' => $data['mobile'],
-            'national' => $data['national'],
-            'address' => $data['address'],
-            'email' => $data['email'],
-            'app_status' => $data['app_status'],
-            'app_role' => $data['app_role'],
-            'first_name' => $data['first_name'],
-            'last_name' => $data['last_name'],
-            'nickname' => $data['nickname'],
+            "id" => $data["id"] ?? null,
+            "emp_code" => $data["emp_code"] ?? null,
+            "first_name" => $data["first_name"] ?? null,
+            "last_name" => $data["last_name"] ?? null,
+            "nickname" => $data["nickname"] ?? null,
+            "photo" => $data["photo"] ?? null,
+            "hire_date" => $data["hire_date"] ?? null,
+            "birthday" => $data["birthday"] ?? null,
+            "gender" => $data["gender"] ?? null,
+
+            "verify_mode" => $data["verify_mode"] ?? null,
+            "emp_type" => $data["emp_type"] ?? null,
+            "contact_tel" => $data["contact_tel"] ?? null,
+            "office_tel" => $data["office_tel"] ?? null,
+            "mobile" => $data["mobile"] ?? null,
+            "national" => $data["national"] ?? null,
+            "city" => $data["city"] ?? null,
+            "address" => $data["address"] ?? null,
+            "postcode" => $data["postcode"] ?? null,
+            "email" => $data["email"] ?? null,
+            "religion" => $data["religion"] ?? null,
+            "app_status" => $data["app_status"] ?? null,
+            "app_role" => $data["app_role"] ?? null,
+
+            "department" => $data["department"] ?? null,
+            "position" => $data["position"] ?? null,
+            "area" => $data["area"] ?? null,
         ];
-        $res = $this->emitter('POST', "/personnel/api/employees/" . $data['id'] . "/", $data);
+        $res = $this->emitter('PUT', "/personnel/api/employees/" . $data['id'] . "/", $data);
         if ($res['response'] < 200 || $res['response'] >= 300) {
-            // throw new ResponseExeception($res['msg']);
+            return $res;
         } else {
-            return $res['data'];
+            $res['msg'] = ['success' => 'Update employee succesfully'];
+            return $res;
         }
     }
 
@@ -178,16 +241,108 @@ class ApiServices extends NetworkUtils
         }
     }
 
+
+    public function get_resign($data)
+    {
+        $data = [
+            'page' => $data['page'] ?? null,
+            'page_size' => $data['page_size'] ?? null,
+            'employee' => $data['employee'] ?? null,
+            'resign_type' => $data['resign_type'] ?? null,
+            'resign_date' => $data['resign_date'] ?? null,
+            'ordering' => $data['ordering'] ?? null,
+        ];
+        $res = $this->emitter('GET', "/personnel/api/resigns/", $data);
+        if ($res['response'] < 200 || $res['response'] >= 300) {
+            // throw new ResponseExeception($res['msg']);
+        } else {
+            return $res['data'];
+        }
+    }
+
+    public function read_resign($id)
+    {
+        $res = $this->emitter('GET', "/personnel/api/resigns/" . $id . "/", null);
+        if ($res['response'] < 200 || $res['response'] >= 300) {
+            return $res;
+        } else {
+            return $res;
+        }
+    }
+
+    public function create_resign($data)
+    {
+        $data = [
+            'id' => null,
+            'resign_type' => $data['resign_type'] ?? null,
+            'disableatt' => $data['disableatt'] ?? null,
+            'resign_date' => $data['disableatt'] ?? null,
+            'employee' => $data['employee'] ?? null,
+            'reason' => $data['reason'] ?? null,
+        ];
+        $res = $this->emitter('POST', "/personnel/api/resigns/", $data);
+        if ($res['response'] < 200 || $res['response'] >= 300) {
+            return $res;
+        } else {
+            $res['msg'] = ['success' => 'Add resign succesfully'];
+            return $res;
+        }
+    }
+
+    public function update_resign($data)
+    {
+        $data = [
+            'id' => $data['id'],
+            'resign_type' => $data['resign_type'] ?? null,
+            'disableatt' => $data['disableatt'] ?? null,
+            'resign_date' => $data['disableatt'] ?? null,
+            'employee' => $data['employee'] ?? null,
+            'reason' => $data['reason'] ?? null,
+        ];
+        $res = $this->emitter('PUT', "/personnel/api/resigns/" . $data['id'] . '/', $data);
+        if ($res['response'] < 200 || $res['response'] >= 300) {
+            return $res;
+        } else {
+            $res['msg'] = ['success' => 'Update resign succesfully'];
+            return $res;
+        }
+    }
+
+    public function delete_resign($id)
+    {
+        $res = $this->emitter('DELETE', "/personnel/api/resigns/" . $id . "/", null);
+        if ($res['response'] < 200 || $res['response'] >= 300) {
+            return $res;
+        } else {
+            $res['msg'] = ['success' => 'Delete resign succesfully'];
+            return $res;
+        }
+    }
+
+    public function reinstatement($data)
+    {
+        $data = [
+            'resigns' => $data['resigns'] ?? null,
+        ];
+        $res = $this->emitter('PUT', "/personnel/api/resigns/reinstatement/", $data);
+        if ($res['response'] < 200 || $res['response'] >= 300) {
+            return $res;
+        } else {
+            $res['msg'] = ['success' => 'Reinstatement succesfully'];
+            return $res;
+        }
+    }
+
     public function get_departments($data)
     {
         $data = [
-            'page' => $data['page'],
-            'page_size' => $data['page_size'],
-            'dept_code' => $data['dept_code'],
-            'dept_name' => $data['dept_name'],
-            'dept_code_incontains' => $data['dept_code_incontains'],
-            'dept_name_incontains' => $data['dept_name_incontains'],
-            'ordering' => $data['ordering'],
+            'page' => $data['page'] ?? null,
+            'page_size' => $data['page_size'] ?? null,
+            'dept_code' => $data['dept_code'] ?? null,
+            'dept_name' => $data['dept_name'] ?? null,
+            'dept_code_icontains' => $data['dept_code_icontains'] ?? null,
+            'dept_name_icontains' => $data['dept_name_icontains'] ?? null,
+            'ordering' => $data['ordering'] ?? null,
         ];
         $res = $this->emitter('GET', "/personnel/api/departments/", $data);
         if ($res['response'] < 200 || $res['response'] >= 300) {
@@ -201,9 +356,9 @@ class ApiServices extends NetworkUtils
     {
         $res = $this->emitter('GET', "/personnel/api/departments/" . $id . "/", null);
         if ($res['response'] < 200 || $res['response'] >= 300) {
-            // throw new ResponseExeception($res['msg']);
+            return $res;
         } else {
-            return $res['data'];
+            return $res;
         }
     }
 
@@ -213,27 +368,31 @@ class ApiServices extends NetworkUtils
             'id' => null,
             'dept_code' => $data['dept_code'],
             'dept_name' => $data['dept_name'],
-            'parent_dept' => $data['parent_dept'],
+            'parent_dept' => $data['parent_dept'] ?? null,
         ];
         $res = $this->emitter('POST', "/personnel/api/departments/", $data);
         if ($res['response'] < 200 || $res['response'] >= 300) {
-            // throw new ResponseExeception($res['msg']);
+            return $res;
         } else {
-            return $res['data'];
+            $res['msg'] = ['success' => 'Add department succesfully'];
+            return $res;
         }
     }
 
     public function update_department($data)
     {
         $data = [
+            'id' => $data['id'],
             'dept_code' => $data['dept_code'],
             'dept_name' => $data['dept_name'],
+            'parent_dept' => $data['parent_dept'] ?? null,
         ];
         $res = $this->emitter('PUT', "/personnel/api/departments/" . $data['id'] . '/', $data);
         if ($res['response'] < 200 || $res['response'] >= 300) {
-            // throw new ResponseExeception($res['msg']);
+            return $res;
         } else {
-            return $res['data'];
+            $res['msg'] = ['success' => 'Update department succesfully'];
+            return $res;
         }
     }
 
@@ -241,20 +400,23 @@ class ApiServices extends NetworkUtils
     {
         $res = $this->emitter('DELETE', "/personnel/api/departments/" . $id . "/", null);
         if ($res['response'] < 200 || $res['response'] >= 300) {
-            // throw new ResponseExeception($res['msg']);
+            return $res;
         } else {
-            return $res['data'];
+            $res['msg'] = ['success' => 'Delete department succesfully'];
+            return $res;
         }
     }
 
     public function get_areas($data)
     {
         $data = [
-            'page' => $data['page'],
-            'page_size' => $data['page_size'],
-            'area_code' => $data['dept_code'],
-            'area_name' => $data['dept_name'],
-            'ordering' => $data['ordering'],
+            'page' => $data['page'] ?? null,
+            'page_size' => $data['page_size'] ?? null,
+            'area_code' => $data['area_code'] ?? null,
+            'area_name' => $data['area_name'] ?? null,
+            'area_code_icontains' => $data['area_code_icontains'] ?? null,
+            'area_name_icontains' => $data['area_name_icontains'] ?? null,
+            'ordering' => $data['ordering'] ?? null,
         ];
         $res = $this->emitter('GET', "/personnel/api/areas/", $data);
         if ($res['response'] < 200 || $res['response'] >= 300) {
@@ -280,27 +442,31 @@ class ApiServices extends NetworkUtils
             'id' => null,
             'area_code' => $data['area_code'],
             'area_name' => $data['area_name'],
-            'parent_area' => $data['parent_area'],
+            'parent_area' => $data['parent_area'] ?? null,
         ];
         $res = $this->emitter('POST', "/personnel/api/areas/", $data);
         if ($res['response'] < 200 || $res['response'] >= 300) {
-            // throw new ResponseExeception($res['msg']);
+            return $res;
         } else {
-            return $res['data'];
+            $res['msg'] = ['success' => 'Update area succesfully'];
+            return $res;
         }
     }
 
     public function update_area($data)
     {
         $data = [
+            'id' => $data['id'],
             'area_code' => $data['area_code'],
             'area_name' => $data['area_name'],
+            'parent_area' => $data['parent_area'] ?? null,
         ];
         $res = $this->emitter('PUT', "/personnel/api/areas/" . $data['id'] . '/', $data);
         if ($res['response'] < 200 || $res['response'] >= 300) {
-            // throw new ResponseExeception($res['msg']);
+            return $res;
         } else {
-            return $res['data'];
+            $res['msg'] = ['success' => 'Update area succesfully'];
+            return $res;
         }
     }
 
@@ -308,20 +474,23 @@ class ApiServices extends NetworkUtils
     {
         $res = $this->emitter('DELETE', "/personnel/api/areas/" . $id . "/", null);
         if ($res['response'] < 200 || $res['response'] >= 300) {
-            // throw new ResponseExeception($res['msg']);
+            return $res;
         } else {
-            return $res['data'];
+            $res['msg'] = ['success' => 'Delete area succesfully'];
+            return $res;
         }
     }
 
     public function get_positions($data)
     {
         $data = [
-            'page' => $data['page'],
-            'page_size' => $data['page_size'],
-            'position_code' => $data['position_code'],
-            'position_name' => $data['position_name'],
-            'ordering' => $data['ordering'],
+            'page' => $data['page'] ?? null,
+            'page_size' => $data['page_size'] ?? null,
+            'position_code' => $data['position_code'] ?? null,
+            'position_name' => $data['position_name'] ?? null,
+            'position_code_icontains' => $data['position_code_icontains'] ?? null,
+            'position_name_icontains' => $data['position_name_icontains'] ?? null,
+            'ordering' => $data['ordering'] ?? null,
         ];
         $res = $this->emitter('GET', "/personnel/api/positions/", $data);
         if ($res['response'] < 200 || $res['response'] >= 300) {
@@ -345,29 +514,33 @@ class ApiServices extends NetworkUtils
     {
         $data = [
             'id' => null,
-            'position_code' => $data['area_code'],
-            'position_name' => $data['area_name'],
-            'parent_position' => $data['parent_area'],
+            'position_code' => $data['position_code'],
+            'position_name' => $data['position_name'],
+            'parent_position' => $data['parent_position'] ?? null,
         ];
         $res = $this->emitter('POST', "/personnel/api/positions/", $data);
         if ($res['response'] < 200 || $res['response'] >= 300) {
-            // throw new ResponseExeception($res['msg']);
+            return $res;
         } else {
-            return $res['data'];
+            $res['msg'] = ['success' => 'Add position succesfully'];
+            return $res;
         }
     }
 
     public function update_position($data)
     {
         $data = [
+            'id' => $data['id'],
             'position_code' => $data['position_code'],
             'position_name' => $data['position_name'],
+            'parent_position' => $data['parent_position'] ?? null,
         ];
         $res = $this->emitter('PUT', "/personnel/api/positions/" . $data['id'] . '/', $data);
         if ($res['response'] < 200 || $res['response'] >= 300) {
-            // throw new ResponseExeception($res['msg']);
+            return $res;
         } else {
-            return $res['data'];
+            $res['msg'] = ['success' => 'Update position succesfully'];
+            return $res;
         }
     }
 
@@ -375,21 +548,23 @@ class ApiServices extends NetworkUtils
     {
         $res = $this->emitter('DELETE', "/personnel/api/positions/" . $id . "/", null);
         if ($res['response'] < 200 || $res['response'] >= 300) {
-            // throw new ResponseExeception($res['msg']);
+            return $res;
         } else {
-            return $res['data'];
+            $res['msg'] = ['success' => 'Delete position succesfully'];
+            return $res;
         }
     }
 
     public function get_transactions($data)
     {
         $data = [
-            'page' => $data['page'],
-            'page_size' => $data['page_size'],
-            'emp_code' => $data['emp_code'],
-            'terminal_sn' => $data['terminal_sn'],
-            'start_time' => $data['start_time'],
-            'end_time' => $data['end_time'],
+            'page' => $data['page'] ?? null,
+            'page_size' => $data['page_size'] ?? null,
+            'emp_code' => $data['emp_code'] ?? null,
+            'terminal_sn' => $data['terminal_sn'] ?? null,
+            'terminal_alias' => $data['terminal_alias'] ?? null,
+            'start_time' => $data['start_time'] ?? null,
+            'end_time' => $data['end_time'] ?? null,
         ];
         $res = $this->emitter('GET', "/iclock/api/transactions/", $data);
         if ($res['response'] < 200 || $res['response'] >= 300) {

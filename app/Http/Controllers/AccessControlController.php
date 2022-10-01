@@ -55,7 +55,7 @@ class AccessControlController extends Controller
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
 
-            return $this->buildRes->RESPONSE_REQ('error', null, 'something wrong');
+            return $this->buildRes->RESPONSE_REQ('error', null, ['error' => 'something wrong']);
         }
     }
 
@@ -77,7 +77,7 @@ class AccessControlController extends Controller
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
 
-            return $this->buildRes->RESPONSE_REQ('error', null, 'something wrong');
+            return $this->buildRes->RESPONSE_REQ('error', null, ['error' => 'something wrong']);
         }
     }
 
@@ -116,7 +116,7 @@ class AccessControlController extends Controller
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
 
-            return $this->buildRes->RESPONSE_REQ('error', null, 'something wrong');
+            return $this->buildRes->RESPONSE_REQ('error', null, ['error' => 'something wrong']);
         }
     }
 
@@ -162,7 +162,7 @@ class AccessControlController extends Controller
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
 
-            return $this->buildRes->RESPONSE_REQ('error', null, 'something wrong');
+            return $this->buildRes->RESPONSE_REQ('error', null, ['error' => 'something wrong']);
         }
     }
 
@@ -213,7 +213,7 @@ class AccessControlController extends Controller
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
 
-            return $this->buildRes->RESPONSE_REQ('error', null, 'something wrong');
+            return $this->buildRes->RESPONSE_REQ('error', null, ['error' => 'something wrong']);
         }
     }
 
@@ -234,7 +234,7 @@ class AccessControlController extends Controller
 
             return $this->buildRes->RESPONSE_REQ('success', null, 'Access control delete succesfully');
         } catch (\Exception $e) {
-            return $this->buildRes->RESPONSE_REQ('error', null, 'something wrong');
+            return $this->buildRes->RESPONSE_REQ('error', null, ['error' => 'something wrong']);
         }
     }
 
@@ -247,8 +247,8 @@ class AccessControlController extends Controller
     private function __createPermissionIfNotExists($permissions)
     {
         $exising_permissions = Permission::whereIn('name', $permissions)
-                                    ->pluck('name')
-                                    ->toArray();
+            ->pluck('name')
+            ->toArray();
 
         $non_existing_permissions = array_diff($permissions, $exising_permissions);
 

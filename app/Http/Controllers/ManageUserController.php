@@ -8,13 +8,12 @@ use App\Utils\BusinessUtil;
 use App\Utils\ResponseUtil;
 use Illuminate\Http\Request;
 use App\Services\Api\ApiServices;
-use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
-use Yajra\DataTables\Facades\DataTables;
 
 class ManageUserController extends Controller
 {
@@ -46,7 +45,7 @@ class ManageUserController extends Controller
             if (request()->ajax()) {
                 $business_id = Session::get('business_id');
                 $users = User::where('business_id', $business_id);
-                Log::info("Sdfsdfsdfsdf");
+
                 if ($request->has('q')) {
                     $search = $request->q;
                     $users = $users->where(function ($q) use ($search) {
@@ -61,17 +60,16 @@ class ManageUserController extends Controller
                     $users->orderBy($sort['name'], $sort['order']);
                 }
                 $users = $users->paginate(10);
-                $render =  view('manage_user.table', compact('users', 'order'))->render();
+                $render =  view('User.manage_user.table', compact('users', 'order'))->render();
 
                 return $this->buildRes->RESPONSE_REQ('success', $render, null);
             }
 
-            $roles = Role::all();
-            return  view('manage_user.index', compact('roles'));
+            return  view('User.manage_user.index');
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
 
-            return $this->buildRes->RESPONSE_REQ('error', null, 'something wrong');
+            return $this->buildRes->RESPONSE_REQ('error', null, ['error' => 'something wrong']);
         }
     }
 
@@ -90,13 +88,13 @@ class ManageUserController extends Controller
         try {
             $business_id = Session::get('business_id');
             $roles = Role::where('business_id', $business_id)->get();
-            $render = view('manage_user.create', compact('roles'))->render();
+            $render = view('User.manage_user.create', compact('roles'))->render();
 
             return $this->buildRes->RESPONSE_REQ('success', $render, null);
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
 
-            return $this->buildRes->RESPONSE_REQ('error', null, 'something wrong');
+            return $this->buildRes->RESPONSE_REQ('error', null, ['error' => 'something wrong']);
         }
     }
 
@@ -112,7 +110,7 @@ class ManageUserController extends Controller
             abort(403, 'Unauthorized action.');
         }
         try {
-            $validator = Validator::make($request->all(), $this->rules('POST', null));
+            $validator = Validator::make($request->all(), $this->rules(null));
 
             if ($validator->fails()) {
                 return $this->buildRes->RESPONSE_REQ('error', null, $validator->errors());
@@ -126,20 +124,20 @@ class ManageUserController extends Controller
                 $user_data['business_id'] = Session::get('business_id');
 
                 // upload logo
-                $photo_profile = $this->businessUtil->uploadFile($request, 'photo', 'profiles', 'image');
+                $photo_profile = $this->businessUtil->uploadFile($request, 'photo', 'uploads/photos', 'image');
                 if (!empty($photo_profile)) {
-                    $user_data['photo'] = $photo_profile;
+                    $user_data['photo'] = Storage::url('/uploads/photos/' . $photo_profile);
                 }
                 $user = new User($user_data);
                 $user->save();
 
                 $user->assignRole($role->name);
-                return $this->buildRes->RESPONSE_REQ('success', null,  'Add user succesfully');
+                return $this->buildRes->RESPONSE_REQ('success', null, ['success' => 'Add user succesfully']);
             }
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
 
-            return $this->buildRes->RESPONSE_REQ('error', null, 'something wrong');
+            return $this->buildRes->RESPONSE_REQ('error', null, ['error' => 'something wrong']);
         }
     }
 
@@ -173,11 +171,11 @@ class ManageUserController extends Controller
         try {
             $business_id = Session::get('business_id');
             $roles = Role::where('business_id', $business_id)->get();
-            $render = view('manage_user.edit', compact('roles', 'user'))->render();
+            $render = view('User.manage_user.edit', compact('roles', 'user'))->render();
 
             return $this->buildRes->RESPONSE_REQ('success', $render, null);
         } catch (\Exception $error) {
-            return $this->buildRes->RESPONSE_REQ('error', null, 'something wrong');
+            return $this->buildRes->RESPONSE_REQ('error', null, ['error' => 'something wrong']);
         }
     }
 
@@ -195,22 +193,21 @@ class ManageUserController extends Controller
         }
 
         try {
-            $validator = Validator::make($request->all(), $this->rules("PUT", $user));
+            $validator = Validator::make($request->all(), $this->rules($user));
 
             if ($validator->fails()) {
                 return $this->buildRes->RESPONSE_REQ('error', null, $validator->errors());
             } else {
-                $user_data = $request->heonly(['surname', 'first_name', 'last_name', 'status', 'email', 'username', 'password', 'role']);
+                $user_data = $request->only(['surname', 'first_name', 'last_name', 'status', 'email', 'username', 'password', 'role']);
 
                 if (!empty($request->input('password'))) {
                     $user_data['password'] = Hash::make($request->input('password'));
                 }
 
                 // upload logo
-                Log::info($request);
-                $photo_profile = $this->businessUtil->uploadFile($request, 'photo', 'profiles', 'image');
+                $photo_profile = $this->businessUtil->uploadFile($request, 'photo', 'uploads/photos', 'image');
                 if (!empty($photo_profile)) {
-                    $user_data['photo'] = $photo_profile;
+                    $user_data['photo'] = Storage::url('/uploads/photos/' . $photo_profile);
                 }
 
                 $user->update($user_data);
@@ -226,12 +223,12 @@ class ManageUserController extends Controller
                     $user->assignRole($role->name);
                 }
 
-                return $this->buildRes->RESPONSE_REQ('success', null, 'user update succesfully');
+                return $this->buildRes->RESPONSE_REQ('success', null, ['success' => 'Update user succesfully']);
             }
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
 
-            return $this->buildRes->RESPONSE_REQ('error', null, 'something wrong');
+            return $this->buildRes->RESPONSE_REQ('error', null, ['error' => 'something wrong']);
         }
     }
 
@@ -251,53 +248,30 @@ class ManageUserController extends Controller
         try {
             $user->delete();
 
-            return $this->buildRes->RESPONSE_REQ('success', null, 'user delete succesfully');
+            return $this->buildRes->RESPONSE_REQ('success', null, ['success' => 'Delete user succesfully']);
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
 
-            return $this->buildRes->RESPONSE_REQ('error', null, 'something wrong');
+            return $this->buildRes->RESPONSE_REQ('error', null, ['error' => 'something wrong']);
         }
     }
 
     /**
      * Rules validation user.
      *
-     * @param  string  $method
-     * @param  User $idUser
+     * @param  User $user
      * @return array
      */
-    public function rules($method, $user)
+    public function rules($user)
     {
-
-        switch ($method) {
-            case 'GET':
-            case 'DELETE':
-            case 'PATCH':
-            case 'POST': {
-                    return [
-                        'first_name' => 'required|string|max:255',
-                        'username' => 'required|string|max:255|unique:users',
-                        'email' => 'required|string|email:rfc,dns|unique:users',
-                        'password' => 'required|string|min:6',
-                        'role' => 'string|exists:roles,id',
-                        'status' => 'required|string',
-                        'image' => 'image|file|max:2000',
-                    ];
-                }
-                break;
-            case 'PUT':
-                return [
-                    'first_name' => 'required|string|max:255',
-                    'username' => 'required|string|max:255|unique:users,username,' . $user->id,
-                    'email' => 'required|string|email:rfc,dns|unique:users,email,' . $user->id,
-                    'password' => 'required|string|min:6',
-                    'role' => 'string|exists:roles,id',
-                    'status' => 'required|string',
-                    'image' => 'image|file|max:2000',
-                ];
-                break;
-            default:
-                break;
-        }
+        return [
+            'first_name' => 'required|string|max:255',
+            'username' => (empty($user)) ?  'required|string|max:255|unique:users' : 'required|string|max:255|unique:users,username,' . $user->id,
+            'email' => (empty($user)) ? 'required|string|email:rfc,dns|unique:users' : 'required|string|email:rfc,dns|unique:users,email,' . $user->id,
+            'password' => 'required|string|min:6',
+            'role' => 'string|exists:roles,id',
+            'status' => 'required|string',
+            'image' => 'image|file|max:2000',
+        ];
     }
 }

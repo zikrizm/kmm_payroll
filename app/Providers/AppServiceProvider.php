@@ -72,8 +72,8 @@ class AppServiceProvider extends ServiceProvider
             return $is_active_class;
         });
 
-        Blade::directive('activeSubMenu', function ($url) {
-            return config('constants.api_zkteco') . $url;
+        Blade::directive('urlPagination', function ($url) {
+            return str_replace(config('constants.api'), 'http://localhost/', $url) ;
         });
 
         Blade::directive('zkPhoto', function ($url) {

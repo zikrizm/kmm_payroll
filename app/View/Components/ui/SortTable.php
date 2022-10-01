@@ -25,7 +25,6 @@ class SortTable extends Component
         $this->url = $url;
         $this->field = $field;
         $this->order = $order;
-        Log::info($order);
         $this->icon = $icon ?? 'chevron-down';
     }
 

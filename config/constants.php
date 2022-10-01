@@ -9,6 +9,7 @@ return [
     |List of all constants for the app
     */
     'api_zkteco' => 'http://192.168.2.20:80/',
+    'api' => 'http://192.168.2.20/',
     'langs' => [
         'en' => ['full_name' => 'English', 'short_name' => 'English'],
         'es' => ['full_name' => 'Spanish - Español', 'short_name' => 'Spanish'],

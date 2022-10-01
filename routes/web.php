@@ -65,15 +65,29 @@ Route::middleware(['auth'])->group(function () {
 
     Route::resource('user', 'ManageUserController', ['except' => ['update']]);
     Route::resource('role', 'RoleController', ['except' => ['update']]);
-    Route::resource('employee', 'EmployeeController', ['except' => ['update']]);
-
     Route::resource('department', 'DepartmentController', ['except' => ['update']]);
     Route::resource('position', 'PositionController', ['except' => ['update']]);
     Route::resource('area', 'AreaController', ['except' => ['update']]);
-
+    Route::resource('employee', 'EmployeeController', ['except' => ['update']]);
+    Route::resource('resign', 'ResignController', ['except' => ['update']]);
     Route::resource('break-time', 'BreakTimeController', ['except' => ['update']]);
     Route::resource('timetable', 'TimetableController', ['except' => ['update']]);
     Route::resource('shift', 'ShiftController', ['except' => ['update']]);
+    Route::resource('transaction', 'TransactionController', ['except' => ['update']]);
 
+    Route::post('/user/{user}', 'ManageUserController@update')->name('user.update');
+    Route::post('/role/{role}', 'RoleController@update')->name('role.update');
+    Route::post('/department/{department}', 'DepartmentController@update')->name('department.update');
+    Route::post('/position/{position}', 'PositionController@update')->name('position.update');
+    Route::post('/area/{area}', 'AreaController@update')->name('area.update');
+    Route::post('/employee/{employee}', 'EmployeeController@update')->name('employee.update');
+    Route::post('/resign/{resign}', 'ResignController@update')->name('resign.update');
+    Route::post('/break-time/{break_time}', 'BreakTimeController@update')->name('break-time.update');
+    Route::post('/timetable/{timetable}', 'TimetableController@update')->name('timetable.update');
+    Route::post('/shift/{shift}', 'ShiftController@update')->name('shift.update');
+    Route::post('/transaction/{transaction}', 'TransactionController@update')->name('transaction.update');
+    
+    Route::get('/search-employee-for-dropdown', 'EmployeeController@searchEmployeeForDropdown')->name('employee.search-employee-for-dropdown');
+    
     Route::get('logout', '\App\Http\Controllers\Auth\LoginController@logout')->name('logout');
 });

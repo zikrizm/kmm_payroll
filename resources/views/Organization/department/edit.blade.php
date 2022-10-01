@@ -20,30 +20,32 @@
         </div>
         <hr>
     </header>
-    <form autocomplete="off" action="{{ route('department.update', ['department' => $data['id']]) }}" method="POST"
+    <form autocomplete="off" action="{{ route('department.update', ['department' => $dept['id']]) }}" method="POST"
         class="submit-department">
         @csrf
         <!-- {{ csrf_field() }} -->
         <main class="px-4 flex flex-col gap-4 xs/max:gap-3 mb-8">
             <section class="flex flex-col gap-1">
                 <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Department code*</label>
-                {!! FormCustom::input('dept_code', $data['dept_code'], [ "placeholder" => 'Enter new your department
-                code']) !!}
+                {!! FormCustom::input('dept_code', $dept['dept_code'], [ "placeholder" => 'Enter new your
+                department code']) !!}
             </section>
             <section class="flex flex-col gap-1">
                 <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Department name*</label>
-                {!! FormCustom::input('dept_name', $data['dept_code'], [ "placeholder" => 'Enter new your department
-                name']) !!}
+                {!! FormCustom::input('dept_name', $dept['dept_name'], [ "placeholder" => 'Enter new your
+                department name']) !!}
             </section>
             <section class="flex flex-col gap-1">
-                <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Role*</label>
-                <select class="select2" name="role" required>
+                <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Parent department*</label>
+                <select class="select2" name="parent_dept">
                     <option value="" selected>Silahkan Pilih</option>
-                    {{-- @foreach ($roles as $role)
-                    <option value="{{ $role->id }}">{{ $role->name }}</option>
-                    @endforeach --}}
+                    @foreach ($departments['data'] as $item)
+                    <option value="{{ $item['id'] }}" {{ (!empty($dept['parent_dept']) &&
+                        ($dept['parent_dept']['id']==$item['id'])) ? 'selected' : '' }}>{{
+                        $item['dept_name'] }}</option>
+                    @endforeach
                 </select>
-                <label class="font-normal text-xs text-red-500 xs/max:text-xs role text-error"></label>
+                <label class="font-normal text-xs text-red-500 xs/max:text-xs parent_dept text-error"></label>
             </section>
         </main>
         <hr>

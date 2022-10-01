@@ -1,83 +1,75 @@
 @extends('layouts.app')
-@section('title', 'Shift')
+@section('title', 'User')
 @section('css')
 <style></style>
 @endsection
 @section('content')
-<div class="h-full flex-1 pb-12 px-8 xs/max:p-4 xs/max:pb-8 overflow-y-auto overflow-x-hidden relative">
-    <main class="flex flex-col gap-2 xs/max:gap-4 h-full">
-        <header class="min-h-[80px] w-full flex justify-between items-center">
-            <p class="font-semibold text-2xl text-gray-700 xs/max:text-xl">Department</p>
-            <div class="flex items-center gap-3">
-                <div class="bg-white rounded-10 w-56 h-8 flex items-center relative">
-                    <input type="text" placeholder="search .."
-                        class="search-input pl-3 pr-10 flex-1 bg-transparent outline-0 font-normal text-sm">
-                    <button class="text-gray-500 absolute right-3">
-                        <x-icon icon="search" width=16 height=16 viewBox="20 20" />
-                    </button>
-                </div>
-                <button onclick="get_modal()"
-                    class="flex items-center gap-2 shadow-xs rounded-10 h-8 px-3 text-white text-sm font-normal flex items-center bg-violet-600 xs/max:text-xs xs/max:rounded">
-                    <x-icon icon="plus" width=16 height=16 viewBox="20 20" />
-                    New department
-                </button>
-            </div>
-        </header>
-        {{-- <div class="table-content flex flex-col bg-white p-2 rounded"></div> --}}
-    </main>
+<div class="flex flex-col gap-6 flex-1 h-full overflow-auto bg-white px-8 pt-8 pb-12">
+    <header class="flex justify-between items-start">
+        <div class="flex flex-col gap-1">
+            <p class="text-3xl font-medium text-gray-900">Department</p>
+            <p class="text-base font-normal text-gray-500">Here to manage the status of each department.</p>
+        </div>
+        <div class="">
+            <button onclick="get_modal()" class="flex items-center gap-2.5 px-4 py-2 text-gray-500 text-sm font-medium 
+                flex items-center border border-gray-200 shadow-sm rounded-lg">
+                <x-icon icon="plus" width=18 height=18 viewBox="20 20" />
+                Add department
+            </button>
+        </div>
+    </header>
+    <hr>
+    <x-ui.search-data placeholder="Search for department" url="{{ route('department.index') }}" />
+    <div class="table-content"></div>
+    <x-ui.confirm-modal class="submit-delete-department"></x-ui.confirm-modal>
 </div>
-<x-modal-confirmation classSubmit="submit-delete-department"></x-modal-confirmation>
 
 <script type="application/javascript">
     window.addEventListener('DOMContentLoaded', (event) => {
-        $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
-
-        // $(".search-input").on('keyup', debounce(function() {
-        //     onInit(null, $(this).val());
-        // }, 250));
-
-
-        // onInit();
-    });
-
-    async function onInit(page, q = '') {
-        // **
-        // * get table ----->
-        // *
-        var res = await utils.table('/department?'+(new URLSearchParams({ page, q}).toString()), null);
-        $('.table-content').html(res);
-        // **
-        // * pagination ----->
-        // *
-        $( ".pagination-custom a" ).bind( "click",async function(e) {
-            e.preventDefault();
-
-            var _page = $(this).attr('href').split('page=')[1];
-            onInit(_page)
+            $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
+    
+            onInit($('.search-data-input').val());
         });
-    }
+    
+        async function onInit(q = '') {
+            // **
+            // * get table ----->
+            // *
+            var res = await ApiService.get_table('/department?'+(new URLSearchParams({q}).toString()), null);
+            $('.table-content').html(res);
 
-    async function get_modal(idDepartment) {
-        // **
-        // * open modal form ----->
-        // *
-        var URL = (idDepartment) ? '/department/' + idDepartment + '/edit' : '/department/create';
-        var res = await utils.modal(URL, null);
-        $('.select2').select2();
-        // **
-        // * submit form ----->
-        // *
-        var resSubmit = utils.submit('.submit-department', (data) => { 
-            onInit();
-        });
-    }
+            // **
+            // * pagination table ----->
+            // *
+            $('.pagination-button').on('click', function() {
+                let pUrl = $(this).data('pagination-url');
+                $('.search-data-input').val();
+                get_data_table(pUrl, null);
+            })
+        }
+    
+        async function get_modal(dept_id) {
+            // **
+            // * open modal form ----->
+            // *
+            var URL = (dept_id) ? '/department/' + dept_id + '/edit' : '/department/create';
+            var res = await ApiService.get_modal(URL, null);
+            $('.select2').select2();
 
-    function open_modal_confirm(idDepartment) {
+            // **
+            // * submit form ----->
+            // *
+            var resSubmit = await ApiService.submit_form('.submit-department', (data) => { 
+                onInit($('.search-data-input').val());
+            });
+        }
+
+    async function open_modal_confirm(dept_id) {
         // **
         // * open modal confirm ----->
         // *
-        utils.modal_confirm('.submit-delete-department', '/department/' + idDepartment, null, () => {
-            onInit();
+        await ApiService.get_confirm('.submit-delete-department', '/department/' + dept_id, null, () => {
+            onInit($('.search-data-input').val());
         })
     }
 </script>

@@ -58,7 +58,7 @@ class BusinessLocationController extends Controller
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
 
-            return $this->buildRes->RESPONSE_REQ('error', null, 'something wrong');
+            return $this->buildRes->RESPONSE_REQ('error', null, ['error' => 'something wrong']);
         }
     }
 
@@ -81,7 +81,7 @@ class BusinessLocationController extends Controller
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
 
-            return $this->buildRes->RESPONSE_REQ('error', null, 'something wrong');
+            return $this->buildRes->RESPONSE_REQ('error', null, ['error' => 'something wrong']);
         }
     }
 
@@ -113,7 +113,7 @@ class BusinessLocationController extends Controller
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
 
-            return $this->buildRes->RESPONSE_REQ('error', null, 'something wrong');
+            return $this->buildRes->RESPONSE_REQ('error', null, ['error' => 'something wrong']);
         }
     }
 
@@ -150,7 +150,7 @@ class BusinessLocationController extends Controller
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
 
-            return $this->buildRes->RESPONSE_REQ('error', null, 'something wrong');
+            return $this->buildRes->RESPONSE_REQ('error', null, ['error' => 'something wrong']);
         }
     }
 
@@ -181,11 +181,11 @@ class BusinessLocationController extends Controller
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
 
-            return $this->buildRes->RESPONSE_REQ('error', null, 'something wrong');
+            return $this->buildRes->RESPONSE_REQ('error', null, ['error' => 'something wrong']);
         }
     }
 
-   /**
+    /**
      * Remove the specified resource from storage.
      *
      * @param  BusinessLocation $location
@@ -203,7 +203,7 @@ class BusinessLocationController extends Controller
 
             return $this->buildRes->RESPONSE_REQ('success', null, 'Group delete succesfully');
         } catch (\Exception $e) {
-            return $this->buildRes->RESPONSE_REQ('error', null, 'something wrong');
+            return $this->buildRes->RESPONSE_REQ('error', null, ['error' => 'something wrong']);
         }
     }
 

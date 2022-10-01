@@ -57,7 +57,7 @@ class ShiftController extends Controller
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
 
-            return $this->buildRes->RESPONSE_REQ('error', null, 'something wrong');
+            return $this->buildRes->RESPONSE_REQ('error', null, ['error' => 'something wrong']);
         }
     }
 
@@ -80,7 +80,7 @@ class ShiftController extends Controller
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
 
-            return $this->buildRes->RESPONSE_REQ('error', null, 'something wrong');
+            return $this->buildRes->RESPONSE_REQ('error', null, ['error' => 'something wrong']);
         }
     }
 
@@ -112,7 +112,7 @@ class ShiftController extends Controller
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
 
-            return $this->buildRes->RESPONSE_REQ('error', null, 'something wrong');
+            return $this->buildRes->RESPONSE_REQ('error', null, ['error' => 'something wrong']);
         }
     }
 
@@ -148,7 +148,7 @@ class ShiftController extends Controller
 
             return $this->buildRes->RESPONSE_REQ('success', $render, null);
         } catch (\Exception $error) {
-            return $this->buildRes->RESPONSE_REQ('error', null, 'something wrong');
+            return $this->buildRes->RESPONSE_REQ('error', null, ['error' => 'something wrong']);
         }
     }
 
@@ -181,7 +181,7 @@ class ShiftController extends Controller
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
 
-            return $this->buildRes->RESPONSE_REQ('error', null, 'something wrong');
+            return $this->buildRes->RESPONSE_REQ('error', null, ['error' => 'something wrong']);
         }
     }
 
@@ -203,7 +203,7 @@ class ShiftController extends Controller
 
             return $this->buildRes->RESPONSE_REQ('success', null, 'Shift delete succesfully');
         } catch (\Exception $e) {
-            return $this->buildRes->RESPONSE_REQ('error', null, 'something wrong');
+            return $this->buildRes->RESPONSE_REQ('error', null, ['error' => 'something wrong']);
         }
     }
 

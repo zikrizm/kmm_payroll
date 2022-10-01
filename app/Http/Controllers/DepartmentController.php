@@ -28,14 +28,27 @@ class DepartmentController extends Controller
      */
     public function index(Request $request)
     {
-        // if (!auth()->user()->can('department.view')) {
-        //     abort(403, 'Unauthorized action.');
-        // }
+        if (!auth()->user()->can('department.view')) {
+            abort(403, 'Unauthorized action.');
+        }
 
         try {
             if (request()->ajax()) {
-                $departments = $this->apiService->get_departments();
-                $render =  view('Organization.department.table', compact('departments'))->render();
+                $order = null;
+                $filter = [];
+
+                if ($request->has('q')) {
+                    // $filter['dept_code_icontains'] = $request->q;
+                    $filter['dept_name_icontains'] = $request->q;
+                }
+
+                if ($request->has('sort')) {
+                    $filter['ordering'] = $request->sort['name'];
+                    $order = $request->sort['order'];
+                }
+
+                $departments = $this->apiService->get_departments($filter);
+                $render =  view('Organization.department.table', compact('departments', 'order'))->render();
                 return $this->buildRes->RESPONSE_REQ('success', $render, null);
             }
 
@@ -56,19 +69,19 @@ class DepartmentController extends Controller
      */
     public function create(Request $request)
     {
-        // if (!auth()->user()->can('department.create') || !request()->ajax()) {
-        //     abort(403, 'Unauthorized action.');
-        // }
+        if (!auth()->user()->can('department.create') || !request()->ajax()) {
+            abort(403, 'Unauthorized action.');
+        }
 
         try {
-            $departments = $this->apiService->get_departments();
+            $departments = $this->apiService->get_departments([]);
             $render = view('Organization.department.create', compact('departments'))->render();
 
             return $this->buildRes->RESPONSE_REQ('success', $render, null);
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
 
-            return $this->buildRes->RESPONSE_REQ('error', null, 'something wrong');
+            return $this->buildRes->RESPONSE_REQ('error', null, ['error' => 'something wrong']);
         }
     }
 
@@ -80,9 +93,9 @@ class DepartmentController extends Controller
      */
     public function store(Request $request)
     {
-        // if (!auth()->user()->can('department.create')  || !$request->ajax()) {
-        //     abort(403, 'Unauthorized action.');
-        // }
+        if (!auth()->user()->can('department.create')  || !$request->ajax()) {
+            abort(403, 'Unauthorized action.');
+        }
 
         try {
             $validator = Validator::make($request->all(), $this->rules());
@@ -91,13 +104,14 @@ class DepartmentController extends Controller
                 return $this->buildRes->RESPONSE_REQ('error', null, $validator->errors());
             } else {
                 $dept_data = $request->only(['dept_code', 'dept_name', 'parent_dept']);
+
                 $res = $this->apiService->create_department($dept_data);
-                Log::info($res);
+                return response()->json($res);
             }
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
 
-            return $this->buildRes->RESPONSE_REQ('error', null, 'something wrong');
+            return $this->buildRes->RESPONSE_REQ('error', null, ['error' => 'something wrong']);
         }
     }
 
@@ -109,9 +123,9 @@ class DepartmentController extends Controller
      */
     public function show($department)
     {
-        // if (!auth()->user()->can('department.view')) {
-        //     abort(403, 'Unauthorized action.');
-        // }
+        if (!auth()->user()->can('department.view')) {
+            abort(403, 'Unauthorized action.');
+        }
     }
 
 
@@ -124,13 +138,20 @@ class DepartmentController extends Controller
      */
     public function edit($department, Request $request)
     {
-        // if (!auth()->user()->can('department.update') || !$request->ajax()) {
-        //     abort(403, 'Unauthorized action.');
-        // }
+        if (!auth()->user()->can('department.update') || !$request->ajax()) {
+            abort(403, 'Unauthorized action.');
+        }
 
         try {
-        } catch (\Exception $error) {
-            return $this->buildRes->RESPONSE_REQ('error', null, 'something wrong');
+            $dept = $this->apiService->read_department($department);
+            $departments = $this->apiService->get_departments([]);
+            $render = view('Organization.department.edit', compact('dept', 'departments'))->render();
+
+            return $this->buildRes->RESPONSE_REQ('success', $render, null);
+        } catch (\Exception $e) {
+            Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
+
+            return $this->buildRes->RESPONSE_REQ('error', null, ['error' => 'something wrong']);
         }
     }
 
@@ -143,9 +164,9 @@ class DepartmentController extends Controller
      */
     public function update($department, Request $request)
     {
-        // if (!auth()->user()->can('department.update') || !$request->ajax()) {
-        //     abort(403, 'Unauthorized action.');
-        // }
+        if (!auth()->user()->can('department.update') || !$request->ajax()) {
+            abort(403, 'Unauthorized action.');
+        }
 
         try {
             $validator = Validator::make($request->all(), $this->rules());
@@ -153,11 +174,16 @@ class DepartmentController extends Controller
             if ($validator->fails()) {
                 return $this->buildRes->RESPONSE_REQ('error', null, $validator->errors());
             } else {
+                $dept_data = $request->only(['dept_code', 'dept_name', 'parent_dept']);
+                $dept_data['id'] = $department;
+
+                $res = $this->apiService->update_department($dept_data);
+                return response()->json($res);
             }
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
 
-            return $this->buildRes->RESPONSE_REQ('error', null, 'something wrong');
+            return $this->buildRes->RESPONSE_REQ('error', null, ['error' => 'something wrong']);
         }
     }
 
@@ -170,13 +196,15 @@ class DepartmentController extends Controller
      */
     public function destroy($department, Request $request)
     {
-        // if (!auth()->user()->can('department.delete') || !$request->ajax()) {
-        //     abort(403, 'Unauthorized action.');
-        // }
+        if (!auth()->user()->can('department.delete') || !$request->ajax()) {
+            abort(403, 'Unauthorized action.');
+        }
 
         try {
+            $res = $this->apiService->delete_department($department);
+            return response()->json($res);
         } catch (\Exception $e) {
-            return $this->buildRes->RESPONSE_REQ('error', null, 'something wrong');
+            return $this->buildRes->RESPONSE_REQ('error', null, ['error' => 'something wrong']);
         }
     }
 

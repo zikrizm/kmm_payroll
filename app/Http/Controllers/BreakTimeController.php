@@ -2,10 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\BreakTime;
 use App\Utils\BusinessUtil;
 use App\Utils\ResponseUtil;
 use Illuminate\Http\Request;
 use App\Services\Api\ApiServices;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Validator;
 
 class BreakTimeController extends Controller
 {
@@ -28,32 +32,36 @@ class BreakTimeController extends Controller
      */
     public function index(Request $request)
     {
-        if (!auth()->user()->can('shift.view')) {
+        if (!auth()->user()->can('break-time.view')) {
             abort(403, 'Unauthorized action.');
         }
 
         try {
             if (request()->ajax()) {
                 $business_id = Session::get('business_id');
-                $shifts = Shift::where('business_id', $business_id);
+                $break_times = BreakTime::where('business_id', $business_id);
+
                 if ($request->has('q')) {
                     $search = $request->q;
-                    $shifts = $shifts->where(function ($q) use ($search) {
-                        $q->where('name', 'LIKE', "%" . $search . "%");
-                    });
+                    $break_times = $break_times->where('name', 'LIKE', "%" . $search . "%");
                 }
-                $shifts = $shifts->orderBy('name', 'ASC')->paginate(10);
-
-                $render = view('shift.table', compact('shifts'))->render();
+                $order = null;
+                if ($request->has('sort')) {
+                    $sort = $request->sort;
+                    $order = $sort['order'];
+                    $break_times->orderBy($sort['name'], $sort['order']);
+                }
+                $break_times = $break_times->paginate(10);
+                $render =  view('Shift.break_time.table', compact('break_times', 'order'))->render();
 
                 return $this->buildRes->RESPONSE_REQ('success', $render, null);
             }
 
-            return  view('shift.index');
+            return  view('Shift.break_time.index');
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
 
-            return $this->buildRes->RESPONSE_REQ('error', null, 'something wrong');
+            return $this->buildRes->RESPONSE_REQ('error', null, ['error' => 'something wrong']);
         }
     }
 
@@ -65,18 +73,18 @@ class BreakTimeController extends Controller
      */
     public function create(Request $request)
     {
-        if (!auth()->user()->can('shift.create') || !request()->ajax()) {
+        if (!auth()->user()->can('break-time.create') || !request()->ajax()) {
             abort(403, 'Unauthorized action.');
         }
 
         try {
-            $render = view('shift.create')->render();
+            $render = view('Shift.break_time.create')->render();
 
             return $this->buildRes->RESPONSE_REQ('success', $render, null);
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
 
-            return $this->buildRes->RESPONSE_REQ('error', null, 'something wrong');
+            return $this->buildRes->RESPONSE_REQ('error', null, ['error' => 'something wrong']);
         }
     }
 
@@ -88,27 +96,27 @@ class BreakTimeController extends Controller
      */
     public function store(Request $request)
     {
-        if (!auth()->user()->can('shift.create')  || !$request->ajax()) {
+        if (!auth()->user()->can('break-time.create')  || !$request->ajax()) {
             abort(403, 'Unauthorized action.');
         }
-        Log::info($request);
         try {
-            $validator = Validator::make($request->all(), $this->rules());
+            $validator = Validator::make($request->all(), $this->rules(null));
 
             if ($validator->fails()) {
                 return $this->buildRes->RESPONSE_REQ('error', null, $validator->errors());
             } else {
-                $shift_data = $request->only(['name', 'time_start', 'time_end', 'status']);
-                $shift_data['business_id'] = Session::get('business_id');
-                $shift = new Shift($shift_data);
-                $shift->save();
+                $break_time_data = $request->only(['name', 'start_time', 'end_time', 'duration']);
+                $break_time_data['business_id'] = Session::get('business_id');
 
-                return $this->buildRes->RESPONSE_REQ('success', null,  'Add shift succesfully');
+                $break_time = new BreakTime($break_time_data);
+                $break_time->save();
+
+                return $this->buildRes->RESPONSE_REQ('success', null, ['success' => 'Add break-time succesfully']);
             }
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
 
-            return $this->buildRes->RESPONSE_REQ('error', null, 'something wrong');
+            return $this->buildRes->RESPONSE_REQ('error', null, ['error' => 'something wrong']);
         }
     }
 
@@ -120,7 +128,7 @@ class BreakTimeController extends Controller
      */
     public function show($id)
     {
-        if (!auth()->user()->can('shift.view')) {
+        if (!auth()->user()->can('user.view')) {
             abort(403, 'Unauthorized action.');
         }
     }
@@ -129,22 +137,25 @@ class BreakTimeController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  int  $shift
+     * @param  BreakTime $break_time
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function edit(Shift $shift, Request $request)
+    public function edit(BreakTime $break_time, Request $request)
     {
-        if (!auth()->user()->can('shift.update') || !$request->ajax()) {
+        log::info($break_time);
+        if (!auth()->user()->can('break-time.update') || !$request->ajax()) {
             abort(403, 'Unauthorized action.');
         }
 
         try {
-            $render = view('shift.edit', compact('shift'))->render();
+            $render = view('Shift.break_time.edit', compact('break_time'))->render();
 
             return $this->buildRes->RESPONSE_REQ('success', $render, null);
-        } catch (\Exception $error) {
-            return $this->buildRes->RESPONSE_REQ('error', null, 'something wrong');
+        } catch (\Exception $e) {
+            Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
+
+            return $this->buildRes->RESPONSE_REQ('error', null, ['error' => 'something wrong']);
         }
     }
 
@@ -152,69 +163,70 @@ class BreakTimeController extends Controller
      * Update the specified resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  Shift  $shift
+     * @param  BreakTime $break_time
      * @return \Illuminate\Http\Response
      */
-    public function update(Shift $shift, Request $request)
+    public function update(BreakTime $break_time, Request $request)
     {
-        if (!auth()->user()->can('shift.update') || !$request->ajax()) {
+        if (!auth()->user()->can('break-time.update') || !$request->ajax()) {
             abort(403, 'Unauthorized action.');
         }
-        Log::info($request);
 
         try {
-            $validator = Validator::make($request->all(), $this->rules());
+            $validator = Validator::make($request->all(), $this->rules($break_time));
 
             if ($validator->fails()) {
                 return $this->buildRes->RESPONSE_REQ('error', null, $validator->errors());
             } else {
-                $shift_data = $request->only(['name', 'time_start', 'time_end', 'status']);
+                $break_time_data = $request->only(['name', 'start_time', 'end_time', 'duration']);
+                $break_time->update($break_time_data);
 
-                $shift->update($shift_data);
-
-                return $this->buildRes->RESPONSE_REQ('success', null,  'Shift Update succesfully');
+                return $this->buildRes->RESPONSE_REQ('success', null, ['success' => 'Update break-time succesfully']);
             }
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
 
-            return $this->buildRes->RESPONSE_REQ('error', null, 'something wrong');
+            return $this->buildRes->RESPONSE_REQ('error', null, ['error' => 'something wrong']);
         }
     }
 
     /**
      * Remove the specified resource from storage.
      *
-     * @param  Shift $shift
+     * @param  BreakTime $break_time
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Shift $shift, Request $request)
+    public function destroy(BreakTime $break_time, Request $request)
     {
-        if (!auth()->user()->can('shift.delete') || !$request->ajax()) {
+        if (!auth()->user()->can('break-time.delete') || !$request->ajax()) {
             abort(403, 'Unauthorized action.');
         }
 
         try {
-            $shift->delete();
+            $break_time->delete();
 
-            return $this->buildRes->RESPONSE_REQ('success', null, 'Shift delete succesfully');
+            return $this->buildRes->RESPONSE_REQ('success', null, ['success' => 'Delete break-time succesfully']);
         } catch (\Exception $e) {
-            return $this->buildRes->RESPONSE_REQ('error', null, 'something wrong');
+            Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
+
+            return $this->buildRes->RESPONSE_REQ('error', null, ['error' => 'something wrong']);
         }
     }
 
     /**
-     * Rules validation shift.
+     * Rules validation break_time.
      *
+     * @param  BreakTime $break_time
      * @return array
      */
-    public function rules()
+    public function rules($break_time)
     {
         return [
-            'name' => 'required|string|max:255',
-            'time_start' => 'required|date_format:H:i',
-            'time_end' => 'required|date_format:H:i|after:time_start',
-            'status' => 'required|string',
+            'name' => (empty($break_time)) ?  'required|string|max:255|unique:break_times' : 'required|string|max:255|unique:break_times,name,' . $break_time->id,
+            'start_time' => 'required',
+            'end_time' => 'required|after:start_time',
+            'duration' => 'required',
         ];
     }
 }

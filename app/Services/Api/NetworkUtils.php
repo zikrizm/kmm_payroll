@@ -50,12 +50,12 @@ class NetworkUtils
             // **
             // * HTTP CLIENT HEADER ----->
             // *
+
             $token = 'JWT ' . Session::get('token_zkteco');
             $headers = [
                 'Content-Type' => 'application/json',
                 'Authorization' => $token,
             ];
-
 
             if (strtolower($method) == 'get') {
                 // **
@@ -74,20 +74,19 @@ class NetworkUtils
                 // * HTTP CLIENT PUT ----->
                 // *
                 $res = Http::withHeaders($headers)->timeout(2)
-                    ->post($this->api_zkteco . $url, $data);
+                    ->put($this->api_zkteco . $url, $data);
             } else if (strtolower($method) == 'delete') {
                 // **
                 // * HTTP CLIENT DELETE ----->
                 // *
                 $res = Http::withHeaders($headers)->timeout(2)
-                    ->post($this->api_zkteco . $url, $data);
+                    ->delete($this->api_zkteco . $url, $data);
             }
 
-
-            Log::info(Session::get('token_zkteco'));
-            Log::info($res->body());
-            Log::info($res->status());
-            Log::info($res->failed());
+            // Log::info(Session::get('token_zkteco'));
+            // Log::info($res->body());
+            // Log::info($res->status());
+            // Log::info($res->failed());
 
             $data = json_decode($res->body(), true);
             if ($res->failed()) {

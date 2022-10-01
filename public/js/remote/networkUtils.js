@@ -1,34 +1,31 @@
 class NetworkUtils {
-    emitter(method, path_name, data) {
+    emitter(method, url, data, options = {
+        processData: false,
+        contentType: false,
+    }) {
         return new Promise((resolve, reject) => {
             $.ajax({
                 type: method,
-                url: path_name,
+                url: url,
                 data: data,
                 cache: false,
+                "mimeType": "multipart/form-data",
+                ...options,
                 success: function (_response) {
+                    console.log(_response);
                     resolve(_response);
-                    // **
-                    // * SHOW NOTIFICATION ----->
-                    // *
-                    if (_response.msg) {
-                        for (const msg in _response.msg) {
-                            (_response.status == 'error') ?
-                                toastr.error(_response.msg[msg], 'Error information') :
-                                toastr.success(_response.msg[msg], 'Successfully information');
-                        }
-                    }
                 }, error: function (error) {
+                    console.log(error);
                     reject(error);
                     // **
                     // * SHOW NOTIFICATION ----->
                     // *
-                    toastr.error(error.msg, 'Error information');
+                    toastr.error('Something wrong', 'Error information');
                 }, statusCode: {
                     403: () => toastr.warning('Warning information', 'You are not allowed to access this menu'),
                     404: () => toastr.warning('Warning information', '404 not found'),
                 }
             });
         })
-    }
+    };
 }
