@@ -42,6 +42,8 @@ class PermissionsTableSeeder extends Seeder
             ['name' => 'employee.create'],
             ['name' => 'employee.update'],
             ['name' => 'employee.delete'],
+            ['name' => 'employee-photo.view'],
+            ['name' => 'employee-photo.create'],
             ['name' => 'resign.view'],
             ['name' => 'resign.create'],
             ['name' => 'resign.update'],

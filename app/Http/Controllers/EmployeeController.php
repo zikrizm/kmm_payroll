@@ -7,7 +7,9 @@ use Illuminate\Http\Request;
 use App\Services\Api\ApiServices;
 use Illuminate\Support\Facades\Log;
 use App\Exceptions\ResponseExeception;
+use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Validator;
+use App\Http\Controllers\EmployeePhotoController;
 
 class EmployeeController extends Controller
 {
@@ -34,13 +36,16 @@ class EmployeeController extends Controller
 
         try {
             if (request()->ajax()) {
+
                 $order = null;
                 $filter = [];
 
                 if ($request->has('q')) {
-                    // $filter['emp_code_icontains'] = $request->q;
                     $filter['employee_icontains'] = $request->q;
-                    // $filter['last_name_icontains'] = $request->q;
+                }
+
+                if ($request->has('page')) {
+                    $filter['page'] = $request->page;
                 }
 
                 if ($request->has('sort')) {
@@ -75,11 +80,13 @@ class EmployeeController extends Controller
         }
 
         try {
-            $csrfmiddlewaretoken = $this->apiService->get_token_upload_employee_photo();
+            // $csrfmiddlewaretoken = $this->apiService->get_token_upload_employee_photo();
             $departments = $this->apiService->get_departments([]);
             $areas = $this->apiService->get_areas([]);
             $positions = $this->apiService->get_positions([]);
-            $render = view('Employee.employee.create', compact('departments', 'areas', 'positions', 'csrfmiddlewaretoken'))->render();
+
+
+            $render = view('Employee.employee.create', compact('departments', 'areas', 'positions'))->render();
 
             return $this->buildRes->RESPONSE_REQ('success', $render, null);
         } catch (\Exception $e) {
@@ -103,19 +110,16 @@ class EmployeeController extends Controller
 
         try {
             $validator = Validator::make($request->all(), $this->rules());
-            Log::info($request);
 
             if ($validator->fails()) {
                 return $this->buildRes->RESPONSE_REQ('error', null, $validator->errors());
             } else {
+                $request['employee_code'] = $request->emp_code;
                 $emp_data = $request->only([
-                    'emp_code', 'first_name', 'last_name', 'nickname', 'hired_date', 'gender',
+                    'user_capture', 'emp_code', 'first_name', 'last_name', 'nickname', 'hired_date', 'gender',
                     'contact_tel', 'office_tel', 'mobile', 'national', 'city', 'address', 'postcode', 'religion', 'email', 'birthday',
-                    'verify_mode', 'emp_type', 'app_status', 'app_role',
-                    'department', 'position', 'area',
-                    'csrfmiddlewaretoken', 'user_capture',
+                    'verify_mode', 'emp_type', 'app_status', 'app_role', 'department', 'position', 'area'
                 ]);
-
 
                 if (!empty($request->input('area')) && count($request->input('area'))) {
                     $areas_data = $request->input('area');
@@ -128,15 +132,35 @@ class EmployeeController extends Controller
                     }
                 }
 
-                $res_employee = $this->apiService->create_employee($emp_data);
-                $emp_data_photo = [
-                    'user_capture' => $emp_data['user_capture'],
-                    'csrfmiddlewaretoken' => $emp_data['csrfmiddlewaretoken'],
-                    'employee_code' => '50',
-                ];
-                $res_photo = $this->apiService->post_employee_photo($emp_data_photo);
-                Log::info($res_photo);
-                // return response()->json($res);
+                // * Check employee already exist or not.
+                $employees = $this->apiService->get_employees(['emp_code_icontains' => $request->emp_code]);
+                $employees = $employees['data'];
+                $is_ready = !empty($employees);
+
+                if ($is_ready) {
+                    $emp_data['id'] = $employees[0]['id'];
+                    $res = $this->apiService->update_employee($emp_data);
+                } else {
+                    $res = $this->apiService->create_employee($emp_data);
+                }
+
+                if ($res['status'] == 'success') {
+                    // * Save employee to DB.
+                    
+
+                    if (auth()->user()->can('employee-photo.create')) {
+                        $resPhoto = app('App\Http\Controllers\EmployeePhotoController')->store($request);
+                        if ($resPhoto['status'] == 'error') {
+                            return response()->json($resPhoto);
+                        } else {
+                            return response()->json($res);
+                        }
+                    } else {
+                        return response()->json($res);
+                    }
+                } else {
+                    return response()->json($res);
+                }
             }
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
@@ -144,6 +168,33 @@ class EmployeeController extends Controller
             return $this->buildRes->RESPONSE_REQ('error', null, ['error' => 'something wrong']);
         }
     }
+
+    // /**
+    //  * Store a newly created resource in storage.
+    //  *
+    // * @param  \Illuminate\Http\Request  $request
+    //  * @return \Illuminate\Http\Response
+    //  */
+    // public function _post_employee_photo(Request $request)
+    // {
+    //     if (!auth()->user()->can('employee.create')  || !$request->ajax()) {
+    //         abort(403, 'Unauthorized action.');
+    //     }
+
+    //     try {
+    //         $emp_data_photo = [
+    //             'user_capture' => $request['user_capture'],
+    //             'csrfmiddlewaretoken' => $request['csrfmiddlewaretoken'],
+    //             'employee_code' => $request['emp_code'],
+    //         ];
+    //         $res = $this->apiService->update_employee_photo($emp_data_photo);
+    //         Log::info($res);
+    //     } catch (\Exception $e) {
+    //         Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
+
+    //         return $this->buildRes->RESPONSE_REQ('error', null, ['error' => 'something wrong']);
+    //     }
+    // }
 
     /**
      * Display the specified resource.

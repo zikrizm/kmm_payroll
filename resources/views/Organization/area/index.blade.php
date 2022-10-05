@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'User')
+@section('title', 'Area')
 @section('css')
 <style></style>
 @endsection
@@ -25,26 +25,38 @@
 </div>
 
 <script type="application/javascript">
+    let dataParams = {};
+
     window.addEventListener('DOMContentLoaded', (event) => {
             $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
     
             onInit($('.search-data-input').val());
+            $(".search-data-input").on('keyup', debounce(function(e) {
+                if(e.key == 'Shift') return 0;
+                delete dataParams.page;
+                onInit( { q: this.value });
+            }, 250));
         });
     
-        async function onInit(q = '') {
+        async function onInit(data) {
+            // **
+            // * Build data params table ----->
+            // *
+            dataParams = { ...dataParams, ...data };
+            
             // **
             // * get table ----->
             // *
-            var res = await ApiService.get_table('/area?'+(new URLSearchParams({q}).toString()), null);
+            var res = await ApiService.get_table('/area', data);
             $('.table-content').html(res);
 
             // **
             // * pagination table ----->
             // *
             $('.pagination-button').on('click', function() {
-                let pUrl = $(this).data('pagination-url');
-                $('.search-data-input').val();
-                get_data_table(pUrl, null);
+                var url = new URL($(this).data('pagination-url'));
+                var page = url.searchParams.get("page");
+                onInit({page})
             })
         }
     

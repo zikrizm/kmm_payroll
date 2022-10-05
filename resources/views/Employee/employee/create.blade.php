@@ -39,7 +39,6 @@
                     </div>
                     <hr>
                     <div class="flex gap-3">
-                        <input type="hidden" name="csrfmiddlewaretoken" value="{{ $csrfmiddlewaretoken }}">
                         <div class="flex justify-start flex-col gap-3 flex-1">
                             <section class="flex flex-col gap-1">
                                 <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Employee code*</label>
@@ -83,8 +82,8 @@
                         <div class="flex justify-start flex-col gap-3 flex-1">
                             <section class="flex flex-col gap-1">
                                 <label class="font-normal text-sm text-gray-500 xs/max:text-xs">First name*</label>
-                                {!! FormCustom::input('first_name', null, [ "placeholder" => 'Enter new your first
-                                name'])
+                                {!! FormCustom::input('first_name', null,
+                                [ "placeholder" => 'Enter new your first name'])
                                 !!}
                             </section>
                             <section class="flex flex-col gap-1">

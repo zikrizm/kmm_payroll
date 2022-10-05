@@ -46,7 +46,8 @@
                             <div class="pl-4 py ">
                                 {!! FormCustom::checkbox() !!}
                             </div>
-                            <div class="flex gap-3 items-center px-6 py-3">
+                            <div class="flex gap-3 items-center px-6 py-3 hover:underline hover:text-gray-500 cursor-pointer"
+                                onclick="get_modal('{{ $item['id'] }}')">
                                 <p class="text-gray-500 text-sm">
                                     {{ $item['emp_code'] }}
                                 </p>
@@ -120,15 +121,16 @@
         </table>
     </div>
     <footer class='flex justify-between items-center px-6 pt-3 pb-4'>
+        @php $page = 1; @endphp
         <p class='text-gray-700 text-xs'>
-            Page <span> 1 </span> of <span>{{ ceil($employees['count'] / 10) }}</span>
+            Page <span> {{ $page }} </span> of <span>{{ ceil($employees['count'] / 10) }}</span>
         </p>
         <div class='flex gap-3'>
             @if (!empty($employees['previous']))
-            <button data-pagination-url=""
+            <button data-pagination-url="{{ $employees['previous'] }}"
                 class='pagination-button px-3.5 py-2 border border-gray-300 rounded-lg text-xs hover:bg-gray-50'>Previous</button>
             @elseif (!empty($employees['next']))
-            <button data-pagination-url=""
+            <button data-pagination-url="{{ $employees['next'] }}"
                 class='pagination-button px-3.5 py-2 border border-gray-300 rounded-lg text-xs hover:bg-gray-50'>Next</button>
             @endif
         </div>

@@ -4,17 +4,16 @@ namespace App\Services\Api;
 
 use Exception;
 use DOMDocument;
+use GuzzleHttp\Psr7;
+use GuzzleHttp\Client;
 use App\Models\ZktecoSettings;
 use App\Services\Api\NetworkUtils;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Http;
-use App\Exceptions\ResponseExeception;
-use Illuminate\Support\Facades\Session;
-use App\Exceptions\DataNotFoundException;
-
+use Illuminate\Support\Facades\Cookie;
 
 class ApiServices extends NetworkUtils
 {
+    protected $csrftoken_zkteco;
 
     public function get_token_zkteco()
     {
@@ -36,9 +35,24 @@ class ApiServices extends NetworkUtils
         }
     }
 
-    public function get_token_upload_employee_photo()
+    public function get_csrftoken()
     {
-        $content = file_get_contents(config('constants.api_zkteco') . 'vlRegister/');
+        // YIYlNRqnJ9lt6431uK7vfHYXyuvcW1E0kvOe3pGazs3u9eZJ0iMGvtcr5DN65EMr
+        $client = new Client();
+        $request = new Psr7\Request('GET', config('constants.api_zkteco') . 'vlRegister/', ['Cookie' => 'csrftoken=']);
+        $res = $client->sendAsync($request)->wait();
+        $cookie = $res->getHeaderLine('Set-Cookie');
+        // Cookie::queue(Cookie::make('csrftoken_zkteco', explode('=', explode(';', $cookie)[0])[1], 60));
+        $this->csrftoken_zkteco = explode('=', explode(';', $cookie)[0])[1];
+    }
+
+    public function get_csrfmiddlewaretoken()
+    {
+        $this->get_csrftoken();
+        $client = new Client();
+        $request = new Psr7\Request('GET', config('constants.api_zkteco') . 'vlRegister/', ['Cookie' => 'csrftoken=' . $this->csrftoken_zkteco]);
+        $res = $client->sendAsync($request)->wait();
+        $content = $res->getBody();
 
         $doc = new DOMDocument();
         libxml_use_internal_errors(true);
@@ -55,15 +69,16 @@ class ApiServices extends NetworkUtils
     }
 
 
-    public function post_employee_photo($data)
+    public function update_employee_photo($data)
     {
         $data = [
+            'csrftoken' => $this->csrftoken_zkteco,
             'user_capture' => $data['user_capture'] ?? null,
             'employee_code' => $data['employee_code'] ?? null,
             'csrfmiddlewaretoken' => $data['csrfmiddlewaretoken'] ?? null,
             'remark' => $data['remark'] ?? null,
         ];
-        $res = $this->emitter('POST', "/vlRegister/", $data);
+        $res = $this->emitterGuzzle('POST', "/vlRegister/", $data);
         if ($res['response'] < 200 || $res['response'] >= 300) {
             // throw new ResponseExeception($res['msg']);
         } else {
@@ -114,7 +129,6 @@ class ApiServices extends NetworkUtils
             "first_name" => $data["first_name"] ?? null,
             "last_name" => $data["last_name"] ?? null,
             "nickname" => $data["nickname"] ?? null,
-            "photo" => $data["photo"] ?? null,
             "hire_date" => $data["hire_date"] ?? null,
             "birthday" => $data["birthday"] ?? null,
             "gender" => $data["gender"] ?? null,
@@ -154,7 +168,6 @@ class ApiServices extends NetworkUtils
             "first_name" => $data["first_name"] ?? null,
             "last_name" => $data["last_name"] ?? null,
             "nickname" => $data["nickname"] ?? null,
-            "photo" => $data["photo"] ?? null,
             "hire_date" => $data["hire_date"] ?? null,
             "birthday" => $data["birthday"] ?? null,
             "gender" => $data["gender"] ?? null,
@@ -342,9 +355,10 @@ class ApiServices extends NetworkUtils
             'dept_name' => $data['dept_name'] ?? null,
             'dept_code_icontains' => $data['dept_code_icontains'] ?? null,
             'dept_name_icontains' => $data['dept_name_icontains'] ?? null,
+            'department_icontains' => $data['department_icontains'] ?? null,
             'ordering' => $data['ordering'] ?? null,
         ];
-        $res = $this->emitter('GET', "/personnel/api/departments/", $data);
+        $res = $this->emitter('GET', "personnel/api/departments/", $data);
         if ($res['response'] < 200 || $res['response'] >= 300) {
             // throw new ResponseExeception($res['msg']);
         } else {
@@ -358,7 +372,7 @@ class ApiServices extends NetworkUtils
         if ($res['response'] < 200 || $res['response'] >= 300) {
             return $res;
         } else {
-            return $res;
+            return $res['data'];
         }
     }
 
@@ -370,7 +384,7 @@ class ApiServices extends NetworkUtils
             'dept_name' => $data['dept_name'],
             'parent_dept' => $data['parent_dept'] ?? null,
         ];
-        $res = $this->emitter('POST', "/personnel/api/departments/", $data);
+        $res = $this->emitter('POST', "personnel/api/departments/", $data);
         if ($res['response'] < 200 || $res['response'] >= 300) {
             return $res;
         } else {

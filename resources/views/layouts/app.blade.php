@@ -20,9 +20,9 @@
     <!-- Scripts -->
     @vite(['resources/js/app.js', 'resources/plugins/Select2/css/select2.css',
     'resources/plugins/Select2/js/select2.full.min.js', 'resources/plugins/Toastr/toastr.css',
-    'resources/plugins/Toastr/toastr.js', 
-    // 'resources/plugins/TwElements/css/index.min.css', 
-    // 'resources/plugins/TwElements/js/index.min.js', 
+    'resources/plugins/Toastr/toastr.js',
+    // 'resources/plugins/TwElements/css/index.min.css',
+    // 'resources/plugins/TwElements/js/index.min.js',
     'resources/css/app.css',
     'resources/css/custom.css'])
 
@@ -39,12 +39,16 @@
 
 <body class="">
     <div class="w-full h-screen flex">
-        @if (request()->segment(2) != 'register')
+        @if (request()->segment(2) != 'register' && request()->segment(1) != 'employee-photo')
         @if(Auth::user())
-        <aside class="w-64 h-full bg-white border-r border-gray-200 flex flex-col justify-between gap-4 px-3">
+        <aside class="w-[260px] h-full bg-white border-r border-gray-200 flex flex-col justify-between gap-4 px-3 overflow-auto no-scrollbar">
             <div class="flex-1">
-                <header class="h-20 w-full">
-
+                <header class="h-32 w-full flex items-center justify-center flex-col gap-1">
+                    <div class="text-gray-700 w-10 h-10 rounded-full overflow-hidden">
+                        <img src="{{ Auth::user()->business->logo }}" alt="" class="w-full h-full object-cover">
+                        {{-- <x-icon icon="figma" width=30 height=30 viewBox="20 20" /> --}}
+                    </div>
+                    <p class="text-gray-700 font-medium">{{ Auth::user()->business->name }}</p>
                 </header>
                 <main class="flex flex-col gap-2">
                     <a href="{{ route('home.index') }}"
@@ -53,7 +57,7 @@
                             <span class="text-gray-600">
                                 <x-icon icon="home" width=18 height=18 viewBox="20 20" />
                             </span>
-                            <p class="text-sm font-medium text-gray-600">Dashboard</p>
+                            <p class="text-sm font-medium text-gray-600">Beranda</p>
                         </div>
                     </a>
                     @canany(['user.view', 'role.view'])
@@ -64,7 +68,7 @@
                             <span class="text-gray-600">
                                 <x-icon icon="User" width=18 height=18 viewBox="20 20" />
                             </span>
-                            <p class="text-sm font-medium text-gray-600">User</p>
+                            <p class="text-sm font-medium text-gray-600">Pengaturan Pengguna</p>
                         </div>
                         <span class="text-gray-500 chevron-icon duration-300">
                             <x-icon icon="chevron-down" width=18 height=18 viewBox="20 20" />
@@ -73,68 +77,25 @@
                     <div id="dropdown-menu-user" class="flex flex-col gap-1 @activemenu(user_sub_menu)">
                         @can('user.view')
                         <a href="{{ route('user.index') }}"
-                            class="flex items-center justify-between p-2.5 rounded-lg w-full @activemenu(user)">
+                            class="flex items-center justify-between p-2.5 rounded-lg w-full hover:underline hover:decoration-gray-500 @activemenu(user)">
                             <div class="flex items-center gap-2.5">
                                 <div class="w-5"></div>
-                                <p class="text-sm font-medium text-gray-600">User</p>
+                                <p class="text-sm font-medium text-gray-600">Pengguna</p>
                             </div>
                         </a>
                         @endcan
                         @can('role.view')
                         <a href="{{ route('role.index') }}"
-                            class="flex items-center justify-between p-2.5 rounded-lg w-full @activemenu(role)">
+                            class="flex items-center justify-between p-2.5 rounded-lg w-full hover:underline hover:decoration-gray-500 @activemenu(role)">
                             <div class="flex items-center gap-2.5">
                                 <div class="w-5"></div>
-                                <p class="text-sm font-medium text-gray-600">Role</p>
+                                <p class="text-sm font-medium text-gray-600">Wewenang</p>
                             </div>
                         </a>
                         @endcan
                     </div>
                     @endcanany
-                    @canany(['department.view', 'position.view', 'area.view'])
-                    <section
-                        class="my-dropdown-menu flex items-center justify-between p-2.5 rounded-lg w-full @activemenu(organization)"
-                        data-dropdown-toggle="dropdown-menu-organization">
-                        <div class="flex items-center gap-2.5">
-                            <span class="text-gray-600">
-                                <x-icon icon="layers" width=18 height=18 viewBox="20 20" />
-                            </span>
-                            <p class="text-sm font-medium text-gray-600">Organization</p>
-                        </div>
-                        <span class="text-gray-500 chevron-icon duration-300">
-                            <x-icon icon="chevron-down" width=18 height=18 viewBox="20 20" />
-                        </span>
-                    </section>
-                    <div id="dropdown-menu-organization" class="flex flex-col gap-1 @activemenu(organization_sub_menu)">
-                        @can('department.view')
-                        <a href="{{ route('department.index') }}"
-                            class="flex items-center justify-between p-2.5 rounded-lg w-full @activemenu(department)">
-                            <div class="flex items-center gap-2.5">
-                                <div class="w-5"></div>
-                                <p class="text-sm font-medium text-gray-600">Department</p>
-                            </div>
-                        </a>
-                        @endcan
-                        @can('position.view')
-                        <a href="{{ route('position.index') }}"
-                            class="flex items-center justify-between p-2.5 rounded-lg w-full @activemenu(position)">
-                            <div class="flex items-center gap-2.5">
-                                <div class="w-5"></div>
-                                <p class="text-sm font-medium text-gray-600">Position</p>
-                            </div>
-                        </a>
-                        @endcan
-                        @can('area.view')
-                        <a href="{{ route('area.index') }}"
-                            class="flex items-center justify-between p-2.5 rounded-lg w-full @activemenu(area)">
-                            <div class="flex items-center gap-2.5">
-                                <div class="w-5"></div>
-                                <p class="text-sm font-medium text-gray-600">Area</p>
-                            </div>
-                        </a>
-                        @endcan
-                    </div>
-                    @endcanany
+                    
                     @canany(['employee.view', 'resign.view'])
                     <section
                         class="my-dropdown-menu flex items-center justify-between p-2.5 rounded-lg w-full @activemenu(employee)"
@@ -143,7 +104,7 @@
                             <span class="text-gray-600">
                                 <x-icon icon="users" width=18 height=18 viewBox="20 20" />
                             </span>
-                            <p class="text-sm font-medium text-gray-600">Employee</p>
+                            <p class="text-sm font-medium text-gray-600">Pengaturan Karyawan</p>
                         </div>
                         <span class="text-gray-500 chevron-icon duration-300">
                             <x-icon icon="chevron-down" width=18 height=18 viewBox="20 20" />
@@ -152,19 +113,19 @@
                     <div id="dropdown-menu-employee" class="flex flex-col gap-1 @activemenu(employee_sub_menu)">
                         @can('employee.view')
                         <a href="{{ route('employee.index') }}"
-                            class="flex items-center justify-between p-2.5 rounded-lg w-full @activemenu(employee)">
+                            class="flex items-center justify-between p-2.5 rounded-lg w-full hover:underline hover:decoration-gray-500 @activemenu(employee)">
                             <div class="flex items-center gap-2.5">
                                 <div class="w-5"></div>
-                                <p class="text-sm font-medium text-gray-600">Employee</p>
+                                <p class="text-sm font-medium text-gray-600">Karyawan</p>
                             </div>
                         </a>
                         @endcan
                         {{-- @can('resign.view') --}}
                         <a href="{{ route('resign.index') }}"
-                            class="flex items-center justify-between p-2.5 rounded-lg w-full @activemenu(resign)">
+                            class="flex items-center justify-between p-2.5 rounded-lg w-full hover:underline hover:decoration-gray-500 @activemenu(resign)">
                             <div class="flex items-center gap-2.5">
                                 <div class="w-5"></div>
-                                <p class="text-sm font-medium text-gray-600">Resign</p>
+                                <p class="text-sm font-medium text-gray-600">Mengundurkan diri</p>
                             </div>
                         </a>
                         {{-- @endcan --}}
@@ -181,7 +142,7 @@
                             <span class="text-gray-600">
                                 <x-icon icon="clock" width=18 height=18 viewBox="20 20" />
                             </span>
-                            <p class="text-sm font-medium text-gray-600">Shift</p>
+                            <p class="text-sm font-medium text-gray-600">Pengaturan Waktu</p>
                         </div>
                         <span class="text-gray-500 chevron-icon duration-300">
                             <x-icon icon="chevron-down" width=18 height=18 viewBox="20 20" />
@@ -190,25 +151,25 @@
                     <div id="dropdown-menu-shift" class="flex flex-col gap-1 @activemenu(shift_sub_menu)">
                         @can('break-time.view')
                         <a href="{{ route('break-time.index') }}"
-                            class="flex items-center justify-between p-2.5 rounded-lg w-full @activemenu(break-time)">
+                            class="flex items-center justify-between p-2.5 rounded-lg w-full hover:underline hover:decoration-gray-500 @activemenu(break-time)">
                             <div class="flex items-center gap-2.5">
                                 <div class="w-5"></div>
-                                <p class="text-sm font-medium text-gray-600">Break time</p>
+                                <p class="text-sm font-medium text-gray-600">Istirahat</p>
                             </div>
                         </a>
                         @endcan
                         @can('timetable.view')
                         <a href="{{ route('timetable.index') }}"
-                            class="flex items-center justify-between p-2.5 rounded-lg w-full @activemenu(timetable)">
+                            class="flex items-center justify-between p-2.5 rounded-lg w-full hover:underline hover:decoration-gray-500 @activemenu(timetable)">
                             <div class="flex items-center gap-2.5">
                                 <div class="w-5"></div>
-                                <p class="text-sm font-medium text-gray-600">Timetable</p>
+                                <p class="text-sm font-medium text-gray-600">Jadwal</p>
                             </div>
                         </a>
                         @endcan
                         @can('shift.view')
                         <a href="{{ route('shift.index') }}"
-                            class="flex items-center justify-between p-2.5 rounded-lg w-full @activemenu(shift)">
+                            class="flex items-center justify-between p-2.5 rounded-lg w-full hover:underline hover:decoration-gray-500 @activemenu(shift)">
                             <div class="flex items-center gap-2.5">
                                 <div class="w-5"></div>
                                 <p class="text-sm font-medium text-gray-600">Shift</p>
@@ -223,9 +184,9 @@
                         data-dropdown-toggle="dropdown-menu-transaction">
                         <div class="flex items-center gap-2.5">
                             <span class="text-gray-600">
-                                <x-icon icon="file" width=18 height=18 viewBox="20 20" />
+                                <x-icon icon="smartphone" width=18 height=18 viewBox="20 20" />
                             </span>
-                            <p class="text-sm font-medium text-gray-600">Transaction</p>
+                            <p class="text-sm font-medium text-gray-600">Perangkat</p>
                         </div>
                         <span class="text-gray-500 chevron-icon duration-300">
                             <x-icon icon="chevron-down" width=18 height=18 viewBox="20 20" />
@@ -233,12 +194,77 @@
                     </section>
                     <div id="dropdown-menu-transaction" class="flex flex-col gap-1 @activemenu(transaction)">
                         <a href="{{ route('transaction.index') }}"
-                            class="flex items-center justify-between p-2.5 rounded-lg w-full @activemenu(transaction)">
+                            class="flex items-center justify-between p-2.5 rounded-lg w-full hover:underline hover:decoration-gray-500 @activemenu(transaction)">
                             <div class="flex items-center gap-2.5">
                                 <div class="w-5"></div>
-                                <p class="text-sm font-medium text-gray-600">Transaction</p>
+                                <p class="text-sm font-medium text-gray-600">Perangkat</p>
                             </div>
                         </a>
+                        <a href="{{ route('transaction.index') }}"
+                            class="flex items-center justify-between p-2.5 rounded-lg w-full hover:underline hover:decoration-gray-500 @activemenu(transaction)">
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-5"></div>
+                                <p class="text-sm font-medium text-gray-600">Absensi</p>
+                            </div>
+                        </a>
+                        <a href="{{ route('transaction.index') }}"
+                            class="flex items-center justify-between p-2.5 rounded-lg w-full hover:underline hover:decoration-gray-500 @activemenu(transaction)">
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-5"></div>
+                                <p class="text-sm font-medium text-gray-600">Laporan Absensi</p>
+                            </div>
+                        </a>
+                    </div>
+                    @endcanany
+                    @canany(['department.view', 'position.view', 'area.view'])
+                    <section
+                        class="my-dropdown-menu flex items-center justify-between p-2.5 rounded-lg w-full @activemenu(organization)"
+                        data-dropdown-toggle="dropdown-menu-organization">
+                        <div class="flex items-center gap-2.5">
+                            <span class="text-gray-600">
+                                <x-icon icon="building" width=18 height=18 viewBox="20 20" strokeWidth="3" />
+                            </span>
+                            <p class="text-sm font-medium text-gray-600">Pengaturan Perusahaan</p>
+                        </div>
+                        <span class="text-gray-500 chevron-icon duration-300">
+                            <x-icon icon="chevron-down" width=18 height=18 viewBox="20 20" />
+                        </span>
+                    </section>
+                    <div id="dropdown-menu-organization" class="flex flex-col gap-1 @activemenu(organization_sub_menu)">
+                        <a href="{{ route('business.index.settings') }}"
+                            class="flex items-center justify-between p-2.5 rounded-lg w-full hover:underline hover:decoration-gray-500 @activemenu(settings)">
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-5"></div>
+                                <p class="text-sm font-medium text-gray-600">Bisnis</p>
+                            </div>
+                        </a>
+                        @can('department.view')
+                        <a href="{{ route('department.index') }}"
+                            class="flex items-center justify-between p-2.5 rounded-lg w-full hover:underline hover:decoration-gray-500 @activemenu(department)">
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-5"></div>
+                                <p class="text-sm font-medium text-gray-600">Bagian</p>
+                            </div>
+                        </a>
+                        @endcan
+                        @can('position.view')
+                        <a href="{{ route('position.index') }}"
+                            class="flex items-center justify-between p-2.5 rounded-lg w-full hover:underline hover:decoration-gray-500 @activemenu(position)">
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-5"></div>
+                                <p class="text-sm font-medium text-gray-600">Posisi</p>
+                            </div>
+                        </a>
+                        @endcan
+                        @can('area.view')
+                        <a href="{{ route('area.index') }}"
+                            class="flex items-center justify-between p-2.5 rounded-lg w-full hover:underline hover:decoration-gray-500 @activemenu(area)">
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-5"></div>
+                                <p class="text-sm font-medium text-gray-600">Area</p>
+                            </div>
+                        </a>
+                        @endcan
                     </div>
                     @endcanany
                     @canany(['business_settings.access'])
@@ -249,25 +275,19 @@
                             <span class="text-gray-600">
                                 <x-icon icon="settings" width=18 height=18 viewBox="20 20" />
                             </span>
-                            <p class="text-sm font-medium text-gray-600">Setting</p>
+                            <p class="text-sm font-medium text-gray-600">Pengaturan</p>
                         </div>
                         <span class="text-gray-500 chevron-icon duration-300">
                             <x-icon icon="chevron-down" width=18 height=18 viewBox="20 20" />
                         </span>
                     </section>
                     <div id="dropdown-menu-setting" class="flex flex-col gap-1 @activemenu(setting_sub_menu)">
-                        <a href="{{ route('business.index.settings') }}"
-                            class="flex items-center justify-between p-2.5 rounded-lg w-full @activemenu(settings)">
-                            <div class="flex items-center gap-2.5">
-                                <div class="w-5"></div>
-                                <p class="text-sm font-medium text-gray-600">Settings</p>
-                            </div>
-                        </a>
+
                         <a href="{{ route('locations.index') }}"
-                            class="flex items-center justify-between p-2.5 rounded-lg w-full @activemenu(location)">
+                            class="flex items-center justify-between p-2.5 rounded-lg w-full hover:underline hover:decoration-gray-500 @activemenu(location)">
                             <div class="flex items-center gap-2.5">
                                 <div class="w-5"></div>
-                                <p class="text-sm font-medium text-gray-600">Location</p>
+                                <p class="text-sm font-medium text-gray-600">Lokasi</p>
                             </div>
                         </a>
                     </div>

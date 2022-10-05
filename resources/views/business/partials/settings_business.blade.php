@@ -1,5 +1,5 @@
 <div class="flex flex-col gap-6 w-full h-full business-info-content bg-white rounded-lg w-max p-4">
-    <header class="flex flex-col gap-4 w-full">
+    {{-- <header class="flex flex-col gap-4 w-full">
         <div class="flex gap-4 w-full">
             <span
                 class="h-7 w-7 rounded-full bg-violet-100 flex justify-center items-center text-violet-600 border-[4px] border-violet-50 box-content">
@@ -11,14 +11,14 @@
             </div>
         </div>
         <hr>
-    </header>
+    </header> --}}
     <main class="flex flex-col gap-3 w-full">
         <section>
             <p class='text-gray-700 text-sm font-medium'>Your logo</p>
-            <p class='text-gray-500 text-sm font-normal'>This will be displayed on your profile.</p>
+        <p class='text-gray-500 text-sm font-normal'>This will be displayed on your profile.</p>
         </section>
-        <section class='flex justify-between items-start'>
-            <div class="relative">
+        <section class='flex justify-center items-center'>
+            {{-- <div class="relative">
                 <button type="button" id="remove-img"
                     class="hidden absolute right-0 bg-red-500 rounded-full text-white p-0.5"
                     onclick="removePhoto('#business_logo', '#photo_preview','#contained-button-file', this)">
@@ -26,13 +26,22 @@
                 </button>
                 <img src='{{ asset('storage/business_logos/'.$business->logo.'')}}' class='object-contain h-16 w-16
                 bg-gray-50 rounded-full overflow-hidden' id="photo_preview">
-            </div>
-            <label for="contained-button-file" class="flex items-center cursor-pointer">
+            </div> --}}
+            <label for="contained-button-file" class="flex items-center justify-center cursor-pointer">
                 <input name="business_logo" accept="image/*" id="contained-button-file" class="hidden" type="file"
                     onchange="loadPic('#business_logo', 'photo_preview', '#remove-img')" />
-                <span class='cursor-pointer text-sm font-medium text-violet-700 hover:bg-gray-100 rounded p-1'>
+                {{-- <span class='cursor-pointer text-sm font-medium text-violet-700 hover:bg-gray-100 rounded p-1'>
                     Upload
-                </span>
+                </span> --}}
+                <div class="relative">
+                    <button type="button" id="remove-img"
+                        class="hidden absolute right-0 bg-red-500 rounded-full text-white p-0.5"
+                        onclick="removePhoto('#business_logo', '#photo_preview','#contained-button-file', this)">
+                        <x-icon icon="x" width=12 height=12 viewBox="20 20" />
+                    </button>
+                    <img src='{{ asset('storage/business_logos/'.$business->logo.'')}}' class='object-cover h-16 w-16
+                    bg-gray-50 rounded-full overflow-hidden' id="photo_preview">
+                </div>
             </label>
             <input type="hidden" name="business_logo" id="business_logo">
         </section>

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Shift;
+use App\Models\Timetable;
 use App\Utils\BusinessUtil;
 use App\Utils\ResponseUtil;
 use Illuminate\Http\Request;
@@ -46,14 +47,23 @@ class ShiftController extends Controller
                         $q->where('name', 'LIKE', "%" . $search . "%");
                     });
                 }
-                $shifts = $shifts->orderBy('name', 'ASC')->paginate(10);
+                if ($request->has('page')) {
+                    $filter['page'] = $request->page;
+                }
 
-                $render = view('shift.table', compact('shifts'))->render();
+                $order = null;
+                if ($request->has('sort')) {
+                    $sort = $request->sort;
+                    $order = $sort['order'];
+                    $shifts->orderBy($sort['name'], $sort['order']);
+                }
+                $shifts = $shifts->paginate(10);
+                $render = view('Shift.shift.table', compact('shifts', 'order'))->render();
 
                 return $this->buildRes->RESPONSE_REQ('success', $render, null);
             }
 
-            return  view('shift.index');
+            return view('Shift.shift.index');
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
 
@@ -74,7 +84,29 @@ class ShiftController extends Controller
         }
 
         try {
-            $render = view('shift.create')->render();
+            $business_id = Session::get('business_id');
+            $timetables = Timetable::where('business_id', $business_id)->with(['timetable_has_break_time'])->get();
+
+            $shifts = Shift::where('business_id', $business_id)->get();
+            $departments = $this->apiService->get_departments([]);
+            $onlyParentDept = [];
+            foreach ($departments['data'] as $department) {
+                if (count($shifts) != 0) {
+                    foreach ($shifts as $shift) {
+                        if (is_null($shift->dept_id) || $shift->dept_id != $department['id']) {
+                            if (empty($department['parent_dept'])) {
+                                $onlyParentDept[] = $department;
+                            }
+                        }
+                    }
+                } else {
+                    if (empty($department['parent_dept'])) {
+                        $onlyParentDept[] = $department;
+                    }
+                }
+            }
+
+            $render = view('Shift.shift.create', compact('timetables', 'onlyParentDept'))->render();
 
             return $this->buildRes->RESPONSE_REQ('success', $render, null);
         } catch (\Exception $e) {
@@ -102,10 +134,12 @@ class ShiftController extends Controller
             if ($validator->fails()) {
                 return $this->buildRes->RESPONSE_REQ('error', null, $validator->errors());
             } else {
-                $shift_data = $request->only(['name', 'time_start', 'time_end', 'status']);
-                $shift_data['business_id'] = Session::get('business_id');
-                $shift = new Shift($shift_data);
-                $shift->save();
+                $shift_data = $request->only(['name', 'department', 'timetable']);
+
+                Log::info($shift_data);
+                // $shift_data['business_id'] = Session::get('business_id');
+                // $shift = new Shift($shift_data);
+                // $shift->save();
 
                 return $this->buildRes->RESPONSE_REQ('success', null,  'Add shift succesfully');
             }

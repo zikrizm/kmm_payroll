@@ -38,8 +38,11 @@ class DepartmentController extends Controller
                 $filter = [];
 
                 if ($request->has('q')) {
-                    // $filter['dept_code_icontains'] = $request->q;
-                    $filter['dept_name_icontains'] = $request->q;
+                    $filter['department_icontains'] = $request->q;
+                }
+
+                if ($request->has('page')) {
+                    $filter['page'] = $request->page;
                 }
 
                 if ($request->has('sort')) {

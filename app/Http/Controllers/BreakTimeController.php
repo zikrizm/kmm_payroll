@@ -40,11 +40,15 @@ class BreakTimeController extends Controller
             if (request()->ajax()) {
                 $business_id = Session::get('business_id');
                 $break_times = BreakTime::where('business_id', $business_id);
-
                 if ($request->has('q')) {
                     $search = $request->q;
                     $break_times = $break_times->where('name', 'LIKE', "%" . $search . "%");
                 }
+
+                if ($request->has('page')) {
+                    $filter['page'] = $request->page;
+                }
+
                 $order = null;
                 if ($request->has('sort')) {
                     $sort = $request->sort;
@@ -211,6 +215,22 @@ class BreakTimeController extends Controller
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
 
             return $this->buildRes->RESPONSE_REQ('error', null, ['error' => 'something wrong']);
+        }
+    }
+
+    public function searchBreakTimeForDropdown(Request $request)
+    {
+        if (!$request->ajax()) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        if ($request->has('q')) {
+            $business_id = Session::get('business_id');
+            $search = $request->q;
+            $break_times = BreakTime::where('business_id', $business_id)->where('name', 'LIKE', "%" . $search . "%")->get();
+            return response()->json($break_times);
+        } else {
+            return [];
         }
     }
 

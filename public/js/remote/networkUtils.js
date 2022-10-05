@@ -9,7 +9,6 @@ class NetworkUtils {
                 url: url,
                 data: data,
                 cache: false,
-                "mimeType": "multipart/form-data",
                 ...options,
                 success: function (_response) {
                     console.log(_response);

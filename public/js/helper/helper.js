@@ -194,6 +194,8 @@ function loadPic(inputHid, imgID, removeImg) {
     output.onload = function () {
         if (!$(inputHid).val()) compressFotoBarang(inputHid, imgID);
         $(removeImg).removeClass('hidden');
+        $('#' + imgID).removeClass('hidden');
+        $('.icon-default-image').addClass('hidden');
         URL.revokeObjectURL(output.src);
     }
 }
@@ -278,37 +280,39 @@ function insertHintText(errors) {
 
 function setErorrsformInputs(errors) {
     try {
-        if (!errors) return;
-        if (Object.keys(errors).length == 0) return;
+        if (errors != 'valid') {
+            if (!errors) return;
+            if (Object.keys(errors).length == 0) return;
 
-        // * Hide all hint text input ----->
-        hideAllHintText();
-        // * Insert hint text input ----->
-        insertHintText(errors);
+            // * Hide all hint text input ----->
+            hideAllHintText();
+            // * Insert hint text input ----->
+            insertHintText(errors);
 
-        var firstError = Object.keys(errors)[0];
-        var firstErrorNode = document.querySelector('.' + firstError);
-        if (firstErrorNode) {
-            var firstErrorParentNode = firstErrorNode.parentNode.parentNode;
-            const intersectionObserver = new IntersectionObserver((entries) => {
-                let [entry] = entries;
-                if (entry.isIntersecting) {
-                    var nodeNameInput = '';
-                    if (firstError == 'full_address') {
-                        nodeNameInput = 'textarea[name=' + firstError + ']';
-                    } else {
-                        nodeNameInput = 'input[name=' + firstError + ']';
+            var firstError = Object.keys(errors)[0];
+            var firstErrorNode = document.querySelector('.' + firstError);
+            if (firstErrorNode) {
+                var firstErrorParentNode = firstErrorNode.parentNode.parentNode;
+                const intersectionObserver = new IntersectionObserver((entries) => {
+                    let [entry] = entries;
+                    if (entry.isIntersecting) {
+                        var nodeNameInput = '';
+                        if (firstError == 'full_address') {
+                            nodeNameInput = 'textarea[name=' + firstError + ']';
+                        } else {
+                            nodeNameInput = 'input[name=' + firstError + ']';
+                        }
+
+                        $('.' + firstError).parent().children().find(nodeNameInput).focus();
+                        intersectionObserver.unobserve(firstErrorParentNode);
                     }
-
-                    $('.' + firstError).parent().children().find(nodeNameInput).focus();
-                    intersectionObserver.unobserve(firstErrorParentNode);
-                }
-            });
-            intersectionObserver.observe(firstErrorParentNode);
-            firstErrorParentNode.scrollIntoView({ behavior: "smooth" });
-        } else {
-            console.log(errors)
-            handleMessageError(errors)
+                });
+                intersectionObserver.observe(firstErrorParentNode);
+                firstErrorParentNode.scrollIntoView({ behavior: "smooth" });
+            } else {
+                console.log(errors)
+                handleMessageError(errors)
+            }
         }
     } catch (error) {
         handleMessageError({ error })
@@ -363,18 +367,16 @@ let utils = {
                 data: data,
                 cache: false,
                 success: function (_response) {
-                    console.log(_response)
-                    handleMessageError(_response.msg)
-                    // if (_response.response < 200 || _response.response >= 300) {
-                    //     // handle Request Error
-                    //     if (_response.msg) {
-                    //         for (const msg in _response.msg) {
-                    //             toastr.error(_response.msg[msg], 'Error information');
-                    //         }
-                    //     }
-                    // } else {
-                    //     resolve(_response.data)
-                    // }
+                    if (_response.response < 200 || _response.response >= 300) {
+                        // handle Request Error
+                        if (_response.msg) {
+                            for (const msg in _response.msg) {
+                                toastr.error(_response.msg[msg], 'Error information');
+                            }
+                        }
+                    } else {
+                        resolve(_response.data)
+                    }
                 }, error: function (error) {
                     console.log(error);
                 }, statusCode: {

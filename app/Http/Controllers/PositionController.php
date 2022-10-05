@@ -37,8 +37,11 @@ class PositionController extends Controller
                 $filter = [];
 
                 if ($request->has('q')) {
-                    // $filter['position_code_icontains'] = $request->q;
                     $filter['position_name_icontains'] = $request->q;
+                }
+
+                 if ($request->has('page')) {
+                    $filter['page'] = $request->page;
                 }
 
                 if ($request->has('sort')) {

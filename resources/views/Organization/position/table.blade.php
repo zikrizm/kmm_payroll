@@ -13,15 +13,15 @@
                         </div>
                     </div>
                 </th>
-                <th class='px-6 py-3 text-left cursor-pointer'>
+                <th class='px-3 py-3 text-left cursor-pointer'>
                     <x-ui.sort-table text="Position name" url="{{ route('position.index') }}" field="position_name"
                         order="{{ $order }}" />
                 </th>
-                <th class='px-6 py-3 text-left cursor-pointer'>
+                <th class='px-3 py-3 text-left cursor-pointer'>
                     <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Parent position</p>
                 </th>
                 @canany(['position.update', 'position.delete'])
-                <th class='px-6 py-3 text-left text-gray-500 text-xs font-medium'></th>
+                <th class='px-3 py-3 text-left text-gray-500 text-xs font-medium'></th>
                 @endcanany
             </tr>
         </thead>
@@ -33,30 +33,31 @@
                         <div class="pl-4 py-2 ">
                             {!! FormCustom::checkbox() !!}
                         </div>
-                        <div class="flex gap-3 items-center px-6 py-3 ">
+                        <div class="flex gap-3 items-center px-6 py-3 hover:underline hover:text-gray-500 cursor-pointer"
+                            onclick="get_modal('{{ $item['id'] }}')">
                             <p class="text-gray-500 text-sm">
                                 {{ $item['position_code'] }}
                             </p>
                         </div>
                     </div>
                 </td>
-                <td class='px-6 py-4 text-gray-500 text-sm'>
+                <td class='px-3 py text-gray-500 text-sm'>
                     {{ $item['position_name'] }}
                 </td>
-                <td class='px-6 py-4 text-gray-500 text-sm'>
+                <td class='px-3 py text-gray-500 text-sm'>
                     {{ (!empty($item['parent_position'])) ? $item['parent_position']['position_name'] : '-' }}
                 </td>
                 @canany(['position.update', 'position.delete'])
-                <td class='px-4 py-4'>
+                <td class='px-3 py'>
                     <div class='flex gap-1'>
                         @can('position.delete')
                         <button onclick="open_modal_confirm('{{ $item['id'] }}')"
-                            class='p-2.5 cursor-pointer text-gray-500 delete-btn'>
+                            class='px-2.5 cursor-pointer text-gray-500 delete-btn'>
                             <x-icon icon="trash-2" width=18 height=18 viewBox="20 20" />
                         </button>
                         @endcan
                         @can('position.update')
-                        <button class='p-2.5 cursor-pointer text-gray-500 edit-btn'
+                        <button class='px-2.5 cursor-pointer text-gray-500 edit-btn'
                             onclick="get_modal('{{ $item['id'] }}')">
                             <x-icon icon="edit" width=18 height=18 viewBox="20 20" />
                         </button>

@@ -81,13 +81,19 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/position/{position}', 'PositionController@update')->name('position.update');
     Route::post('/area/{area}', 'AreaController@update')->name('area.update');
     Route::post('/employee/{employee}', 'EmployeeController@update')->name('employee.update');
+
     Route::post('/resign/{resign}', 'ResignController@update')->name('resign.update');
     Route::post('/break-time/{break_time}', 'BreakTimeController@update')->name('break-time.update');
     Route::post('/timetable/{timetable}', 'TimetableController@update')->name('timetable.update');
     Route::post('/shift/{shift}', 'ShiftController@update')->name('shift.update');
     Route::post('/transaction/{transaction}', 'TransactionController@update')->name('transaction.update');
-    
+
+    Route::get('/employee-photo', 'EmployeePhotoController@index')->name('employee-photo.index');
+    Route::post('/employee-photo', 'EmployeePhotoController@store')->name('employee-photo.store');
+
     Route::get('/search-employee-for-dropdown', 'EmployeeController@searchEmployeeForDropdown')->name('employee.search-employee-for-dropdown');
-    
+    Route::get('/search-break-time-for-dropdown', 'BreakTimeController@searchBreakTimeForDropdown')->name('break-time.search-break-time-for-dropdown');
+    Route::get('/search-timetable-for-dropdown', 'TimetableController@searchTimetableForDropdown')->name('timetable.search-timetable-for-dropdown');
+
     Route::get('logout', '\App\Http\Controllers\Auth\LoginController@logout')->name('logout');
 });

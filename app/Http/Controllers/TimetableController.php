@@ -7,8 +7,10 @@ use App\Models\Timetable;
 use App\Utils\BusinessUtil;
 use App\Utils\ResponseUtil;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use App\Services\Api\ApiServices;
 use Illuminate\Support\Facades\Log;
+use App\Models\TimetableHasBreakTime;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
 
@@ -40,12 +42,17 @@ class TimetableController extends Controller
         try {
             if (request()->ajax()) {
                 $business_id = Session::get('business_id');
-                $timetables = Timetable::where('business_id', $business_id);
+                $timetables = Timetable::where('business_id', $business_id)->with(['timetable_has_break_time']);
 
                 if ($request->has('q')) {
                     $search = $request->q;
                     $timetables = $timetables->where('name', 'LIKE', "%" . $search . "%");
                 }
+
+                if ($request->has('page')) {
+                    $filter['page'] = $request->page;
+                }
+
                 $order = null;
                 if ($request->has('sort')) {
                     $sort = $request->sort;
@@ -97,22 +104,37 @@ class TimetableController extends Controller
      */
     public function store(Request $request)
     {
-        if (!auth()->user()->can('break-time.create')  || !$request->ajax()) {
+        if (!auth()->user()->can('timetable.create')  || !$request->ajax()) {
             abort(403, 'Unauthorized action.');
         }
         try {
-            $validator = Validator::make($request->all(), $this->rules(null));
+            $validator = Validator::make($request->all(), $this->rules());
 
             if ($validator->fails()) {
                 return $this->buildRes->RESPONSE_REQ('error', null, $validator->errors());
             } else {
-                $break_time_data = $request->only(['name', 'start_time', 'end_time', 'duration']);
-                $break_time_data['business_id'] = Session::get('business_id');
+                $timetable_data = $request->only(['name', 'in_time', 'out_time', 'cross_day', 'work_type', 'break_time']);
+                $timetable_data['business_id'] = Session::get('business_id');
+                $in_time = Carbon::parse($timetable_data['in_time']);
+                $out_time = Carbon::parse($timetable_data['out_time']);
 
-                $break_time = new BreakTime($break_time_data);
-                $break_time->save();
+                $timetable_data['work_time'] = $in_time->diffInMinutes($out_time);
+                $timetable = new Timetable($timetable_data);
+                $timetable->save();
 
-                return $this->buildRes->RESPONSE_REQ('success', null, ['success' => 'Add break-time succesfully']);
+                if (!empty($request->input('break_time'))) {
+                    foreach ($timetable_data['break_time']  as $item) {
+                        $timetable_has_break_time_data = [
+                            'business_id' => Session::get('business_id'),
+                            'timetable_id' => $timetable->id,
+                            'break_time_id' => $item,
+                        ];
+                        $timetable_has_break_time = new TimetableHasBreakTime($timetable_has_break_time_data);
+                        $timetable_has_break_time->save();
+                    }
+                }
+
+                return $this->buildRes->RESPONSE_REQ('success', null, ['success' => 'Add timetable succesfully']);
             }
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
@@ -138,20 +160,22 @@ class TimetableController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  BreakTime $break_time
+     * @param  Timetable $break_time
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function edit(BreakTime $break_time, Request $request)
+    public function edit(Timetable $timetable, Request $request)
     {
-        log::info($break_time);
-        if (!auth()->user()->can('break-time.update') || !$request->ajax()) {
+        if (!auth()->user()->can('timetable.update') || !$request->ajax()) {
             abort(403, 'Unauthorized action.');
         }
 
         try {
-            $render = view('Shift.break_time.edit', compact('break_time'))->render();
+            $business_id = Session::get('business_id');
+            $timetable_has_break_times = TimetableHasBreakTime::where('business_id', $business_id)
+                ->where('timetable_id', $timetable->id)->get();
 
+            $render = view('Shift.timetable.edit', compact('timetable', 'timetable_has_break_times'))->render();
             return $this->buildRes->RESPONSE_REQ('success', $render, null);
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
@@ -164,25 +188,48 @@ class TimetableController extends Controller
      * Update the specified resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  BreakTime $break_time
+     * @param  Timetable $timetable
      * @return \Illuminate\Http\Response
      */
-    public function update(BreakTime $break_time, Request $request)
+    public function update(Timetable $timetable, Request $request)
     {
-        if (!auth()->user()->can('break-time.update') || !$request->ajax()) {
+        if (!auth()->user()->can('timetable.update') || !$request->ajax()) {
             abort(403, 'Unauthorized action.');
         }
 
         try {
-            $validator = Validator::make($request->all(), $this->rules($break_time));
+            $validator = Validator::make($request->all(), $this->rules());
 
             if ($validator->fails()) {
                 return $this->buildRes->RESPONSE_REQ('error', null, $validator->errors());
             } else {
-                $break_time_data = $request->only(['name', 'start_time', 'end_time', 'duration']);
-                $break_time->update($break_time_data);
+                $timetable_data = $request->only(['name', 'in_time', 'out_time', 'cross_day', 'work_type', 'break_time']);
+                $in_time = Carbon::parse($timetable_data['in_time']);
+                $out_time = Carbon::parse($timetable_data['out_time']);
 
-                return $this->buildRes->RESPONSE_REQ('success', null, ['success' => 'Update break-time succesfully']);
+                $timetable_data['work_time'] = $in_time->diffInMinutes($out_time);
+                $timetable->update($timetable_data);
+
+                // * Remove all timetable has breaktime.
+                $business_id = Session::get('business_id');
+                TimetableHasBreakTime::where('business_id', $business_id)
+                    ->where('timetable_id', $timetable->id)->each(function ($item) {
+                        $item->delete();
+                    });
+
+                if (!empty($request->input('break_time'))) {
+                    // * Insert timetable has breaktime.
+                    foreach ($request['break_time']  as $item) {
+                        $timetable_has_break_time_data = [
+                            'business_id' => Session::get('business_id'),
+                            'timetable_id' => $timetable->id,
+                            'break_time_id' => $item,
+                        ];
+                        $timetable_has_break_time = new TimetableHasBreakTime($timetable_has_break_time_data);
+                        $timetable_has_break_time->save();
+                    }
+                }
+                return $this->buildRes->RESPONSE_REQ('success', null, ['success' => 'Update timetable succesfully']);
             }
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
@@ -215,19 +262,34 @@ class TimetableController extends Controller
         }
     }
 
+    public function searchTimetableForDropdown(Request $request)
+    {
+        if (!$request->ajax()) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        if ($request->has('q')) {
+            $business_id = Session::get('business_id');
+            $search = $request->q;
+            $timetables = Timetable::where('business_id', $business_id)->where('name', 'LIKE', "%" . $search . "%")->get();
+            return response()->json($timetables);
+        } else {
+            return [];
+        }
+    }
+
     /**
      * Rules validation break_time.
      *
-     * @param  BreakTime $break_time
      * @return array
      */
-    public function rules($break_time)
+    public function rules()
     {
         return [
-            'name' => (empty($break_time)) ?  'required|string|max:255|unique:break_times' : 'required|string|max:255|unique:break_times,name,' . $break_time->id,
-            'start_time' => 'required',
-            'end_time' => 'required|after:start_time',
-            'duration' => 'required',
+            'name' => 'required|string|max:255',
+            'in_time' => 'required',
+            'out_time' => 'required|after:in_time',
+            'work_type' => 'required',
         ];
     }
 }

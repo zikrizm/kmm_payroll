@@ -23,13 +23,13 @@ $is_suflix = '';
 
         <input name="{{ $name }}" value="{{ $value }}" type="{{ $atr->type }}" placeholder="{{ $atr->placeholder }}"
             class="{{ $padding_class }}  w-full h-full text-sm rounded-lg shadow-sm border border-gray-300 focus:outline-none focus:ring-0
-            focus:shadow-xs/focused(4px-primary) focus:border-violet-300 xs/max:text-xs xs/max:rounded {{ $atr->class }}"
-            {{ $atr->required ? 'required': '' }} {{ $atr->readonly ? 'readonly' : '' }} autocomplete="{{ $atr->autocomplete }}" />
+            focus:shadow-xs/focused(4px-primary) focus:border-violet-300 {{ $atr->class }}" {{ $atr->required ?
+        'required': '' }} {{ $atr->readonly ? 'readonly' : '' }} autocomplete="{{ $atr->autocomplete }}" />
 
-        <span class="absolute right-0 px-2.5 {{ $is_suflix }}" >
+        <span class="absolute right-0 px-2.5 {{ $is_suflix }}">
             {{ $atr->suffixtext }}
             <x-icon icon="{{ $atr->suffixiconname }}" width=16 height=16 viewBox="20 20" />
         </span>
     </div>
-    <label class="font-normal text-xs text-red-500 xs/max:text-xs hint-text {{ $name }}"></label>
+    <label class="font-normal text-xs text-red-500 hint-text {{ $atr->hintclass }} {{ $name }}"></label>
 </div>

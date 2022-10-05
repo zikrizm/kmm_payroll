@@ -7,21 +7,21 @@
 <div class="h-full flex-1 pb-12 px-8 xs/max:p-4 xs/max:pb-8 overflow-y-auto overflow-x-hidden relative">
     <main class="flex flex-col gap-8 h-full">
         <header class="w-full flex flex-col gap-6 justify-center pt-6">
-            <div>
-                <p class="font-semibold text-3xl text-gray-700 xs/max:text-xl">Business settings</p>
-                <p class="font-normal text-sm text-gray-500">Update your logo and business details here.</p>
+            <div class="flex flex-col gap-1">
+                <p class="text-3xl font-medium text-gray-900">Business settings</p>
+                <p class="text-base font-normal text-gray-500">Perbarui logo dan detail bisnis Anda di sini.</p>
             </div>
             <ul class="flex border-b">
                 <li>
                     <button data-ref-class-content="business-info-content"
                         class="business-menu text-violet-700 border-b-2 mr-4 pt px-1 pb-[19px] border-violet-700 text-sm font-medium">
-                        Business
+                        Bisnis
                     </button>
                 </li>
                 <li>
                     <button data-ref-class-content="business-dash-content"
                         class="business-menu text-gray-500 mr-4 pt px-1 pb-[19px] border-violet-700 text-sm font-medium">
-                        Dashboard
+                        Lokasi
                     </button>
                 </li>
             </ul>

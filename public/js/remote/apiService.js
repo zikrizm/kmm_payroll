@@ -33,48 +33,23 @@ class Api extends NetworkUtils {
         var method = $(className).attr('method');
         $(className).on("submit", async (e) => {
             e.preventDefault();
-            var form = new FormData();
-            var filename = document.querySelector('#contained-button-file').files[0].name;
-form.append("user_capture", document.querySelector('#contained-button-file').files[0], filename);
-form.append("employee_code", "50");
-form.append("csrfmiddlewaretoken", "R15uMIPc1xH0rRZEdNK0ygPn1sJHu9h7BP6a8OVgNMXp98LQE9zwHc3aZuEQoNVF");
-form.append("remark", "");
-console.log('formdata',document.querySelector('#contained-button-file').files[0])
-var settings = {
-    crossDomain: true,
-    "url": "http://192.168.2.20/vlRegister/",
-    "method": "POST",
-    "timeout": 0,
-    "headers": {
-        "Access-Control-Allow-Headers": '*'
-        },
-    "processData": false,
-    "mimeType": "multipart/form-data",
-    "contentType": false,
-    "data": form
-  };
-  
-  $.ajax(settings).done(function (response) {
-    console.log(response);
-  });
-            // try {
-            //     let _response = await this.emitter(method, url, new FormData(document.querySelector(className)));
-            //     console.log(_response)
-            //     if (_response.response < 200 || _response.response >= 300) {
-            //         // * SET NOTIFICATION MESSAGE REQUIRED ----->
-            //         setErorrsformInputs(_response.msg);
-            //         callback();
-            //     } else {
-            //         handleMessage(_response);
-            //         // * CLEAR ERROR ----->
-            //         clearErrorFormInputs();
-            //         // * CLOSE MODAL ----->
-            //         closeModal({ name: '.main-modal', content: '.content-main-modal' });
-            //         callback(_response.data);
-            //     }
-            // } catch (error) {
-            //     console.log(error)
-            // }
+            try {
+                let _response = await this.emitter(method, url, new FormData(document.querySelector(className)));
+                if (_response.response < 200 || _response.response >= 300) {
+                    // * SET NOTIFICATION MESSAGE REQUIRED ----->
+                    setErorrsformInputs(_response.msg);
+                    callback(_response);
+                } else {
+                    handleMessage(_response);
+                    // * CLEAR ERROR ----->
+                    clearErrorFormInputs();
+                    // * CLOSE MODAL ----->
+                    closeModal({ name: '.main-modal', content: '.content-main-modal' });
+                    callback(_response);
+                }
+            } catch (error) {
+                console.log(error)
+            }
         })
     };
     async get_confirm(className, url, data, callback) {

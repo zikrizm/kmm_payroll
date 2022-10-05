@@ -55,3 +55,62 @@ function select2_employee() {
         return $opt;
     };
 }
+
+function select2_break_time() {
+    $(".select2-break-time").select2({
+        placeholder: "Silahkan pilih",
+        ajax: {
+            url: '/search-break-time-for-dropdown',
+            data: function (params) {
+                return { q: params.term };
+            },
+            processResults: function (data) {
+                data = data.map((e) => {
+                    e.text = e.name;
+                    return e;
+                });
+                return { results: data };
+            }
+        },
+        templateResult: (opt) => {
+            var $opt = $(
+                `<div class="flex items-center">
+                    <div class="flex flex-1 flex-col gap-1 items-start">
+                        <p class="text-sm font-medium text-gray-700 capitalize">${opt.name}</p> 
+                        <div class="flex items-center gap-2"> 
+                            <p class="text-sm text-gray-700">${opt.start_time} -</p> 
+                            <p class="text-sm text-gray-700">${opt.start_time}</p> 
+                        </div>
+                    </div>
+                    <div class="flexc items-center"> 
+                        <p class="flex items-center gap-2 text-base font-medium text-gray-700">${opt.duration ?? ''}<span class="text-xs">${opt.duration ? 'Menit(s)' : ''}</span></p> 
+                    </div>
+                </div>`
+            );
+            return $opt;
+        },
+    });
+}
+
+function select2_timetable() {
+    $(".select2-timetable").select2({
+        placeholder: "Silahkan pilih jadwal",
+        templateResult: (opt) => {
+            let _data = {};
+            if(opt.title) _data = JSON.parse(opt.title);
+
+            var $opt = $(
+                `<div class="flex items-center">
+                    <div class="flex flex-1 flex-col gap-1 items-start">
+                        <p class="text-sm font-medium text-gray-700 capitalize">${_data.name}</p> 
+                        <div class="flex items-center gap-2"> 
+                            <p class="text-sm text-gray-700">${_data.in_time} -</p> 
+                            <p class="text-sm text-gray-700">${_data.out_time}</p> 
+                        </div>
+                    </div>
+                </div>`
+            );
+            return $opt;
+        },
+    });
+}

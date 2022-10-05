@@ -13,15 +13,16 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('timetable_has_break_times', function (Blueprint $table) {
+        Schema::create('overtime_timetables', function (Blueprint $table) {
             $table->increments('id');
             $table->integer('business_id')->unsigned();
-            $table->integer('break_time_id')->unsigned();
             $table->integer('timetable_id')->unsigned();
-
             $table->foreign('business_id')->references('id')->on('business')->onDelete('cascade');
-            $table->foreign('break_time_id')->references('id')->on('break_times')->onDelete('cascade');
             $table->foreign('timetable_id')->references('id')->on('timetables')->onDelete('cascade');
+
+            $table->string('name');
+            $table->integer('hrs_from')->default(0);
+            $table->integer('hrs_to')->default(0);
             $table->timestamps();
         });
     }
@@ -33,6 +34,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('timetable_has_break_times');
+        Schema::dropIfExists('overtime_timetables');
     }
 };

@@ -1,8 +1,8 @@
-<form autocomplete="off" action="{{ route('break-time.store') }}" method="POST" class="submit-break-time">
+<form autocomplete="off" action="{{ route('timetable.store') }}" method="POST" class="submit-timetable">
     @csrf
     <!-- {{ csrf_field() }} -->
     <section
-        class="flex flex-col gap-8  pt-4 w-[375px] bg-white max-h-[90vh] overflow-y-auto overflow-x-hidden relative rounded-lg">
+        class="flex flex-col gap-6 pt-4 w-[520px] bg-white max-h-[95vh] overflow-y-auto overflow-x-hidden relative rounded-lg no-scrollbar">
         <header class="px-4 flex flex-col gap-5 pt-4 xs/max:gap-3 relative">
             <button
                 class="absolute top-[-5px] right-3 xs/max:top-[-6px] modal-close hover:bg-gray-100 text-red rounded p-2">
@@ -15,10 +15,10 @@
                         <x-icon icon="clock" width=18 height=18 viewBox="20 20" />
                     </div>
                     <div>
-                        <p class="text-2xl font-bold text-gray-900 xs/max:text-xl xs/max:font-semibold">New timetable
+                        <p class="text-2xl font-bold text-gray-900 xs/max:text-xl xs/max:font-semibold">Tambah jadwal
                         </p>
                         <p class="text-sm font-normal text-gray-500 xs/max:text-xs">
-                            Please provide the timetable's detail.
+                            Harap berikan detail jadwalnya.
                         </p>
                     </div>
                 </div>
@@ -26,64 +26,135 @@
             <hr>
         </header>
         <div>
-            <main class="px-4 flex flex-col gap-4 xs/max:gap-3 mb-8">
+            <main class="px-4 flex flex-col gap-4 mb-8">
                 <section class="flex flex-col gap-1">
-                    <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Break time name*</label>
-                    {!! FormCustom::input('name', null, [ "placeholder" => 'Enter new your break time name'])
+                    <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Nama jadwal*</label>
+                    {!! FormCustom::input('name', null, [ "placeholder" => 'Masukkan nama jadwal anda yang baru'])
                     !!}
                 </section>
-                <div>
-                    <p class="text-lg font-medium text-gray-900
-                    xs/max:font-semibold">Basic settings
-                    </p>
-                    <p class="text-sm font-normal text-gray-500 xs/max:text-xs">
-                        Please complete this data.
-                    </p>
-                </div>
-                <hr>
-                <div class="flex items-center gap-3">
-                    <div class="flex-1 flex flex-col gap-1 flex-1">
-                        <label class="text-sm font-normal text-gray-500">Start*</label>
-                        {!! FormCustom::input('start_time', null, [ "placeholder" => '-', 'type' => 'time']) !!}
+                <ul class="flex border-b mb-4">
+                    <li>
+                        <button type="button" data-ref-class-content="basic-settings-content"
+                            class="text-gray-500 text-violet-700 border-b-2 mr-4 pt px-1 pb-[19px] border-violet-700 text-sm font-medium">
+                            Pengaturan awal
+                        </button>
+                    </li>
+                    <li>
+                        <button type="button" data-ref-class-content="break-time-settings-content"
+                            class="text-gray-500 mr-4 pt px-1 pb-[19px] border-violet-700 text-sm font-medium">
+                            Pengaturan jam istirahat
+                        </button>
+                    </li>
+                    <li>
+                        <button type="button" data-ref-class-content="overtime-rule-content"
+                            class="text-gray-500 mr-4 pt px-1 pb-[19px] border-violet-700 text-sm font-medium">
+                            Lembur
+                        </button>
+                    </li>
+                </ul>
+                <div class="flex flex-col gap-4" id="basic-settings-content">
+                    {{-- <div>
+                        <p class="text-base font-medium text-gray-900 xs/max:font-semibold">Pengaturan awal</p>
+                        <p class="text-sm font-normal text-gray-500 xs/max:text-xs">
+                            Mohon lengkapi data ini.
+                        </p>
                     </div>
-                    <div class="flex-1 flex flex-col gap-1 flex-1">
-                        <label class="text-sm font-normal text-gray-500">End*</label>
-                        {!! FormCustom::input('end_time', null, [ "placeholder" => '-', 'type' => 'time']) !!}
+                    <hr> --}}
+                    <div class="flex items-start gap-3">
+                        <div class="flex-1 flex flex-col gap-1 flex-2">
+                            <label class="text-sm font-normal text-gray-500">Check in*</label>
+                            {!! FormCustom::input('in_time', '00:00:00', [ "placeholder" => '-', 'type' => 'time']) !!}
+                        </div>
+                        <div class="flex-1 flex flex-col gap-1 flex-2">
+                            <label class="text-sm font-normal text-gray-500">Check out*</label>
+                            {!! FormCustom::input('out_time', '00:00:00', [ "placeholder" => '-', 'type' => 'time']) !!}
+                        </div>
+                        <section class="flex flex-col gap-1 flex-1">
+                            <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Cross day*</label>
+                            <select class="select2" name="cross_day">
+                                <option value="0" selected>0 hari</option>
+                                <option value="1">1 hari</option>
+                                <option value="2">2 hari</option>
+                                <option value="3">3 hari</option>
+                            </select>
+                            <label class="font-normal text-xs text-red-500 xs/max:text-xs cross_day hint-text"></label>
+                        </section>
+                    </div>
+                    <section class="flex flex-col gap-1">
+                        <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Work type*</label>
+                        <select class="select2" name="work_type">
+                            <option value="0" selected>Hari kerja</option>
+                            <option value="1">Minggu</option>
+                            <option value="2">Libur nasional</option>
+                        </select>
+                        <label
+                            class="font-normal text-xs text-red-500 xs/max:text-xs parent_position hint-text"></label>
+                    </section>
+                    <div class="flex flex-col gap-1">
+                        <p class="text-sm font-medium text-gray-900">*Keterangan </p>
+                        <div class="flex flex-col pl-3">
+                            <p class="text-sm font-normal text-gray-500">
+                                - Semua pengaturan lintas hari didasarkan pada check-in.
+                            </p>
+                        </div>
                     </div>
                 </div>
-                <div class="flex items-center gap-3">
+                <div class="flex flex-col gap-4 hidden" id="break-time-settings-content">
+                    <div>
+                        <p class="text-base font-medium text-gray-900 xs/max:font-semibold">Pengaturan jam istirahat</p>
+                        <p class="text-sm font-normal text-gray-500 xs/max:text-xs">
+                            Mohon lengkapi data ini.
+                        </p>
+                    </div>
+                    <hr>
+                    <section class="flex flex-col gap-1">
+                        <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Jam istirahat</label>
+                        <select class="select2-break-time" name="break_time[]" multiple="multiple">
+                        </select>
+                        <label class="font-normal text-xs text-red-500 xs/max:text-xs break_time hint-text"></label>
+                    </section>
+                </div>
+                <div class="flex flex-col gap-4 hidden" id="overtime-rule-content">
                     <section class="flex flex-col gap-1 flex-1">
-                        <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Work time*</label>
-                        {!! FormCustom::input('work_time_duration', null, [ "placeholder" => 'Enter new your work
-                        type','type' =>
+                        <div class="flex items-center gap-2">
+                            {!! FormCustom::checkbox() !!}
+                            <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Lembur</label>
+                        </div>
+                        <label class="font-normal text-xs text-red-500 xs/max:text-xs cross_day hint-text"></label>
+                    </section>
+                    <section class="flex items-start gap-3">
+                        <div class="flex-1 flex flex-col gap-1">
+                            <label class="text-sm font-normal text-gray-500">Durasi Menit*</label>
+                            {!! FormCustom::input('time_period', null, [ "placeholder" => '-', 'class' => 'number']) !!}
+                        </div>
+                        <div class="flex-2 flex flex-col gap-1">
+                            <label class="text-sm font-normal text-gray-500">Upah lembur*</label>
+                            {!! FormCustom::input('upah_lembur', null, ['class' => 'number', "placeholder" => '-', 'prefixtext'
+                            =>
+                            'Rp']) !!}
+                        </div>
+                    </section>
+                    <section class="flex flex-col gap-1">
+                        <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Durasi jam lembur jadi
+                            harian*</label>
+                        {!! FormCustom::input('lembur_shift', null, [ "placeholder" => 'Masukkan durasi waktu (jam)', 'type'=>
                         'number'])
                         !!}
                     </section>
-                    <p class="text-xs font-normal text-gray-500 mt-5">Menit(s)</p>
-                </div>
-                <div class="flex items-center gap-3">
                     <section class="flex flex-col gap-1 flex-1">
-                        <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Work day*</label>
-                        {!! FormCustom::input('work_day', null, [ "placeholder" => 'Enter new your work_day','type' =>
+                        <div class="flex items-center gap-2">
+                            {!! FormCustom::checkbox() !!}
+                            <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Nasi lembur</label>
+                        </div>
+                        <label class="font-normal text-xs text-red-500 xs/max:text-xs cross_day hint-text"></label>
+                    </section>
+                    <section class="flex flex-col gap-1">
+                        <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Durasi jam nasi lembur*</label>
+                        {!! FormCustom::input('lembur_shift', null, [ "placeholder" => 'Masukkan durasi waktu (jam)', 'type'=>
                         'number'])
                         !!}
                     </section>
-                    <p class="text-xs font-normal text-gray-500 mt-5">Day(s)</p>
                 </div>
-                <section class="flex flex-col gap-1">
-                    <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Work type*</label>
-                    <select class="select2" name="punch_state">
-                        <option value="0" selected>Normal work</option>
-                        <option value="1">Day off</option>
-                        <option value="2">Weekend</option>
-                    </select>
-                    <label class="font-normal text-xs text-red-500 xs/max:text-xs parent_position hint-text"></label>
-                </section>
-                <section class="flex flex-col gap-1">
-                    <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Color Picker:</label>
-                    <input type="color" name="color_setting">
-                    <label class="font-normal text-xs text-red-500 xs/max:text-xs color_setting hint-text"></label>
-                </section>
             </main>
             <hr>
             <footer class="flex justify-end items-center gap-3 p-4  pb-6">

@@ -73,7 +73,7 @@ class AppServiceProvider extends ServiceProvider
         });
 
         Blade::directive('urlPagination', function ($url) {
-            return str_replace(config('constants.api'), 'http://localhost/', $url) ;
+            return str_replace(config('constants.api'), 'http://localhost/', $url);
         });
 
         Blade::directive('zkPhoto', function ($url) {

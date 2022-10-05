@@ -16,11 +16,12 @@ return new class extends Migration
         Schema::create('shifts', function (Blueprint $table) {
             $table->increments('id');
             $table->integer('business_id')->unsigned();
+            $table->integer('dept_id');
+            // $table->integer('is_nasi_lembur')->default(-1);
+            // $table->integer('durasi')->default(-1);
+            // $table->integer('is_nasi_lembur')->default(-1);
             $table->string('name');
-            $table->time('time_start')->nullable();
-            $table->time('time_end')->nullable();
-            $table->enum('status',['active','inactive'])->default('active');
-            
+
             $table->foreign('business_id')->references('id')->on('business')->onDelete('cascade');
             $table->timestamps();
         });

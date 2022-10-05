@@ -38,8 +38,11 @@ class AreaController extends Controller
                 $filter = [];
 
                 if ($request->has('q')) {
-                    // $filter['area_code_icontains'] = $request->q;
                     $filter['area_name_icontains'] = $request->q;
+                }
+
+                if ($request->has('page')) {
+                    $filter['page'] = $request->page;
                 }
 
                 if ($request->has('sort')) {

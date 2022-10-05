@@ -33,7 +33,7 @@
                     <select class="select2-employee" name="emp_id">
                         <option value="" default disabled selected>Silahkan Pilih</option>
                     </select>
-                    <label class="font-normal text-xs text-red-500 xs/max:text-xs emp_code text-error"></label>
+                    <label class="font-normal text-xs text-red-500 xs/max:text-xs emp_code hint-text"></label>
                 </section>
                 <section class="flex flex-col gap-1">
                     <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Punch time*</label>
@@ -47,7 +47,7 @@
                         <option value="1">Check in</option>
                         <option value="2">Check out</option>
                     </select>
-                    <label class="font-normal text-xs text-red-500 xs/max:text-xs parent_position text-error"></label>
+                    <label class="font-normal text-xs text-red-500 xs/max:text-xs parent_position hint-text"></label>
                 </section>
                 <section class="flex flex-col gap-1">
                     <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Work code</label>

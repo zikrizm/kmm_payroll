@@ -13,18 +13,18 @@
                         </div>
                     </div>
                 </th>
-                <th class='px-6 py-3 text-left cursor-pointer'>
+                <th class='px-3 py-3 text-left cursor-pointer'>
                     <x-ui.sort-table text="Username" url="{{ route('user.index') }}" field="username"
                         order="{{ $order }}" />
                 </th>
-                <th class='px-6 py-3 text-left cursor-pointer'>
+                <th class='px-3 py-3 text-left cursor-pointer'>
                     <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Role</p>
                 </th>
-                <th class='px-6 py-3 text-left cursor-pointer'>
+                <th class='px-3 py-3 text-left cursor-pointer'>
                     <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Status</p>
                 </th>
                 @canany(['user.update', 'user.delete'])
-                <th class='px-6 py-3 text-left text-gray-500 text-xs font-medium'></th>
+                <th class='px-3 py-3 text-left text-gray-500 text-xs font-medium'></th>
                 @endcanany
             </tr>
         </thead>
@@ -36,7 +36,7 @@
                         <div class="pl-4 py">
                             {!! FormCustom::checkbox() !!}
                         </div>
-                        <div class="flex gap-3 items-center px-6 py-3">
+                        <div class="flex gap-3 items-center px-6 py-1">
                             <div class="w-8 h-8 min-w-[32px] min-h-[32px] rounded-full overflow-hidden">
                                 @if (!empty($item->photo))
                                 <img src="{{ $item->photo }}" alt="" class="w-full h-full object-cover">
@@ -69,10 +69,10 @@
                 <td class='px-3 py'>
                     <div class='flex gap-1'>
                         <button onclick="open_modal_confirm('{{ $item->id }}')"
-                            class='p-2.5 cursor-pointer text-gray-500 delete-btn'>
+                            class='px-2.5 cursor-pointer text-gray-500 delete-btn'>
                             <x-icon icon="trash-2" width=18 height=18 viewBox="20 20" />
                         </button>
-                        <button class='p-2.5 cursor-pointer text-gray-500 edit-btn'
+                        <button class='px-2.5 cursor-pointer text-gray-500 edit-btn'
                             onclick="get_modal('{{ $item->id }}')">
                             <x-icon icon="edit" width=18 height=18 viewBox="20 20" />
                         </button>

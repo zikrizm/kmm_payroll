@@ -70,10 +70,19 @@
 }
 
 .select2-container--default .select2-results__option--highlighted[aria-selected] {
-    background-color: rgb(249 250 251);
+    background-color: rgb(255, 255, 255);
     color: rgb(55 65 81);
 }
 
 .select2-results__option {
     font-size: 14px;
+}
+
+.select2-search__field {
+    font-size: 14px !important;
+}
+.select2-search__field::placeholder {
+    font-size: 14px !important;
+    opacity: 0.5 !important;
+    /* color: rgb(156 163 175) !important; */
 }

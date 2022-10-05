@@ -7,21 +7,21 @@
 <div class="flex flex-col gap-6 flex-1 h-full overflow-auto bg-white px-8 pt-8 pb-12">
     <header class="flex justify-between items-start">
         <div class="flex flex-col gap-1">
-            <p class="text-3xl font-medium text-gray-900">Timetable</p>
-            <p class="text-base font-normal text-gray-500">Here to manage the status of each timetable.</p>
+            <p class="text-3xl font-medium text-gray-900">Shift</p>
+            <p class="text-base font-normal text-gray-500">Di sini untuk mengelola status setiap shift.</p>
         </div>
         <div class="">
             <button onclick="get_modal()" class="flex items-center gap-2.5 px-4 py-2 text-gray-500 text-sm font-medium 
                 flex items-center border border-gray-200 shadow-sm rounded-lg">
                 <x-icon icon="plus" width=18 height=18 viewBox="20 20" />
-                Add timetable
+                Tambah shift
             </button>
         </div>
     </header>
     <hr>
-    <x-ui.search-data placeholder="Search for timetable" url="{{ route('timetable.index') }}" />
+    <x-ui.search-data placeholder="Cari shift" url="{{ route('shift.index') }}" />
     <div class="table-content"></div>
-    <x-ui.confirm-modal class="submit-delete-timetable"></x-ui.confirm-modal>
+    <x-ui.confirm-modal class="submit-delete-shift"></x-ui.confirm-modal>
 </div>
 
 <script type="application/javascript">
@@ -48,7 +48,7 @@
             // **
             // * get table ----->
             // *
-            var res = await ApiService.get_table('/timetable', dataParams);
+            var res = await ApiService.get_table('/shift', dataParams);
             $('.table-content').html(res);
 
             // **
@@ -61,14 +61,14 @@
             })
         }
     
-        async function get_modal(timetable_id) {
+        async function get_modal(shift_id) {
             // **
             // * open modal form ----->
             // *
-            var URL = (timetable_id) ? '/timetable/' + timetable_id + '/edit' : '/timetable/create';
+            var URL = (shift_id) ? '/shift/' + shift_id + '/edit' : '/shift/create';
             var res = await ApiService.get_modal(URL, null);
             $('.select2').select2();
-            select2_break_time();
+            select2_timetable();
 
             $('*[data-ref-class-content]').on('click', function(e) {
                 let _idContent = $(this).data('ref-class-content');
@@ -82,7 +82,7 @@
                 $('#'+_idContent).removeClass('hidden');
             })
 
-            $('#add-overtime-timetable').on('click', function(e) {
+            $('#add-overtime-shift').on('click', function(e) {
                 let _valid = true;
                 let _index = $("#overtime-contents").children().length;
                 let _messsage = {};
@@ -163,16 +163,16 @@
             // **
             // * submit form ----->
             // *
-            var resSubmit = ApiService.submit_form('.submit-timetable', (data) => { 
+            var resSubmit = ApiService.submit_form('.submit-shift', (data) => { 
                 onInit( { q: $('.search-data-input').val() });
             });
         }
 
-        async function open_modal_confirm(timetable_id) {
+        async function open_modal_confirm(shift_id) {
         // **
         // * open modal confirm ----->
         // *
-        await ApiService.get_confirm('.submit-delete-timetable', '/timetable/' + timetable_id, null, () => {
+        await ApiService.get_confirm('.submit-delete-shift', '/shift/' + shift_id, null, () => {
             onInit();
         })
     }
