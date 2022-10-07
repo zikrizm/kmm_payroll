@@ -536,6 +536,7 @@ class ApiServices extends NetworkUtils
         if ($res['response'] < 200 || $res['response'] >= 300) {
             return $res;
         } else {
+            Log::info($res);
             $res['msg'] = ['success' => 'Add position succesfully'];
             return $res;
         }
@@ -565,6 +566,88 @@ class ApiServices extends NetworkUtils
             return $res;
         } else {
             $res['msg'] = ['success' => 'Delete position succesfully'];
+            return $res;
+        }
+    }
+
+    public function get_devices($data)
+    {
+        $data = [
+            'page' => $data['page'] ?? null,
+            'page_size' => $data['page_size'] ?? null,
+            'sn' => $data['sn'] ?? null,
+            'alias' => $data['alias'] ?? null,
+            'state' => $data['state'] ?? null,
+            'area' => $data['area'] ?? null,
+            'sn_icontains' => $data['sn_icontains'] ?? null,
+            'alias_icontains' => $data['alias_icontains'] ?? null,
+            'ordering' => $data['ordering'] ?? null,
+        ];
+        $res = $this->emitter('GET', "/iclock/api/terminals/", $data);
+        if ($res['response'] < 200 || $res['response'] >= 300) {
+            // throw new ResponseExeception($res['msg']);
+        } else {
+            return $res['data'];
+        }
+    }
+
+    public function read_device($id)
+    {
+        $res = $this->emitter('GET', "/iclock/api/terminals/" . $id . "/", null);
+        if ($res['response'] < 200 || $res['response'] >= 300) {
+            // throw new ResponseExeception($res['msg']);
+        } else {
+            return $res['data'];
+        }
+    }
+
+    public function create_device($data)
+    {
+        $data = [
+            'id' => null,
+            'sn' => $data['sn'] ?? null,
+            'alias' => $data['alias'] ?? null,
+            'ip_address' => $data['ip_address'] ?? null,
+            'area' => $data['area'] ?? null,
+            'is_attendance' => $data['is_attendance'] ?? null,
+            'terminal_tz' => $data['terminal_tz'] ?? null,
+        ];
+        $res = $this->emitter('POST', "/iclock/api/terminals/", $data);
+        if ($res['response'] < 200 || $res['response'] >= 300) {
+            return $res;
+        } else {
+            $res['msg'] = ['success' => 'Update device succesfully'];
+            return $res;
+        }
+    }
+
+    public function update_device($data)
+    {
+        $data = [
+            'id' => $data['id'],
+            'sn' => $data['sn'] ?? null,
+            'alias' => $data['alias'] ?? null,
+            'ip_address' => $data['ip_address'] ?? null,
+            'area' => $data['area'] ?? null,
+            'is_attendance' => $data['is_attendance'] ?? null,
+            'terminal_tz' => $data['terminal_tz'] ?? null,
+        ];
+        $res = $this->emitter('PUT', "/iclock/api/terminals/" . $data['id'] . '/', $data);
+        if ($res['response'] < 200 || $res['response'] >= 300) {
+            return $res;
+        } else {
+            $res['msg'] = ['success' => 'Update device succesfully'];
+            return $res;
+        }
+    }
+
+    public function delete_device($id)
+    {
+        $res = $this->emitter('DELETE', "/iclock/api/terminals/" . $id . "/", null);
+        if ($res['response'] < 200 || $res['response'] >= 300) {
+            return $res;
+        } else {
+            $res['msg'] = ['success' => 'Delete area succesfully'];
             return $res;
         }
     }

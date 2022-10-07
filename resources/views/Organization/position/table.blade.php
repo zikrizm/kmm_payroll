@@ -8,17 +8,20 @@
                             {!! FormCustom::checkbox() !!}
                         </div>
                         <div class='px-6 py-3 cursor-pointer flex-1'>
-                            <x-ui.sort-table text="Position code" url="{{ route('position.index') }}"
+                            <x-ui.sort-table text="Kode jabatan" url="{{ route('position.index') }}"
                                 field="position_code" order="{{ $order }}" />
                         </div>
                     </div>
                 </th>
                 <th class='px-3 py-3 text-left cursor-pointer'>
-                    <x-ui.sort-table text="Position name" url="{{ route('position.index') }}" field="position_name"
+                    <x-ui.sort-table text="Nama jabatan" url="{{ route('position.index') }}" field="position_name"
                         order="{{ $order }}" />
                 </th>
                 <th class='px-3 py-3 text-left cursor-pointer'>
-                    <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Parent position</p>
+                    <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Wajib Hadir</p>
+                </th>
+                <th class='px-3 py-3 text-left cursor-pointer'>
+                    <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Upah Tambahan</p>
                 </th>
                 @canany(['position.update', 'position.delete'])
                 <th class='px-3 py-3 text-left text-gray-500 text-xs font-medium'></th>
@@ -45,7 +48,24 @@
                     {{ $item['position_name'] }}
                 </td>
                 <td class='px-3 py text-gray-500 text-sm'>
-                    {{ (!empty($item['parent_position'])) ? $item['parent_position']['position_name'] : '-' }}
+                    <div class="flex justify-center">
+                        @if (!empty($item['must_attend']) && $item['must_attend'])
+                        <span class="w-4 h-4 rounded-full bg-green-600 flex items-center justify-center text-white">
+                            <x-icon icon="check" width=12 height=12 viewBox="20 20" />
+                        </span>
+                        @else
+                        <span class="w-4 h-4 rounded-full bg-gray-300 flex items-center justify-center text-white">
+                            <x-icon icon="check" width=12 height=12 viewBox="20 20" />
+                        </span>
+                        @endif
+                    </div>
+                </td>
+                <td class='px-3 py text-gray-500 text-sm'>
+                    @if (!empty($item['extra_pay']))
+                    @convert($item['extra_pay'])
+                    @else
+                    -
+                    @endif
                 </td>
                 @canany(['position.update', 'position.delete'])
                 <td class='px-3 py'>

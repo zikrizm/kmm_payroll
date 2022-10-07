@@ -273,8 +273,16 @@ function hideAllHintText() {
 function insertHintText(errors) {
     for (const error in errors) {
         var textError = errors[error][0];
-        $(`.${error}`).text(textError);
-        $(`.${error}`).css('display', 'flex');
+        var keys = error.split('.');
+
+        if(keys.length > 1) {
+            $(`.${keys.join('-')}`).text(textError);
+            $(`.${keys.join('-')}`).css('display', 'flex');
+        }else {
+            $(`.${error}`).text(textError);
+            $(`.${error}`).css('display', 'flex');
+        }
+       
     }
 }
 
@@ -283,6 +291,9 @@ function setErorrsformInputs(errors) {
         if (errors != 'valid') {
             if (!errors) return;
             if (Object.keys(errors).length == 0) return;
+
+
+            console.log("errors",errors)
 
             // * Hide all hint text input ----->
             hideAllHintText();

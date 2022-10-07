@@ -73,6 +73,8 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('break-time', 'BreakTimeController', ['except' => ['update']]);
     Route::resource('timetable', 'TimetableController', ['except' => ['update']]);
     Route::resource('shift', 'ShiftController', ['except' => ['update']]);
+    Route::resource('holiday', 'HolidayController', ['except' => ['update']]);
+    Route::resource('device', 'DeviceController', ['except' => ['update']]);
     Route::resource('transaction', 'TransactionController', ['except' => ['update']]);
 
     Route::post('/user/{user}', 'ManageUserController@update')->name('user.update');
@@ -86,6 +88,8 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/break-time/{break_time}', 'BreakTimeController@update')->name('break-time.update');
     Route::post('/timetable/{timetable}', 'TimetableController@update')->name('timetable.update');
     Route::post('/shift/{shift}', 'ShiftController@update')->name('shift.update');
+    Route::post('/holiday/{holiday}', 'HolidayController@update')->name('holiday.update');
+    Route::post('/device/{device}', 'DeviceController@update')->name('device.update');
     Route::post('/transaction/{transaction}', 'TransactionController@update')->name('transaction.update');
 
     Route::get('/employee-photo', 'EmployeePhotoController@index')->name('employee-photo.index');

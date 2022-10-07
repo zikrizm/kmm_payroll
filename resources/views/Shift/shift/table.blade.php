@@ -14,14 +14,7 @@
                     </div>
                 </th>
                 <th class='px-3 py-3 text-left cursor-pointer'>
-                    <x-ui.sort-table text="Jadwal" url="{{ route('shift.index') }}" field="in_time"
-                        order="{{ $order }}" />
-                </th>
-                <th class='px-3 py-3 text-left cursor-pointer'>
-                    <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Unit</p>
-                </th>
-                <th class='px-3 py-3 text-left cursor-pointer'>
-                    <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Weekly overtime</p>
+                    <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Department</p>
                 </th>
                 @canany(['shift.update', 'shift.delete'])
                 <th class='px-3 py-3 text-left text-gray-500 text-xs font-medium'></th>
@@ -45,31 +38,7 @@
                     </div>
                 </td>
                 <td class='px-3 py text-gray-500 text-sm'>
-                    <div class="flex items-center gap-2">
-                        <x-icon icon="clock" width=18 height=18 viewBox="20 20" />
-                        <p class="truncate">
-                            {{ date('H:i', strtotime($item->in_time)); }}
-                        </p>
-                    </div>
-                </td>
-                <td class='px-3 py text-gray-500 text-sm'>
-                    <div class="flex items-center gap-2">
-                        <x-icon icon="clock" width=18 height=18 viewBox="20 20" />
-                        <p class="truncate">
-                            {{ date('H:i', strtotime($item->out_time)); }}
-                        </p>
-                    </div>
-                </td>
-                <td class='px-3 py text-gray-500 text-sm'>
-                    {{ $item->work_time }}
-                </td>
-                <td class='px-3 py text-gray-500 text-sm'>
-                    week
-                </td>
-                <td class='px-3 py text-gray-500 text-sm'>
-                    @foreach ($item->shift_has_timetable as $key => $itemhas)
-                    {{ $itemhas->timetable->name }}@if(( $item->shift_has_timetable->count()-1) != $key),@endif
-                    @endforeach
+                    {{ $item->department['dept_name'] }}
                 </td>
                 @canany(['shift.update', 'shift.delete'])
                 <td class='px-3 py'>

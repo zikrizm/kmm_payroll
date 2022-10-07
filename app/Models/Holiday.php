@@ -9,12 +9,6 @@ class Holiday extends Model
 {
     use HasFactory;
 
-    use HasFactory;
-
-    protected $appens = [
-        'statusbox',
-    ];
-
     /**
      * The attributes that aren't mass assignable.
      *
@@ -22,11 +16,11 @@ class Holiday extends Model
      */
     protected $guarded = ['id'];
 
-    public function getStatusboxAttribute()
+    /**
+     * Get the user that owns the work section.
+     */
+    public function user()
     {
-        $classStatus = ($this->status != 'active') ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-700';
-        return ' <div class="rounded-xl pl-3 pr-2.5 py-1.5 w-max ' . $classStatus . '">
-                <p class="text-xs font-normal flex items-center gap-1 capitalize">' . $this->status . '</p>
-            </div>';
+        return $this->belongsTo(User::class, 'updated_user');
     }
 }

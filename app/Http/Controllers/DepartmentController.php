@@ -2,12 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Department;
 use App\Utils\ResponseUtil;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use App\Services\Api\ApiServices;
 use Illuminate\Support\Facades\Log;
 use App\Exceptions\ResponseExeception;
 use Illuminate\Support\Facades\Validator;
+use phpDocumentor\Reflection\Types\Boolean;
 
 class DepartmentController extends Controller
 {
@@ -51,6 +54,16 @@ class DepartmentController extends Controller
                 }
 
                 $departments = $this->apiService->get_departments($filter);
+
+                $depts = Department::all();
+                foreach ($depts as $dept) {
+                    foreach ($departments['data'] as $key => $department) {
+                        if ($dept->dept_id == $department['id']) {
+                            $departments['data'][$key]['sitting_money'] = $dept->sitting_money;
+                        }
+                    }
+                }
+
                 $render =  view('Organization.department.table', compact('departments', 'order'))->render();
                 return $this->buildRes->RESPONSE_REQ('success', $render, null);
             }
@@ -106,10 +119,17 @@ class DepartmentController extends Controller
             if ($validator->fails()) {
                 return $this->buildRes->RESPONSE_REQ('error', null, $validator->errors());
             } else {
-                $dept_data = $request->only(['dept_code', 'dept_name', 'parent_dept']);
+                $dept_reqdata = $request->only(['dept_code', 'dept_name', 'parent_dept', 'sitting_money_check', 'sitting_money']);
 
-                $res = $this->apiService->create_department($dept_data);
-                return response()->json($res);
+                $res = $this->apiService->create_department($dept_reqdata);
+
+                if ($res['status'] == 'success') {
+                    $dept_id = $res['data']['id'];
+                    $this->__createDepartmentIfNotExists($dept_id, $request);
+                    return response()->json($res);
+                } else {
+                    return response()->json($res);
+                }
             }
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
@@ -147,6 +167,18 @@ class DepartmentController extends Controller
 
         try {
             $dept = $this->apiService->read_department($department);
+            $deptDB = Department::where('dept_id', $dept['id'])->with('user')->first();
+
+            if ($deptDB) {
+                $dept['sitting_money_check'] = (bool)$deptDB->sitting_money;
+                $dept['sitting_money'] = $deptDB->sitting_money;
+                $dept['updated_by'] = 'Diperbarui: ' . $deptDB->user->first_name . ', ' . $deptDB->updated_at;
+            } else {
+                $dept['sitting_money_check'] = false;
+                $dept['sitting_money'] = null;
+                $dept['updated_by'] = null;
+            }
+
             $departments = $this->apiService->get_departments([]);
             $render = view('Organization.department.edit', compact('dept', 'departments'))->render();
 
@@ -177,11 +209,26 @@ class DepartmentController extends Controller
             if ($validator->fails()) {
                 return $this->buildRes->RESPONSE_REQ('error', null, $validator->errors());
             } else {
-                $dept_data = $request->only(['dept_code', 'dept_name', 'parent_dept']);
+                $dept_data = $request->only(['dept_code', 'dept_name', 'parent_dept', 'sitting_money_check', 'sitting_money']);
                 $dept_data['id'] = $department;
 
                 $res = $this->apiService->update_department($dept_data);
-                return response()->json($res);
+
+                if ($res['status'] == 'success') {
+                    $dept_id = $res['data']['id'];
+                    $this->__createDepartmentIfNotExists($dept_id, $request);
+                    Department::where('dept_id', $dept_id)->update(
+                        [
+                            'sitting_money' => (!empty($dept_data['sitting_money_check'])) ?
+                                str_replace(',', '', $dept_data['sitting_money']) : null,
+                            'updated_user' => auth()->user()->id,
+                        ]
+                    );
+
+                    return response()->json($res);
+                } else {
+                    return response()->json($res);
+                }
             }
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
@@ -212,6 +259,27 @@ class DepartmentController extends Controller
     }
 
     /**
+     * Creates new department if doesn't exist
+     *
+     * @param  int $dept_id
+     * @return void
+     */
+    private function __createDepartmentIfNotExists($dept_id, Request $request)
+    {
+        $dept = Department::where('dept_id', $dept_id)->first();
+        if (empty($dept)) {
+            $dept = new Department([
+                'dept_id' => $dept_id,
+                'created_user' => auth()->user()->id,
+                'updated_user' => auth()->user()->id,
+                'sitting_money' => (!empty($request->input('sitting_money_check'))) ?
+                    str_replace(',', '', $request['sitting_money']) : null
+            ]);
+            $dept->save();
+        }
+    }
+
+    /**
      * Rules validation department.
      *
      * @return array
@@ -221,6 +289,12 @@ class DepartmentController extends Controller
         return [
             'dept_code' => 'required|string|max:255',
             'dept_name' => 'required|string|max:255',
+            'sitting_money_check' => 'nullable',
+            'sitting_money' => [
+                Rule::requiredIf(function () {
+                    return request()->get('sitting_money_check');
+                })
+            ],
         ];
     }
 }

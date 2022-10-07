@@ -1,5 +1,5 @@
-<form autocomplete="off" action="{{ route('timetable.update', ['timetable' => $timetable->id]) }}" method="POST"
-    class="submit-timetable">
+<form autocomplete="off" action="{{ route('shift.update', ['shift' => $shift->id]) }}" method="POST"
+    class="submit-shift">
     @csrf
     <!-- {{ csrf_field() }} -->
     <section
@@ -16,10 +16,10 @@
                         <x-icon icon="clock" width=18 height=18 viewBox="20 20" />
                     </div>
                     <div>
-                        <p class="text-2xl font-bold text-gray-900 xs/max:text-xl xs/max:font-semibold">Tambah jadwal
+                        <p class="text-2xl font-bold text-gray-900 xs/max:text-xl xs/max:font-semibold">Tambah shift
                         </p>
                         <p class="text-sm font-normal text-gray-500 xs/max:text-xs">
-                            Harap berikan detail jadwalnya.
+                            Harap berikan detail shiftnya.
                         </p>
                     </div>
                 </div>
@@ -30,119 +30,226 @@
             <main class="px-4 flex flex-col gap-4 mb-8">
                 <section class="flex flex-col gap-1">
                     <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Nama jadwal*</label>
-                    {!! FormCustom::input('name', $timetable->name, [ "placeholder" => 'Masukkan nama jadwal anda yang
+                    {!! FormCustom::input('name', $shift->name, [ "placeholder" => 'Masukkan nama jadwal anda yang
                     baru'])
                     !!}
+                </section>
+                <section class="flex flex-col gap-1 flex-1">
+                    <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Bagian*</label>
+                    <select class="select2" name="dept_id">
+                        @foreach ($onlyParentDept as $item)
+                        <option value="{{ $item['id'] }}" {{ $item['id']==$shift->dept_id ? 'selected' :''}}>{{
+                            $item['dept_name'] }}</option>
+                        @endforeach
+                    </select>
+                    <label class="font-normal text-xs text-red-500 xs/max:text-xs cross_day hint-text"></label>
                 </section>
                 <ul class="flex border-b mb-4">
                     <li>
                         <button type="button" data-ref-class-content="basic-settings-content"
                             class="text-gray-500 text-violet-700 border-b-2 mr-4 pt px-1 pb-[19px] border-violet-700 text-sm font-medium">
-                            Pengaturan awal
+                            Shift Harian
                         </button>
                     </li>
-                    <li>
-                        <button type="button" data-ref-class-content="break-time-settings-content"
-                            class="text-gray-500 mr-4 pt px-1 pb-[19px] border-violet-700 text-sm font-medium">
-                            Pengaturan jam istirahat
-                        </button>
-                    </li>
-                    {{-- <li>
-                        <button type="button" data-ref-class-content="overtime-rule-content"
-                            class="text-gray-500 mr-4 pt px-1 pb-[19px] border-violet-700 text-sm font-medium">
-                            Aturan lembur
-                        </button>
-                    </li> --}}
                 </ul>
-                <div class="flex flex-col gap-4" id="basic-settings-content">
-                    <div>
-                        <p class="text-base font-medium text-gray-900 xs/max:font-semibold">Pengaturan awal</p>
-                        <p class="text-sm font-normal text-gray-500 xs/max:text-xs">
-                            Mohon lengkapi data ini.
-                        </p>
-                    </div>
-                    <hr>
-                    <div class="flex items-start gap-3">
-                        <div class="flex-1 flex flex-col gap-1 flex-2">
-                            <label class="text-sm font-normal text-gray-500">Check in*</label>
-                            {!! FormCustom::input('in_time', $timetable->in_time, [ "placeholder" => '-', 'type' =>
-                            'time']) !!}
+                <div class="flex flex-col gap-2" id="basic-settings-content">
+                    <div class="flex items-center justify-between gap-1">
+                        <div class="flex flex-1">
+                            <p class="text-base font-semibold text-gray-500">Senin: </p>
                         </div>
-                        <div class="flex-1 flex flex-col gap-1 flex-2">
-                            <label class="text-sm font-normal text-gray-500">Check out*</label>
-                            {!! FormCustom::input('out_time', $timetable->out_time, [ "placeholder" => '-', 'type' =>
-                            'time']) !!}
-                        </div>
-                        <section class="flex flex-col gap-1 flex-1">
-                            <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Cross day*</label>
-                            <select class="select2" name="cross_day">
-                                <option value="0" {{ $timetable->cross_day == 0 ? 'selected': '' }}>0 hari</option>
-                                <option value="1" {{ $timetable->cross_day == 1 ? 'selected': '' }}>1 hari</option>
-                                <option value="2" {{ $timetable->cross_day == 2 ? 'selected': '' }}>2 hari</option>
-                                <option value="3" {{ $timetable->cross_day == 3 ? 'selected': '' }}>3 hari</option>
+                        <section class="flex flex-col gap-1 flex-3">
+                            <select class="select2-timetable" name="timetables[senin][]" multiple="multiple">
+                                @foreach ($timetables as $item)
+                                @php
+                                $is_ready = false;
+                                @endphp
+                                @foreach ($shift->shiftday[0]->shiftday_has_timetable as $shiftday_has)
+                                @if ($item->id == $shiftday_has->timetable_id)
+                                @php
+                                $is_ready = true;
+                                @endphp
+                                <option value="{{ $item->id }}" title="{{ $item }}" selected> {{ $item->name }}
+                                </option>
+                                @endif
+                                @endforeach
+                                @if (!$is_ready)
+                                <option value="{{ $item->id }}" title="{{ $item }}">{{ $item->name }}</option>
+                                @endif
+                                @endforeach
                             </select>
-                            <label class="font-normal text-xs text-red-500 xs/max:text-xs cross_day hint-text"></label>
+                            <label
+                                class="font-normal text-xs text-red-500 xs/max:text-xs timetables-senin hint-text"></label>
                         </section>
                     </div>
-                    <section class="flex flex-col gap-1">
-                        <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Work type*</label>
-                        <select class="select2" name="work_type">
-                            <option value="0" {{ $timetable->cross_day == 0 ? 'selected': '' }}>Hari kerja</option>
-                            <option value="1" {{ $timetable->cross_day == 1 ? 'selected': '' }}>Minggu</option>
-                            <option value="2" {{ $timetable->cross_day == 2 ? 'selected': '' }}>Libur nasional</option>
-                        </select>
-                        <label
-                            class="font-normal text-xs text-red-500 xs/max:text-xs parent_position hint-text"></label>
-                    </section>
-                    <div class="flex flex-col gap-1">
-                        <p class="text-sm font-medium text-gray-900">*Keterangan </p>
-                        <div class="flex flex-col pl-3">
-                            <p class="text-sm font-normal text-gray-500">
-                                - Semua pengaturan lintas hari didasarkan pada check-in.
-                            </p>
+                    <div class="flex items-center justify-between gap-1">
+                        <div class="flex flex-1">
+                            <p class="text-base font-semibold text-gray-500">Selasa: </p>
                         </div>
+                        <section class="flex flex-col gap-1 flex-3">
+                            <select class="select2-timetable" name="timetables[selasa][]" multiple="multiple">
+                                @foreach ($timetables as $item)
+                                @php
+                                $is_ready = false;
+                                @endphp
+                                @foreach ($shift->shiftday[1]->shiftday_has_timetable as $shiftday_has)
+                                @if ($item->id == $shiftday_has->timetable_id)
+                                @php
+                                $is_ready = true;
+                                @endphp
+                                <option value="{{ $item->id }}" title="{{ $item }}" selected> {{ $item->name }}
+                                </option>
+                                @endif
+                                @endforeach
+                                @if (!$is_ready)
+                                <option value="{{ $item->id }}" title="{{ $item }}">{{ $item->name }}</option>
+                                @endif
+                                @endforeach
+                            </select>
+                            <label
+                                class="font-normal text-xs text-red-500 xs/max:text-xs timetables-selasa hint-text"></label>
+                        </section>
+                    </div>
+                    <div class="flex items-center justify-between gap-1">
+                        <div class="flex flex-1">
+                            <p class="text-base font-semibold text-gray-500">Rabu: </p>
+                        </div>
+                        <section class="flex flex-col gap-1 flex-3">
+                            <select class="select2-timetable" name="timetables[rabu][]" multiple="multiple">
+                                @foreach ($timetables as $item)
+                                @php
+                                $is_ready = false;
+                                @endphp
+                                @foreach ($shift->shiftday[2]->shiftday_has_timetable as $shiftday_has)
+                                @if ($item->id == $shiftday_has->timetable_id)
+                                @php
+                                $is_ready = true;
+                                @endphp
+                                <option value="{{ $item->id }}" title="{{ $item }}" selected> {{ $item->name }}
+                                </option>
+                                @endif
+                                @endforeach
+                                @if (!$is_ready)
+                                <option value="{{ $item->id }}" title="{{ $item }}">{{ $item->name }}</option>
+                                @endif
+                                @endforeach
+                            </select>
+                            <label
+                                class="font-normal text-xs text-red-500 xs/max:text-xs timetables-rabu hint-text"></label>
+                        </section>
+                    </div>
+                    <div class="flex items-center justify-between gap-1">
+                        <div class="flex flex-1">
+                            <p class="text-base font-semibold text-gray-500">Kamis: </p>
+                        </div>
+                        <section class="flex flex-col gap-1 flex-3">
+                            <select class="select2-timetable" name="timetables[kamis][]" multiple="multiple">
+                                @foreach ($timetables as $item)
+                                @php
+                                $is_ready = false;
+                                @endphp
+                                @foreach ($shift->shiftday[3]->shiftday_has_timetable as $shiftday_has)
+                                @if ($item->id == $shiftday_has->timetable_id)
+                                @php
+                                $is_ready = true;
+                                @endphp
+                                <option value="{{ $item->id }}" title="{{ $item }}" selected> {{ $item->name }}
+                                </option>
+                                @endif
+                                @endforeach
+                                @if (!$is_ready)
+                                <option value="{{ $item->id }}" title="{{ $item }}">{{ $item->name }}</option>
+                                @endif
+                                @endforeach
+                            </select>
+                            <label
+                                class="font-normal text-xs text-red-500 xs/max:text-xs timetables-kamis hint-text"></label>
+                        </section>
+                    </div>
+                    <div class="flex items-center justify-between gap-1">
+                        <div class="flex flex-1">
+                            <p class="text-base font-semibold text-gray-500">Jumat: </p>
+                        </div>
+                        <section class="flex flex-col gap-1 flex-3">
+                            <select class="select2-timetable" name="timetables[jumat][]" multiple="multiple">
+                                @foreach ($timetables as $item)
+                                @php
+                                $is_ready = false;
+                                @endphp
+                                @foreach ($shift->shiftday[4]->shiftday_has_timetable as $shiftday_has)
+                                @if ($item->id == $shiftday_has->timetable_id)
+                                @php
+                                $is_ready = true;
+                                @endphp
+                                <option value="{{ $item->id }}" title="{{ $item }}" selected> {{ $item->name }}
+                                </option>
+                                @endif
+                                @endforeach
+                                @if (!$is_ready)
+                                <option value="{{ $item->id }}" title="{{ $item }}">{{ $item->name }}</option>
+                                @endif
+                                @endforeach
+                            </select>
+                            <label
+                                class="font-normal text-xs text-red-500 xs/max:text-xs timetables-jumat hint-text"></label>
+                        </section>
+                    </div>
+                    <div class="flex items-center justify-between gap-1">
+                        <div class="flex flex-1">
+                            <p class="text-base font-semibold text-gray-500">Sabtu: </p>
+                        </div>
+                        <section class="flex flex-col gap-1 flex-3">
+                            <select class="select2-timetable" name="timetables[sabtu][]" multiple="multiple">
+                                @foreach ($timetables as $item)
+                                @php
+                                $is_ready = false;
+                                @endphp
+                                @foreach ($shift->shiftday[5]->shiftday_has_timetable as $shiftday_has)
+                                @if ($item->id == $shiftday_has->timetable_id)
+                                @php
+                                $is_ready = true;
+                                @endphp
+                                <option value="{{ $item->id }}" title="{{ $item }}" selected> {{ $item->name }}
+                                </option>
+                                @endif
+                                @endforeach
+                                @if (!$is_ready)
+                                <option value="{{ $item->id }}" title="{{ $item }}">{{ $item->name }}</option>
+                                @endif
+                                @endforeach
+                            </select>
+                            <label
+                                class="font-normal text-xs text-red-500 xs/max:text-xs timetables-sabtu hint-text"></label>
+                        </section>
+                    </div>
+                    <div class="flex items-center justify-between gap-1">
+                        <div class="flex flex-1">
+                            <p class="text-base font-semibold text-gray-500">Minggu/Libur: </p>
+                        </div>
+                        <section class="flex flex-col gap-1 flex-3">
+                            <select class="select2-timetable" name="timetables[minggu][]" multiple="multiple">
+                                @foreach ($timetables as $item)
+                                @php
+                                $is_ready = false;
+                                @endphp
+                                @foreach ($shift->shiftday[6]->shiftday_has_timetable as $shiftday_has)
+                                @if ($item->id == $shiftday_has->timetable_id)
+                                @php
+                                $is_ready = true;
+                                @endphp
+                                <option value="{{ $item->id }}" title="{{ $item }}" selected> {{ $item->name }}
+                                </option>
+                                @endif
+                                @endforeach
+                                @if (!$is_ready)
+                                <option value="{{ $item->id }}" title="{{ $item }}">{{ $item->name }}</option>
+                                @endif
+                                @endforeach
+                            </select>
+                            <label
+                                class="font-normal text-xs text-red-500 xs/max:text-xs timetables-minggu hint-text"></label>
+                        </section>
                     </div>
                 </div>
-                <div class="flex flex-col gap-4 hidden" id="break-time-settings-content">
-                    <div>
-                        <p class="text-base font-medium text-gray-900 xs/max:font-semibold">Pengaturan jam istirahat</p>
-                        <p class="text-sm font-normal text-gray-500 xs/max:text-xs">
-                            Mohon lengkapi data ini.
-                        </p>
-                    </div>
-                    <hr>
-                    <section class="flex flex-col gap-1">
-                        <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Jam istirahat</label>
-                        <select class="select2-break-time" name="break_time[]" multiple="multiple">
-                            @foreach ($timetable_has_break_times as $item)
-                            <option value="{{ $item->break_time->id  }}" selected>
-                                {{ $item->break_time->name }}
-                            </option>
-                            @endforeach
-                        </select>
-                        <label class="font-normal text-xs text-red-500 xs/max:text-xs break_time hint-text"></label>
-                    </section>
-                </div>
-                {{-- <div class="flex flex-col gap-4 hidden" id="overtime-rule-content">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-base font-medium text-gray-900 xs/max:font-semibold">Aturan lembur</p>
-                            <p class="text-sm font-normal text-gray-500 xs/max:text-xs">
-                                Mohon lengkapi data ini.
-                            </p>
-                        </div>
-                        <div class="">
-                            <button type="button" id="add-overtime-timetable" class="flex items-center gap-2.5 px-4 py-2 text-gray-500 text-sm font-medium 
-                                    flex items-center border border-gray-200 shadow-sm rounded-lg">
-                                <x-icon icon="plus" width=18 height=18 viewBox="20 20" />
-                                Tambah lembur
-                            </button>
-                        </div>
-                    </div>
-                    <hr>
-                    <div id="overtime-contents" class="flex flex-col gap-3"></div>
-
-                </div> --}}
             </main>
             <hr>
             <footer class="flex justify-end items-center gap-3 p-4  pb-6">

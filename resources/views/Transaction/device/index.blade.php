@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Department')
+@section('title', 'Device')
 @section('css')
 <style></style>
 @endsection
@@ -7,21 +7,21 @@
 <div class="flex flex-col gap-6 flex-1 h-full overflow-auto bg-white px-8 pt-8 pb-12">
     <header class="flex justify-between items-start">
         <div class="flex flex-col gap-1">
-            <p class="text-3xl font-medium text-gray-900">Bagian</p>
-            <p class="text-base font-normal text-gray-500">Di sini untuk mengatur status setiap bagian.</p>
+            <p class="text-3xl font-medium text-gray-900">Device</p>
+            <p class="text-base font-normal text-gray-500">Here to manage the status of each device.</p>
         </div>
         <div class="">
             <button onclick="get_modal()" class="flex items-center gap-2.5 px-4 py-2 text-gray-500 text-sm font-medium 
                 flex items-center border border-gray-200 shadow-sm rounded-lg">
                 <x-icon icon="plus" width=18 height=18 viewBox="20 20" />
-                Tambah bagian
+                Add device
             </button>
         </div>
     </header>
     <hr>
-    <x-ui.search-data placeholder="Cari bagian" url="{{ route('department.index') }}" />
+    <x-ui.search-data placeholder="Search for device" url="{{ route('device.index') }}" />
     <div class="table-content"></div>
-    <x-ui.confirm-modal class="submit-delete-department"></x-ui.confirm-modal>
+    <x-ui.confirm-modal class="submit-delete-device"></x-ui.confirm-modal>
 </div>
 
 <script type="application/javascript">
@@ -47,7 +47,7 @@
             // **
             // * get table ----->
             // *
-            var res = await ApiService.get_table('/department', data);
+            var res = await ApiService.get_table('/device', data);
             $('.table-content').html(res);
 
             // **
@@ -60,32 +60,27 @@
             })
         }
     
-        async function get_modal(dept_id) {
+        async function get_modal(device_id) {
             // **
             // * open modal form ----->
             // *
-            var URL = (dept_id) ? '/department/' + dept_id + '/edit' : '/department/create';
+            var URL = (device_id) ? '/device/' + device_id + '/edit' : '/device/create';
             var res = await ApiService.get_modal(URL, null);
             $('.select2').select2();
-
-            var anElement = new AutoNumeric.multiple('.number',{decimalPlaces:0,minimumValue: 0,decimalCharacter: ',', digitGroupSeparator : "."});
-            $('input[name="sitting_money_check"]').on('change', function(e) {
-                $('#sitting-money-content').toggle('hidden');
-            })
 
             // **
             // * submit form ----->
             // *
-            var resSubmit = await ApiService.submit_form('.submit-department', (data) => { 
+            var resSubmit = await ApiService.submit_form('.submit-device', (data) => { 
                 onInit($('.search-data-input').val());
             });
         }
 
-    async function open_modal_confirm(dept_id) {
+    async function open_modal_confirm(device_id) {
         // **
         // * open modal confirm ----->
         // *
-        await ApiService.get_confirm('.submit-delete-department', '/department/' + dept_id, null, () => {
+        await ApiService.get_confirm('.submit-delete-device', '/device/' + device_id, null, () => {
             onInit($('.search-data-input').val());
         })
     }

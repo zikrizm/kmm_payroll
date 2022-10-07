@@ -2,15 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Holiday;
 use App\Utils\ResponseUtil;
 use Illuminate\Http\Request;
 use App\Services\Api\ApiServices;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Session;
+use App\Exceptions\ResponseExeception;
+use App\Models\Transaction;
 use Illuminate\Support\Facades\Validator;
 
-class HolidayController extends Controller
+class DeviceController extends Controller
 {
     private $apiService;
     private $buildRes;
@@ -29,40 +29,39 @@ class HolidayController extends Controller
      */
     public function index(Request $request)
     {
-        if (!auth()->user()->can('holiday.view')) {
+        if (!auth()->user()->can('device.view')) {
             abort(403, 'Unauthorized action.');
         }
 
         try {
             if (request()->ajax()) {
-                $business_id = Session::get('business_id');
-                $holidays = Holiday::where('business_id', $business_id);
+                $order = null;
+                $filter = [];
+
                 if ($request->has('q')) {
-                    $search = $request->q;
-                    $holidays = $holidays->where('name', 'LIKE', "%" . $search . "%");
+                    $filter['alias_icontains'] = $request->q;
                 }
 
                 if ($request->has('page')) {
                     $filter['page'] = $request->page;
                 }
 
-                $order = null;
                 if ($request->has('sort')) {
-                    $sort = $request->sort;
-                    $order = $sort['order'];
-                    $holidays->orderBy($sort['name'], $sort['order']);
+                    $filter['ordering'] = $request->sort['name'];
+                    $order = $request->sort['order'];
                 }
-                $holidays = $holidays->paginate(10);
-                $render =  view('Shift.holiday.table', compact('holidays', 'order'))->render();
 
+                $devices = $this->apiService->get_devices($filter);
+                $render =  view('Transaction.device.table', compact('devices', 'order'))->render();
                 return $this->buildRes->RESPONSE_REQ('success', $render, null);
             }
 
-            return  view('Shift.holiday.index');
+            return view('Transaction.device.index');
+        } catch (ResponseExeception $e) {
+            return $this->buildRes->RESPONSE_REQ('error', null, $e->getMessages());
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
-
-            return $this->buildRes->RESPONSE_REQ('error', null, ['error' => 'something wrong']);
+            return $this->buildRes->RESPONSE_REQ('error', null, ['something_wrong' => 'something wrong']);
         }
     }
 
@@ -74,12 +73,13 @@ class HolidayController extends Controller
      */
     public function create(Request $request)
     {
-        if (!auth()->user()->can('holiday.create') || !request()->ajax()) {
+        if (!auth()->user()->can('device.create') || !request()->ajax()) {
             abort(403, 'Unauthorized action.');
         }
 
         try {
-            $render = view('Shift.holiday.create')->render();
+            $areas = $this->apiService->get_areas([]);
+            $render = view('Transaction.device.create', compact('areas'))->render();
 
             return $this->buildRes->RESPONSE_REQ('success', $render, null);
         } catch (\Exception $e) {
@@ -97,7 +97,7 @@ class HolidayController extends Controller
      */
     public function store(Request $request)
     {
-        if (!auth()->user()->can('holiday.create')  || !$request->ajax()) {
+        if (!auth()->user()->can('device.create')  || !$request->ajax()) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -107,20 +107,9 @@ class HolidayController extends Controller
             if ($validator->fails()) {
                 return $this->buildRes->RESPONSE_REQ('error', null, $validator->errors());
             } else {
-                $holiday_data = $request->only(['name', 'holiday_date']);
-                $holiday_data['business_id'] = Session::get('business_id');
-
-                $start_date = trim(explode(' - ', $holiday_data['holiday_date'])[0]);
-                $end_date = trim(explode(' - ', $holiday_data['holiday_date'])[1]);
-                $holiday_data['start_date'] = $start_date;
-                $holiday_data['end_date'] = $end_date;
-                $holiday_data['created_user'] = auth()->user()->id;
-                $holiday_data['updated_user'] = auth()->user()->id;
-
-                $holiday = new Holiday($holiday_data);
-                $holiday->save();
-
-                return $this->buildRes->RESPONSE_REQ('success', null,  ['success' => ['Add holiday succesfully']]);
+                $device_data = $request->only(['sn', 'alias', 'ip_address', 'area', 'is_attendance', 'terminal_tz']);
+                $res = $this->apiService->create_device($device_data);
+                return response()->json($res);
             }
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
@@ -132,12 +121,12 @@ class HolidayController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  int  $id
+     * @param  $device
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    public function show($device)
     {
-        if (!auth()->user()->can('group.view')) {
+        if (!auth()->user()->can('device.view')) {
             abort(403, 'Unauthorized action.');
         }
     }
@@ -146,18 +135,20 @@ class HolidayController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  Holiday $holiday
+     * @param  $device
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function edit(Holiday $holiday, Request $request)
+    public function edit($device, Request $request)
     {
-        if (!auth()->user()->can('holiday.update') || !$request->ajax()) {
+        if (!auth()->user()->can('device.update') || !$request->ajax()) {
             abort(403, 'Unauthorized action.');
         }
 
         try {
-            $render = view('Shift.holiday.edit', compact('holiday'))->render();
+            $device = $this->apiService->read_device($device);
+            $areas = $this->apiService->get_areas([]);
+            $render = view('Transaction.device.edit', compact('device', 'areas'))->render();
 
             return $this->buildRes->RESPONSE_REQ('success', $render, null);
         } catch (\Exception $e) {
@@ -171,12 +162,12 @@ class HolidayController extends Controller
      * Update the specified resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  Holiday $holiday
+     * @param  $department
      * @return \Illuminate\Http\Response
      */
-    public function update(Holiday $holiday, Request $request)
+    public function update($department, Request $request)
     {
-        if (!auth()->user()->can('holiday.update') || !$request->ajax()) {
+        if (!auth()->user()->can('department.update') || !$request->ajax()) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -186,18 +177,11 @@ class HolidayController extends Controller
             if ($validator->fails()) {
                 return $this->buildRes->RESPONSE_REQ('error', null, $validator->errors());
             } else {
+                $device_data = $request->only(['sn', 'alias', 'ip_address', 'area', 'is_attendance', 'terminal_tz']);
+                $device_data['id'] = $department;
 
-                $holiday_data = $request->only(['name', 'holiday_date']);
-                $holiday_data['business_id'] = Session::get('business_id');
-
-                $start_date = trim(explode(' - ', $holiday_data['holiday_date'])[0]);
-                $end_date = trim(explode(' - ', $holiday_data['holiday_date'])[1]);
-                $holiday_data['start_date'] = $start_date;
-                $holiday_data['end_date'] = $end_date;
-                $holiday_data['updated_user'] = auth()->user()->id;
-                $holiday->update($holiday_data);
-
-                return $this->buildRes->RESPONSE_REQ('success', null, ['success' => ['Update holiday succesfully']]);
+                $res = $this->apiService->update_device($device_data);
+                return response()->json($res);
             }
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
@@ -209,35 +193,36 @@ class HolidayController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  Holiday $holiday
+     * @param  $device
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Holiday $holiday, Request $request)
+    public function destroy($device, Request $request)
     {
-        if (!auth()->user()->can('holiday.delete') || !$request->ajax()) {
+        if (!auth()->user()->can('device.delete') || !$request->ajax()) {
             abort(403, 'Unauthorized action.');
         }
 
         try {
-            $holiday->delete();
-
-            return $this->buildRes->RESPONSE_REQ('success', null, ['success' => ['Delete holiday succesfully']]);
+            $res = $this->apiService->delete_device($device);
+            return response()->json($res);
         } catch (\Exception $e) {
             return $this->buildRes->RESPONSE_REQ('error', null, ['error' => 'something wrong']);
         }
     }
 
     /**
-     * Rules validation group.
+     * Rules validation device.
      *
      * @return array
      */
     public function rules()
     {
         return [
-            'name' => 'required|string|max:255',
-            'holiday_date' => 'required',
+            'sn' => 'required|string|max:255',
+            'alias' => 'required|string|max:255',
+            'ip_address' => 'required|string|max:255',
+            'area' => 'required|string|max:255',
         ];
     }
 }

@@ -8,17 +8,20 @@
                             {!! FormCustom::checkbox() !!}
                         </div>
                         <div class='px-6 py-3 cursor-pointer flex-1'>
-                            <x-ui.sort-table text="Department code" url="{{ route('department.index') }}"
-                                field="dept_code" order="{{ $order }}" />
+                            <x-ui.sort-table text="Kode bagian" url="{{ route('department.index') }}" field="dept_code"
+                                order="{{ $order }}" />
                         </div>
                     </div>
                 </th>
                 <th class='px-3 py-3 text-left cursor-pointer'>
-                    <x-ui.sort-table text="Department name" url="{{ route('department.index') }}" field="dept_name"
+                    <x-ui.sort-table text="Nama bagian" url="{{ route('department.index') }}" field="dept_name"
                         order="{{ $order }}" />
                 </th>
                 <th class='px-3 py-3 text-left cursor-pointer'>
-                    <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Parent department</p>
+                    <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Bagian utama</p>
+                </th>
+                <th class='px-3 py-3 text-left cursor-pointer'>
+                    <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Uang libur</p>
                 </th>
                 @canany(['department.update', 'department.delete'])
                 <th class='px-3 py-3 text-left text-gray-500 text-xs font-medium'></th>
@@ -46,6 +49,13 @@
                 </td>
                 <td class='px-3 py text-gray-500 text-sm'>
                     {{ (!empty($item['parent_dept'])) ? $item['parent_dept']['dept_name'] : '-' }}
+                </td>
+                <td class='px-3 py text-gray-500 text-sm'>
+                    @if (!empty($item['sitting_money']))
+                    @convert($item['sitting_money'])
+                    @else
+                    -
+                    @endif
                 </td>
                 @canany(['department.update', 'department.delete'])
                 <td class='px-3 py'>

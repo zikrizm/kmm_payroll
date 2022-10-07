@@ -42,24 +42,17 @@
                     <li>
                         <button type="button" data-ref-class-content="break-time-settings-content"
                             class="text-gray-500 mr-4 pt px-1 pb-[19px] border-violet-700 text-sm font-medium">
-                            Pengaturan jam istirahat
+                            Pembulatan Lembur
                         </button>
                     </li>
                     <li>
                         <button type="button" data-ref-class-content="overtime-rule-content"
                             class="text-gray-500 mr-4 pt px-1 pb-[19px] border-violet-700 text-sm font-medium">
-                            Lembur
+                            Upah tambahan
                         </button>
                     </li>
                 </ul>
                 <div class="flex flex-col gap-4" id="basic-settings-content">
-                    {{-- <div>
-                        <p class="text-base font-medium text-gray-900 xs/max:font-semibold">Pengaturan awal</p>
-                        <p class="text-sm font-normal text-gray-500 xs/max:text-xs">
-                            Mohon lengkapi data ini.
-                        </p>
-                    </div>
-                    <hr> --}}
                     <div class="flex items-start gap-3">
                         <div class="flex-1 flex flex-col gap-1 flex-2">
                             <label class="text-sm font-normal text-gray-500">Check in*</label>
@@ -90,6 +83,24 @@
                         <label
                             class="font-normal text-xs text-red-500 xs/max:text-xs parent_position hint-text"></label>
                     </section>
+                    <section class="flex flex-col gap-1">
+                        <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Jam istirahat</label>
+                        <select class="select2-break-time" name="break_time[]" multiple="multiple">
+                            @foreach ($break_times as $item)
+                            <option value="{{ $item->id }}" title="{{ $item }}">
+                                {{ $item->name }}
+                            </option>
+                            @endforeach
+                        </select>
+                        <label class="font-normal text-xs text-red-500 xs/max:text-xs break_time hint-text"></label>
+                    </section>
+                    <section class="flex flex-col gap-1 flex-1">
+                        <div class="flex items-center gap-2">
+                            {!! FormCustom::checkbox('is_without_break', -1, ['checked' => true]) !!}
+                            <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Bisa tanpa istirahat</label>
+                        </div>
+                        <label class="font-normal text-xs text-red-500 xs/max:text-xs cross_day hint-text"></label>
+                    </section>
                     <div class="flex flex-col gap-1">
                         <p class="text-sm font-medium text-gray-900">*Keterangan </p>
                         <div class="flex flex-col pl-3">
@@ -100,60 +111,79 @@
                     </div>
                 </div>
                 <div class="flex flex-col gap-4 hidden" id="break-time-settings-content">
-                    <div>
-                        <p class="text-base font-medium text-gray-900 xs/max:font-semibold">Pengaturan jam istirahat</p>
-                        <p class="text-sm font-normal text-gray-500 xs/max:text-xs">
-                            Mohon lengkapi data ini.
-                        </p>
-                    </div>
-                    <hr>
-                    <section class="flex flex-col gap-1">
-                        <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Jam istirahat</label>
-                        <select class="select2-break-time" name="break_time[]" multiple="multiple">
-                        </select>
-                        <label class="font-normal text-xs text-red-500 xs/max:text-xs break_time hint-text"></label>
+                    <section class="flex flex-col gap-1 flex-1">
+                        <div class="flex items-center gap-2">
+                            {!! FormCustom::checkbox('overtime_rounded', -1) !!}
+                            <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Pembulatan</label>
+                        </div>
+                        <label class="font-normal text-xs text-red-500 xs/max:text-xs cross_day hint-text"></label>
                     </section>
+                    <div id="overtime-rounded-content" class="hidden">
+                        <div class="flex flex-col gap-4">
+                            <div class="flex-1 flex flex-col gap-1">
+                                <label class="text-sm font-normal text-gray-500 flex items-center gap-1">Durasi minimal
+                                    Pembulatan 1 jam <span class="text-xs"> (menit)</span>*</label>
+                                {!! FormCustom::input('overtime_one_hour', '40', [ "placeholder" => 'Masukkan
+                                durasi','type'=>
+                                'number']) !!}
+                            </div>
+                            <div class="flex-1 flex flex-col gap-1">
+                                <label class="text-sm font-normal text-gray-500 flex items-center gap-1">Durasi minimal
+                                    Pembulatan 1/2 jam <span class="text-xs"> (menit)</span>*</label>
+                                {!! FormCustom::input('overtime_half_hour', '20', [ "placeholder" => 'Masukkan
+                                durasi','type'=>
+                                'number']) !!}
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <div class="flex flex-col gap-4 hidden" id="overtime-rule-content">
                     <section class="flex flex-col gap-1 flex-1">
                         <div class="flex items-center gap-2">
-                            {!! FormCustom::checkbox() !!}
+                            {!! FormCustom::checkbox('is_overtime', -1) !!}
                             <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Lembur</label>
                         </div>
                         <label class="font-normal text-xs text-red-500 xs/max:text-xs cross_day hint-text"></label>
                     </section>
-                    <section class="flex items-start gap-3">
-                        <div class="flex-1 flex flex-col gap-1">
-                            <label class="text-sm font-normal text-gray-500">Durasi Menit*</label>
-                            {!! FormCustom::input('time_period', null, [ "placeholder" => '-', 'class' => 'number']) !!}
+                    <div id="overtime-content" class="hidden">
+                        <div class="flex flex-col gap-4">
+                            <section class="flex items-start gap-3">
+                                <div class="flex-1 flex flex-col gap-1">
+                                    <label class="text-sm font-normal text-gray-500">Durasi Menit*</label>
+                                    {!! FormCustom::input('time_period', null, [ "placeholder" => 'Masukkan
+                                    durasi','type'=>
+                                    'number']) !!}
+                                </div>
+                                <div class="flex-2 flex flex-col gap-1">
+                                    <label class="text-sm font-normal text-gray-500">Upah lembur*</label>
+                                    {!! FormCustom::input('overtime_pay', null, ['class' => 'number', "placeholder" =>
+                                    'Masukkan upah lembur',
+                                    'prefixtext' => 'Rp']) !!}
+                                </div>
+                            </section>
+                            <section class="flex flex-col gap-1">
+                                <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Durasi jam lembur (upah
+                                    akan diconversi menjadi satu shift)*</label>
+                                {!! FormCustom::input('duration_calculate_one_shift', null,
+                                [ "placeholder" => 'Masukkan durasi waktu (jam)', 'type'=> 'number']) !!}
+                            </section>
                         </div>
-                        <div class="flex-2 flex flex-col gap-1">
-                            <label class="text-sm font-normal text-gray-500">Upah lembur*</label>
-                            {!! FormCustom::input('upah_lembur', null, ['class' => 'number', "placeholder" => '-', 'prefixtext'
-                            =>
-                            'Rp']) !!}
-                        </div>
-                    </section>
-                    <section class="flex flex-col gap-1">
-                        <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Durasi jam lembur jadi
-                            harian*</label>
-                        {!! FormCustom::input('lembur_shift', null, [ "placeholder" => 'Masukkan durasi waktu (jam)', 'type'=>
-                        'number'])
-                        !!}
-                    </section>
+                    </div>
                     <section class="flex flex-col gap-1 flex-1">
                         <div class="flex items-center gap-2">
-                            {!! FormCustom::checkbox() !!}
+                            {!! FormCustom::checkbox('is_overtime_rice', -1) !!}
                             <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Nasi lembur</label>
                         </div>
                         <label class="font-normal text-xs text-red-500 xs/max:text-xs cross_day hint-text"></label>
                     </section>
-                    <section class="flex flex-col gap-1">
-                        <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Durasi jam nasi lembur*</label>
-                        {!! FormCustom::input('lembur_shift', null, [ "placeholder" => 'Masukkan durasi waktu (jam)', 'type'=>
-                        'number'])
-                        !!}
-                    </section>
+                    <div id="rice-overtime-content" class="hidden">
+                        <section class="flex flex-col gap-1">
+                            <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Durasi jam nasi
+                                lembur*</label>
+                            {!! FormCustom::input('duration_rice_shift', null,
+                            [ "placeholder" => 'Masukkan durasi waktu (jam)', 'type'=> 'number']) !!}
+                        </section>
+                    </div>
                 </div>
             </main>
             <hr>

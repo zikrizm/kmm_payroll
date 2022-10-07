@@ -15,9 +15,10 @@
                         <x-icon icon="layers" width=18 height=18 viewBox="20 20" />
                     </div>
                     <div>
-                        <p class="text-2xl font-bold text-gray-900 xs/max:text-xl xs/max:font-semibold">New position</p>
+                        <p class="text-2xl font-bold text-gray-900 xs/max:text-xl xs/max:font-semibold">Tambah jabatan
+                        </p>
                         <p class="text-sm font-normal text-gray-500 xs/max:text-xs">
-                            Please provide the position's detail.
+                            Harap berikan detail jabatan.
                         </p>
                     </div>
                 </div>
@@ -27,23 +28,45 @@
         <div>
             <main class="px-4 flex flex-col gap-4 xs/max:gap-3 mb-8">
                 <section class="flex flex-col gap-1">
-                    <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Position code*</label>
-                    {!! FormCustom::input('position_code', null, [ "placeholder" => 'Enter new your position code']) !!}
+                    <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Kode jabatan*</label>
+                    {!! FormCustom::input('position_code', null, [ "placeholder" => 'Masukkan kode jabatan']) !!}
                 </section>
                 <section class="flex flex-col gap-1">
-                    <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Position name*</label>
-                    {!! FormCustom::input('position_name', null, [ "placeholder" => 'Enter new your position name']) !!}
+                    <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Name jabatan*</label>
+                    {!! FormCustom::input('position_name', null, [ "placeholder" => 'Masukkan nama jabatan']) !!}
                 </section>
-                <section class="flex flex-col gap-1">
-                    <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Parent Position*</label>
-                    <select class="select2" name="parent_position">
-                        <option value="" disabled selected>Silahkan Pilih</option>
-                        @foreach ($positions['data'] as $item)
-                        <option value="{{ $item['id'] }}">{{ $item['position_name'] }}</option>
-                        @endforeach
-                    </select>
-                    <label class="font-normal text-xs text-red-500 xs/max:text-xs parent_position text-error"></label>
+                <section>
+                    <div class="flex items-start gap-2.5">
+                        <span class="pt-0.5">
+                            {!! FormCustom::checkbox('must_attend', -1, ['checked'=>true]) !!}
+                        </span>
+                        <div class="flex flex-col gap-px">
+                            <p class="font-medium text-sm text-gray-700">Wajib hadir</p>
+                            <p class="font-normal text-sm text-gray-500">Atur yang boleh hadir / tidak hadir gpp
+                            </p>
+                        </div>
+                    </div>
                 </section>
+                <div class="flex flex-col gap-2">
+                    <section>
+                        <div class="flex items-start gap-2.5">
+                            <span class="pt-0.5">
+                                {!! FormCustom::checkbox('extra_pay_check', -1) !!}
+                            </span>
+                            <div class="flex flex-col gap-px">
+                                <p class="font-medium text-sm text-gray-700">Upah tambahan</p>
+                                <p class="font-normal text-sm text-gray-500">Atur upah tambahan posisi
+                                </p>
+                            </div>
+                        </div>
+                    </section>
+                    <div id="extra-pay-content" class="hidden">
+                        <section class="flex flex-col gap-1 pl-[26px]">
+                            {!! FormCustom::input('extra_pay', null, ['prefixtext' => 'Rp',
+                            "placeholder" => 'Masukkan upah tambahan', 'class'=> 'number']) !!}
+                        </section>
+                    </div>
+                </div>
             </main>
             <hr>
             <footer class="flex justify-end items-center gap-3 p-4  pb-6">

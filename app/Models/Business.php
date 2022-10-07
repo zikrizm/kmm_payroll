@@ -39,7 +39,6 @@ class Business extends Model
     public static function create_business($details)
     {
         $business = Business::create($details);
-        Log::info($business);
         return $business;
     }
 }

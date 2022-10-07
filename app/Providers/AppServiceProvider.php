@@ -81,7 +81,7 @@ class AppServiceProvider extends ServiceProvider
         });
 
         Blade::directive('convert', function ($money) {
-            return "Rp. <?php echo number_format($money, 2); ?>";
+            return "Rp. <?php echo number_format($money,0, ',', '.'); ?>";
         });
 
         //Blade directive to convert.

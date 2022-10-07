@@ -134,7 +134,7 @@
 
 
 
-                    @canany(['break-time.view', 'timetable.view', 'shift.view'])
+                    @canany(['break-time.view', 'timetable.view', 'shift.view', 'holiday.view'])
                     <section
                         class="my-dropdown-menu flex items-center justify-between p-2.5 rounded-lg w-full @activemenu(shift)"
                         data-dropdown-toggle="dropdown-menu-shift">
@@ -176,6 +176,15 @@
                             </div>
                         </a>
                         @endcan
+                        @can('holiday.view')
+                        <a href="{{ route('holiday.index') }}"
+                            class="flex items-center justify-between p-2.5 rounded-lg w-full hover:underline hover:decoration-gray-500 @activemenu(shift)">
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-5"></div>
+                                <p class="text-sm font-medium text-gray-600">Libur Nasional</p>
+                            </div>
+                        </a>
+                        @endcan
                     </div>
                     @endcanany
                     @canany(['transaction.view'])
@@ -193,7 +202,7 @@
                         </span>
                     </section>
                     <div id="dropdown-menu-transaction" class="flex flex-col gap-1 @activemenu(transaction)">
-                        <a href="{{ route('transaction.index') }}"
+                        <a href="{{ route('device.index') }}"
                             class="flex items-center justify-between p-2.5 rounded-lg w-full hover:underline hover:decoration-gray-500 @activemenu(transaction)">
                             <div class="flex items-center gap-2.5">
                                 <div class="w-5"></div>
@@ -252,7 +261,7 @@
                             class="flex items-center justify-between p-2.5 rounded-lg w-full hover:underline hover:decoration-gray-500 @activemenu(position)">
                             <div class="flex items-center gap-2.5">
                                 <div class="w-5"></div>
-                                <p class="text-sm font-medium text-gray-600">Posisi</p>
+                                <p class="text-sm font-medium text-gray-600">Jabatan</p>
                             </div>
                         </a>
                         @endcan

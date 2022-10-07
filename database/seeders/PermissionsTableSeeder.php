@@ -25,10 +25,7 @@ class PermissionsTableSeeder extends Seeder
             // ['name' => 'group.create'],
             // ['name' => 'group.update'],
             // ['name' => 'group.delete'],
-            // ['name' => 'holiday.view'],
-            // ['name' => 'holiday.create'],
-            // ['name' => 'holiday.update'],
-            // ['name' => 'holiday.delete'],
+           
 
             ['name' => 'user.view'],
             ['name' => 'user.create'],
@@ -60,6 +57,10 @@ class PermissionsTableSeeder extends Seeder
             ['name' => 'timetable.create'],
             ['name' => 'timetable.update'],
             ['name' => 'timetable.delete'],
+            ['name' => 'holiday.view'],
+            ['name' => 'holiday.create'],
+            ['name' => 'holiday.update'],
+            ['name' => 'holiday.delete'],
             ['name' => 'department.view'],
             ['name' => 'department.create'],
             ['name' => 'department.update'],
@@ -76,6 +77,10 @@ class PermissionsTableSeeder extends Seeder
             ['name' => 'transaction.create'],
             ['name' => 'transaction.update'],
             ['name' => 'transaction.delete'],
+            ['name' => 'device.view'],
+            ['name' => 'device.create'],
+            ['name' => 'device.update'],
+            ['name' => 'device.delete'],
 
             ['name' => 'business_settings.access'],
         ];

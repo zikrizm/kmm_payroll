@@ -88,9 +88,29 @@ class FormCustom extends Component
         }
     }
 
-    public static function checkbox()
+    public static function checkbox($name = '', $value = '', $attributes = [])
     {
-        return view('components.form.checkbox');
+        try {
+            $atr = (object)[
+                "id" => '',
+                "required" => '',
+                "readonly" => false,
+                "class" => '',
+                "checked" => false,
+            ];
+
+            if (count($attributes) != 0) {
+                if (!empty($attributes['id'])) $atr->id = $attributes['id'];
+                if (!empty($attributes['type'])) $atr->type = $attributes['type'];
+                if (!empty($attributes['required'])) $atr->required = $attributes['required'];
+                if (!empty($attributes['readonly'])) $atr->readonly = $attributes['readonly'];
+                if (!empty($attributes['class'])) $atr->class = $attributes['class'];
+                if (!empty($attributes['checked'])) $atr->checked = $attributes['checked'];
+            }
+
+            return view('components.form.checkbox', compact('name', 'value', 'atr'));
+        } catch (\Exception $e) {
+        }
     }
 
     public static function radio()
@@ -152,7 +172,7 @@ class FormCustom extends Component
         return view('components.form.file');
     }
 
-     /**
+    /**
      * Get the view/fill in the date form
      *
      * @param string $name

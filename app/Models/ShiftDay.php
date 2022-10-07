@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Group extends Model
+class ShiftDay extends Model
 {
     use HasFactory;
 
@@ -15,4 +15,13 @@ class Group extends Model
      * @var array
      */
     protected $guarded = ['id'];
+
+
+    /**
+     * Get the shiftday_has_timetable.
+     */
+    public function shiftday_has_timetable()
+    {
+        return $this->hasMany(ShiftDayHasTimetable::class, 'shift_day_id');
+    }
 }

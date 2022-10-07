@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Jadwal')
+@section('title', 'User')
 @section('css')
 <style></style>
 @endsection
@@ -7,21 +7,21 @@
 <div class="flex flex-col gap-6 flex-1 h-full overflow-auto bg-white px-8 pt-8 pb-12">
     <header class="flex justify-between items-start">
         <div class="flex flex-col gap-1">
-            <p class="text-3xl font-medium text-gray-900">Tabel Waktu</p>
-            <p class="text-base font-normal text-gray-500">Pengaturan tabel waktu masuk dan keluar.</p>
+            <p class="text-3xl font-medium text-gray-900">Libur</p>
+            <p class="text-base font-normal text-gray-500">Disini untuk mengatur status setiap libur.</p>
         </div>
         <div class="">
             <button onclick="get_modal()" class="flex items-center gap-2.5 px-4 py-2 text-gray-500 text-sm font-medium 
                 flex items-center border border-gray-200 shadow-sm rounded-lg">
                 <x-icon icon="plus" width=18 height=18 viewBox="20 20" />
-                Tambah tabel waktu
+                Tambah libur
             </button>
         </div>
     </header>
     <hr>
-    <x-ui.search-data placeholder="Cari table waktu" url="{{ route('timetable.index') }}" />
+    <x-ui.search-data placeholder="Cari libur" url="{{ route('holiday.index') }}" />
     <div class="table-content"></div>
-    <x-ui.confirm-modal class="submit-delete-timetable"></x-ui.confirm-modal>
+    <x-ui.confirm-modal class="submit-delete-holiday"></x-ui.confirm-modal>
 </div>
 
 <script type="application/javascript">
@@ -48,7 +48,7 @@
             // **
             // * get table ----->
             // *
-            var res = await ApiService.get_table('/timetable', dataParams);
+            var res = await ApiService.get_table('/holiday', data);
             $('.table-content').html(res);
 
             // **
@@ -61,51 +61,34 @@
             })
         }
     
-        async function get_modal(timetable_id) {
+        async function get_modal(holiday_id) {
             // **
             // * open modal form ----->
             // *
-            var URL = (timetable_id) ? '/timetable/' + timetable_id + '/edit' : '/timetable/create';
+            console.log(holiday_id)
+            var URL = (holiday_id) ? '/holiday/' + holiday_id + '/edit' : '/holiday/create';
             var res = await ApiService.get_modal(URL, null);
-            $('.select2').select2();
-            select2_break_time();
-            var anElement = new AutoNumeric.multiple('.number',{decimalPlaces:0,minimumValue: 0});
-
-            $('*[data-ref-class-content]').on('click', function(e) {
-                let _idContent = $(this).data('ref-class-content');
-                $('*[data-ref-class-content]').each(function () {
-                    let _idContent = $(this).data('ref-class-content');
-                    $(this).removeClass('border-b-2 text-violet-700');
-                    $('#'+_idContent).addClass('hidden');
-                });
-
-                $(this).addClass('border-b-2 text-violet-700');
-                $('#'+_idContent).removeClass('hidden');
-            })
-
-            $('input[name="overtime_rounded"]').on('change', function(e) {
-                $('#overtime-rounded-content').toggle('hidden');
-            })
-            $('input[name="is_overtime"]').on('change', function(e) {
-                $('#overtime-content').toggle('hidden');
-            })
-            $('input[name="is_overtime_rice"]').on('change', function(e) {
-                $('#rice-overtime-content').toggle('hidden');
-            })
+            $('input[name="holiday_date"]').daterangepicker({
+                locale: { format: 'YYYY-MM-DD' },
+                showDropdowns: true,
+                minYear: 2000,
+                drops: "auto",
+                maxYear: parseInt(moment().format('YYYY'), 10)
+            });
 
             // **
             // * submit form ----->
             // *
-            var resSubmit = ApiService.submit_form('.submit-timetable', (data) => { 
+            var resSubmit = ApiService.submit_form('.submit-holiday', (data) => { 
                 onInit( { q: $('.search-data-input').val() });
             });
         }
 
-        async function open_modal_confirm(timetable_id) {
+        async function open_modal_confirm(holiday_id) {
         // **
         // * open modal confirm ----->
         // *
-        await ApiService.get_confirm('.submit-delete-timetable', '/timetable/' + timetable_id, null, () => {
+        await ApiService.get_confirm('.submit-delete-holiday', '/holiday/' + holiday_id, null, () => {
             onInit();
         })
     }

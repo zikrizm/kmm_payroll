@@ -16,9 +16,9 @@
                         <x-icon icon="layers" width=18 height=18 viewBox="20 20" />
                     </div>
                     <div>
-                        <p class="text-2xl font-bold text-gray-900 xs/max:text-xl xs/max:font-semibold">Position</p>
+                        <p class="text-2xl font-bold text-gray-900 xs/max:text-xl xs/max:font-semibold">Jabatan</p>
                         <p class="text-sm font-normal text-gray-500 xs/max:text-xs">
-                            Please provide the position's detail.
+                            Please provide the jabatan's detail.
                         </p>
                     </div>
                 </div>
@@ -28,30 +28,53 @@
         <div>
             <main class="px-4 flex flex-col gap-4 xs/max:gap-3 mb-8">
                 <section class="flex flex-col gap-1">
-                    <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Position code*</label>
+                    <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Kode jabatan*</label>
                     {!! FormCustom::input('position_code', $position['position_code'],
                     [ "placeholder" => 'Enter new your position code']) !!}
                 </section>
                 <section class="flex flex-col gap-1">
-                    <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Position name*</label>
+                    <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Nama jabatan*</label>
                     {!! FormCustom::input('position_name', $position['position_name'],
                     [ "placeholder" => 'Enter new your position name']) !!}
                 </section>
-                <section class="flex flex-col gap-1">
-                    <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Parent position*</label>
-                    <select class="select2" name="parent_position">
-                        <option value="" selected>Silahkan Pilih</option>
-                        @foreach ($positions['data'] as $item)
-                        <option value="{{ $item['id'] }}" {{ (!empty($position['parent_position']) &&
-                            ($position['parent_position']['id']==$item['id'])) ? 'selected' : '' }}>{{
-                            $item['position_name'] }}</option>
-                        @endforeach
-                    </select>
-                    <label class="font-normal text-xs text-red-500 xs/max:text-xs parent_position text-error"></label>
+                <section>
+                    <div class="flex items-start gap-2.5">
+                        <span class="pt-0.5">
+                            {!! FormCustom::checkbox('must_attend', -1, ['checked'=>$position['must_attend']]) !!}
+                        </span>
+                        <div class="flex flex-col gap-px">
+                            <p class="font-medium text-sm text-gray-700">Wajib hadir</p>
+                            <p class="font-normal text-sm text-gray-500">Karyawan tidak diwajibkan hadir
+                            </p>
+                        </div>
+                    </div>
                 </section>
+                <div class="flex flex-col gap-2">
+                    <section>
+                        <div class="flex items-start gap-2.5">
+                            <span class="pt-0.5">
+                                {!! FormCustom::checkbox('extra_pay_check', -1, ['checked' => $position['extra_pay_check']]) !!}
+                            </span>
+                            <div class="flex flex-col gap-px">
+                                <p class="font-medium text-sm text-gray-700">Upah tambahan</p>
+                                <p class="font-normal text-sm text-gray-500">Atur upah tambahan posisi
+                                </p>
+                            </div>
+                        </div>
+                    </section>
+                    <div id="extra-pay-content" class="{{ !$position['extra_pay_check'] ? 'hidden': '' }}">
+                        <section class="flex flex-col gap-1 pl-[26px]">
+                            {!! FormCustom::input('extra_pay', $position['extra_pay'], ['prefixtext' => 'Rp',
+                            "placeholder" => 'Masukkan upah tambahan', 'class'=> 'number']) !!}
+                        </section>
+                    </div>
+                </div>
             </main>
             <hr>
-            <footer class="flex justify-end items-center gap-3 p-4  pb-6">
+            <footer class="flex justify-end items-center gap-3 p-4 pb-6 relative">
+                <p class="absolute bottom-0.5 left-2 text-gray-400 italic text-[10px]">
+                    {{ $position['updated_by'] ?? '' }}
+                </p>
                 <button type="reset"
                     class="modal-close shadow text-gray-500 bg-white hover:bg-gray-100 focus:ring-2 focus:ring-gray-300 rounded-lg xs/max:rounded-md border border-gray-200 text-sm xs/max:text-xs font-medium xs/max:px-4 px-6 xs/max:py-1.5 py-2 hover:text-gray-900 focus:z-10">
                     Cancel</button>

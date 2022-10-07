@@ -34,7 +34,7 @@
                 </section>
                 <section class="flex flex-col gap-1 flex-1">
                     <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Bagian*</label>
-                    <select class="select2" name="department">
+                    <select class="select2" name="dept_id">
                         @foreach ($onlyParentDept as $item)
                         <option value="{{ $item['id'] }}">{{ $item['dept_name'] }}</option>
                         @endforeach
@@ -48,35 +48,22 @@
                             Shift Harian
                         </button>
                     </li>
-                    <li>
-                        <button type="button" data-ref-class-content="overtime-rule-content"
-                            class="text-gray-500 mr-4 pt px-1 pb-[19px] border-violet-700 text-sm font-medium">
-                            Aturan lembur
-                        </button>
-                    </li>
                 </ul>
                 <div class="flex flex-col gap-2" id="basic-settings-content">
-                    {{-- <div>
-                        <p class="text-base font-medium text-gray-900 xs/max:font-semibold">Pengaturan awal</p>
-                        <p class="text-sm font-normal text-gray-500 xs/max:text-xs">
-                            Mohon lengkapi data ini.
-                        </p>
-                    </div>
-                    <hr> --}}
                     <div class="flex items-center justify-between gap-1">
                         <div class="flex flex-1">
                             <p class="text-base font-semibold text-gray-500">Senin: </p>
                         </div>
                         <section class="flex flex-col gap-1 flex-3">
-                            <select class="select2-timetable" name="timetable['senin'][]" multiple="multiple">
+                            <select class="select2-timetable" name="timetables[senin][]" multiple="multiple">
                                 @foreach ($timetables as $item)
-                                <option value="{{ $item->id }}" title="{{ $item }}" data-timetable="{{ $item }}">
+                                <option value="{{ $item->id }}" title="{{ $item }}">
                                     {{ $item->name }}
                                 </option>
                                 @endforeach
                             </select>
                             <label
-                                class="font-normal text-xs text-red-500 xs/max:text-xs timetable[] hint-text"></label>
+                                class="font-normal text-xs text-red-500 xs/max:text-xs timetables-senin hint-text"></label>
                         </section>
                     </div>
                     <div class="flex items-center justify-between gap-1">
@@ -84,15 +71,15 @@
                             <p class="text-base font-semibold text-gray-500">Selasa: </p>
                         </div>
                         <section class="flex flex-col gap-1 flex-3">
-                            <select class="select2-timetable" name="timetable[]" multiple="multiple">
+                            <select class="select2-timetable" name="timetables[selasa][]" multiple="multiple">
                                 @foreach ($timetables as $item)
-                                <option value="{{ $item->id }}" title="{{ $item }}" data-timetable="{{ $item }}">
+                                <option value="{{ $item->id }}" title="{{ $item }}">
                                     {{ $item->name }}
                                 </option>
                                 @endforeach
                             </select>
                             <label
-                                class="font-normal text-xs text-red-500 xs/max:text-xs timetable[] hint-text"></label>
+                                class="font-normal text-xs text-red-500 xs/max:text-xs timetables-selasa hint-text"></label>
                         </section>
                     </div>
                     <div class="flex items-center justify-between gap-1">
@@ -100,15 +87,15 @@
                             <p class="text-base font-semibold text-gray-500">Rabu: </p>
                         </div>
                         <section class="flex flex-col gap-1 flex-3">
-                            <select class="select2-timetable" name="timetable[]" multiple="multiple">
+                            <select class="select2-timetable" name="timetables[rabu][]" multiple="multiple">
                                 @foreach ($timetables as $item)
-                                <option value="{{ $item->id }}" title="{{ $item }}" data-timetable="{{ $item }}">
+                                <option value="{{ $item->id }}" title="{{ $item }}">
                                     {{ $item->name }}
                                 </option>
                                 @endforeach
                             </select>
                             <label
-                                class="font-normal text-xs text-red-500 xs/max:text-xs timetable[] hint-text"></label>
+                                class="font-normal text-xs text-red-500 xs/max:text-xs timetables-rabu hint-text"></label>
                         </section>
                     </div>
                     <div class="flex items-center justify-between gap-1">
@@ -116,15 +103,15 @@
                             <p class="text-base font-semibold text-gray-500">Kamis: </p>
                         </div>
                         <section class="flex flex-col gap-1 flex-3">
-                            <select class="select2-timetable" name="timetable[]" multiple="multiple">
+                            <select class="select2-timetable" name="timetables[kamis][]" multiple="multiple">
                                 @foreach ($timetables as $item)
-                                <option value="{{ $item->id }}" title="{{ $item }}" data-timetable="{{ $item }}">
+                                <option value="{{ $item->id }}" title="{{ $item }}">
                                     {{ $item->name }}
                                 </option>
                                 @endforeach
                             </select>
                             <label
-                                class="font-normal text-xs text-red-500 xs/max:text-xs timetable[] hint-text"></label>
+                                class="font-normal text-xs text-red-500 xs/max:text-xs timetables-kamis hint-text"></label>
                         </section>
                     </div>
                     <div class="flex items-center justify-between gap-1">
@@ -132,15 +119,15 @@
                             <p class="text-base font-semibold text-gray-500">Jumat: </p>
                         </div>
                         <section class="flex flex-col gap-1 flex-3">
-                            <select class="select2-timetable" name="timetable[]" multiple="multiple">
+                            <select class="select2-timetable" name="timetables[jumat][]" multiple="multiple">
                                 @foreach ($timetables as $item)
-                                <option value="{{ $item->id }}" title="{{ $item }}" data-timetable="{{ $item }}">
+                                <option value="{{ $item->id }}" title="{{ $item }}">
                                     {{ $item->name }}
                                 </option>
                                 @endforeach
                             </select>
                             <label
-                                class="font-normal text-xs text-red-500 xs/max:text-xs timetable[] hint-text"></label>
+                                class="font-normal text-xs text-red-500 xs/max:text-xs timetables-jumat hint-text"></label>
                         </section>
                     </div>
                     <div class="flex items-center justify-between gap-1">
@@ -148,52 +135,33 @@
                             <p class="text-base font-semibold text-gray-500">Sabtu: </p>
                         </div>
                         <section class="flex flex-col gap-1 flex-3">
-                            <select class="select2-timetable" name="timetable[]" multiple="multiple">
+                            <select class="select2-timetable" name="timetables[sabtu][]" multiple="multiple">
                                 @foreach ($timetables as $item)
-                                <option value="{{ $item->id }}" title="{{ $item }}" data-timetable="{{ $item }}">
+                                <option value="{{ $item->id }}" title="{{ $item }}">
                                     {{ $item->name }}
                                 </option>
                                 @endforeach
                             </select>
                             <label
-                                class="font-normal text-xs text-red-500 xs/max:text-xs timetable[] hint-text"></label>
+                                class="font-normal text-xs text-red-500 xs/max:text-xs timetables-sabtu hint-text"></label>
                         </section>
                     </div>
                     <div class="flex items-center justify-between gap-1">
                         <div class="flex flex-1">
-                            <p class="text-base font-semibold text-gray-500">Minggu: </p>
+                            <p class="text-base font-semibold text-gray-500">Minggu/Libur: </p>
                         </div>
                         <section class="flex flex-col gap-1 flex-3">
-                            <select class="select2-timetable" name="timetable[]" multiple="multiple">
+                            <select class="select2-timetable" name="timetables[minggu][]" multiple="multiple">
                                 @foreach ($timetables as $item)
-                                <option value="{{ $item->id }}" title="{{ $item }}" data-timetable="{{ $item }}">
+                                <option value="{{ $item->id }}" title="{{ $item }}">
                                     {{ $item->name }}
                                 </option>
                                 @endforeach
                             </select>
                             <label
-                                class="font-normal text-xs text-red-500 xs/max:text-xs timetable[] hint-text"></label>
+                                class="font-normal text-xs text-red-500 xs/max:text-xs timetables-minggu hint-text"></label>
                         </section>
                     </div>
-                </div>
-                <div class="flex flex-col gap-4 hidden" id="overtime-rule-content">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-base font-medium text-gray-900 xs/max:font-semibold">Aturan lembur</p>
-                            <p class="text-sm font-normal text-gray-500 xs/max:text-xs">
-                                Mohon lengkapi data ini.
-                            </p>
-                        </div>
-                        <div class="">
-                            <button type="button" id="add-overtime-shift" class="flex items-center gap-2.5 px-4 py-2 text-gray-500 text-sm font-medium 
-                                    flex items-center border border-gray-200 shadow-sm rounded-lg">
-                                <x-icon icon="plus" width=18 height=18 viewBox="20 20" />
-                                Tambah lembur
-                            </button>
-                        </div>
-                    </div>
-                    <hr>
-                    <div id="overtime-contents" class="flex flex-col gap-3"></div>
                 </div>
             </main>
             <hr>

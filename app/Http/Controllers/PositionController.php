@@ -4,9 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Utils\ResponseUtil;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use App\Services\Api\ApiServices;
 use Illuminate\Support\Facades\Log;
 use App\Exceptions\ResponseExeception;
+use App\Models\Position;
 use Illuminate\Support\Facades\Validator;
 
 class PositionController extends Controller
@@ -40,7 +42,7 @@ class PositionController extends Controller
                     $filter['position_name_icontains'] = $request->q;
                 }
 
-                 if ($request->has('page')) {
+                if ($request->has('page')) {
                     $filter['page'] = $request->page;
                 }
 
@@ -50,6 +52,17 @@ class PositionController extends Controller
                 }
 
                 $positions = $this->apiService->get_positions($filter);
+
+                $posis = Position::all();
+                foreach ($posis as $posi) {
+                    foreach ($positions['data'] as $key => $position) {
+                        if ($posi->position_id == $position['id']) {
+                            $positions['data'][$key]['must_attend'] = $posi->must_attend;
+                            $positions['data'][$key]['extra_pay'] = $posi->extra_pay;
+                        }
+                    }
+                }
+
                 $render =  view('Organization.position.table', compact('positions', 'order'))->render();
                 return $this->buildRes->RESPONSE_REQ('success', $render, null);
             }
@@ -105,10 +118,20 @@ class PositionController extends Controller
             if ($validator->fails()) {
                 return $this->buildRes->RESPONSE_REQ('error', null, $validator->errors());
             } else {
-                $position_data = $request->only(['position_code', 'position_name', 'parent_position']);
+                $position_data = $request->only([
+                    'position_code', 'position_name', 'must_attend', 'extra_pay_check', 'extra_pay'
+                ]);
 
                 $res = $this->apiService->create_position($position_data);
-                return response()->json($res);
+                if ($res['status'] == 'success') {
+                    $positions = $this->apiService->get_positions(['position_code' => $res['data']['position_code']]);
+                    $position_id = $positions['data'][0]['id'];
+
+                    $this->__createPositionIfNotExists($position_id, $request);
+                    return response()->json($res);
+                } else {
+                    return response()->json($res);
+                }
             }
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
@@ -146,6 +169,19 @@ class PositionController extends Controller
 
         try {
             $position = $this->apiService->read_position($position);
+            $positionDB = Position::where('position_id', $position['id'])->with('user')->first();
+            if ($positionDB) {
+                $position['must_attend'] = (bool)$positionDB->must_attend;
+                $position['extra_pay_check'] = (bool)$positionDB->extra_pay;
+                $position['extra_pay'] = $positionDB->extra_pay;
+                $position['updated_by'] = 'Diperbarui: ' . $positionDB->user->first_name . ', ' . $positionDB->updated_at;
+            } else {
+                $position['must_attend'] = false;
+                $position['extra_pay_check'] = false;
+                $position['extra_pay'] = null;
+                $position['updated_by'] = null;
+            }
+
             $positions = $this->apiService->get_positions([]);
             $render = view('Organization.position.edit', compact('position', 'positions'))->render();
 
@@ -176,11 +212,26 @@ class PositionController extends Controller
             if ($validator->fails()) {
                 return $this->buildRes->RESPONSE_REQ('error', null, $validator->errors());
             } else {
-                $position_data = $request->only(['position_code', 'position_name', 'parent_position']);
+                $position_data = $request->only([
+                    'position_code', 'position_name', 'must_attend', 'extra_pay_check', 'extra_pay'
+                ]);
                 $position_data['id'] = $position;
 
                 $res = $this->apiService->update_position($position_data);
-                return response()->json($res);
+                if ($res['status'] == 'success') {
+                    $this->__createPositionIfNotExists($position, $request);
+                    Position::where('position_id', $position)->update(
+                        [
+                            'extra_pay' => (!empty($position_data['extra_pay_check'])) ?
+                                str_replace(',', '', $position_data['extra_pay']) : null,
+                            'updated_user' => auth()->user()->id,
+                            'must_attend' => $position_data['must_attend'],
+                        ]
+                    );
+                    return response()->json($res);
+                } else {
+                    return response()->json($res);
+                }
             }
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
@@ -211,7 +262,30 @@ class PositionController extends Controller
     }
 
     /**
-     * Rules validation department.
+     * Creates new position if doesn't exist
+     *
+     * @param  int $position_id
+     * @return void
+     */
+    private function __createPositionIfNotExists($position_id, Request $request)
+    {
+        $dept = Position::where('position_id', $position_id)->first();
+        if (empty($dept)) {
+            $dept = new Position([
+                'position_id' => $position_id,
+                'created_user' => auth()->user()->id,
+                'updated_user' => auth()->user()->id,
+                'must_attend' => $request['must_attend'],
+                'extra_pay' => (!empty($request->input('extra_pay_check'))) ?
+                    str_replace(',', '', $request['extra_pay']) : null
+            ]);
+            $dept->save();
+        }
+    }
+
+
+    /**
+     * Rules validation Position.
      *
      * @return array
      */
@@ -220,6 +294,12 @@ class PositionController extends Controller
         return [
             'position_code' => 'required|string|max:255',
             'position_name' => 'required|string|max:255',
+            'extra_pay_check' => 'nullable',
+            'extra_pay' => [
+                Rule::requiredIf(function () {
+                    return request()->get('extra_pay_check');
+                })
+            ],
         ];
     }
 }

@@ -13,18 +13,15 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('holidays', function (Blueprint $table) {
+        Schema::create('departments', function (Blueprint $table) {
             $table->increments('id');
-            $table->integer('business_id')->unsigned();
-            $table->string('name');
-            $table->dateTime('start_date');
-            $table->dateTime('end_date');
-            
+            $table->integer('dept_id');
+            $table->decimal('sitting_money', 22, 2)->nullable();
+
             $table->integer('created_user')->unsigned();
             $table->integer('updated_user')->nullable()->unsigned();
             $table->foreign('created_user')->references('id')->on('users')->onDelete('cascade');
             $table->foreign('updated_user')->references('id')->on('users')->onDelete('cascade');
-            $table->foreign('business_id')->references('id')->on('business')->onDelete('cascade');
             $table->timestamps();
         });
     }
@@ -36,6 +33,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('holidays');
+        Schema::dropIfExists('departments');
     }
 };

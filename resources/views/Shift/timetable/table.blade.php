@@ -14,24 +14,24 @@
                     </div>
                 </th>
                 <th class='px-3 py-3 text-left cursor-pointer'>
-                    <x-ui.sort-table text="Check in" url="{{ route('timetable.index') }}" field="in_time"
+                    <x-ui.sort-table text="Masuk" url="{{ route('timetable.index') }}" field="in_time"
                         order="{{ $order }}" />
                 </th>
                 <th class='px-3 py-3 text-left cursor-pointer'>
-                    <x-ui.sort-table text="Check out" url="{{ route('timetable.index') }}" field="out_time"
+                    <x-ui.sort-table text="Keluar" url="{{ route('timetable.index') }}" field="out_time"
                         order="{{ $order }}" />
                 </th>
                 <th class='px-3 py-3 text-left cursor-pointer'>
-                    <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Work time</p>
+                    <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Waktu Kerja</p>
                 </th>
                 <th class='px-3 py-3 text-left cursor-pointer'>
-                    <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Work type</p>
+                    <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Jenis Hari</p>
                 </th>
                 <th class='px-3 py-3 text-left cursor-pointer'>
-                    <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Cross day</p>
+                    <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Beda Hari</p>
                 </th>
                 <th class='px-3 py-3 text-left cursor-pointer'>
-                    <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Break time</p>
+                    <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Istirahat</p>
                 </th>
                 @canany(['timetable.update', 'timetable.delete'])
                 <th class='px-3 py-3 text-left text-gray-500 text-xs font-medium'></th>
@@ -46,9 +46,9 @@
                         <div class="pl-4 py ">
                             {!! FormCustom::checkbox() !!}
                         </div>
-                        <div class="flex gap-3 items-center px-6 py-3 hover:underline hover:text-gray-500 cursor-pointer"
+                        <div class="flex gap-3 items-center px-6 py-3 hover:underline decoration-blue-400 cursor-pointer"
                             onclick="get_modal('{{ $item['id'] }}')">
-                            <p class="text-gray-500 text-sm">
+                            <p class="text-blue-400 text-sm">
                                 {{ $item->name }}
                             </p>
                         </div>
@@ -75,26 +75,28 @@
                 </td>
                 <td class='px-3 py text-gray-500 text-sm'>
                     @switch($item->work_type)
-                        @case(0)
-                            Hari kerja
-                            @break
-                        @case(1)
-                            Minggu
-                            @break
-                        @case(2)
-                            Libur nasional
-                            @break
-                        @default
-                            
+                    @case(0)
+                    Hari kerja
+                    @break
+                    @case(1)
+                    Minggu
+                    @break
+                    @case(2)
+                    Libur nasional
+                    @break
+                    @default
+
                     @endswitch
                 </td>
                 <td class='px-3 py text-gray-500 text-sm'>
                     {{ $item->cross_day ?? '-' }}
                 </td>
                 <td class='px-3 py text-gray-500 text-sm'>
-                    @foreach ($item->timetable_has_break_time as $key => $itemhas)
+                    @forelse ($item->timetable_has_break_time as $key => $itemhas)
                     {{ $itemhas->break_time->name }}@if(( $item->timetable_has_break_time->count()-1) != $key),@endif
-                    @endforeach
+                    @empty
+                    -
+                    @endforelse
                 </td>
                 @canany(['timetable.update', 'timetable.delete'])
                 <td class='px-3 py'>
