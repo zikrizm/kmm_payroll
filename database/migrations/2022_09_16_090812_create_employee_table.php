@@ -17,11 +17,10 @@ return new class extends Migration
             $table->increments('id');
             $table->integer('business_id')->unsigned();
             $table->integer('emp_id')->unique();
-            // $table->integer('work_section_id')->nullable()->unsigned();
-            // $table->integer('group_id')->nullable()->unsigned();
-            
-            // $table->string('first_name');
-            // $table->string('last_name')->nullable();
+            $table->string('emp_code');
+
+            $table->string('first_name');
+            $table->string('last_name')->nullable();
             // $table->string('nickname');
             // $table->date('birthday')->nullable();
             // $table->date('hire_date')->nullable();
@@ -37,14 +36,11 @@ return new class extends Migration
             // $table->string('account_name')->nullable();
             // $table->string('account_number')->nullable();
             // $table->date('cheque_date')->nullable();
-            
+
             $table->boolean('is_device')->default(0);
             $table->enum('status', ['active', 'inactive'])->default('active');
 
             $table->foreign('business_id')->references('id')->on('business')->onDelete('cascade');
-            // $table->foreign('work_section_id')->references('id')->on('work_sections')->onDelete('cascade');
-            // $table->foreign('group_id')->references('id')->on('groups')->onDelete('cascade');
-
             $table->timestamps();
         });
     }

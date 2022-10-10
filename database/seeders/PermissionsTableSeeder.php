@@ -25,7 +25,7 @@ class PermissionsTableSeeder extends Seeder
             // ['name' => 'group.create'],
             // ['name' => 'group.update'],
             // ['name' => 'group.delete'],
-           
+
 
             ['name' => 'user.view'],
             ['name' => 'user.create'],
@@ -41,6 +41,10 @@ class PermissionsTableSeeder extends Seeder
             ['name' => 'employee.delete'],
             ['name' => 'employee-photo.view'],
             ['name' => 'employee-photo.create'],
+            ['name' => 'kasbon.view'],
+            ['name' => 'kasbon.create'],
+            ['name' => 'kasbon.update'],
+            ['name' => 'kasbon.delete'],
             ['name' => 'resign.view'],
             ['name' => 'resign.create'],
             ['name' => 'resign.update'],

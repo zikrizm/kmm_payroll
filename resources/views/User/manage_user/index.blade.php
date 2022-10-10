@@ -1,36 +1,47 @@
 @extends('layouts.app')
 @section('title', 'User')
 @section('css')
-<style></style>
+    <style></style>
 @endsection
 @section('content')
-<div class="flex flex-col gap-6 flex-1 h-full overflow-auto bg-white px-8 pt-8 pb-12">
-    <header class="flex justify-between items-start">
-        <div class="flex flex-col gap-1">
-            <p class="text-3xl font-medium text-gray-900">Manage user</p>
-            <p class="text-base font-normal text-gray-500">Here to manage the status of each user.</p>
-        </div>
-        <div class="">
-            <button onclick="get_modal()" class="flex items-center gap-2.5 px-4 py-2 text-gray-500 text-sm font-medium 
+    <div class="flex flex-col gap-6 flex-1 h-full overflow-auto bg-white px-8 pt-8 pb-12">
+        <header class="flex justify-between items-start">
+            <div class="flex flex-col gap-1">
+                <p class="text-3xl font-medium text-gray-900">Manage user</p>
+                <p class="text-base font-normal text-gray-500">Here to manage the status of each user.</p>
+            </div>
+            <div class="">
+                <button onclick="get_modal()"
+                    class="flex items-center gap-2.5 px-4 py-2 text-gray-500 text-sm font-medium 
                 flex items-center border border-gray-200 shadow-sm rounded-lg">
-                <x-icon icon="plus" width=18 height=18 viewBox="20 20" />
-                Add user
-            </button>
-        </div>
-    </header>
-    <hr>
-    <x-ui.search-data placeholder="Search for user" url="{{ route('user.index') }}" />
-    <div class="table-content"></div>
-    <x-ui.confirm-modal class="submit-delete-user"></x-ui.confirm-modal>
-</div>
+                    <x-icon icon="plus" width=18 height=18 viewBox="20 20" />
+                    Add user
+                </button>
+            </div>
+        </header>
+        <hr>
+        <form action="{{ route('user.upload-csv') }}" method="POST" class="tess-upload-csv" enctype="multipart/form-data">
+            @csrf
+            <!-- {{ csrf_field() }} -->
+            <input type="file" name="file" id="">
+            <button>submit csv</button>
+        </form>
+        <x-ui.search-data placeholder="Search for user" url="{{ route('user.index') }}" />
+        <div class="table-content"></div>
+        <x-ui.confirm-modal class="submit-delete-user"></x-ui.confirm-modal>
+    </div>
 
-<script type="application/javascript">
+    <script type="application/javascript">
     let dataParams = {};
 
         window.addEventListener('DOMContentLoaded', (event) => {
             $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
     
             onInit( { q: $('.search-data-input').val() });
+
+            var resSubmit = ApiService.submit_form('.tess-upload-csv', (data) => { 
+                // onInit( { q: $('.search-data-input').val() });
+            });
 
             $(".search-data-input").on('keyup', debounce(function(e) {
                 if(e.key == 'Shift') return 0;

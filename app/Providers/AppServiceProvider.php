@@ -31,47 +31,49 @@ class AppServiceProvider extends ServiceProvider
             return config('constants.api_zkteco') . $url;
         });
 
-        Blade::directive('activemenu', function ($menu) {
-            $is_active_class = '';
+        Blade::if('activemenu', function ($menu) {
+            $is_active = '';
             $segment_first = request()->segment(1);
-            $sub_menu_organizations = ['department', 'position', 'area'];
+            $segment_second = request()->segment(2);
+
             $sub_menu_users = ['user', 'role'];
+            $sub_menu_employees = ['employee', 'kasbon', 'resign'];
             $sub_menu_shifts = ['break-time', 'timetable', 'shift'];
+            $sub_menu_attendances = ['device', 'transaction', 'transaction-report'];
+            $sub_menu_organizations = ['department', 'position', 'area'];
             $sub_menu_settings = ['setting', 'location'];
 
             switch ($menu) {
+                case 'users':
+                    $is_active = in_array($segment_first, $sub_menu_users);
+                    break;
+                case 'users_sub_menu':
+                    $is_active = in_array($segment_first, $sub_menu_users);
+                    break;
+                case 'employees':
+                    $is_active = in_array($segment_first, $sub_menu_employees);
+                    break;
+                case 'shifts':
+                    $is_active = in_array($segment_first, $sub_menu_shifts);
+                    break;
+                case 'attendances':
+                    $is_active = in_array($segment_first, $sub_menu_attendances);
+                    break;
                 case 'organization':
-                    $is_active_class = in_array($segment_first, $sub_menu_organizations) ? 'bg-gray-100 active' : 'hover:bg-gray-50';
-                    break;
-                case 'organization_sub_menu':
-                    $is_active_class = in_array($segment_first, $sub_menu_organizations) ? '' : 'hidden';
-                    break;
-                case 'user':
-                    $is_active_class = in_array($segment_first, $sub_menu_users) ? 'bg-gray-100 active' : 'hover:bg-gray-50';
-                    break;
-                case 'user_sub_menu':
-                    $is_active_class = in_array($segment_first, $sub_menu_users) ? '' : 'hidden';
-                    break;
-                case 'shift':
-                    $is_active_class = in_array($segment_first, $sub_menu_shifts) ? 'bg-gray-100 active' : 'hover:bg-gray-50';
-                    break;
-                case 'shift_sub_menu':
-                    $is_active_class = in_array($segment_first, $sub_menu_shifts) ? '' : 'hidden';
+                    $is_active = in_array($segment_first, $sub_menu_organizations);
                     break;
                 case 'setting':
-                    $is_active_class = in_array($segment_first, $sub_menu_settings) ? 'bg-gray-100 active' : 'hover:bg-gray-50';
-                    break;
-                case 'setting_sub_menu':
-                    $is_active_class = in_array($segment_first, $sub_menu_settings) ? '' : 'hidden';
+                    $is_active = in_array($segment_first, $sub_menu_settings);
                     break;
                 default:
-                    $is_active_class = ($segment_first == $menu)  ? 'bg-gray-100' : 'hover:bg-gray-50';
+                    $is_active = ($segment_first == $menu);
                     break;
             }
 
-            return $is_active_class;
+            return $is_active;
         });
 
+        
         Blade::directive('urlPagination', function ($url) {
             return str_replace(config('constants.api'), 'http://localhost/', $url);
         });

@@ -104,6 +104,7 @@ class ApiServices extends NetworkUtils
             'ordering' => $data['ordering'] ?? null,
         ];
         $res = $this->emitter('GET', "/personnel/api/employees/", $data);
+        Log::info($res);
         if ($res['response'] < 200 || $res['response'] >= 300) {
             // throw new ResponseExeception($res['msg']);
         } else {

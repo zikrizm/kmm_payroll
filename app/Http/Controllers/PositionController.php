@@ -223,7 +223,7 @@ class PositionController extends Controller
                     Position::where('position_id', $position)->update(
                         [
                             'extra_pay' => (!empty($position_data['extra_pay_check'])) ?
-                                str_replace(',', '', $position_data['extra_pay']) : null,
+                                str_replace('.', '', $position_data['extra_pay']) : null,
                             'updated_user' => auth()->user()->id,
                             'must_attend' => $position_data['must_attend'],
                         ]
@@ -277,7 +277,7 @@ class PositionController extends Controller
                 'updated_user' => auth()->user()->id,
                 'must_attend' => $request['must_attend'],
                 'extra_pay' => (!empty($request->input('extra_pay_check'))) ?
-                    str_replace(',', '', $request['extra_pay']) : null
+                    str_replace('.', '', $request['extra_pay']) : null
             ]);
             $dept->save();
         }

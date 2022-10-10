@@ -139,7 +139,7 @@ class TimetableController extends Controller
                 }
 
                 if (!empty($request->input('is_overtime'))) {
-                    $timetable_data['overtime_pay'] = str_replace(',', '', $timetable_data['overtime_pay']);
+                    $timetable_data['overtime_pay'] = str_replace('.', '', $timetable_data['overtime_pay']);
                 } else {
                     $timetable_data['time_period'] = null;
                     $timetable_data['overtime_pay'] = null;
@@ -257,7 +257,7 @@ class TimetableController extends Controller
                 }
 
                 if (!empty($request->input('is_overtime'))) {
-                    $timetable_data['overtime_pay'] = str_replace(',', '', $timetable_data['overtime_pay']);
+                    $timetable_data['overtime_pay'] = str_replace('.', '', $timetable_data['overtime_pay']);
                 } else {
                     $timetable_data['time_period'] = null;
                     $timetable_data['overtime_pay'] = null;

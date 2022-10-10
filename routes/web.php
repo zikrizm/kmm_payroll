@@ -69,6 +69,7 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('position', 'PositionController', ['except' => ['update']]);
     Route::resource('area', 'AreaController', ['except' => ['update']]);
     Route::resource('employee', 'EmployeeController', ['except' => ['update']]);
+    Route::resource('kasbon', 'KasbonController', ['except' => ['update']]);
     Route::resource('resign', 'ResignController', ['except' => ['update']]);
     Route::resource('break-time', 'BreakTimeController', ['except' => ['update']]);
     Route::resource('timetable', 'TimetableController', ['except' => ['update']]);
@@ -83,7 +84,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/position/{position}', 'PositionController@update')->name('position.update');
     Route::post('/area/{area}', 'AreaController@update')->name('area.update');
     Route::post('/employee/{employee}', 'EmployeeController@update')->name('employee.update');
-
+    Route::post('/kasbon/{kasbon}', 'KasbonController@update')->name('kasbon.update');
     Route::post('/resign/{resign}', 'ResignController@update')->name('resign.update');
     Route::post('/break-time/{break_time}', 'BreakTimeController@update')->name('break-time.update');
     Route::post('/timetable/{timetable}', 'TimetableController@update')->name('timetable.update');
@@ -98,6 +99,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/search-employee-for-dropdown', 'EmployeeController@searchEmployeeForDropdown')->name('employee.search-employee-for-dropdown');
     Route::get('/search-break-time-for-dropdown', 'BreakTimeController@searchBreakTimeForDropdown')->name('break-time.search-break-time-for-dropdown');
     Route::get('/search-timetable-for-dropdown', 'TimetableController@searchTimetableForDropdown')->name('timetable.search-timetable-for-dropdown');
+
+    Route::post('/user-csv', 'ManageUserController@uploadUsers')->name('user.upload-csv');
+
 
     Route::get('logout', '\App\Http\Controllers\Auth\LoginController@logout')->name('logout');
 });

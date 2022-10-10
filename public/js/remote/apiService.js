@@ -34,7 +34,9 @@ class Api extends NetworkUtils {
         $(className).on("submit", async (e) => {
             e.preventDefault();
             try {
+                $('#loading-block-document').show();
                 let _response = await this.emitter(method, url, new FormData(document.querySelector(className)));
+                $('#loading-block-document').hide();
                 if (_response.response < 200 || _response.response >= 300) {
                     // * SET NOTIFICATION MESSAGE REQUIRED ----->
                     setErorrsformInputs(_response.msg);
@@ -60,7 +62,9 @@ class Api extends NetworkUtils {
         $(className).on("submit", async (e) => {
             e.preventDefault();
             try {
+                $('#loading-block-document').show();
                 let _response = await this.emitter(method, url, data)
+                $('#loading-block-document').hide();
                 if (_response.response < 200 || _response.response >= 300) {
                     // * SET NOTIFICATION MESSAGE REQUIRED ----->
                     callback();

@@ -10,6 +10,8 @@ use App\Exceptions\ResponseExeception;
 use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Validator;
 use App\Http\Controllers\EmployeePhotoController;
+use App\Rules\Mobile;
+use App\Rules\NIK;
 
 class EmployeeController extends Controller
 {
@@ -60,9 +62,10 @@ class EmployeeController extends Controller
 
             return view('Employee.employee.index');
         } catch (ResponseExeception $e) {
-            return $this->buildRes->RESPONSE_REQ('error', null, $e->getMessages());
+            // return $this->buildRes->RESPONSE_REQ('error', null, $e->getMessages());
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
+
             return $this->buildRes->RESPONSE_REQ('error', null, ['something_wrong' => 'something wrong']);
         }
     }
@@ -80,13 +83,12 @@ class EmployeeController extends Controller
         }
 
         try {
-            // $csrfmiddlewaretoken = $this->apiService->get_token_upload_employee_photo();
-            $departments = $this->apiService->get_departments([]);
-            $areas = $this->apiService->get_areas([]);
-            $positions = $this->apiService->get_positions([]);
+            $render = view('Employee.employee.create')->render();
+            // $departments = $this->apiService->get_departments([]);
+            // $areas = $this->apiService->get_areas([]);
+            // $positions = $this->apiService->get_positions([]);
 
-
-            $render = view('Employee.employee.create', compact('departments', 'areas', 'positions'))->render();
+            // $render = view('Employee.employee.create', compact('departments', 'areas', 'positions'))->render();
 
             return $this->buildRes->RESPONSE_REQ('success', $render, null);
         } catch (\Exception $e) {
@@ -146,7 +148,7 @@ class EmployeeController extends Controller
 
                 if ($res['status'] == 'success') {
                     // * Save employee to DB.
-                    
+
 
                     if (auth()->user()->can('employee-photo.create')) {
                         $resPhoto = app('App\Http\Controllers\EmployeePhotoController')->store($request);
@@ -318,9 +320,11 @@ class EmployeeController extends Controller
     public function rules()
     {
         return [
-            'emp_code' => 'required|string|max:255',
+            'emp_code' => ['required', new NIK],
             'first_name' => 'required|string|max:255',
             'department' => 'required|string|max:255',
+            'emp_type' => 'required|string|max:255',
+            'mobile' => ['required', new Mobile],
             'area' => 'required',
         ];
     }

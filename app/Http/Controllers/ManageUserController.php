@@ -6,14 +6,19 @@ use App\Models\User;
 use App\Services\Services;
 use App\Utils\BusinessUtil;
 use App\Utils\ResponseUtil;
+use App\Imports\UsersImport;
 use Illuminate\Http\Request;
 use App\Services\Api\ApiServices;
 use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Hash;
+use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Storage;
+use Maatwebsite\Excel\HeadingRowImport;
 use Illuminate\Support\Facades\Validator;
+use Maatwebsite\Excel\Validators\ValidationException;
+use Maatwebsite\Excel\Exceptions\NoTypeDetectedException;
 
 class ManageUserController extends Controller
 {
@@ -254,6 +259,40 @@ class ManageUserController extends Controller
 
             return $this->buildRes->RESPONSE_REQ('error', null, ['error' => 'something wrong']);
         }
+    }
+
+    public function uploadUsers(Request $request)
+    {
+        // Log::info($request);
+        // try {
+        try {
+            // $headings = (new HeadingRowImport)->toArray($request->file);
+
+            // Log::info($request);
+            // Log::info($request->file('file')[0]);
+            Excel::import(new UsersImport, $request->file);
+            // Log::info($tess);
+            return 'berhasil';
+        } catch (ValidationException $e) {
+            Log::info("Sdfsdfsdfsdf");
+            $failures = $e->failures();
+
+            Log::info($failures);
+
+            foreach ($failures as $failure) {
+                $failure->row(); // row that went wrong
+                $failure->attribute(); // either heading key (if using heading row concern) or column index
+                $failure->errors(); // Actual error messages from Laravel validator
+                $failure->values(); // The values of the row that has failed.
+            }
+        } catch (NoTypeDetectedException $e) {
+            // return Redirect::back();
+            Log::info("errro");
+        } catch (\Exception $e) {
+            Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
+        }
+
+        // return redirect()->route('users.index')->with('success', 'User Imported Successfully');
     }
 
     /**

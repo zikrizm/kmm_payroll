@@ -119,7 +119,7 @@ class NetworkUtils
         try {
             $client = new Client([
                 'headers' => [
-                    'Content-Type' => 'application/json',
+                    'Content-Type'  => 'application/json',
                     'Authorization' => 'JWT ' . Session::get('token_zkteco'),
                 ]
             ]);
@@ -130,23 +130,21 @@ class NetworkUtils
                 foreach ($data as $key => $value) {
                     if (request()->hasFile($key) && request()->file($key)->isValid()) {
                         $options['multipart'][] = [
-                            'name'         => $key,
-                            'image_path'   => $value->getPathname(),
-                            'image_mime'   => $value->getmimeType(),
-                            'image_org'    => $value->getClientOriginalName(),
-                            'contents'     => fopen($value->getPathname(), 'r'),
+                            'name'      => $key,
+                            'image_path'=> $value->getPathname(),
+                            'image_mime'=> $value->getmimeType(),
+                            'image_org' => $value->getClientOriginalName(),
+                            'contents'  => fopen($value->getPathname(), 'r'),
                         ];
                     } else {
                         $options['multipart'][] = [
-                            'name' => $key,
-                            'contents' => $value ?? null,
+                            'name'      => $key,
+                            'contents'  => $value ?? null,
                         ];
                     }
                 }
             }
-
-            // $options = 
-
+            
             $request = new Psr7\Request($method, $this->api_zkteco . $url, ['Cookie' => 'csrftoken=' . $data['csrftoken']]);
             $res = $client->sendAsync($request, $options)->wait();
 

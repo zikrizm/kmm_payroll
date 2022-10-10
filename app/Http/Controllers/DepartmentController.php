@@ -220,7 +220,7 @@ class DepartmentController extends Controller
                     Department::where('dept_id', $dept_id)->update(
                         [
                             'sitting_money' => (!empty($dept_data['sitting_money_check'])) ?
-                                str_replace(',', '', $dept_data['sitting_money']) : null,
+                                str_replace('.', '', $dept_data['sitting_money']) : null,
                             'updated_user' => auth()->user()->id,
                         ]
                     );
@@ -273,7 +273,7 @@ class DepartmentController extends Controller
                 'created_user' => auth()->user()->id,
                 'updated_user' => auth()->user()->id,
                 'sitting_money' => (!empty($request->input('sitting_money_check'))) ?
-                    str_replace(',', '', $request['sitting_money']) : null
+                    str_replace('.', '', $request['sitting_money']) : null
             ]);
             $dept->save();
         }

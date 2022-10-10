@@ -126,7 +126,7 @@ class RoleController extends Controller
             abort(403, 'Unauthorized action.');
         }
         try {
-            $validator = Validator::make($request->all(), $this->rules());
+            $validator = Validator::make($request->all(), $this->rules(null));
 
             if ($validator->fails()) {
                 return $this->buildRes->RESPONSE_REQ('error', null, $validator->errors());
@@ -226,7 +226,7 @@ class RoleController extends Controller
             $role_data = $request->only(['name', 'roles']);
             $business_id = Session::get('business_id');
 
-            $count = Role::where('name', $role_data['name'] . '#' . $business_id)->where('id', '!=', $role)
+            $count = Role::where('name', $role_data['name'])->where('id', '!=', $role)
                 ->where('business_id', $business_id)->count();
             if ($count == 0) {
                 $role = Role::findOrFail($role);
@@ -243,12 +243,12 @@ class RoleController extends Controller
                     if (!empty($role_data['roles'])) {
                         $role->syncPermissions($role_data['roles']);
                     }
-                    return $this->buildRes->RESPONSE_REQ('success', null, ['error' => 'Role update succesfully']);
+                    return $this->buildRes->RESPONSE_REQ('success', null, ['error' => ['Role update succesfully']]);
                 } else {
-                    return $this->buildRes->RESPONSE_REQ('error', null, ['error' => 'Default role cannot be edited']);
+                    return $this->buildRes->RESPONSE_REQ('error', null, ['error' => ['Default role cannot be edited']]);
                 }
             } else {
-                return $this->buildRes->RESPONSE_REQ('error', null, ['name' => 'Role name already exists']);
+                return $this->buildRes->RESPONSE_REQ('error', null, ['name' => ['Role name already exists']]);
             }
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
@@ -309,12 +309,13 @@ class RoleController extends Controller
     /**
      * Rules validation role.
      *
+     * @param  Role $role
      * @return array
      */
-    public function rules()
+    public function rules($role)
     {
         return [
-            'name' => 'required|string|max:255|unique:roles',
+            'name' => (empty($role)) ?  'required|string|max:255|unique:roles' : 'required|string|max:255|unique:roles,name,' . $role->id,
             'roles' => 'required|array',
         ];
     }

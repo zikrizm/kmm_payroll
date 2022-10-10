@@ -2,9 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Shift;
-use App\Models\WorkSection;
-use App\Utils\BusinessUtil;
+use App\Models\Kasbon;
 use App\Utils\ResponseUtil;
 use Illuminate\Http\Request;
 use App\Services\Api\ApiServices;
@@ -12,16 +10,14 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
 
-class WorkSectionController extends Controller
+class KasbonController extends Controller
 {
     private $apiService;
     private $buildRes;
-    private $businessUtil;
 
-    public function __construct(BusinessUtil $businessUtil, ApiServices $service, ResponseUtil $buildRes)
+    public function __construct(ApiServices $apiService, ResponseUtil $buildRes)
     {
-        $this->businessUtil = $businessUtil;
-        $this->apiService = $service;
+        $this->apiService = $apiService;
         $this->buildRes = $buildRes;
     }
 
@@ -33,30 +29,38 @@ class WorkSectionController extends Controller
      */
     public function index(Request $request)
     {
-        if (!auth()->user()->can('work-section.view')) {
+        if (!auth()->user()->can('kasbon.view')) {
             abort(403, 'Unauthorized action.');
         }
 
         try {
             if (request()->ajax()) {
                 $business_id = Session::get('business_id');
-                $work_sections = WorkSection::where('business_id', $business_id);
-                if ($request->has('q')) {
-                    $search = $request->q;
-                    $work_sections = $work_sections->where(function ($q) use ($search) {
-                        $q->where('name', 'LIKE', "%" . $search . "%")->orWhere('pay', 'LIKE', "%" . $search . "%")
-                            ->orWhere('time_period', 'LIKE', "%" . $search . "%")->orWhereHas('shift', function ($query) use ($search) {
-                                return $query->where('name', 'LIKE', "%" . $search . "%");
-                            });
+                $kasbons = Kasbon::where('business_id', $business_id);
+                if ($request->has('q') && !empty($request->input('q'))) {
+                    $search = str_replace('.', '', $request->q);
+                    $kasbons = $kasbons->where('kasbon', 'LIKE', "%" . $search . "%")->orWhereHas('employee', function ($q) use ($search) {
+                        $q->where('first_name', 'LIKE', "%" . $search . "%");
                     });
                 }
-                $work_sections = $work_sections->orderBy('shift_id', 'ASC')->orderBy('name', 'ASC')->paginate(10);
-                $render =  view('work_section.table', compact('work_sections'))->render();
+
+                if ($request->has('kasbon_date')) {
+                    $kasbons = $kasbons->whereBetween('date', [$request['kasbon_date']['start_date'], $request['kasbon_date']['end_date']]);
+                }
+
+                $order = null;
+                if ($request->has('sort')) {
+                    $sort = $request->sort;
+                    $order = $sort['order'];
+                    $kasbons->orderBy($sort['name'], $sort['order']);
+                }
+                $kasbons = $kasbons->paginate(10);
+                $render =  view('Employee.kasbon.table', compact('kasbons', 'order'))->render();
 
                 return $this->buildRes->RESPONSE_REQ('success', $render, null);
             }
 
-            return  view('work_section.index');
+            return  view('Employee.kasbon.index');
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
 
@@ -72,14 +76,12 @@ class WorkSectionController extends Controller
      */
     public function create(Request $request)
     {
-        if (!auth()->user()->can('work-section.create') || !request()->ajax()) {
+        if (!auth()->user()->can('kasbon.create') || !request()->ajax()) {
             abort(403, 'Unauthorized action.');
         }
 
         try {
-            $business_id = Session::get('business_id');
-            $shifts = Shift::where('business_id', $business_id)->where('status', 'active')->get();
-            $render = view('work_section.create', compact('shifts'))->render();
+            $render = view('Employee.kasbon.create')->render();
 
             return $this->buildRes->RESPONSE_REQ('success', $render, null);
         } catch (\Exception $e) {
@@ -97,24 +99,26 @@ class WorkSectionController extends Controller
      */
     public function store(Request $request)
     {
-        if (!auth()->user()->can('work-section.create')  || !$request->ajax()) {
+        if (!auth()->user()->can('kasbon.create')  || !$request->ajax()) {
             abort(403, 'Unauthorized action.');
         }
-        Log::info($request);
+
         try {
             $validator = Validator::make($request->all(), $this->rules());
 
             if ($validator->fails()) {
                 return $this->buildRes->RESPONSE_REQ('error', null, $validator->errors());
             } else {
-                $work_section_data = $request->only(['name', 'shift_id', 'status', 'time_period', 'pay']);
-                $work_section_data['pay'] = str_replace('.', '', $work_section_data['pay']);
-                $work_section_data['business_id'] = Session::get('business_id');
-                $work_section = new WorkSection($work_section_data);
-                Log::info($work_section);
-                $work_section->save();
+                $kasbon_data = $request->only(['employee_id', 'date', 'kasbon', 'notes']);
+                $kasbon_data['business_id'] = Session::get('business_id');
+                $kasbon_data['created_user'] = auth()->user()->id;
+                $kasbon_data['updated_user'] = auth()->user()->id;
+                $kasbon_data['kasbon'] = str_replace('.', '', $kasbon_data['kasbon']);
 
-                return $this->buildRes->RESPONSE_REQ('success', null,  'Add work section succesfully');
+                $kasbon = new Kasbon($kasbon_data);
+                $kasbon->save();
+
+                return $this->buildRes->RESPONSE_REQ('success', null,  ['success' => ['Add kasbon succesfully']]);
             }
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
@@ -131,7 +135,7 @@ class WorkSectionController extends Controller
      */
     public function show($id)
     {
-        if (!auth()->user()->can('work-section.view')) {
+        if (!auth()->user()->can('kasbon.view')) {
             abort(403, 'Unauthorized action.');
         }
     }
@@ -140,23 +144,23 @@ class WorkSectionController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  int  $work_section
+     * @param  Kasbon $kasbon
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function edit(WorkSection $work_section, Request $request)
+    public function edit(Kasbon $kasbon, Request $request)
     {
-        if (!auth()->user()->can('work-section.update') || !$request->ajax()) {
+        if (!auth()->user()->can('kasbon.update') || !$request->ajax()) {
             abort(403, 'Unauthorized action.');
         }
 
         try {
-            $business_id = Session::get('business_id');
-            $shifts = Shift::where('business_id', $business_id)->where('status', 'active')->get();
-            $render = view('work_section.edit', compact('work_section', 'shifts'))->render();
+            $render = view('Employee.kasbon.edit', compact('kasbon'))->render();
 
             return $this->buildRes->RESPONSE_REQ('success', $render, null);
-        } catch (\Exception $error) {
+        } catch (\Exception $e) {
+            Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
+
             return $this->buildRes->RESPONSE_REQ('error', null, ['error' => 'something wrong']);
         }
     }
@@ -165,15 +169,14 @@ class WorkSectionController extends Controller
      * Update the specified resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  WorkSection  $work_section
+     * @param  Kasbon $kasbon
      * @return \Illuminate\Http\Response
      */
-    public function update(WorkSection $work_section, Request $request)
+    public function update(Kasbon $kasbon, Request $request)
     {
-        if (!auth()->user()->can('work-section.update') || !$request->ajax()) {
+        if (!auth()->user()->can('kasbon.update') || !$request->ajax()) {
             abort(403, 'Unauthorized action.');
         }
-        Log::info($request);
 
         try {
             $validator = Validator::make($request->all(), $this->rules());
@@ -181,11 +184,14 @@ class WorkSectionController extends Controller
             if ($validator->fails()) {
                 return $this->buildRes->RESPONSE_REQ('error', null, $validator->errors());
             } else {
-                $work_section_data = $request->only(['name', 'shift_id', 'status', 'time_period', 'pay']);
-                $work_section_data['pay'] = str_replace('.', '', $work_section_data['pay']);
-                $work_section->update($work_section_data);
+                $kasbon_data = $request->only(['employee_id', 'date', 'kasbon', 'notes']);
+                $kasbon_data['business_id'] = Session::get('business_id');
+                $kasbon_data['updated_user'] = auth()->user()->id;
+                $kasbon_data['kasbon'] = str_replace('.', '', $kasbon_data['kasbon']);
 
-                return $this->buildRes->RESPONSE_REQ('success', null, 'Work section update succesfully');
+                $kasbon->update($kasbon_data);
+
+                return $this->buildRes->RESPONSE_REQ('success', null, ['success' => ['Update kasbon succesfully']]);
             }
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
@@ -197,38 +203,36 @@ class WorkSectionController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  WorkSection $work_section
+     * @param  Kasbon $kasbon
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function destroy(WorkSection $work_section, Request $request)
+    public function destroy(Kasbon $kasbon, Request $request)
     {
-        if (!auth()->user()->can('work-section.delete') || !$request->ajax()) {
+        if (!auth()->user()->can('kasbon.delete') || !$request->ajax()) {
             abort(403, 'Unauthorized action.');
         }
 
         try {
-            $work_section->delete();
+            $kasbon->delete();
 
-            return $this->buildRes->RESPONSE_REQ('success', null, 'Work section delete succesfully');
+            return $this->buildRes->RESPONSE_REQ('success', null, ['success' => ['Delete kasbon succesfully']]);
         } catch (\Exception $e) {
             return $this->buildRes->RESPONSE_REQ('error', null, ['error' => 'something wrong']);
         }
     }
 
     /**
-     * Rules validation work section.
+     * Rules validation group.
      *
      * @return array
      */
     public function rules()
     {
         return [
-            'name' => 'required|string|max:255',
-            'shift_id' => 'required|exists:shifts,id',
-            'status' => 'required|string',
-            'time_period' => 'required|numeric',
-            'pay' => 'required',
+            'employee_id' => 'required|string|max:255',
+            'date' => 'required',
+            'kasbon' => 'required',
         ];
     }
 }
