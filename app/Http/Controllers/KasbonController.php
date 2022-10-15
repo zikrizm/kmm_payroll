@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Kasbon;
+use App\Models\EmployeeDebt;
 use App\Utils\ResponseUtil;
 use Illuminate\Http\Request;
 use App\Services\Api\ApiServices;
@@ -36,12 +36,10 @@ class KasbonController extends Controller
         try {
             if (request()->ajax()) {
                 $business_id = Session::get('business_id');
-                $kasbons = Kasbon::where('business_id', $business_id);
+                $kasbons = EmployeeDebt::where('business_id', $business_id);
                 if ($request->has('q') && !empty($request->input('q'))) {
                     $search = str_replace('.', '', $request->q);
-                    $kasbons = $kasbons->where('kasbon', 'LIKE', "%" . $search . "%")->orWhereHas('employee', function ($q) use ($search) {
-                        $q->where('first_name', 'LIKE', "%" . $search . "%");
-                    });
+                    $kasbons = $kasbons->where('debt', 'LIKE', "%" . $search . "%")->orWhere('instalment', 'LIKE', "%" . $search . "%")->orWhere('first_name', 'LIKE', "%" . $search . "%");
                 }
 
                 if ($request->has('kasbon_date')) {
@@ -109,13 +107,18 @@ class KasbonController extends Controller
             if ($validator->fails()) {
                 return $this->buildRes->RESPONSE_REQ('error', null, $validator->errors());
             } else {
-                $kasbon_data = $request->only(['employee_id', 'date', 'kasbon', 'notes']);
+                $kasbon_data = $request->only(['emp_id', 'date', 'debt', 'instalment']);
+
+                $employee = $this->apiService->read_employee($kasbon_data['emp_id']);
                 $kasbon_data['business_id'] = Session::get('business_id');
+                $kasbon_data['first_name'] = $employee['first_name'];
+                $kasbon_data['emp_code'] = $employee['emp_code'];
                 $kasbon_data['created_user'] = auth()->user()->id;
                 $kasbon_data['updated_user'] = auth()->user()->id;
-                $kasbon_data['kasbon'] = str_replace('.', '', $kasbon_data['kasbon']);
+                $kasbon_data['debt'] = str_replace('.', '', $kasbon_data['debt']);
+                $kasbon_data['instalment'] = str_replace('.', '', $kasbon_data['instalment']);
 
-                $kasbon = new Kasbon($kasbon_data);
+                $kasbon = new EmployeeDebt($kasbon_data);
                 $kasbon->save();
 
                 return $this->buildRes->RESPONSE_REQ('success', null,  ['success' => ['Add kasbon succesfully']]);
@@ -144,18 +147,21 @@ class KasbonController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  Kasbon $kasbon
+     * @param  EmployeeDebt $kasbon
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function edit(Kasbon $kasbon, Request $request)
+    public function edit(EmployeeDebt $kasbon, Request $request)
     {
         if (!auth()->user()->can('kasbon.update') || !$request->ajax()) {
             abort(403, 'Unauthorized action.');
         }
 
         try {
-            $render = view('Employee.kasbon.edit', compact('kasbon'))->render();
+            $employee = $this->apiService->get_employees(['emp_code' => $kasbon->emp_code]);
+            $employee = $employee['data'][0];
+            Log::info($employee);
+            $render = view('Employee.kasbon.edit', compact('kasbon', 'employee'))->render();
 
             return $this->buildRes->RESPONSE_REQ('success', $render, null);
         } catch (\Exception $e) {
@@ -169,10 +175,10 @@ class KasbonController extends Controller
      * Update the specified resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  Kasbon $kasbon
+     * @param  EmployeeDebt $kasbon
      * @return \Illuminate\Http\Response
      */
-    public function update(Kasbon $kasbon, Request $request)
+    public function update(EmployeeDebt $kasbon, Request $request)
     {
         if (!auth()->user()->can('kasbon.update') || !$request->ajax()) {
             abort(403, 'Unauthorized action.');
@@ -184,13 +190,16 @@ class KasbonController extends Controller
             if ($validator->fails()) {
                 return $this->buildRes->RESPONSE_REQ('error', null, $validator->errors());
             } else {
-                $kasbon_data = $request->only(['employee_id', 'date', 'kasbon', 'notes']);
+                $kasbon_data = $request->only(['emp_id', 'date', 'debt', 'instalment']);
+                $employee = $this->apiService->read_employee($kasbon_data['emp_id']);
                 $kasbon_data['business_id'] = Session::get('business_id');
+                $kasbon_data['first_name'] = $employee['first_name'];
+                $kasbon_data['emp_code'] = $employee['emp_code'];
                 $kasbon_data['updated_user'] = auth()->user()->id;
-                $kasbon_data['kasbon'] = str_replace('.', '', $kasbon_data['kasbon']);
+                $kasbon_data['debt'] = str_replace('.', '', $kasbon_data['debt']);
+                $kasbon_data['instalment'] = str_replace('.', '', $kasbon_data['instalment']);
 
                 $kasbon->update($kasbon_data);
-
                 return $this->buildRes->RESPONSE_REQ('success', null, ['success' => ['Update kasbon succesfully']]);
             }
         } catch (\Exception $e) {
@@ -203,11 +212,11 @@ class KasbonController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  Kasbon $kasbon
+     * @param  EmployeeDebt $kasbon
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Kasbon $kasbon, Request $request)
+    public function destroy(EmployeeDebt $kasbon, Request $request)
     {
         if (!auth()->user()->can('kasbon.delete') || !$request->ajax()) {
             abort(403, 'Unauthorized action.');
@@ -230,9 +239,10 @@ class KasbonController extends Controller
     public function rules()
     {
         return [
-            'employee_id' => 'required|string|max:255',
+            'emp_id' => 'required|string|max:255',
             'date' => 'required',
-            'kasbon' => 'required',
+            'debt' => 'required',
+            'instalment' => 'required',
         ];
     }
 }

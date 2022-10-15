@@ -6,11 +6,12 @@
         </button>
         <div class="flex flex-col gap-1">
             <div class="flex items-start gap-2">
-                <div class="rounded-full bg-violet-100 p-1.5 border-[4px] border-violet-50 box-border mr-2 text-violet-800">
+                <div
+                    class="rounded-full bg-violet-100 p-1.5 border-[4px] border-violet-50 box-border mr-2 text-violet-800">
                     <x-icon icon="clock" width=18 height=18 viewBox="20 20" />
                 </div>
                 <div>
-                    <p class="text-2xl font-bold text-gray-900 xs/max:text-xl xs/max:font-semibold">New shift</p>
+                    <p class="text-xl font-semibold text-gray-900">New shift</p>
                     <p class="text-sm font-normal text-gray-500 xs/max:text-xs">
                         Please provide the shift's detail.
                     </p>
@@ -46,7 +47,7 @@
                     </div>
                     <div class="flex-1 flex flex-col gap-1">
                         <label class="text-sm font-normal text-gray-500">End*</label>
-                        {!! FormCustom::input('time_end', null, [ "placeholder" => '-',  'type' => 'time']) !!}
+                        {!! FormCustom::input('time_end', null, [ "placeholder" => '-', 'type' => 'time']) !!}
                     </div>
                 </div>
             </section>

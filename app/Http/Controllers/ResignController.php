@@ -28,9 +28,9 @@ class ResignController extends Controller
      */
     public function index(Request $request)
     {
-        // if (!auth()->user()->can('resign.view')) {
-        //     abort(403, 'Unauthorized action.');
-        // }
+        if (!auth()->user()->can('resign.view')) {
+            abort(403, 'Unauthorized action.');
+        }
 
         try {
             if (request()->ajax()) {
@@ -72,14 +72,11 @@ class ResignController extends Controller
      */
     public function create(Request $request)
     {
-        // if (!auth()->user()->can('resign.create') || !request()->ajax()) {
-        //     abort(403, 'Unauthorized action.');
-        // }
+        if (!auth()->user()->can('resign.create') || !request()->ajax()) {
+            abort(403, 'Unauthorized action.');
+        }
 
         try {
-            // $departments = $this->apiService->get_departments([]);
-            // $areas = $this->apiService->get_areas([]);
-            // $positions = $this->apiService->get_positions([]);
             $render = view('Employee.resign.create')->render();
 
             return $this->buildRes->RESPONSE_REQ('success', $render, null);
@@ -98,9 +95,9 @@ class ResignController extends Controller
      */
     public function store(Request $request)
     {
-        // if (!auth()->user()->can('resign.create')  || !$request->ajax()) {
-        //     abort(403, 'Unauthorized action.');
-        // }
+        if (!auth()->user()->can('resign.create')  || !$request->ajax()) {
+            abort(403, 'Unauthorized action.');
+        }
 
         try {
             $validator = Validator::make($request->all(), $this->rules());
@@ -109,25 +106,9 @@ class ResignController extends Controller
             if ($validator->fails()) {
                 return $this->buildRes->RESPONSE_REQ('error', null, $validator->errors());
             } else {
-                $emp_data = $request->only([
-                    'emp_code', 'first_name', 'last_name', 'nickname', 'photo', 'hired_date', 'gender',
-                    'contact_tel', 'office_tel', 'mobile', 'national', 'city', 'address', 'postcode', 'religion', 'email', 'birthday',
-                    'verify_mode', 'emp_type', 'app_status', 'app_role',
-                    'department', 'position', 'area',
-                ]);
+                $resign_data = $request->only(['employee', 'resign_date', 'resign_type', 'disableatt']);
 
-                if (!empty($request->input('area')) && count($request->input('area'))) {
-                    $areas_data = $request->input('area');
-                    if (in_array('all', $areas_data)) {
-                        $emp_data['area'] = [];
-                        $areas = $this->apiService->get_areas([]);
-                        foreach ($areas['data'] as $area) {
-                            $emp_data['area'][] = $area['id'];
-                        }
-                    }
-                }
-
-                $res = $this->apiService->create_employee($emp_data);
+                $res = $this->apiService->create_resign($resign_data);
                 return response()->json($res);
             }
         } catch (\Exception $e) {
@@ -160,17 +141,13 @@ class ResignController extends Controller
      */
     public function edit($resign, Request $request)
     {
-        // if (!auth()->user()->can('resign.update') || !$request->ajax()) {
-        //     abort(403, 'Unauthorized action.');
-        // }
+        if (!auth()->user()->can('resign.update') || !$request->ajax()) {
+            abort(403, 'Unauthorized action.');
+        }
 
         try {
-            $emp = $this->apiService->get_employees(['emp_code' => $resign]);
-            $emp = $emp['data'][0];
-            $departments = $this->apiService->get_departments([]);
-            $areas = $this->apiService->get_areas([]);
-            $positions = $this->apiService->get_positions([]);
-            $render = view('Employee.employee.edit', compact('emp', 'departments', 'areas', 'positions'))->render();
+            $resign = $this->apiService->read_resign($resign);
+            $render = view('Employee.resign.edit', compact('resign'))->render();
 
             return $this->buildRes->RESPONSE_REQ('success', $render, null);
         } catch (\Exception $e) {
@@ -189,9 +166,9 @@ class ResignController extends Controller
      */
     public function update($resign, Request $request)
     {
-        // if (!auth()->user()->can('resign.update') || !$request->ajax()) {
-        //     abort(403, 'Unauthorized action.');
-        // }
+        if (!auth()->user()->can('resign.update') || !$request->ajax()) {
+            abort(403, 'Unauthorized action.');
+        }
 
         try {
             $validator = Validator::make($request->all(), $this->rules());
@@ -199,14 +176,10 @@ class ResignController extends Controller
             if ($validator->fails()) {
                 return $this->buildRes->RESPONSE_REQ('error', null, $validator->errors());
             } else {
-                $emp_data = $request->only([
-                    'emp_code', 'first_name', 'last_name', 'nickname', 'photo', 'hired_date', 'gender',
-                    'contact_tel', 'office_tel', 'mobile', 'national', 'city', 'address', 'postcode', 'religion', 'email', 'birthday',
-                    'verify_mode', 'emp_type', 'app_status', 'app_role',
-                    'department', 'position', 'area',
-                ]);
-                $emp_data['id'] = $resign;
-                $res = $this->apiService->update_employee($emp_data);
+                $resign_data = $request->only(['employee', 'resign_date', 'resign_type', 'disableatt']);
+                $resign_data['id'] = $resign;
+
+                $res = $this->apiService->update_resign($resign_data);
                 return response()->json($res);
             }
         } catch (\Exception $e) {
@@ -225,12 +198,12 @@ class ResignController extends Controller
      */
     public function destroy($resign, Request $request)
     {
-        // if (!auth()->user()->can('resign.delete') || !$request->ajax()) {
-        //     abort(403, 'Unauthorized action.');
-        // }
+        if (!auth()->user()->can('resign.delete') || !$request->ajax()) {
+            abort(403, 'Unauthorized action.');
+        }
 
         try {
-            $res = $this->apiService->delete_employee($resign);
+            $res = $this->apiService->delete_resign($resign);
             return response()->json($res);
         } catch (\Exception $e) {
             return $this->buildRes->RESPONSE_REQ('error', null, ['error' => 'something wrong']);
@@ -259,10 +232,10 @@ class ResignController extends Controller
     public function rules()
     {
         return [
-            // 'emp_code' => 'required|string|max:255',
-            // 'first_name' => 'required|string|max:255',
-            // 'department' => 'required|string|max:255',
-            // 'area' => 'required',
+            'employee' => 'required',
+            'resign_date' => 'required',
+            'resign_type' => 'required',
+            'disableatt' => 'required',
         ];
     }
 }

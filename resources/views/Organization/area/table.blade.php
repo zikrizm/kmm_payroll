@@ -8,8 +8,8 @@
                             {!! FormCustom::checkbox() !!}
                         </div>
                         <div class='px-6 py-3 cursor-pointer flex-1'>
-                            <x-ui.sort-table text="Area code" url="{{ route('area.index') }}"
-                                field="area_code" order="{{ $order }}" />
+                            <x-ui.sort-table text="Area code" url="{{ route('area.index') }}" field="area_code"
+                                order="{{ $order }}" />
                         </div>
                     </div>
                 </th>
@@ -72,7 +72,7 @@
     <footer class='flex justify-between items-center px-6 pt-3 pb-4'>
         @php $page = 1; @endphp
         <p class='text-gray-700 text-sm'>
-            Page <span> {{ $page }} </span> of <span>{{ ceil($areas['count'] / 10) }}</span>
+            Page <span> {{ $page }} </span> of <span>{{ ceil(($areas['count'] ?? 0) / 10) }}</span>
         </p>
         <div class='flex gap-3'>
             @if (!empty($areas['previous']))

@@ -28,7 +28,7 @@ return new class extends Migration
             // $table->string('gender');
             // $table->string('address', 100)->nullable();
 
-            $table->decimal('daily_salary', 22, 4)->default(0);
+            $table->decimal('daily_salary', 22, 2)->default(0);
             // $table->decimal('pay_component', 22, 4)->default(0);
             $table->enum('payment_period', ['mounthly', 'weekly', 'daily'])->default('weekly');
             // $table->enum('payment_type', ['cash', 'cheque', 'transfer'])->default('cash');
@@ -40,6 +40,10 @@ return new class extends Migration
             $table->boolean('is_device')->default(0);
             $table->enum('status', ['active', 'inactive'])->default('active');
 
+            $table->integer('created_user')->unsigned();
+            $table->integer('updated_user')->nullable()->unsigned();
+            $table->foreign('created_user')->references('id')->on('users')->onDelete('cascade');
+            $table->foreign('updated_user')->references('id')->on('users')->onDelete('cascade');
             $table->foreign('business_id')->references('id')->on('business')->onDelete('cascade');
             $table->timestamps();
         });

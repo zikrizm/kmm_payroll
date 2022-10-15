@@ -69,7 +69,7 @@
             var res = await ApiService.get_modal(URL, null);
             $('.select2').select2();
             select2_break_time();
-            var anElement = new AutoNumeric.multiple('.number',{decimalPlaces:0,minimumValue: 0});
+            var anElement = new AutoNumeric.multiple('.number',{decimalPlaces:0,minimumValue: 0,decimalCharacter: ',', digitGroupSeparator : "."});
 
             $('*[data-ref-class-content]').on('click', function(e) {
                 let _idContent = $(this).data('ref-class-content');

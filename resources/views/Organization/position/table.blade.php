@@ -21,6 +21,9 @@
                     <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Wajib Hadir</p>
                 </th>
                 <th class='px-3 py-3 text-left cursor-pointer'>
+                    <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Tetap</p>
+                </th>
+                <th class='px-3 py-3 text-left cursor-pointer'>
                     <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Upah Tambahan</p>
                 </th>
                 @canany(['position.update', 'position.delete'])
@@ -50,6 +53,19 @@
                 <td class='px-3 py text-gray-500 text-sm'>
                     <div class="flex justify-center">
                         @if (!empty($item['must_attend']) && $item['must_attend'])
+                        <span class="w-4 h-4 rounded-full bg-green-600 flex items-center justify-center text-white">
+                            <x-icon icon="check" width=12 height=12 viewBox="20 20" />
+                        </span>
+                        @else
+                        <span class="w-4 h-4 rounded-full bg-gray-300 flex items-center justify-center text-white">
+                            <x-icon icon="check" width=12 height=12 viewBox="20 20" />
+                        </span>
+                        @endif
+                    </div>
+                </td>
+                <td class='px-3 py text-gray-500 text-sm'>
+                    <div class="flex justify-center">
+                        @if (!empty($item['permanently']) && $item['permanently'])
                         <span class="w-4 h-4 rounded-full bg-green-600 flex items-center justify-center text-white">
                             <x-icon icon="check" width=12 height=12 viewBox="20 20" />
                         </span>
@@ -91,7 +107,7 @@
     </table>
     <footer class='flex justify-between items-center px-6 pt-3 pb-4'>
         <p class='text-gray-700 text-sm'>
-            Page <span> 1 </span> of <span>{{ ceil($positions['count'] / 10) }}</span>
+            Page <span> 1 </span> of <span>{{ ceil(($positions['count'] ?? 0) / 10) }}</span>
         </p>
         <div class='flex gap-3'>
             @if (!empty($positions['previous']))

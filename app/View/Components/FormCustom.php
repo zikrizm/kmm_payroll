@@ -50,6 +50,8 @@ class FormCustom extends Component
                 "type" => 'text',
                 "required" => '',
                 "readonly" => false,
+                "disabled" => false,
+                "block_input" => false,
                 "class" => '',
                 "errormsg" => '',
                 "label" => '',
@@ -69,6 +71,8 @@ class FormCustom extends Component
                 if (!empty($attributes['type'])) $atr->type = $attributes['type'];
                 if (!empty($attributes['required'])) $atr->required = $attributes['required'];
                 if (!empty($attributes['readonly'])) $atr->readonly = $attributes['readonly'];
+                if (!empty($attributes['disabled'])) $atr->disabled = $attributes['disabled'];
+                if (!empty($attributes['block_input'])) $atr->block_input = $attributes['block_input'];
                 if (!empty($attributes['class'])) $atr->class = $attributes['class'];
                 if (!empty($attributes['errormsg'])) $atr->errormsg = $attributes['errormsg'];
                 if (!empty($attributes['label'])) $atr->label = $attributes['label'];

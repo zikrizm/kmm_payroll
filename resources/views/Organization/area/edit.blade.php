@@ -4,7 +4,8 @@
     <main
         class="flex flex-col gap-8  pt-4 w-[375px] bg-white max-h-[90vh] overflow-y-auto overflow-x-hidden relative rounded-lg">
         <header class="px-4 flex flex-col gap-5 pt-4 xs/max:gap-3 relative">
-            <button class="absolute top-[-5px] right-3 xs/max:top-[-6px] modal-close hover:bg-gray-100 text-red rounded p-2">
+            <button
+                class="absolute top-[-5px] right-3 xs/max:top-[-6px] modal-close hover:bg-gray-100 text-red rounded p-2">
                 <x-icon icon="x" width=16 height=16 viewBox="20 20" />
             </button>
             <div class="flex flex-col gap-1">
@@ -14,7 +15,7 @@
                         <x-icon icon="layers" width=18 height=18 viewBox="20 20" />
                     </div>
                     <div>
-                        <p class="text-2xl font-bold text-gray-900 xs/max:text-xl xs/max:font-semibold">Area</p>
+                        <p class="text-xl font-semibold text-gray-900">Area</p>
                         <p class="text-sm font-normal text-gray-500 xs/max:text-xs">
                             Please provide the area's detail.
                         </p>

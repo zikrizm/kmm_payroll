@@ -15,4 +15,12 @@ class ShiftDayHasTimetable extends Model
      * @var array
      */
     protected $guarded = ['id'];
+
+    /**
+     * Get the business that owns the user.
+     */
+    public function timetable()
+    {
+        return $this->belongsTo(Timetable::class);
+    }
 }

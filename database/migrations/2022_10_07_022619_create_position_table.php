@@ -17,6 +17,7 @@ return new class extends Migration
             $table->increments('id');
             $table->integer('position_id');
             $table->boolean('must_attend')->default(0);
+            $table->boolean('permanently')->default(0);
             $table->decimal('extra_pay', 22, 2)->nullable();
             
             $table->integer('created_user')->unsigned();

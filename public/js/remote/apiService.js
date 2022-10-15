@@ -17,7 +17,7 @@ class Api extends NetworkUtils {
         try {
             let _response = await this.emitter('GET', url, data)
             if (_response.response < 200 || _response.response >= 300) {
-                return null;
+                handleMessage(_response);
             } else {
                 $('.content-main-modal').html(_response.data);
                 // * OPEN MODAL ----->
@@ -46,7 +46,7 @@ class Api extends NetworkUtils {
                     // * CLEAR ERROR ----->
                     clearErrorFormInputs();
                     // * CLOSE MODAL ----->
-                    closeModal({ name: '.main-modal', content: '.content-main-modal' });
+                    // closeModal({ name: '.main-modal', content: '.content-main-modal' });
                     callback(_response);
                 }
             } catch (error) {

@@ -2,16 +2,23 @@
 
 namespace App\Http\Controllers;
 
+use App\Rules\NIK;
+use App\Rules\Mobile;
+use App\Models\Employee;
 use App\Utils\ResponseUtil;
 use Illuminate\Http\Request;
 use App\Services\Api\ApiServices;
+use Illuminate\Support\Facades\DB;
+use App\Models\EmployeeHasPosition;
 use Illuminate\Support\Facades\Log;
 use App\Exceptions\ResponseExeception;
 use Illuminate\Support\Facades\Cookie;
+use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
+use Maatwebsite\Excel\Facades\Excel;
 use App\Http\Controllers\EmployeePhotoController;
-use App\Rules\Mobile;
-use App\Rules\NIK;
+use Maatwebsite\Excel\Exceptions\NoTypeDetectedException;
+use Maatwebsite\Excel\Validators\ValidationException;
 
 class EmployeeController extends Controller
 {
@@ -56,7 +63,25 @@ class EmployeeController extends Controller
                 }
 
                 $employees = $this->apiService->get_employees($filter);
-                $render =  view('Employee.employee.table', compact('employees', 'order'))->render();
+                $positions = $this->apiService->get_positions([])['data'];
+
+                $emp_ids = array_column($employees['data'], 'id');
+                $empDBs = Employee::whereIn('emp_id', $emp_ids)->with('employee_has_position')->get();
+                foreach ($employees['data'] as $key => $employee) {
+                    $employees['data'][$key]['position'] = [];
+                }
+
+                foreach ($empDBs as $key => $empDB) {
+                    $_positions = [];
+                    foreach ($empDB->employee_has_position as $emp_has_position) {
+                        $pos_i = array_search($emp_has_position->position_id, array_column($positions, 'id'));
+                        $_positions[] = $positions[$pos_i];
+                    }
+                    $emp_i = array_search($empDB->emp_id, array_column($employees['data'], 'id'));
+                    $employees['data'][$emp_i]['position'] = $_positions;
+                }
+
+                $render = view('Employee.employee.table', compact('employees', 'order'))->render();
                 return $this->buildRes->RESPONSE_REQ('success', $render, null);
             }
 
@@ -83,12 +108,11 @@ class EmployeeController extends Controller
         }
 
         try {
-            $render = view('Employee.employee.create')->render();
-            // $departments = $this->apiService->get_departments([]);
-            // $areas = $this->apiService->get_areas([]);
-            // $positions = $this->apiService->get_positions([]);
+            $departments = $this->apiService->get_departments([]);
+            $areas = $this->apiService->get_areas([]);
+            $positions = $this->apiService->get_positions([]);
 
-            // $render = view('Employee.employee.create', compact('departments', 'areas', 'positions'))->render();
+            $render = view('Employee.employee.create', compact('departments', 'areas', 'positions'))->render();
 
             return $this->buildRes->RESPONSE_REQ('success', $render, null);
         } catch (\Exception $e) {
@@ -106,21 +130,24 @@ class EmployeeController extends Controller
      */
     public function store(Request $request)
     {
-        if (!auth()->user()->can('employee.create')  || !$request->ajax()) {
+        if (!auth()->user()->can('employee.create') || !auth()->user()->can('employee-photo.create') || !$request->ajax()) {
             abort(403, 'Unauthorized action.');
         }
 
         try {
-            $validator = Validator::make($request->all(), $this->rules());
+            $validator = Validator::make($request->all(), $this->rules(null));
 
             if ($validator->fails()) {
                 return $this->buildRes->RESPONSE_REQ('error', null, $validator->errors());
             } else {
+                DB::beginTransaction();
+
                 $request['employee_code'] = $request->emp_code;
                 $emp_data = $request->only([
                     'user_capture', 'emp_code', 'first_name', 'last_name', 'nickname', 'hired_date', 'gender',
                     'contact_tel', 'office_tel', 'mobile', 'national', 'city', 'address', 'postcode', 'religion', 'email', 'birthday',
-                    'verify_mode', 'emp_type', 'app_status', 'app_role', 'department', 'position', 'area'
+                    'verify_mode', 'emp_type', 'app_status', 'app_role', 'hire_date', 'department', 'position', 'area', 'daily_salary', 'payment_period',
+                    'is_error_image',
                 ]);
 
                 if (!empty($request->input('area')) && count($request->input('area'))) {
@@ -134,31 +161,84 @@ class EmployeeController extends Controller
                     }
                 }
 
-                // * Check employee already exist or not.
-                $employees = $this->apiService->get_employees(['emp_code_icontains' => $request->emp_code]);
-                $employees = $employees['data'];
-                $is_ready = !empty($employees);
-
-                if ($is_ready) {
-                    $emp_data['id'] = $employees[0]['id'];
+                if ((bool)$emp_data['is_error_image']) {
+                    // * Check employee already exist or not.
+                    $employees = $this->apiService->get_employees(['emp_code' => $request->emp_code]);
+                    $emp_data['id'] = $employees['data'][0]['id'];
                     $res = $this->apiService->update_employee($emp_data);
+
+                    $emp_id = $employees['data'][0]['id'];
+                    Log::info('update_employee_in_create');
                 } else {
                     $res = $this->apiService->create_employee($emp_data);
+                    if ($res['status'] == 'success')
+                        $emp_id = $res['data']['id'];
+                    Log::info('create_employee');
                 }
 
                 if ($res['status'] == 'success') {
                     // * Save employee to DB.
+                    $business_id = Session::get('business_id');
+                    $emp_code = $res['data']['emp_code'];
 
+                    if ((bool)$emp_data['is_error_image']) {
+                        $employeeDB = Employee::where('emp_id', $emp_id)->first();
+                        $employeeDB->update([
+                            'emp_code' => $emp_code,
+                            'first_name' => $res['data']['first_name'],
+                            'last_name' => $res['data']['last_name'],
+                            'daily_salary' => str_replace('.', '', $emp_data['daily_salary']),
+                            'payment_period' => $emp_data['payment_period'],
+                            'updated_user' => auth()->user()->id,
+                        ]);
+                    } else {
+                        $employeeDB = new Employee([
+                            'business_id' => $business_id,
+                            'emp_id' => $emp_id,
+                            'emp_code' => $emp_code,
+                            'first_name' => $res['data']['first_name'],
+                            'last_name' => $res['data']['last_name'],
+                            'daily_salary' => str_replace('.', '', $emp_data['daily_salary']),
+                            'payment_period' => $emp_data['payment_period'],
+                            'created_user' => auth()->user()->id,
+                            'updated_user' => auth()->user()->id,
+                            'is_device' => -1,
+                        ]);
+                        $employeeDB->save();
+                    }
 
-                    if (auth()->user()->can('employee-photo.create')) {
+                    // Delete all EmployeeHasPosition IF emp_id == $employee->id
+                    EmployeeHasPosition::where('emp_id', $employeeDB->id)->each(function ($item) {
+                        $item->delete();
+                    });
+
+                    if (!empty($request->input('position'))) {
+                        foreach ($emp_data['position'] as $item) {
+                            $position = new EmployeeHasPosition([
+                                'emp_id' => $employeeDB->id,
+                                'position_id' => $item,
+                            ]);
+
+                            $position->save();
+                        }
+                    }
+
+                    if ($request->hasFile('user_capture') && $request->file('user_capture')->isValid()) {
                         $resPhoto = app('App\Http\Controllers\EmployeePhotoController')->store($request);
                         if ($resPhoto['status'] == 'error') {
+                            Log::info($resPhoto);
+                            $msg_text = $resPhoto['msg']['error'];
+                            if (str_contains(strtolower($msg_text), 'invalid photo') || str_contains(strtolower($msg_text), 'cannot write mode')) {
+                                $resPhoto['msg']['user_capture'] = [$msg_text];
+                                unset($resPhoto['msg']['error']);
+                            }
+                            DB::commit();
                             return response()->json($resPhoto);
                         } else {
                             return response()->json($res);
                         }
                     } else {
-                        return response()->json($res);
+                        DB::commit();
                     }
                 } else {
                     return response()->json($res);
@@ -170,33 +250,6 @@ class EmployeeController extends Controller
             return $this->buildRes->RESPONSE_REQ('error', null, ['error' => 'something wrong']);
         }
     }
-
-    // /**
-    //  * Store a newly created resource in storage.
-    //  *
-    // * @param  \Illuminate\Http\Request  $request
-    //  * @return \Illuminate\Http\Response
-    //  */
-    // public function _post_employee_photo(Request $request)
-    // {
-    //     if (!auth()->user()->can('employee.create')  || !$request->ajax()) {
-    //         abort(403, 'Unauthorized action.');
-    //     }
-
-    //     try {
-    //         $emp_data_photo = [
-    //             'user_capture' => $request['user_capture'],
-    //             'csrfmiddlewaretoken' => $request['csrfmiddlewaretoken'],
-    //             'employee_code' => $request['emp_code'],
-    //         ];
-    //         $res = $this->apiService->update_employee_photo($emp_data_photo);
-    //         Log::info($res);
-    //     } catch (\Exception $e) {
-    //         Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
-
-    //         return $this->buildRes->RESPONSE_REQ('error', null, ['error' => 'something wrong']);
-    //     }
-    // }
 
     /**
      * Display the specified resource.
@@ -226,14 +279,24 @@ class EmployeeController extends Controller
         }
 
         try {
-            $emp = $this->apiService->get_employees(['emp_code' => $employee]);
-            $emp = $emp['data'][0];
-            $departments = $this->apiService->get_departments([]);
-            $areas = $this->apiService->get_areas([]);
-            $positions = $this->apiService->get_positions([]);
-            $render = view('Employee.employee.edit', compact('emp', 'departments', 'areas', 'positions'))->render();
+            $employee = $this->apiService->get_employees(['emp_code' => $employee]);
+            if (!empty($employee['data'])) {
+                $employee = $employee['data'][0];
 
-            return $this->buildRes->RESPONSE_REQ('success', $render, null);
+                $employeeDB = Employee::where('emp_id', $employee['id'])->with('employee_has_position')->first();
+                $employee['daily_salary'] = $employeeDB->daily_salary ?? null;
+                $employee['payment_period'] = $employeeDB->payment_period ?? null;
+                $employee['position'] = $employeeDB->employee_has_position ?? [];
+
+                $departments = $this->apiService->get_departments([]);
+                $areas = $this->apiService->get_areas([]);
+                $positions = $this->apiService->get_positions([]);
+                $render = view('Employee.employee.edit', compact('employee', 'departments', 'areas', 'positions'))->render();
+
+                return $this->buildRes->RESPONSE_REQ('success', $render, null);
+            } else {
+                return $this->buildRes->RESPONSE_REQ('error', null, ['error' => ['No employee data']]);
+            }
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
 
@@ -255,22 +318,105 @@ class EmployeeController extends Controller
         }
 
         try {
-            $validator = Validator::make($request->all(), $this->rules());
-
+            $validator = Validator::make($request->all(), $this->rules($employee));
             if ($validator->fails()) {
                 return $this->buildRes->RESPONSE_REQ('error', null, $validator->errors());
             } else {
+                DB::beginTransaction();
+
+                $request['employee_code'] = $request->emp_code;
                 $emp_data = $request->only([
-                    'emp_code', 'first_name', 'last_name', 'nickname', 'photo', 'hired_date', 'gender',
+                    'user_capture', 'emp_code', 'first_name', 'last_name', 'nickname', 'hired_date', 'gender',
                     'contact_tel', 'office_tel', 'mobile', 'national', 'city', 'address', 'postcode', 'religion', 'email', 'birthday',
-                    'verify_mode', 'emp_type', 'app_status', 'app_role',
-                    'department', 'position', 'area',
+                    'verify_mode', 'emp_type', 'app_status', 'app_role', 'hire_date', 'department', 'position', 'area', 'daily_salary', 'payment_period'
                 ]);
+
+                Log::info($emp_data);
+
+                if (!empty($request->input('area')) && count($request->input('area'))) {
+                    $areas_data = $request->input('area');
+                    if (in_array('all', $areas_data)) {
+                        $emp_data['area'] = [];
+                        $areas = $this->apiService->get_areas([]);
+                        foreach ($areas['data'] as $area) {
+                            $emp_data['area'][] = $area['id'];
+                        }
+                    }
+                }
+
                 $emp_data['id'] = $employee;
                 $res = $this->apiService->update_employee($emp_data);
-                return response()->json($res);
+
+                if ($res['status'] == 'success') {
+                    // * Save employee to DB.
+                    $business_id = Session::get('business_id');
+                    $emp_code = $res['data']['emp_code'];
+
+                    $employeeDB = Employee::where('emp_id', $employee)->first();
+                    if (empty($employeeDB)) {
+                        $employeeDB = new Employee([
+                            'business_id' => $business_id,
+                            'emp_id' => $employee,
+                            'emp_code' => $emp_code,
+                            'first_name' => $res['data']['first_name'],
+                            'last_name' => $res['data']['last_name'],
+                            'daily_salary' => str_replace('.', '', $emp_data['daily_salary']),
+                            'payment_period' => $emp_data['payment_period'],
+                            'created_user' => auth()->user()->id,
+                            'updated_user' => auth()->user()->id,
+                            'is_device' => -1,
+                        ]);
+
+                        $employeeDB->save();
+                    } else {
+                        $employeeDB->update([
+                            'emp_code' => $emp_code,
+                            'first_name' => $res['data']['first_name'],
+                            'last_name' => $res['data']['last_name'],
+                            'daily_salary' => str_replace('.', '', $emp_data['daily_salary']),
+                            'payment_period' => $emp_data['payment_period'],
+                            'updated_user' => auth()->user()->id,
+                        ]);
+                    }
+
+                    // Delete all EmployeeHasPosition IF emp_id == $employee->id
+                    EmployeeHasPosition::where('emp_id', $employeeDB->id)->each(function ($item) {
+                        $item->delete();
+                    });
+
+                    if (!empty($request->input('position'))) {
+                        foreach ($emp_data['position'] as $item) {
+                            $position = new EmployeeHasPosition([
+                                'emp_id' => $employeeDB->id,
+                                'position_id' => $item,
+                            ]);
+                            $position->save();
+                        }
+                    }
+
+                    if ($request->hasFile('user_capture') && $request->file('user_capture')->isValid()) {
+                        $resPhoto = app('App\Http\Controllers\EmployeePhotoController')->store($request);
+                        if ($resPhoto['status'] == 'error') {
+                            $msg_text = $resPhoto['msg']['error'];
+                            if (str_contains(strtolower($msg_text), 'invalid photo') || str_contains(strtolower($msg_text), 'cannot write mode')) {
+                                Log::info("SDfsdfsdf");
+                                $resPhoto['msg']['user_capture'] = [$msg_text];
+                                unset($resPhoto['msg']['error']);
+                            }
+                            DB::commit();
+                            return response()->json($resPhoto);
+                        } else {
+                            return response()->json($res);
+                        }
+                    } else {
+                        DB::commit();
+                    }
+                } else {
+                    return response()->json($res);
+                }
             }
         } catch (\Exception $e) {
+            DB::rollBack();
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
 
             return $this->buildRes->RESPONSE_REQ('error', null, ['error' => 'something wrong']);
@@ -305,6 +451,7 @@ class EmployeeController extends Controller
         }
 
         if ($request->has('q')) {
+            Log::info($request);
             $employees = $this->apiService->get_employees(['employee_icontains' => $request->q]);
             return response()->json($employees);
         } else {
@@ -312,20 +459,65 @@ class EmployeeController extends Controller
         }
     }
 
+    public function uploadCSV()
+    {
+        $render =  view('Employee.employee.uploadCSV')->render();
+
+        return $this->buildRes->RESPONSE_REQ('success', $render, null);
+        # code...
+    }
+    public function uploadCSVtess(Request $request)
+    {
+       // Log::info($request);
+        // try {
+            try {
+                // $headings = (new HeadingRowImport)->toArray($request->file);
+    
+                // Log::info($request);
+                // Log::info($request->file('file')[0]);
+                // Excel::import(new UsersImport, $request->file);
+                // Log::info($tess);
+                return 'berhasil';
+            } catch (ValidationException $e) {
+                Log::info("Sdfsdfsdfsdf");
+                $failures = $e->failures();
+    
+                Log::info($failures);
+    
+                foreach ($failures as $failure) {
+                    $failure->row(); // row that went wrong
+                    $failure->attribute(); // either heading key (if using heading row concern) or column index
+                    $failure->errors(); // Actual error messages from Laravel validator
+                    $failure->values(); // The values of the row that has failed.
+                }
+            } catch (NoTypeDetectedException $e) {
+                // return Redirect::back();
+                Log::info("errro");
+            } catch (\Exception $e) {
+                Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
+            }
+    }
+
     /**
      * Rules validation employee.
      *
+     * @param string $employee_id
      * @return array
      */
-    public function rules()
+    public function rules($employee_id)
     {
         return [
-            'emp_code' => ['required', new NIK],
+            'emp_code' => (empty($employee_id)) ? 'required' : 'sometimes',
             'first_name' => 'required|string|max:255',
             'department' => 'required|string|max:255',
             'emp_type' => 'required|string|max:255',
-            'mobile' => ['required', new Mobile],
+            'hire_date' => 'required|string|max:255',
+            'mobile' => ['sometimes', new Mobile, 'nullable'],
             'area' => 'required',
+            'gender' => 'required',
+            'daily_salary' => 'required',
+            'payment_period' => 'required',
+            'user_capture' => (empty($employee_id)) ? 'required' : 'sometimes',
         ];
     }
 }

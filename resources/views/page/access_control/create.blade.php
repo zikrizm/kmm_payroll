@@ -1,7 +1,7 @@
 <div class="flex flex-col gap-6 xs/max:gap-6">
     <header class="px-4 flex flex-col gap-5 xs/max:gap-3">
         <div class="flex flex-col gap-1">
-            <p class="text-2xl font-bold text-gray-900 xs/max:text-xl xs/max:font-semibold">New access control</p>
+            <p class="text-xl font-semibold text-gray-900">New access control</p>
             <p class="text-base font-normal text-gray-500 xs/max:text-sm">Lorem ipsum dolor sit, amet consectetur
                 adipisicing
                 elit.
@@ -38,21 +38,25 @@
                         </label>
                         <label
                             class="text-sm xs/max:text-xs text-gray-500 flex items-center gap-2 bg-gray-50 rounded-md px-2 py-1 cursor-pointer hover:bg-gray-100">
-                            <input type="checkbox" class="accent-green-500 user-check" name="roles[]" value="user.view"> View
+                            <input type="checkbox" class="accent-green-500 user-check" name="roles[]" value="user.view">
+                            View
                             user
                         </label>
                         <label
                             class="text-sm xs/max:text-xs text-gray-500 flex items-center gap-2 bg-gray-50 rounded-md px-2 py-1 cursor-pointer hover:bg-gray-100">
-                            <input type="checkbox" class="accent-green-500 user-check" name="roles[]" value="user.create"> Add user
+                            <input type="checkbox" class="accent-green-500 user-check" name="roles[]"
+                                value="user.create"> Add user
                         </label>
                         <label
                             class="text-sm xs/max:text-xs text-gray-500 flex items-center gap-2 bg-gray-50 rounded-md px-2 py-1 cursor-pointer hover:bg-gray-100">
-                            <input type="checkbox" class="accent-green-500 user-check" name="roles[]" value="user.update"> Edit
+                            <input type="checkbox" class="accent-green-500 user-check" name="roles[]"
+                                value="user.update"> Edit
                             user
                         </label>
                         <label
                             class="text-sm xs/max:text-xs text-gray-500 flex items-center gap-2 bg-gray-50 rounded-md px-2 py-1 cursor-pointer hover:bg-gray-100">
-                            <input type="checkbox" class="accent-green-500 user-check" name="roles[]" value="user.delete"> Delete
+                            <input type="checkbox" class="accent-green-500 user-check" name="roles[]"
+                                value="user.delete"> Delete
                             user
                         </label>
                     </div>
@@ -69,17 +73,20 @@
                         </label>
                         <label
                             class="text-sm xs/max:text-xs text-gray-500 flex items-center gap-2 bg-gray-50 rounded-md px-2 py-1 cursor-pointer hover:bg-gray-100">
-                            <input type="checkbox" class="accent-green-500 employee-check" name="roles[]" value="employee.view">
+                            <input type="checkbox" class="accent-green-500 employee-check" name="roles[]"
+                                value="employee.view">
                             View employee
                         </label>
                         <label
                             class="text-sm xs/max:text-xs text-gray-500 flex items-center gap-2 bg-gray-50 rounded-md px-2 py-1 cursor-pointer hover:bg-gray-100">
-                            <input type="checkbox" class="accent-green-500 employee-check" name="roles[]" value="employee.create">
+                            <input type="checkbox" class="accent-green-500 employee-check" name="roles[]"
+                                value="employee.create">
                             Add employee
                         </label>
                         <label
                             class="text-sm xs/max:text-xs text-gray-500 flex items-center gap-2 bg-gray-50 rounded-md px-2 py-1 cursor-pointer hover:bg-gray-100">
-                            <input type="checkbox" class="accent-green-500 employee-check" name="roles[]" value="employee.update">
+                            <input type="checkbox" class="accent-green-500 employee-check" name="roles[]"
+                                value="employee.update">
                             Edit employee
                         </label>
                         <label

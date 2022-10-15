@@ -2,6 +2,8 @@
 
 namespace App\Utils;
 
+use Illuminate\Support\Carbon;
+
 class Util
 {
     /**
@@ -51,5 +53,16 @@ class Util
         }
 
         return $uploaded_file_name;
+    }
+
+    public function generateDateRange(Carbon $start_date, Carbon $end_date)
+    {
+        $dates = [];
+
+        for ($date = $start_date->copy(); $date->lte($end_date); $date->addDay()) {
+            $dates[] = $date->format('Y-m-d');
+        }
+
+        return $dates;
     }
 }

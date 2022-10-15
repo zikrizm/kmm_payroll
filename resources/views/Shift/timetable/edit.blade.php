@@ -16,7 +16,7 @@
                         <x-icon icon="clock" width=18 height=18 viewBox="20 20" />
                     </div>
                     <div>
-                        <p class="text-2xl font-bold text-gray-900 xs/max:text-xl xs/max:font-semibold">Jadwal
+                        <p class="text-xl font-semibold text-gray-900">Jadwal
                         </p>
                         <p class="text-sm font-normal text-gray-500 xs/max:text-xs">
                             Harap berikan detail jadwalnya.
@@ -173,7 +173,7 @@
                         <label class="font-normal text-xs text-red-500 xs/max:text-xs cross_day hint-text"></label>
                     </section>
                     <div id="overtime-content"
-                        class="{{ ($timetable->time_period ||  $timetable->overtime_pay ||$timetable->duration_calculate_one_shift ) ? '': 'hidden'}}">
+                        class="{{ (!empty($timetable->time_period) ||  !empty($timetable->overtime_pay) ||!empty($timetable->duration_calculate_one_shift) ) ? '': 'hidden'}}">
                         <div class="flex flex-col gap-4">
                             <section class="flex items-start gap-3">
                                 <div class="flex-1 flex flex-col gap-1">
@@ -201,14 +201,15 @@
                     </div>
                     <section class="flex flex-col gap-1 flex-1">
                         <div class="flex items-center gap-2">
-                            {!! FormCustom::checkbox('is_overtime_rice', -1, ['checked'=> $timetable->duration_rice_shift])
+                            {!! FormCustom::checkbox('is_overtime_rice', -1, ['checked'=>
+                            !is_null($timetable->duration_rice_shift) && $timetable->duration_rice_shift >= 0])
                             !!}
                             <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Nasi lembur</label>
                         </div>
                         <label class="font-normal text-xs text-red-500 xs/max:text-xs cross_day hint-text"></label>
                     </section>
                     <div id="rice-overtime-content"
-                        class="{{$timetable->duration_rice_shift ? '': 'hidden'}}">
+                        class="{{(!is_null($timetable->duration_rice_shift) && $timetable->duration_rice_shift >= 0) ? '': 'hidden'}}">
                         <section class="flex flex-col gap-1">
                             <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Durasi jam nasi
                                 lembur*</label>

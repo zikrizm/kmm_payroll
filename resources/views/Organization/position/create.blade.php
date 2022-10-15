@@ -15,7 +15,7 @@
                         <x-icon icon="layers" width=18 height=18 viewBox="20 20" />
                     </div>
                     <div>
-                        <p class="text-2xl font-bold text-gray-900 xs/max:text-xl xs/max:font-semibold">Tambah jabatan
+                        <p class="text-xl font-semibold text-gray-900">Tambah jabatan
                         </p>
                         <p class="text-sm font-normal text-gray-500 xs/max:text-xs">
                             Harap berikan detail jabatan.
@@ -42,7 +42,19 @@
                         </span>
                         <div class="flex flex-col gap-px">
                             <p class="font-medium text-sm text-gray-700">Wajib hadir</p>
-                            <p class="font-normal text-sm text-gray-500">Atur yang boleh hadir / tidak hadir gpp
+                            <p class="font-normal text-sm text-gray-500">Atur yang boleh hadir / tidak hadir
+                            </p>
+                        </div>
+                    </div>
+                </section>
+                <section>
+                    <div class="flex items-start gap-2.5">
+                        <span class="pt-0.5">
+                            {!! FormCustom::checkbox('permanently', -1, ['checked'=>true]) !!}
+                        </span>
+                        <div class="flex flex-col gap-px">
+                            <p class="font-medium text-sm text-gray-700">Tetap</p>
+                            <p class="font-normal text-sm text-gray-500">Jika tidak tetap maka sesuai permintaan
                             </p>
                         </div>
                     </div>

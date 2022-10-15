@@ -15,7 +15,7 @@
                         <x-icon icon="user" width=18 height=18 viewBox="20 20" />
                     </div>
                     <div>
-                        <p class="text-2xl font-bold text-gray-900 xs/max:text-xl xs/max:font-semibold">User</p>
+                        <p class="text-xl font-semibold text-gray-900">User</p>
                         <p class="text-sm font-normal text-gray-500 xs/max:text-xs">
                             Please provide the user's detail.
                         </p>
@@ -38,8 +38,7 @@
                             <x-icon icon="x" width=12 height=12 viewBox="20 20" />
                         </button>
                         <div class="h-16 w-16 bg-gray-50 rounded-full overflow-hidden">
-                            <img src="{{ $user->photo }}"
-                                class="object-contain w-full h-full" id="photo_preview">
+                            <img src="{{ $user->photo }}" class="object-contain w-full h-full" id="photo_preview">
                         </div>
                     </div>
                     <label for="contained-button-file" class="flex items-center cursor-pointer">

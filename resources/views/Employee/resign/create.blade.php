@@ -3,7 +3,7 @@
     @csrf
     <!-- {{ csrf_field() }} -->
     <section
-        class="flex flex-col gap-8 pt-4 bg-white w-[600px] max-h-[90vh] overflow-y-auto overflow-x-hidden relative rounded-lg">
+        class="flex flex-col gap-8 pt-4 bg-white w-[400px] max-h-[90vh] overflow-y-auto overflow-x-hidden relative rounded-lg">
         <header class="px-4 flex flex-col gap-5 pt-4 xs/max:gap-3 relative">
             <button
                 class="absolute top-[-5px] right-3 xs/max:top-[-6px] modal-close hover:bg-gray-100 text-red rounded p-2">
@@ -16,10 +16,10 @@
                         <x-icon icon="user-x" width=18 height=18 viewBox="20 20" />
                     </div>
                     <div>
-                        <p class="text-2xl font-bold text-gray-900 xs/max:text-xl xs/max:font-semibold">New resign
+                        <p class="text-xl font-semibold text-gray-900">Tambah pengunduran
                         </p>
                         <p class="text-sm font-normal text-gray-500 xs/max:text-xs">
-                            Please provide the resign's detail.
+                            Harap berikan detail pengunduran karyawan.
                         </p>
                     </div>
                 </div>
@@ -27,133 +27,39 @@
             <hr>
         </header>
         <div>
-            <main class="px-4 flex flex-col gap-8 xs/max:gap-3 mb-8">
-                <div class="">
-                    <main class='border border-gray-200 rounded-lg shadow-sm '>
-                        <div class="w-full overflow-auto overflow-y-hidden">
-                            <table class='table border-collapse w-full'>
-                                <thead class='border-b border-gray-200 bg-gray-50'>
-                                    <tr class=''>
-                                        <th class='text-left'>
-                                            <div class='flex items-center'>
-                                                <div class='pl-4 py-2 flex items-center'>
-                                                    {!! FormCustom::checkbox() !!}
-                                                </div>
-                                                <div class='px-6 py-3 cursor-pointer flex-1'>
-                                                    <p
-                                                        class="text-xs font-medium text-gray-500 truncate cursor-pointer">
-                                                        Employee code</p>
-                                                </div>
-                                            </div>
-                                        </th>
-                                        <th class='px-3 py-3 text-left cursor-pointer'>
-                                            <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Fisrt
-                                                name</p>
-                                        </th>
-                                        <th class='px-3 py-3 text-left cursor-pointer'>
-                                            <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Last
-                                                name</p>
-                                        </th>
-                                        <th class='px-3 py-3 text-left cursor-pointer'>
-                                            <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">
-                                                Department</p>
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {{-- @foreach ($resigns['data'] as $item)
-                                    <tr class='hover:bg-gray-50 border-b border-gray-200 cursor-pointer'>
-                                        <td class='text-left'>
-                                            <div class="flex items-center">
-                                                <div class="pl-4 py ">
-                                                    {!! FormCustom::checkbox() !!}
-                                                </div>
-                                                <div class="flex gap-3 items-center px-6 py-3">
-                                                    <p class="text-gray-500 text-sm">
-                                                        {{ $item['emp_code'] }}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td class='px-3 py text-gray-500 text-sm'>
-                                            <p class="truncate">
-                                                {{ $item['first_name'] ?? '-' }} {{ $item['last_name'] ?? '-' }}
-                                            </p>
-                                        </td>
-                                        <td class='px-3 py text-gray-500 text-sm'>
-                                            <p class="truncate">
-                                                {{ (!empty($item['department']) ? $item['department']['dept_name']??'-'
-                                                : '-') }}
-                                            </p>
-                                        </td>
-                                        <td class='px-3 py text-gray-500 text-sm'>
-                                            <p class="truncate">
-                                                {{ (!empty($item['position']) ? $item['position']['position_name']??'-'
-                                                : '-') }}
-                                            </p>
-                                        </td>
-                                        <td class='px-3 py text-gray-500 text-sm'>
-                                            <p class="truncate">
-                                                {{ $item['resign_type'] }}
-                                            </p>
-                                        </td>
-                                        <td class='px-3 py text-center text-gray-500 text-sm'>
-                                            <div class="flex items-center gap-2">
-                                                <x-icon icon="calendar" width=18 height=18 viewBox="20 20" />
-                                                <p class="truncate">
-                                                    {{ date('Y-m-d', strtotime($item['resign_date'])); }}
-                                                </p>
-                                            </div>
-                                        </td>
-                                        <td class='px-3 py text-center text-gray-500 text-sm'>
-                                            <p class="truncate">
-                                                {{ $item['resign_date'] }}
-                                            </p>
-                                        </td>
-                                        <td class='px-3 py text-center text-gray-500 text-sm'>
-                                            <p class="truncate">
-                                                {{ $item['resign_date'] }}
-                                            </p>
-                                        </td>
-                                        <td class='px-3 py'>
-                                            <div class='flex gap-1'>
-                                                <button onclick="open_modal_confirm('{{ $item['id'] }}')"
-                                                    class='p-2.5 cursor-pointer text-gray-500 delete-btn'>
-                                                    <x-icon icon="trash-2" width=18 height=18 viewBox="20 20" />
-                                                </button>
-                                                <button class='p-2.5 cursor-pointer text-gray-500 edit-btn'
-                                                    onclick="get_modal({{ $item['emp_code'] }})">
-                                                    <x-icon icon="edit" width=18 height=18 viewBox="20 20" />
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    @endforeach --}}
-                                </tbody>
-                            </table>
-                        </div>
-                        
-                    </main>
-                </div>
-                <div class="flex flex-col gap-4">
-                    <div>
-                        <p class="text-lg font-medium text-gray-900
-                            xs/max:font-semibold">Resignation information
-                        </p>
-                        <p class="text-sm font-normal text-gray-500 xs/max:text-xs">
-                            Please complete this resignation data
-                        </p>
-                    </div>
-                    <hr>
-                    <section class="flex flex-col gap-1">
-                        <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Resignation Date*</label>
-                        {!! FormCustom::input('resign_date', null, [ 'placeholder' => 'Enter new your resignation date',
-                        'class' => 'date_input', 'readonly' => true, 'prefixiconname' => 'calendar' ]) !!}
+            <main class="px-4 flex flex-col gap-2.5 xs/max:gap-3 mb-8">
+                <section class="flex flex-col gap-1">
+                    <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Karyawan*</label>
+                    <select class="select2-employee" name="employee">
+                        <option value="" default disabled selected> Silahkan pilih </option>
+                    </select>
+                    <label class="font-normal text-xs text-red-500 xs/max:text-xs employee hint-text"></label>
+                </section>
+                <section class="flex flex-col gap-1">
+                    <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Tanggal Pengunduran Diri*</label>
+                    {!! FormCustom::input('resign_date', null, [ 'placeholder' => 'Pilih tanggal Pengunduran Diri
+                    karyawan',
+                    'class' => 'date_input', 'readonly' => true, 'prefixiconname' => 'calendar' ]) !!}
+                </section>
+                <div class="flex items-start gap-4 w-full">
+                    <section class="flex flex-col gap-1 flex-1 w-1/2">
+                        <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Jenis pengunduran diri*</label>
+                        <select class="select2" name="resign_type">
+                            <option value="1" selected>Berhenti</option>
+                            <option value="2">Dihentikan</option>
+                            <option value="3">Mengundurkan diri</option>
+                            <option value="4">Transfer</option>
+                            <option value="5">Mempertahankan pekerjaan tanpa bayaran</option>
+                        </select>
+                        <label class="font-normal text-xs text-red-500 xs/max:text-xs gender hint-text"></label>
                     </section>
-                    <section class="flex flex-col gap-1">
-                        <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Resignation Type</label>
-                        {!! FormCustom::input('resign_type', null, [ 'placeholder' => 'Enter new your resignation type',
-                        'class' => 'date_input', 'readonly' => true, 'prefixiconname' => 'calendar' ]) !!}
+                    <section class="flex flex-col gap-1 flex-1 w-1/2">
+                        <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Kehadiran*</label>
+                        <select class="select2" name="disableatt">
+                            <option value="True" selected>Enable</option>
+                            <option value="False">Disable</option>
+                        </select>
+                        <label class="font-normal text-xs text-red-500 xs/max:text-xs gender hint-text"></label>
                     </section>
                 </div>
             </main>

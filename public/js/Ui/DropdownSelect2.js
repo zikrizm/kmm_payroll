@@ -1,4 +1,4 @@
-function select2_employee() {
+function select2_employee(primary_field = 'id') {
     $(".select2-employee").select2({
         ajax: {
             url: '/search-employee-for-dropdown',
@@ -6,7 +6,10 @@ function select2_employee() {
                 return { q: params.term };
             },
             processResults: function (data) {
-                return { results: data.data };
+                return { results: data.data.map(e => {
+                    e.id = e[primary_field];
+                    return e;
+                }) };
             }
         },
         templateResult: templateResultEmp,
@@ -41,7 +44,7 @@ function select2_employee() {
         opt.photo = (opt.photo) ? opt.photo : 'files/nophoto.gif';
 
         var $opt = $(
-            `<div class="flex items-center bg-black">
+            `<div class="flex items-center">
                 <div class="flex gap-3 items-center py">
                     ${(!isDefault) ? `<img src="${API + opt.photo}" alt="" class="w-5 object-cover h-5 min-w-[20px] min-h-[20px] rounded-full">` : ''}
                     <div>
@@ -61,7 +64,7 @@ function select2_break_time() {
         placeholder: "Silahkan pilih istirahat",
         templateResult: (opt) => {
             let _data = {};
-            if(opt.title) _data = JSON.parse(opt.title);
+            if (opt.title) _data = JSON.parse(opt.title);
 
             var $opt = $(
                 `<div class="flex items-center">
@@ -87,7 +90,7 @@ function select2_timetable() {
         placeholder: "Silahkan pilih jadwal",
         templateResult: (opt) => {
             let _data = {};
-            if(opt.title) _data = JSON.parse(opt.title);
+            if (opt.title) _data = JSON.parse(opt.title);
 
             var $opt = $(
                 `<div class="flex items-center">

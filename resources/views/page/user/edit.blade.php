@@ -1,7 +1,7 @@
 <div class="flex flex-col gap-8 xs/max:gap-6 pt-8 pb-8 xs/max:pt-6 xs/max:pb-6">
     <header class="px-4 flex flex-col gap-5 xs/max:gap-3">
         <div class="flex flex-col gap-1">
-            <p class="text-2xl font-bold text-gray-900 xs/max:text-xl xs/max:font-semibold">New user</p>
+            <p class="text-xl font-semibold text-gray-900">New user</p>
             <p class="text-base font-normal text-gray-500 xs/max:text-sm">Lorem ipsum dolor sit, amet consectetur
                 adipisicing
                 elit.

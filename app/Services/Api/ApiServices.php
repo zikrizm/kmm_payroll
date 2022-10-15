@@ -39,7 +39,7 @@ class ApiServices extends NetworkUtils
     {
         // YIYlNRqnJ9lt6431uK7vfHYXyuvcW1E0kvOe3pGazs3u9eZJ0iMGvtcr5DN65EMr
         $client = new Client();
-        $request = new Psr7\Request('GET', config('constants.api_zkteco') . 'vlRegister/', ['Cookie' => 'csrftoken=']);
+        $request = new Psr7\Request('GET', config('constants.api_zkteco') . '/vlRegister/', ['Cookie' => 'csrftoken=']);
         $res = $client->sendAsync($request)->wait();
         $cookie = $res->getHeaderLine('Set-Cookie');
         // Cookie::queue(Cookie::make('csrftoken_zkteco', explode('=', explode(';', $cookie)[0])[1], 60));
@@ -50,7 +50,7 @@ class ApiServices extends NetworkUtils
     {
         $this->get_csrftoken();
         $client = new Client();
-        $request = new Psr7\Request('GET', config('constants.api_zkteco') . 'vlRegister/', ['Cookie' => 'csrftoken=' . $this->csrftoken_zkteco]);
+        $request = new Psr7\Request('GET', config('constants.api_zkteco') . '/vlRegister/', ['Cookie' => 'csrftoken=' . $this->csrftoken_zkteco]);
         $res = $client->sendAsync($request)->wait();
         $content = $res->getBody();
 
@@ -92,19 +92,19 @@ class ApiServices extends NetworkUtils
         $data = [
             'page' => $data['page'] ?? null,
             'page_size' => $data['page_size'] ?? null,
-            'employee_icontains' => $data['employee_icontains'] ?? null,
             'emp_code' => $data['emp_code'] ?? null,
             'emp_code_icontains' => $data['emp_code_icontains'] ?? null,
             'first_name' => $data['first_name'] ?? null,
             'first_name_icontains' => $data['first_name_icontains'] ?? null,
             'last_name' => $data['last_name'] ?? null,
             'last_name_icontains' => $data['last_name_icontains'] ?? null,
+            'employee_icontains' => $data['employee_icontains'] ?? null,
             'department' => $data['department'] ?? null,
             'areas' => $data['areas'] ?? null,
             'ordering' => $data['ordering'] ?? null,
         ];
+
         $res = $this->emitter('GET', "/personnel/api/employees/", $data);
-        Log::info($res);
         if ($res['response'] < 200 || $res['response'] >= 300) {
             // throw new ResponseExeception($res['msg']);
         } else {
@@ -149,7 +149,7 @@ class ApiServices extends NetworkUtils
             "app_role" => $data["app_role"] ?? null,
 
             "department" => $data["department"] ?? null,
-            "position" => $data["position"] ?? null,
+            "position" =>  null, // ** Posisi dikirim null karena di set dbLocal
             "area" => $data["area"] ?? null,
         ];
         $res = $this->emitter('POST', "/personnel/api/employees/", $data);
@@ -188,7 +188,7 @@ class ApiServices extends NetworkUtils
             "app_role" => $data["app_role"] ?? null,
 
             "department" => $data["department"] ?? null,
-            "position" => $data["position"] ?? null,
+            "position" => null, // ** Posisi dikirim null karena di set dbLocal
             "area" => $data["area"] ?? null,
         ];
         $res = $this->emitter('PUT', "/personnel/api/employees/" . $data['id'] . "/", $data);
@@ -280,7 +280,7 @@ class ApiServices extends NetworkUtils
         if ($res['response'] < 200 || $res['response'] >= 300) {
             return $res;
         } else {
-            return $res;
+            return $res['data'];
         }
     }
 
@@ -290,13 +290,13 @@ class ApiServices extends NetworkUtils
             'id' => null,
             'resign_type' => $data['resign_type'] ?? null,
             'disableatt' => $data['disableatt'] ?? null,
-            'resign_date' => $data['disableatt'] ?? null,
+            'resign_date' => $data['resign_date'] ?? null,
             'employee' => $data['employee'] ?? null,
             'reason' => $data['reason'] ?? null,
         ];
         $res = $this->emitter('POST', "/personnel/api/resigns/", $data);
         if ($res['response'] < 200 || $res['response'] >= 300) {
-            return $res;
+            // return $res;
         } else {
             $res['msg'] = ['success' => 'Add resign succesfully'];
             return $res;
@@ -309,13 +309,13 @@ class ApiServices extends NetworkUtils
             'id' => $data['id'],
             'resign_type' => $data['resign_type'] ?? null,
             'disableatt' => $data['disableatt'] ?? null,
-            'resign_date' => $data['disableatt'] ?? null,
+            'resign_date' => $data['resign_date'] ?? null,
             'employee' => $data['employee'] ?? null,
             'reason' => $data['reason'] ?? null,
         ];
         $res = $this->emitter('PUT', "/personnel/api/resigns/" . $data['id'] . '/', $data);
         if ($res['response'] < 200 || $res['response'] >= 300) {
-            return $res;
+            // return $res;
         } else {
             $res['msg'] = ['success' => 'Update resign succesfully'];
             return $res;
@@ -359,7 +359,7 @@ class ApiServices extends NetworkUtils
             'department_icontains' => $data['department_icontains'] ?? null,
             'ordering' => $data['ordering'] ?? null,
         ];
-        $res = $this->emitter('GET', "personnel/api/departments/", $data);
+        $res = $this->emitter('GET', "/personnel/api/departments/", $data);
         if ($res['response'] < 200 || $res['response'] >= 300) {
             // throw new ResponseExeception($res['msg']);
         } else {
@@ -381,11 +381,11 @@ class ApiServices extends NetworkUtils
     {
         $data = [
             'id' => null,
-            'dept_code' => $data['dept_code'],
-            'dept_name' => $data['dept_name'],
+            'dept_code' => $data['dept_code'] ?? null,
+            'dept_name' => $data['dept_name'] ?? null,
             'parent_dept' => $data['parent_dept'] ?? null,
         ];
-        $res = $this->emitter('POST', "personnel/api/departments/", $data);
+        $res = $this->emitter('POST', "/personnel/api/departments/", $data);
         if ($res['response'] < 200 || $res['response'] >= 300) {
             return $res;
         } else {
@@ -537,7 +537,6 @@ class ApiServices extends NetworkUtils
         if ($res['response'] < 200 || $res['response'] >= 300) {
             return $res;
         } else {
-            Log::info($res);
             $res['msg'] = ['success' => 'Add position succesfully'];
             return $res;
         }

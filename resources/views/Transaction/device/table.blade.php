@@ -129,7 +129,7 @@
     <footer class='flex justify-between items-center px-6 pt-3 pb-4'>
         @php $page = 1; @endphp
         <p class='text-gray-700 text-xs'>
-            Page <span> {{ $page }} </span> of <span>{{ ceil($devices['count'] / 10) }}</span>
+            Page <span> {{ $page }} </span> of <span>{{ ceil(($devices['count'] ?? 0) / 10) }}</span>
         </p>
         <div class='flex gap-3'>
             @if (!empty($devices['previous']))

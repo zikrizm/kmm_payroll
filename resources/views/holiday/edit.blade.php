@@ -11,7 +11,7 @@
                     <x-icon icon="sun" width=18 height=18 viewBox="20 20" />
                 </div>
                 <div>
-                    <p class="text-2xl font-bold text-gray-900 xs/max:text-xl xs/max:font-semibold">Holiday</p>
+                    <p class="text-xl font-semibold text-gray-900">Holiday</p>
                     <p class="text-sm font-normal text-gray-500 xs/max:text-xs">
                         Please provide the holiday's detail.
                     </p>
@@ -20,7 +20,8 @@
         </div>
         <hr>
     </header>
-    <form autocomplete="off" action="{{ route('holidays.update', ['holiday' => $holiday->id]) }}" method="POST" class="submit-holiday">
+    <form autocomplete="off" action="{{ route('holidays.update', ['holiday' => $holiday->id]) }}" method="POST"
+        class="submit-holiday">
         @csrf
         <!-- {{ csrf_field() }} -->
         <main class="px-4 flex flex-col gap-4 xs/max:gap-3 mb-8">
@@ -31,17 +32,17 @@
             <div class="flex flex-col gap-1">
                 <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Start date</label>
                 {!! FormCustom::input('start_date', $holiday->start_date, [
-                    'placeholder' => 'Enter new your start date',
-                    'readonly' => true,
-                    'prefixiconname' => 'calendar',
+                'placeholder' => 'Enter new your start date',
+                'readonly' => true,
+                'prefixiconname' => 'calendar',
                 ]) !!}
             </div>
             <div class="flex flex-col gap-1">
                 <label class="font-normal text-sm text-gray-500 xs/max:text-xs">End date</label>
                 {!! FormCustom::input('end_date', $holiday->end_date, [
-                    'placeholder' => 'Enter new your end date',
-                    'readonly' => true,
-                    'prefixiconname' => 'calendar',
+                'placeholder' => 'Enter new your end date',
+                'readonly' => true,
+                'prefixiconname' => 'calendar',
                 ]) !!}
             </div>
             <section class="flex flex-col gap-1">

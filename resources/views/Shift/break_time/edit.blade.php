@@ -1,4 +1,5 @@
-<form autocomplete="off" action="{{ route('break-time.update', ['break_time' => $break_time->id]) }}" method="POST" class="submit-break-time">
+<form autocomplete="off" action="{{ route('break-time.update', ['break_time' => $break_time->id]) }}" method="POST"
+    class="submit-break-time">
     @csrf
     <!-- {{ csrf_field() }} -->
     <section
@@ -15,7 +16,7 @@
                         <x-icon icon="clock" width=18 height=18 viewBox="20 20" />
                     </div>
                     <div>
-                        <p class="text-2xl font-bold text-gray-900 xs/max:text-xl xs/max:font-semibold">Break-time
+                        <p class="text-xl font-semibold text-gray-900">Break-time
                         </p>
                         <p class="text-sm font-normal text-gray-500 xs/max:text-xs">
                             Please provide the break time's detail.
@@ -29,7 +30,8 @@
             <main class="px-4 flex flex-col gap-4 xs/max:gap-3 mb-8">
                 <section class="flex flex-col gap-1">
                     <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Break time name*</label>
-                    {!! FormCustom::input('name', $break_time->name, [ "placeholder" => 'Enter new your break time name'])
+                    {!! FormCustom::input('name', $break_time->name, [ "placeholder" => 'Enter new your break time
+                    name'])
                     !!}
                 </section>
                 <div>
@@ -44,17 +46,20 @@
                 <div class="flex items-center gap-3">
                     <div class="flex-1 flex flex-col gap-1 flex-1">
                         <label class="text-sm font-normal text-gray-500">Start*</label>
-                        {!! FormCustom::input('start_time', $break_time->start_time, [ "placeholder" => '-', 'type' => 'time']) !!}
+                        {!! FormCustom::input('start_time', $break_time->start_time, [ "placeholder" => '-', 'type' =>
+                        'time']) !!}
                     </div>
                     <div class="flex-1 flex flex-col gap-1 flex-1">
                         <label class="text-sm font-normal text-gray-500">End*</label>
-                        {!! FormCustom::input('end_time', $break_time->end_time, [ "placeholder" => '-', 'type' => 'time']) !!}
+                        {!! FormCustom::input('end_time', $break_time->end_time, [ "placeholder" => '-', 'type' =>
+                        'time']) !!}
                     </div>
                 </div>
                 <div class="flex items-center gap-3">
                     <section class="flex flex-col gap-1 flex-1">
                         <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Duration*</label>
-                        {!! FormCustom::input('duration', $break_time->duration, [ "placeholder" => 'Enter new your duration','type' =>
+                        {!! FormCustom::input('duration', $break_time->duration, [ "placeholder" => 'Enter new your
+                        duration','type' =>
                         'number'])
                         !!}
                     </section>

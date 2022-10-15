@@ -1,4 +1,4 @@
-<main class='border border-gray-200 rounded-lg shadow-sm '>
+<main class='border border-gray-200 rounded-lg shadow-sm w-max overflow-hidden'>
     <div class="w-full overflow-auto overflow-y-hidden">
         <table class='table border-collapse w-full'>
             <thead class='border-b border-gray-200 bg-gray-50'>
@@ -9,40 +9,31 @@
                                 {!! FormCustom::checkbox() !!}
                             </div>
                             <div class='px-6 py-3 cursor-pointer flex-1'>
-                                <x-ui.sort-table text="Employee code" url="{{ route('employee.index') }}"
-                                    field="emp_code" order="{{ $order }}" />
+                                <x-ui.sort-table text="Tanggal" url="{{ route('employee.index') }}" field="resign_date"
+                                    order="{{ $order }}" />
                             </div>
                         </div>
                     </th>
                     <th class='px-3 py-3 text-left cursor-pointer'>
-                        <x-ui.sort-table text="Employee name" url="{{ route('employee.index') }}" field="first_name"
+                        <x-ui.sort-table text="Karyawan" url="{{ route('employee.index') }}" field="first_name"
                             order="{{ $order }}" />
                     </th>
                     <th class='px-3 py-3 text-left cursor-pointer'>
-                        <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Department</p>
+                        <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Bagian</p>
                     </th>
+                    {{-- <th class='px-3 py-3 text-left cursor-pointer'>
+                        <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Posisi</p>
+                    </th> --}}
                     <th class='px-3 py-3 text-left cursor-pointer'>
-                        <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Position</p>
+                        <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Jenis pengunduran</p>
                     </th>
-                    <th class='px-3 py-3 text-left cursor-pointer'>
-                        <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Resignation type</p>
-                    </th>
-                    <th class='px-3 py-3 text-center cursor-pointer'>
-                        <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Resignation date</p>
-                    </th>
-                    <th class='px-3 py-3 text-left cursor-pointer'>
-                        <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Attendance</p>
-                    </th>
-                    <th class='px-3 py-3 text-left cursor-pointer'>
-                        <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Resignation reason</p>
-                    </th>
-                    @canany(['employee.update', 'employee.delete'])
+                    @canany(['resign.update', 'resign.delete'])
                     <th class='px-3 py-3 text-left text-gray-500 text-xs font-medium'></th>
                     @endcanany
                 </tr>
             </thead>
             <tbody>
-                @foreach ($resigns['data'] as $item)
+                @forelse (($resigns['data'] ?? []) as $item)
                 <tr class='hover:bg-gray-50 border-b border-gray-200'>
                     <td class='text-left'>
                         <div class="flex items-center">
@@ -50,48 +41,50 @@
                                 {!! FormCustom::checkbox() !!}
                             </div>
                             <div class="flex gap-3 items-center px-6 py-3">
-                                <p class="text-gray-500 text-sm">
-                                    {{ $item['emp_code'] }}
-                                </p>
+                                <div class="flex items-center gap-2 text-gray-500 text-sm">
+                                    <x-icon icon="calendar" width=18 height=18 viewBox="20 20" />
+                                    <p class="truncate ">
+                                        {{ date('Y-m-d', strtotime($item['resign_date'])); }}
+                                    </p>
+                                </div>
                             </div>
                         </div>
                     </td>
                     <td class='px-3 py text-gray-500 text-sm'>
-                        <p class="truncate">
-                            {{ $item['first_name'] ?? '-' }} {{ $item['last_name'] ?? '-' }} 
-                        </p>
+                        ({{ $item['employee']['emp_code'] }})
+                        {{ $item['employee']['first_name'] ?? '-' }} {{ $item['employee']['last_name'] ?? '' }}
                     </td>
                     <td class='px-3 py text-gray-500 text-sm'>
                         <p class="truncate">
-                            {{ (!empty($item['department']) ? $item['department']['dept_name']??'-' : '-') }}
+                            {{$item['employee']['dept_name'] ?? '-' }}
                         </p>
                     </td>
-                    <td class='px-3 py text-gray-500 text-sm'>
+                    {{-- <td class='px-3 py text-gray-500 text-sm'>
                         <p class="truncate">
                             {{ (!empty($item['position']) ? $item['position']['position_name']??'-' : '-') }}
                         </p>
-                    </td>
+                    </td> --}}
                     <td class='px-3 py text-gray-500 text-sm'>
                         <p class="truncate">
-                            {{ $item['resign_type'] }}
-                        </p>
-                    </td>
-                    <td class='px-3 py text-center text-gray-500 text-sm'>
-                        <div class="flex items-center gap-2">
-                            <x-icon icon="calendar" width=18 height=18 viewBox="20 20" />
-                            <p class="truncate">
-                                {{ date('Y-m-d', strtotime($item['resign_date'])); }}
-                            </p>
-                        </div>
-                    </td>
-                    <td class='px-3 py text-center text-gray-500 text-sm'>
-                        <p class="truncate">
-                            {{ $item['resign_date'] }}
-                        </p>
-                    </td>
-                    <td class='px-3 py text-center text-gray-500 text-sm'>
-                        <p class="truncate">
-                            {{ $item['resign_date'] }}
+                            @switch($item['resign_type'])
+                            @case(1)
+                            Berhenti
+                            @break
+                            @case(2)
+                            Dihentikan
+                            @break
+                            @case(3)
+                            Mengundurkan diri
+                            @break
+                            @case(4)
+                            Transfer
+                            @break
+                            @case(5)
+                            Mempertahankan pekerjaan tanpa bayaran
+                            @break
+                            @default
+                            -
+                            @endswitch
                         </p>
                     </td>
                     <td class='px-3 py'>
@@ -101,19 +94,20 @@
                                 <x-icon icon="trash-2" width=18 height=18 viewBox="20 20" />
                             </button>
                             <button class='p-2.5 cursor-pointer text-gray-500 edit-btn'
-                                onclick="get_modal({{ $item['emp_code'] }})">
+                                onclick="get_modal({{ $item['id'] }})">
                                 <x-icon icon="edit" width=18 height=18 viewBox="20 20" />
                             </button>
                         </div>
                     </td>
                 </tr>
-                @endforeach
+                @empty
+                @endforelse
             </tbody>
         </table>
     </div>
     <footer class='flex justify-between items-center px-6 pt-3 pb-4'>
         <p class='text-gray-700 text-xs'>
-            Page <span> 1 </span> of <span>{{ ceil($resigns['count'] / 10) }}</span>
+            Page <span> 1 </span> of <span>{{ ceil(($resigns['count'] ?? 0) / 10) }}</span>
         </p>
         <div class='flex gap-3'>
             @if (!empty($resigns['previous']))

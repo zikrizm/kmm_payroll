@@ -50,35 +50,35 @@
              });
 
             $('input[name="kasbon_date"]').daterangepicker({
-            locale: { format: 'YYYY-MM-DD' },
-            startDate: moment().startOf("month").toDate(),
-            endDate: moment().endOf("month").toDate(),
-            ranges: {
-                'Today': [moment(), moment()],
-                'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
-                'Last 7 Days': [moment().subtract(6, 'days'), moment()],
-                'Last 30 Days': [moment().subtract(29, 'days'), moment()],
-                'This Month': [moment().startOf('month'), moment().endOf('month')],
-                'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
-            },
-            alwaysShowCalendars: true,
-            showCustomRangeLabel: false,
-            showDropdowns: true,
-            minYear: 2000,
-            drops: "auto",
-            maxYear: parseInt(moment().format('YYYY'), 10)
-        },function(start, end, label) {
-            var dateFormat = 'YYYY-MM-DD';
+                locale: { format: 'YYYY-MM-DD' },
+                startDate: moment().startOf("month").toDate(),
+                endDate: moment().endOf("month").toDate(),
+                ranges: {
+                    'Today': [moment(), moment()],
+                    'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+                    'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+                    'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+                    'This Month': [moment().startOf('month'), moment().endOf('month')],
+                    'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+                },
+                alwaysShowCalendars: true,
+                showCustomRangeLabel: false,
+                showDropdowns: true,
+                minYear: 2000,
+                drops: "auto",
+                maxYear: parseInt(moment().format('YYYY'), 10)
+            },function(start, end, label) {
+                var dateFormat = 'YYYY-MM-DD';
 
-            $('.search-data-input').val('');
-            delete dataParams.page;
-            onInit({ 
-                kasbon_date: { 
-                    start_date: convertLocalTimezone(start, dateFormat), 
-                    end_date: convertLocalTimezone(end, dateFormat)
-                } 
+                $('.search-data-input').val('');
+                delete dataParams.page;
+                onInit({ 
+                    kasbon_date: { 
+                        start_date: convertLocalTimezone(start, dateFormat), 
+                        end_date: convertLocalTimezone(end, dateFormat)
+                    } 
+                });
             });
-        });
 
 
             $(".search-data-input").on('keyup', debounce(function(e) {

@@ -184,18 +184,18 @@ class ShiftController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  Shift $shift
+     * @param  int $shift
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function edit(Shift $shift, Request $request)
+    public function edit(int $shift, Request $request)
     {
         if (!auth()->user()->can('shift.update') || !$request->ajax()) {
             abort(403, 'Unauthorized action.');
         }
 
         try {
-            $shift = $shift->with(['shiftday.shiftday_has_timetable'])->first();
+            $shift = Shift::where('id', $shift)->with(['shiftday.shiftday_has_timetable'])->first();
 
             $business_id = Session::get('business_id');
             $timetables = Timetable::where('business_id', $business_id)->with(['timetable_has_break_time'])->get();
@@ -235,7 +235,7 @@ class ShiftController extends Controller
                 $shift_data['business_id'] = Session::get('business_id');
                 $shift->update($shift_data);
 
-                ShiftDay::where('shift_id', 2)->each(function ($item) {
+                ShiftDay::where('shift_id', $shift->id)->each(function ($item) {
                     $item->delete();
                     foreach ($item->shiftday_has_timetable as $item) {
                         $item->delete();
@@ -301,6 +301,7 @@ class ShiftController extends Controller
         $business_id = Session::get('business_id');
         $shifts = Shift::where('business_id', $business_id)->get();
         $departments = $this->apiService->get_departments([]);
+        // Log::info($departments);
         $onlyParentDept = [];
         foreach ($departments['data'] as $department) {
             if (count($shifts) != 0) {

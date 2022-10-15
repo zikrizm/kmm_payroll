@@ -6,11 +6,12 @@
         </button>
         <div class="flex flex-col gap-1">
             <div class="flex items-start gap-2">
-                <div class="rounded-full bg-violet-100 p-1.5 border-[4px] border-violet-50 box-border mr-2 text-violet-800">
+                <div
+                    class="rounded-full bg-violet-100 p-1.5 border-[4px] border-violet-50 box-border mr-2 text-violet-800">
                     <x-icon icon="clock" width=18 height=18 viewBox="20 20" />
                 </div>
                 <div>
-                    <p class="text-2xl font-bold text-gray-900 xs/max:text-xl xs/max:font-semibold">Shift</p>
+                    <p class="text-xl font-semibold text-gray-900">Shift</p>
                     <p class="text-sm font-normal text-gray-500 xs/max:text-xs">
                         Please provide the shift's detail.
                     </p>
@@ -19,7 +20,8 @@
         </div>
         <hr>
     </header>
-    <form autocomplete="off" action="{{ route('shifts.update', ['shift' => $shift->id]) }}" method="POST" class="submit-shift">
+    <form autocomplete="off" action="{{ route('shifts.update', ['shift' => $shift->id]) }}" method="POST"
+        class="submit-shift">
         @csrf
         <!-- {{ csrf_field() }} -->
         <main class="px-4 flex flex-col gap-4 xs/max:gap-3 mb-8">
@@ -42,11 +44,13 @@
                 <div class="flex items-start gap-2 ">
                     <div class="flex-1 flex flex-col gap-1">
                         <label class="text-sm font-normal text-gray-500">Start*</label>
-                        {!! FormCustom::input('time_start', $shift->time_start->format('H:i'), [ "placeholder" => '-', 'type' => 'time']) !!}
+                        {!! FormCustom::input('time_start', $shift->time_start->format('H:i'), [ "placeholder" => '-',
+                        'type' => 'time']) !!}
                     </div>
                     <div class="flex-1 flex flex-col gap-1">
                         <label class="text-sm font-normal text-gray-500">End*</label>
-                        {!! FormCustom::input('time_end', $shift->time_end->format('H:i'), [ "placeholder" => '-',  'type' => 'time']) !!}
+                        {!! FormCustom::input('time_end', $shift->time_end->format('H:i'), [ "placeholder" => '-',
+                        'type' => 'time']) !!}
                     </div>
                 </div>
             </section>

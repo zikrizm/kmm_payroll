@@ -1,7 +1,7 @@
 <div class="flex flex-col gap-8 xs/max:gap-6">
     <header class="px-4 flex flex-col gap-5 xs/max:gap-3">
         <div class="flex flex-col gap-1">
-            <p class="text-2xl font-bold text-gray-900 xs/max:text-xl xs/max:font-semibold">New user</p>
+            <p class="text-xl font-semibold text-gray-900">New user</p>
             <p class="text-base font-normal text-gray-500 xs/max:text-sm">Lorem ipsum dolor sit, amet consectetur
                 adipisicing
                 elit.
@@ -79,8 +79,7 @@
                     <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Username</label>
                     <input
                         class="py-1.5 px-2.5 text-sm xs/max:text-xs rounded-lg xs/max:rounded shadow-sm border border-gray-300 focus:outline-none focus:ring-2 focus:shadow focus:ring-gray-300 focus:border-transparent"
-                        type="text" placeholder="Enter new your username" name="username" required
-                        autocomplete="off" />
+                        type="text" placeholder="Enter new your username" name="username" required autocomplete="off" />
                 </div>
                 <div class="flex flex-col gap-1">
                     <label class="font-normal text-sm xs/max:text-xs text-gray-500 xs/max:text-xs">Password</label>

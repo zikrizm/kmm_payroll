@@ -77,6 +77,10 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('holiday', 'HolidayController', ['except' => ['update']]);
     Route::resource('device', 'DeviceController', ['except' => ['update']]);
     Route::resource('transaction', 'TransactionController', ['except' => ['update']]);
+    Route::resource('attendance-report', 'AttendanceReportController', ['except' => ['update', 'show']]);
+
+    Route::get('/attendance-report/attendance-card', 'AttendanceReportController@showAttendanceCard')->name('show-attendance-card');
+    Route::post('/attendance-report/attendance-card', 'AttendanceReportController@checkAttendanceCard')->name('check-attendance-card');
 
     Route::post('/user/{user}', 'ManageUserController@update')->name('user.update');
     Route::post('/role/{role}', 'RoleController@update')->name('role.update');
@@ -101,6 +105,10 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/search-timetable-for-dropdown', 'TimetableController@searchTimetableForDropdown')->name('timetable.search-timetable-for-dropdown');
 
     Route::post('/user-csv', 'ManageUserController@uploadUsers')->name('user.upload-csv');
+
+
+    Route::get('/employee-csv', 'EmployeeController@uploadCSV')->name('employee.uploadCSV');
+    Route::post('/employee-csv', 'EmployeeController@uploadCSVtess')->name('employee.uploadCSVtess');
 
 
     Route::get('logout', '\App\Http\Controllers\Auth\LoginController@logout')->name('logout');

@@ -11,7 +11,7 @@
                     <x-icon icon="sun" width=18 height=18 viewBox="20 20" />
                 </div>
                 <div>
-                    <p class="text-2xl font-bold text-gray-900 xs/max:text-xl xs/max:font-semibold">New holiday</p>
+                    <p class="text-xl font-semibold text-gray-900">New holiday</p>
                     <p class="text-sm font-normal text-gray-500 xs/max:text-xs">
                         Please provide the holiday's detail.
                     </p>
@@ -31,17 +31,17 @@
             <div class="flex flex-col gap-1">
                 <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Start date</label>
                 {!! FormCustom::input('start_date', null, [
-                    'placeholder' => 'Enter new your start date',
-                    'readonly' => true,
-                    'prefixiconname' => 'calendar',
+                'placeholder' => 'Enter new your start date',
+                'readonly' => true,
+                'prefixiconname' => 'calendar',
                 ]) !!}
             </div>
             <div class="flex flex-col gap-1">
                 <label class="font-normal text-sm text-gray-500 xs/max:text-xs">End date</label>
                 {!! FormCustom::input('end_date', null, [
-                    'placeholder' => 'Enter new your end date',
-                    'readonly' => true,
-                    'prefixiconname' => 'calendar',
+                'placeholder' => 'Enter new your end date',
+                'readonly' => true,
+                'prefixiconname' => 'calendar',
                 ]) !!}
             </div>
             <section class="flex flex-col gap-1">

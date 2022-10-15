@@ -38,7 +38,7 @@ class AppServiceProvider extends ServiceProvider
 
             $sub_menu_users = ['user', 'role'];
             $sub_menu_employees = ['employee', 'kasbon', 'resign'];
-            $sub_menu_shifts = ['break-time', 'timetable', 'shift'];
+            $sub_menu_shifts = ['break-time', 'timetable', 'shift', 'holiday'];
             $sub_menu_attendances = ['device', 'transaction', 'transaction-report'];
             $sub_menu_organizations = ['department', 'position', 'area'];
             $sub_menu_settings = ['setting', 'location'];
@@ -73,13 +73,13 @@ class AppServiceProvider extends ServiceProvider
             return $is_active;
         });
 
-        
+
         Blade::directive('urlPagination', function ($url) {
             return str_replace(config('constants.api'), 'http://localhost/', $url);
         });
 
         Blade::directive('zkPhoto', function ($url) {
-            return config('constants.api_zkteco') . $url;
+            return config('constants.api') . $url;
         });
 
         Blade::directive('convert', function ($money) {
@@ -104,6 +104,14 @@ class AppServiceProvider extends ServiceProvider
 
         Blade::directive('date', function ($date) {
             return "<?php echo Carbon\Carbon::createFromFormat('Y-m-d', $date)->format('d/m/Y') ?>";
+        });
+
+
+
+
+        // Blade directive to convert NIK.
+        Blade::directive('NIK', function ($nik) {
+            return "<?php echo preg_replace('/(?<=\d)(?=(\d{4})+$)/', ' ', $nik);?>";
         });
     }
 }

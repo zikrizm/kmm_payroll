@@ -15,7 +15,7 @@
                         <x-icon icon="settings" width=18 height=18 viewBox="20 20" />
                     </div>
                     <div>
-                        <p class="text-2xl font-bold text-gray-900 xs/max:text-xl xs/max:font-semibold">Manage role</p>
+                        <p class="text-xl font-semibold text-gray-900">Manage role</p>
                         <p class="text-sm font-normal text-gray-500 xs/max:text-xs">
                             Please provide the role's detail.
                         </p>
@@ -45,14 +45,17 @@
                             <div class="flex flex-col flex-1 gap-1">
                                 <label
                                     class="text-sm xs/max:text-xs text-gray-500 flex items-center gap-2 bg-gray-50 rounded-md px-2 py-1 cursor-pointer hover:bg-gray-100 mb-3 {{ $role->is_default ? 'cursor-not-allowed': '' }}">
-                                    <input type="checkbox" class="accent-violet-500" {{ $role->is_default ? 'disabled': '' }}
-                                        onchange="onSelectAllCheckbox(this,'.{{ $item['name'] }}-check')"> Select all
+                                    <input type="checkbox" class="accent-violet-500" {{ $role->is_default ? 'disabled':
+                                    '' }}
+                                    onchange="onSelectAllCheckbox(this,'.{{ $item['name'] }}-check')"> Select all
                                 </label>
                                 @foreach ($item['roles'] as $item_role)
                                 <label
                                     class="text-sm xs/max:text-xs text-gray-500 flex items-center gap-2 bg-gray-50 rounded-md px-2 py-1 cursor-pointer hover:bg-gray-100 {{ $role->is_default ? 'cursor-not-allowed': '' }}">
-                                    <input {{ $role->is_default ? 'disabled': '' }} {{ in_array($item_role['name'], $role_permissions ) ? 'checked' : '' }} type="checkbox" class="accent-violet-500 {{ $item['name'] }}-check "
-                                        name="roles[]" value="{{ $item_role['name'] }}">
+                                    <input {{ $role->is_default ? 'disabled': '' }} {{ in_array($item_role['name'],
+                                    $role_permissions ) ? 'checked' : '' }} type="checkbox" class="accent-violet-500 {{
+                                    $item['name'] }}-check "
+                                    name="roles[]" value="{{ $item_role['name'] }}">
                                     {{ ucfirst(join(" ",array_reverse(explode('.', $item_role['name'])))) }}
                                 </label>
                                 @endforeach

@@ -11,7 +11,7 @@
                     <x-icon icon="map-pin" width=18 height=18 viewBox="20 20" />
                 </div>
                 <div>
-                    <p class="text-2xl font-bold text-gray-900 xs/max:text-xl xs/max:font-semibold">Location</p>
+                    <p class="text-xl font-semibold text-gray-900">Location</p>
                     <p class="text-sm font-normal text-gray-500 xs/max:text-xs">
                         Please provide the location's detail.
                     </p>
@@ -20,7 +20,8 @@
         </div>
         <hr>
     </header>
-    <form autocomplete="off" action="{{ route('locations.update', ['location' => $location->id]) }}" method="POST" class="submit-location">
+    <form autocomplete="off" action="{{ route('locations.update', ['location' => $location->id]) }}" method="POST"
+        class="submit-location">
         @csrf
         <!-- {{ csrf_field() }} -->
         <main class="px-4 flex flex-col gap-4 xs/max:gap-3 mb-8">
@@ -38,11 +39,13 @@
             </section>
             <section class="flex flex-col gap-1">
                 <label class="font-normal text-sm text-gray-500 xs/max:text-xs">bussines contact number</label>
-                {!! FormCustom::input('mobile', $location->mobile, [ "placeholder" => 'Enter new your bussines contact number']) !!}
+                {!! FormCustom::input('mobile', $location->mobile, [ "placeholder" => 'Enter new your bussines contact
+                number']) !!}
             </section>
             <section class="flex flex-col gap-1">
                 <label class="font-normal text-sm text-gray-500 xs/max:text-xs">alternate contact number</label>
-                {!! FormCustom::input('alternate_number', $location->alternate_number, [ "placeholder" => 'Enter new your alternate contact number']) !!}
+                {!! FormCustom::input('alternate_number', $location->alternate_number, [ "placeholder" => 'Enter new
+                your alternate contact number']) !!}
             </section>
             <section class="flex flex-col gap-1">
                 <label class="font-normal text-sm text-gray-500 xs/max:text-xs">country</label>
@@ -58,11 +61,13 @@
             </section>
             <section class="flex flex-col gap-1">
                 <label class="font-normal text-sm text-gray-500 xs/max:text-xs">zip code</label>
-                {!! FormCustom::input('zip_code',  $location->zip_code, [ "placeholder" => 'Enter new your zip code']) !!}
+                {!! FormCustom::input('zip_code', $location->zip_code, [ "placeholder" => 'Enter new your zip code'])
+                !!}
             </section>
             <div class="flex flex-col gap-1">
                 <label class="font-normal text-sm text-gray-500 xs/max:text-xs">full address</label>
-                {!! FormCustom::textarea('full_address', $location->full_address, [ "placeholder" => 'Enter new your address'])
+                {!! FormCustom::textarea('full_address', $location->full_address, [ "placeholder" => 'Enter new your
+                address'])
                 !!}
             </div>
         </main>

@@ -13,14 +13,15 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('kasbon', function (Blueprint $table) {
+        Schema::create('employee_debts', function (Blueprint $table) {
             $table->increments('id');
             $table->integer('business_id')->unsigned();
-            $table->integer('employee_id')->unsigned();
-            $table->foreign('employee_id')->references('id')->on('employees')->onDelete('cascade');
+            $table->integer('emp_id');
+            $table->integer('emp_code');
             $table->dateTime('date');
-            $table->text('notes')->nullable();
-            $table->decimal('kasbon', 22, 2)->nullable();
+            $table->decimal('debt', 22, 2)->nullable();
+            $table->decimal('instalment', 22, 2)->nullable();
+            $table->string('first_name');
 
             $table->integer('created_user')->unsigned();
             $table->integer('updated_user')->nullable()->unsigned();
@@ -38,6 +39,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('kasbon');
+        Schema::dropIfExists('employee_debts');
     }
 };

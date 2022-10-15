@@ -11,7 +11,7 @@
                     <x-icon icon="briefcase" width=18 height=18 viewBox="20 20" />
                 </div>
                 <div>
-                    <p class="text-2xl font-bold text-gray-900 xs/max:text-xl xs/max:font-semibold">New work section</p>
+                    <p class="text-xl font-semibold text-gray-900">New work section</p>
                     <p class="text-sm font-normal text-gray-500 xs/max:text-xs">
                         Please provide the work section's detail.
                     </p>
@@ -27,7 +27,8 @@
         <main class="px-4 flex flex-col gap-4 xs/max:gap-3 mb-8">
             <section class="flex flex-col gap-1">
                 <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Section name*</label>
-                {!! FormCustom::input('name', $work_section->name, [ "placeholder" => 'Enter new your section name']) !!}
+                {!! FormCustom::input('name', $work_section->name, [ "placeholder" => 'Enter new your section name'])
+                !!}
             </section>
             <section class="flex flex-col gap-1">
                 <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Shift*</label>
@@ -59,7 +60,8 @@
                     </div>
                     <div class="flex-2 flex flex-col gap-1">
                         <label class="text-sm font-normal text-gray-500">Pay*</label>
-                        {!! FormCustom::input('pay', $work_section->pay, ['class' => 'number', "placeholder" => '-', 'prefixtext' => 'Rp']) !!}
+                        {!! FormCustom::input('pay', $work_section->pay, ['class' => 'number', "placeholder" => '-',
+                        'prefixtext' => 'Rp']) !!}
                     </div>
                 </div>
             </section>

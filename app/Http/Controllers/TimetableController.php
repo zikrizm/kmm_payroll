@@ -150,6 +150,8 @@ class TimetableController extends Controller
                     $timetable_data['duration_rice_shift'] = null;
                 }
 
+                Log::info($timetable_data);
+
                 $timetable = new Timetable($timetable_data);
                 $timetable->save();
                 if (!empty($request->input('break_time'))) {
@@ -348,7 +350,7 @@ class TimetableController extends Controller
         return [
             'name' => 'required|string|max:255',
             'in_time' => 'required',
-            'out_time' => 'required|after:in_time',
+            'out_time' => 'required',
             'work_type' => 'required',
             'is_overtime' => 'nullable',
             'time_period' => [

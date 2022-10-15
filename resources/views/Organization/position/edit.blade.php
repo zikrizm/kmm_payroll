@@ -16,7 +16,7 @@
                         <x-icon icon="layers" width=18 height=18 viewBox="20 20" />
                     </div>
                     <div>
-                        <p class="text-2xl font-bold text-gray-900 xs/max:text-xl xs/max:font-semibold">Jabatan</p>
+                        <p class="text-xl font-semibold text-gray-900">Jabatan</p>
                         <p class="text-sm font-normal text-gray-500 xs/max:text-xs">
                             Please provide the jabatan's detail.
                         </p>
@@ -49,11 +49,24 @@
                         </div>
                     </div>
                 </section>
+                <section>
+                    <div class="flex items-start gap-2.5">
+                        <span class="pt-0.5">
+                            {!! FormCustom::checkbox('permanently', -1, ['checked'=>$position['permanently']]) !!}
+                        </span>
+                        <div class="flex flex-col gap-px">
+                            <p class="font-medium text-sm text-gray-700">Tetap</p>
+                            <p class="font-normal text-sm text-gray-500">Jika tidak tetap maka sesuai permintaan
+                            </p>
+                        </div>
+                    </div>
+                </section>
                 <div class="flex flex-col gap-2">
                     <section>
                         <div class="flex items-start gap-2.5">
                             <span class="pt-0.5">
-                                {!! FormCustom::checkbox('extra_pay_check', -1, ['checked' => $position['extra_pay_check']]) !!}
+                                {!! FormCustom::checkbox('extra_pay_check', -1, ['checked' =>
+                                $position['extra_pay_check']]) !!}
                             </span>
                             <div class="flex flex-col gap-px">
                                 <p class="font-medium text-sm text-gray-700">Upah tambahan</p>

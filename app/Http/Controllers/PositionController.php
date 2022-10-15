@@ -119,7 +119,7 @@ class PositionController extends Controller
                 return $this->buildRes->RESPONSE_REQ('error', null, $validator->errors());
             } else {
                 $position_data = $request->only([
-                    'position_code', 'position_name', 'must_attend', 'extra_pay_check', 'extra_pay'
+                    'position_code', 'position_name', 'must_attend', 'permanently', 'extra_pay_check', 'extra_pay'
                 ]);
 
                 $res = $this->apiService->create_position($position_data);
@@ -172,11 +172,13 @@ class PositionController extends Controller
             $positionDB = Position::where('position_id', $position['id'])->with('user')->first();
             if ($positionDB) {
                 $position['must_attend'] = (bool)$positionDB->must_attend;
+                $position['permanently'] = (bool)$positionDB->permanently;
                 $position['extra_pay_check'] = (bool)$positionDB->extra_pay;
                 $position['extra_pay'] = $positionDB->extra_pay;
                 $position['updated_by'] = 'Diperbarui: ' . $positionDB->user->first_name . ', ' . $positionDB->updated_at;
             } else {
                 $position['must_attend'] = false;
+                $position['permanently'] = false;
                 $position['extra_pay_check'] = false;
                 $position['extra_pay'] = null;
                 $position['updated_by'] = null;
@@ -213,7 +215,7 @@ class PositionController extends Controller
                 return $this->buildRes->RESPONSE_REQ('error', null, $validator->errors());
             } else {
                 $position_data = $request->only([
-                    'position_code', 'position_name', 'must_attend', 'extra_pay_check', 'extra_pay'
+                    'position_code', 'position_name', 'must_attend', 'extra_pay_check', 'extra_pay','permanently'
                 ]);
                 $position_data['id'] = $position;
 
@@ -226,6 +228,7 @@ class PositionController extends Controller
                                 str_replace('.', '', $position_data['extra_pay']) : null,
                             'updated_user' => auth()->user()->id,
                             'must_attend' => $position_data['must_attend'],
+                            'permanently' => $position_data['permanently'],
                         ]
                     );
                     return response()->json($res);
@@ -276,6 +279,7 @@ class PositionController extends Controller
                 'created_user' => auth()->user()->id,
                 'updated_user' => auth()->user()->id,
                 'must_attend' => $request['must_attend'],
+                'permanently' => $request['permanently'],
                 'extra_pay' => (!empty($request->input('extra_pay_check'))) ?
                     str_replace('.', '', $request['extra_pay']) : null
             ]);

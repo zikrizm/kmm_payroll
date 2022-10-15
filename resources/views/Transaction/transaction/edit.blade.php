@@ -16,7 +16,7 @@
                         <x-icon icon="users" width=18 height=18 viewBox="20 20" />
                     </div>
                     <div>
-                        <p class="text-2xl font-bold text-gray-900 xs/max:text-xl xs/max:font-semibold">New employee
+                        <p class="text-xl font-semibold text-gray-900">New employee
                         </p>
                         <p class="text-sm font-normal text-gray-500 xs/max:text-xs">
                             Please provide the employee's detail.

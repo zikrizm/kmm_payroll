@@ -15,7 +15,7 @@
                         <x-icon icon="clock" width=18 height=18 viewBox="20 20" />
                     </div>
                     <div>
-                        <p class="text-2xl font-bold text-gray-900 xs/max:text-xl xs/max:font-semibold">Tambah shift
+                        <p class="text-xl font-semibold text-gray-900">Tambah shift
                         </p>
                         <p class="text-sm font-normal text-gray-500 xs/max:text-xs">
                             Harap berikan detail shiftnya.
@@ -26,21 +26,23 @@
             <hr>
         </header>
         <div>
-            <main class="px-4 flex flex-col gap-4 mb-8">
-                <section class="flex flex-col gap-1">
-                    <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Nama jadwal*</label>
-                    {!! FormCustom::input('name', null, [ "placeholder" => 'Masukkan nama jadwal anda yang baru'])
-                    !!}
-                </section>
-                <section class="flex flex-col gap-1 flex-1">
-                    <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Bagian*</label>
-                    <select class="select2" name="dept_id">
-                        @foreach ($onlyParentDept as $item)
-                        <option value="{{ $item['id'] }}">{{ $item['dept_name'] }}</option>
-                        @endforeach
-                    </select>
-                    <label class="font-normal text-xs text-red-500 xs/max:text-xs cross_day hint-text"></label>
-                </section>
+            <main class="px-4 flex flex-col gap-2.5 mb-8">
+                <div class="flex items-center gap-3">
+                    <section class="flex flex-col gap-1 flex-1">
+                        <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Nama jadwal*</label>
+                        {!! FormCustom::input('name', null, [ "placeholder" => 'Masukkan nama jadwal anda yang baru'])
+                        !!}
+                    </section>
+                    <section class="flex flex-col gap-1 flex-1">
+                        <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Bagian*</label>
+                        <select class="select2" name="dept_id">
+                            @foreach ($onlyParentDept as $item)
+                            <option value="{{ $item['id'] }}">{{ $item['dept_name'] }}</option>
+                            @endforeach
+                        </select>
+                        <label class="font-normal text-xs text-red-500 xs/max:text-xs cross_day hint-text"></label>
+                    </section>
+                </div>
                 <ul class="flex border-b mb-4">
                     <li>
                         <button type="button" data-ref-class-content="basic-settings-content"
@@ -52,7 +54,7 @@
                 <div class="flex flex-col gap-2" id="basic-settings-content">
                     <div class="flex items-center justify-between gap-1">
                         <div class="flex flex-1">
-                            <p class="text-base font-semibold text-gray-500">Senin: </p>
+                            <p class="text-sm font-medium text-gray-500">Senin: </p>
                         </div>
                         <section class="flex flex-col gap-1 flex-3">
                             <select class="select2-timetable" name="timetables[senin][]" multiple="multiple">
@@ -68,7 +70,7 @@
                     </div>
                     <div class="flex items-center justify-between gap-1">
                         <div class="flex flex-1">
-                            <p class="text-base font-semibold text-gray-500">Selasa: </p>
+                            <p class="text-sm font-medium text-gray-500">Selasa: </p>
                         </div>
                         <section class="flex flex-col gap-1 flex-3">
                             <select class="select2-timetable" name="timetables[selasa][]" multiple="multiple">
@@ -84,7 +86,7 @@
                     </div>
                     <div class="flex items-center justify-between gap-1">
                         <div class="flex flex-1">
-                            <p class="text-base font-semibold text-gray-500">Rabu: </p>
+                            <p class="text-sm font-medium text-gray-500">Rabu: </p>
                         </div>
                         <section class="flex flex-col gap-1 flex-3">
                             <select class="select2-timetable" name="timetables[rabu][]" multiple="multiple">
@@ -100,7 +102,7 @@
                     </div>
                     <div class="flex items-center justify-between gap-1">
                         <div class="flex flex-1">
-                            <p class="text-base font-semibold text-gray-500">Kamis: </p>
+                            <p class="text-sm font-medium text-gray-500">Kamis: </p>
                         </div>
                         <section class="flex flex-col gap-1 flex-3">
                             <select class="select2-timetable" name="timetables[kamis][]" multiple="multiple">
@@ -116,7 +118,7 @@
                     </div>
                     <div class="flex items-center justify-between gap-1">
                         <div class="flex flex-1">
-                            <p class="text-base font-semibold text-gray-500">Jumat: </p>
+                            <p class="text-sm font-medium text-gray-500">Jumat: </p>
                         </div>
                         <section class="flex flex-col gap-1 flex-3">
                             <select class="select2-timetable" name="timetables[jumat][]" multiple="multiple">
@@ -132,7 +134,7 @@
                     </div>
                     <div class="flex items-center justify-between gap-1">
                         <div class="flex flex-1">
-                            <p class="text-base font-semibold text-gray-500">Sabtu: </p>
+                            <p class="text-sm font-medium text-gray-500">Sabtu: </p>
                         </div>
                         <section class="flex flex-col gap-1 flex-3">
                             <select class="select2-timetable" name="timetables[sabtu][]" multiple="multiple">
@@ -148,7 +150,7 @@
                     </div>
                     <div class="flex items-center justify-between gap-1">
                         <div class="flex flex-1">
-                            <p class="text-base font-semibold text-gray-500">Minggu/Libur: </p>
+                            <p class="text-sm font-medium text-gray-500">Minggu/Libur: </p>
                         </div>
                         <section class="flex flex-col gap-1 flex-3">
                             <select class="select2-timetable" name="timetables[minggu][]" multiple="multiple">

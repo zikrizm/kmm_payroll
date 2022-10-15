@@ -11,7 +11,7 @@
                     <x-icon icon="map-pin" width=18 height=18 viewBox="20 20" />
                 </div>
                 <div>
-                    <p class="text-2xl font-bold text-gray-900 xs/max:text-xl xs/max:font-semibold">New location</p>
+                    <p class="text-xl font-semibold text-gray-900">New location</p>
                     <p class="text-sm font-normal text-gray-500 xs/max:text-xs">
                         Please provide the location's detail.
                     </p>
@@ -42,7 +42,8 @@
             </section>
             <section class="flex flex-col gap-1">
                 <label class="font-normal text-sm text-gray-500 xs/max:text-xs">alternate contact number</label>
-                {!! FormCustom::input('alternate_number', null, [ "placeholder" => 'Enter new your alternate contact number']) !!}
+                {!! FormCustom::input('alternate_number', null, [ "placeholder" => 'Enter new your alternate contact
+                number']) !!}
             </section>
             <section class="flex flex-col gap-1">
                 <label class="font-normal text-sm text-gray-500 xs/max:text-xs">country*</label>
