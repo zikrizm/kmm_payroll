@@ -2,7 +2,7 @@
     @csrf
     <!-- {{ csrf_field() }} -->
     <section
-        class="flex flex-col gap-8  pt-4 w-[375px] bg-white max-h-[90vh] overflow-y-auto overflow-x-hidden relative rounded-lg">
+        class="flex flex-col gap-8 pt-4 w-[375px] bg-white max-h-[95vh] overflow-y-auto overflow-x-hidden relative rounded-lg">
         <header class="px-4 flex flex-col gap-5 pt-4 xs/max:gap-3 relative">
             <button
                 class="absolute top-[-5px] right-3 xs/max:top-[-6px] modal-close hover:bg-gray-100 text-red rounded p-2">
@@ -15,9 +15,9 @@
                         <x-icon icon="user" width=18 height=18 viewBox="20 20" />
                     </div>
                     <div>
-                        <p class="text-xl font-semibold text-gray-900">User</p>
+                        <p class="text-xl font-semibold text-gray-900">Pengguna</p>
                         <p class="text-sm font-normal text-gray-500 xs/max:text-xs">
-                            Please provide the user's detail.
+                            Harap berikan detail pengguna.
                         </p>
                     </div>
                 </div>
@@ -25,10 +25,10 @@
             <hr>
         </header>
         <div>
-            <main class="px-4 flex flex-col gap-4 xs/max:gap-3 mb-8">
+            <main class="px-4 flex flex-col gap-2.5 xs/max:gap-3 mb-8">
                 <div>
-                    <p class='text-gray-700 text-sm font-medium'>Your photo</p>
-                    <p class='text-gray-500 text-sm font-normal'>This will be displayed on your profile.</p>
+                    <p class='text-gray-700 text-sm font-medium'>Foto Anda</p>
+                    <p class='text-gray-500 text-sm font-normal'>Ini akan ditampilkan di profil Anda.</p>
                 </div>
                 <div class='flex justify-between items-start'>
                     <div class="relative">
@@ -50,48 +50,34 @@
                     </label>
                     <input type="hidden" name="photo" id="photo">
                 </div>
-                <section class="flex flex-col gap-1">
-                    <label class="font-normal text-sm text-gray-500 xs/max:text-xs">prefix</label>
-                    {!! FormCustom::input('surname', $user->surname, [ "placeholder" => 'Enter new your prefix'])
-                    !!}
-                </section>
-                <section class="flex flex-col gap-1">
-                    <label class="font-normal text-sm text-gray-500 xs/max:text-xs">first name*</label>
-                    {!! FormCustom::input('first_name', $user->first_name, [ "placeholder" => 'Enter new your
-                    first_name'])
-                    !!}
-                </section>
-                <section class="flex flex-col gap-1">
-                    <label class="font-normal text-sm text-gray-500 xs/max:text-xs">last name</label>
-                    {!! FormCustom::input('last_name', $user->last_name, [ "placeholder" => 'Enter new your last name'])
-                    !!}
-                </section>
-                <section class="flex flex-col gap-1">
-                    <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Username*</label>
-                    {!! FormCustom::input('username', $user->username, [ "placeholder" => 'Enter new your username'])
-                    !!}
-                </section>
+                <div class="flex items-start gap-3">
+                    <section class="flex flex-col gap-1 flex-1">
+                        <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Nama</label>
+                        {!! FormCustom::input('name', $user->name, ['placeholder' => 'Masukkan nama']) !!}
+                    </section>
+                    <section class="flex flex-col gap-1 flex-2">
+                        <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Username*</label>
+                        {!! FormCustom::input('username', $user->username, ['placeholder' => 'Masukkan username']) !!}
+                    </section>
+                </div>
                 <section class="flex flex-col gap-1">
                     <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Email*</label>
-                    {!! FormCustom::input('email', $user->email, [ "placeholder" => 'Enter new your email', 'type' =>
-                    'email'])
-                    !!}
+                    {!! FormCustom::input('email', $user->email, ['placeholder' => 'Masukkan email', 'type' => 'email']) !!}
                 </section>
                 <section class="flex flex-col gap-1">
                     <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Password*</label>
-                    {!! FormCustom::input('password', null, [ "placeholder" => 'Enter new your password', 'type' =>
-                    'password']) !!}
+                    {!! FormCustom::input('password', null, ['placeholder' => 'Masukkan password', 'type' => 'password']) !!}
                 </section>
                 <div class="flex flex-col gap-1">
-                    <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Role*</label>
+                    <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Wewenang*</label>
                     <select class="select2" name="role">
                         <option value="" selected>Silahkan Pilih</option>
                         @foreach ($roles as $role)
-                        @if (count($user->roles) != 0 && $role->id == $user->roles[0]->id)
-                        <option value="{{ $role->id }}" selected>{{ $role->name }}</option>
-                        @else
-                        <option value="{{ $role->id }}">{{ $role->name }}</option>
-                        @endif
+                            @if (count($user->roles) != 0 && $role->id == $user->roles[0]->id)
+                                <option value="{{ $role->id }}" selected>{{ $role->name }}</option>
+                            @else
+                                <option value="{{ $role->id }}">{{ $role->name }}</option>
+                            @endif
                         @endforeach
                     </select>
                     <label class="font-normal text-xs text-red-500 xs/max:text-xs role hint-text"></label>

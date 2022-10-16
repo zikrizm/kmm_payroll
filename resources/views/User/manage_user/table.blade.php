@@ -8,7 +8,7 @@
                             {!! FormCustom::checkbox() !!}
                         </div>
                         <div class='px-6 py-3 cursor-pointer flex-1'>
-                            <x-ui.sort-table text="Name & Email" url="{{ route('user.index') }}" field="first_name"
+                            <x-ui.sort-table text="Nama & Email" url="{{ route('user.index') }}" field="first_name"
                                 order="{{ $order }}" />
                         </div>
                     </div>
@@ -18,7 +18,7 @@
                         order="{{ $order }}" />
                 </th>
                 <th class='px-3 py-3 text-left cursor-pointer'>
-                    <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Role</p>
+                    <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Wewenang</p>
                 </th>
                 <th class='px-3 py-3 text-left cursor-pointer'>
                     <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Status</p>

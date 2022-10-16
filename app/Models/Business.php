@@ -22,14 +22,7 @@ class Business extends Model
      *
      * @var array
      */
-    protected $guarded = ['id', 'woocommerce_api_settings'];
-
-    /**
-     * The attributes that should be hidden for arrays.
-     *
-     * @var array
-     */
-    protected $hidden = ['woocommerce_api_settings'];
+    protected $guarded = ['id'];
 
     /**
      * Creates a new business based on the input provided.

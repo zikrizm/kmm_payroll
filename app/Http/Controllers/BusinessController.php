@@ -12,6 +12,7 @@ use App\Services\Api\ApiServices;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Storage;
 use Spatie\Permission\Models\Permission;
 use Illuminate\Support\Facades\Validator;
 
@@ -45,11 +46,11 @@ class BusinessController extends Controller
      */
     public function storeBusinessRegister(Request $request)
     {
+        Log::info($request);
         try {
             $validator = Validator::make($request->all(), [
                 'name' => 'required|max:255',
-                'country' => 'required|max:255',
-                'state' => 'required|max:255',
+                'start_date' => 'required|max:255',
                 'city' => 'required|max:255',
                 'zip_code' => 'required|max:7',
                 'first_name' => 'required|max:255',
@@ -64,27 +65,20 @@ class BusinessController extends Controller
                 DB::beginTransaction();
 
                 //Create owner.
-                $owner_details = $request->only(['surname', 'first_name', 'last_name', 'username', 'email', 'password']);
+                $owner_details = $request->only(['name', 'username', 'email', 'password']);
                 $owner_details['is_default'] = 1;
                 $user = User::create_user($owner_details);
 
                 $business_details = $request->only(['name', 'start_date']);
 
-                $business_location = $request->only(['name', 'country', 'state', 'city', 'zip_code', 'full_address', 'website', 'mobile', 'alternate_number']);
+                $business_location = $request->only(['name', 'city', 'zip_code', 'full_address', 'website', 'mobile']);
                 //Create the business
                 $business_details['owner_id'] = $user->id;
 
-                if (!empty($business_details['start_date'])) {
-                    $business_details['start_date'] = Carbon::createFromFormat(
-                        config('constants.default_date_format'),
-                        $business_details['start_date']
-                    )->toDateString();
-                }
-
                 //upload logo
-                $logo_name = $this->businessUtil->uploadFile($request, 'business_logo', 'business_logos', 'image');
+                $logo_name = $this->businessUtil->uploadFile($request, 'business_logo', 'uploads/business_logos', 'image');
                 if (!empty($logo_name)) {
-                    $business_details['logo'] = $logo_name;
+                    $business_details['logo'] = Storage::url('/uploads/business_logos/' . $logo_name);
                 }
 
                 $business = Business::create_business($business_details);

@@ -15,7 +15,6 @@ use Illuminate\Support\Facades\Hash;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Storage;
-use Maatwebsite\Excel\HeadingRowImport;
 use Illuminate\Support\Facades\Validator;
 use Maatwebsite\Excel\Validators\ValidationException;
 use Maatwebsite\Excel\Exceptions\NoTypeDetectedException;
@@ -54,7 +53,7 @@ class ManageUserController extends Controller
                 if ($request->has('q')) {
                     $search = $request->q;
                     $users = $users->where(function ($q) use ($search) {
-                        $q->where('first_name', 'LIKE', "%" . $search . "%")->orWhere('username', 'LIKE', "%" . $search . "%")
+                        $q->where('name', 'LIKE', "%" . $search . "%")->orWhere('username', 'LIKE', "%" . $search . "%")
                             ->orWhere('email', 'LIKE', "%" . $search . "%");
                     });
                 }
@@ -120,7 +119,7 @@ class ManageUserController extends Controller
             if ($validator->fails()) {
                 return $this->buildRes->RESPONSE_REQ('error', null, $validator->errors());
             } else {
-                $user_data = $request->only(['surname', 'first_name', 'last_name', 'status', 'email', 'username', 'password', 'role']);
+                $user_data = $request->only(['name', 'status', 'email', 'username', 'password', 'role']);
                 $role = app(Services::class)->findRoleById($request->role);
                 if (!empty($request->input('password'))) {
                     $user_data['password'] = Hash::make($request->input('password'));
@@ -203,7 +202,7 @@ class ManageUserController extends Controller
             if ($validator->fails()) {
                 return $this->buildRes->RESPONSE_REQ('error', null, $validator->errors());
             } else {
-                $user_data = $request->only(['surname', 'first_name', 'last_name', 'status', 'email', 'username', 'password', 'role']);
+                $user_data = $request->only(['name',  'status', 'email', 'username', 'password', 'role']);
 
                 if (!empty($request->input('password'))) {
                     $user_data['password'] = Hash::make($request->input('password'));
@@ -304,7 +303,7 @@ class ManageUserController extends Controller
     public function rules($user)
     {
         return [
-            'first_name' => 'required|string|max:255',
+            'name' => 'required|string|max:255',
             'username' => (empty($user)) ?  'required|string|max:255|unique:users' : 'required|string|max:255|unique:users,username,' . $user->id,
             'email' => (empty($user)) ? 'required|string|email:rfc,dns|unique:users' : 'required|string|email:rfc,dns|unique:users,email,' . $user->id,
             'password' => 'required|string|min:6',

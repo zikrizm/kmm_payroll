@@ -60,13 +60,10 @@ class BusinessUtil extends Util
             'business_id' => $business_id,
             'name' => $location_details['name'],
             'city' => $location_details['city'],
-            'state' => $location_details['state'],
             'zip_code' => $location_details['zip_code'],
-            'country' => $location_details['country'],
             'mobile' => !empty($location_details['mobile']) ? $location_details['mobile'] : '',
-            'alternate_number' => !empty($location_details['alternate_number']) ? $location_details['alternate_number'] : '',
             'website' => !empty($location_details['website']) ? $location_details['website'] : '',
-            'email' => '',
+            'full_address' => $location_details['full_address'],
         ]);
         return $location;
     }

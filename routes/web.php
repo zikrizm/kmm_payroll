@@ -78,6 +78,8 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('device', 'DeviceController', ['except' => ['update']]);
     Route::resource('transaction', 'TransactionController', ['except' => ['update']]);
     Route::resource('attendance-report', 'AttendanceReportController', ['except' => ['update', 'show']]);
+    Route::resource('payroll-report', 'PayrollReportController', ['except' => ['update', 'show']]);
+    Route::resource('overtime-rice-report', 'OvertimeRiceReportController', ['except' => ['update', 'show']]);
 
     Route::get('/attendance-report/attendance-card', 'AttendanceReportController@showAttendanceCard')->name('show-attendance-card');
     Route::post('/attendance-report/attendance-card', 'AttendanceReportController@checkAttendanceCard')->name('check-attendance-card');

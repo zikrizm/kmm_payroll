@@ -46,7 +46,7 @@ class Api extends NetworkUtils {
                     // * CLEAR ERROR ----->
                     clearErrorFormInputs();
                     // * CLOSE MODAL ----->
-                    // closeModal({ name: '.main-modal', content: '.content-main-modal' });
+                    closeModal({ name: '.main-modal', content: '.content-main-modal' });
                     callback(_response);
                 }
             } catch (error) {
