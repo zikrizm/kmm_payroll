@@ -65,4 +65,19 @@ class Util
 
         return $dates;
     }
+
+    // function _group_by_date_and_sort($array, $key)
+    // {
+    //     $return = array();
+    //     foreach ($array as $val) {
+    //         $date = Carbon::parse($val[$key])->format('Y-m-d');
+    //         if (!empty($date)) {
+    //             $return[$date][] = $val;
+    //             usort($return[$date], function ($a, $b) use ($key) {
+    //                 return strtotime($a[$key]) - strtotime($b[$key]);
+    //             });
+    //         }
+    //     }
+    //     return $return;
+    // }
 }

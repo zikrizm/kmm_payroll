@@ -40,7 +40,7 @@
                 <section>
                     <div class="flex items-start gap-2.5">
                         <span class="pt-0.5">
-                            {!! FormCustom::checkbox('must_attend', -1, ['checked'=>$position['must_attend']]) !!}
+                            {!! FormCustom::checkbox('must_attend', -1, ['checked'=> $position['must_attend']]) !!}
                         </span>
                         <div class="flex flex-col gap-px">
                             <p class="font-medium text-sm text-gray-700">Wajib hadir</p>

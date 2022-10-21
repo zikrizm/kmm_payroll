@@ -34,7 +34,7 @@ class AttendanceReportController extends Controller
      */
     public function index(Request $request)
     {
-        if (!auth()->user()->can('kasbon.view')) {
+        if (!auth()->user()->can('attendance-report.view')) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -42,17 +42,7 @@ class AttendanceReportController extends Controller
             $business_id = Session::get('business_id');
             if (request()->ajax()) {
                 $filter = [];
-                // $attendance_reports = [];
 
-                // $kasbons = EmployeeDebt::where('business_id', $business_id);
-                // if ($request->has('q') && !empty($request->input('q'))) {
-                //     $search = str_replace('.', '', $request->q);
-                //     $kasbons = $kasbons->where('debt', 'LIKE', "%" . $search . "%")->orWhere('instalment', 'LIKE', "%" . $search . "%")->orWhere('first_name', 'LIKE', "%" . $search . "%");
-                // }
-
-                // if ($request->has('kasbon_date')) {
-                //     $kasbons = $kasbons->whereBetween('date', [$request['kasbon_date']['start_date'], $request['kasbon_date']['end_date']]);
-                // }
                 $page = 1;
                 if (!empty($request->input('page'))) {
                     $page = (int)$request->page;
@@ -68,9 +58,9 @@ class AttendanceReportController extends Controller
                     $filter['end_time'] = $request->attendance_report_date['end_time'];
                 }
 
-                $transactions_count = $this->apiService->get_transactions($filter)['count'];
-                $filter['page_size'] = $transactions_count;
-                $transactions = $this->apiService->get_transactions($filter);
+                $atten_count = $this->apiService->get_transactions($filter)['count'];
+                $filter['page_size'] = $atten_count;
+                $attens = collect($this->apiService->get_transactions($filter)['data']);
                 $shifts = Shift::where('business_id', $business_id)->with(
                     ['shiftday' => function ($query) {
                         $query->with(['shiftday_has_timetable' => function ($query) {
@@ -79,84 +69,56 @@ class AttendanceReportController extends Controller
                     }]
                 )->get();
 
-                // $collection = collect($transactions['data']);
-
-                // $grouped = $collection->groupBy(function ($item, $key) {
-                //     $transaction_time = Carbon::parse($item['punch_time'])->format('Y-m-d');
-                //     return $transaction_time . '-' . $item['emp'];
-                // });
-
-                // $sorted = $collection->sortBy(function ($product, $key) {
-                //     return $product['punch_time'];
-                // });
-
-                // Log::info($sorted);
-
-                // $groupedByIdAndDateV2 = array_reduce($transactions['data'], function (array $accumulator, array $element) {
-                //     $transaction_time = Carbon::parse($element['punch_time'])->format('Y-m-d');
-                //     $accumulator[$transaction_time . '-' . $element['emp']][] = $element;
-
-                //     usort($accumulator[$transaction_time . '-' . $element['emp']], function ($a, $b) {
-                //         return strtotime($a['punch_time']) - strtotime($b['punch_time']);
-                //     });
-
-                //     return $accumulator;
-                // }, []);
-                // $collection = collect($groupedByIdAndDateV2);
-                // Log::info($collection);
-
-
-                $groupedByIdAndDate = array_reduce($transactions['data'], function (array $accumulator, array $element) {
-                    $transaction_time = Carbon::parse($element['punch_time'])->format('Y-m-d');
-                    $accumulator[$transaction_time . '-' . $element['emp']][] = $element;
-
-                    usort($accumulator[$transaction_time . '-' . $element['emp']], function ($a, $b) {
-                        return strtotime($a['punch_time']) - strtotime($b['punch_time']);
-                    });
-
-                    return $accumulator;
-                }, []);
-
                 $attendance_reports = [];
-                foreach ($groupedByIdAndDate as $transaction) {
-                    $item_first = $transaction[0];
-                    $item_last = $transaction[count($transaction) - 1];
-
+                $attens_groupings = $this->_group_by_date_and_emp($attens);
+                foreach ($attens_groupings as $items) {
+                    $item_first = $items[0];
+                    $item_last = $items[count($items) - 1];
                     $diff_time = Carbon::parse($item_first['punch_time'])->diff(Carbon::parse($item_last['punch_time']));
-                    $attendance_reports[] =  [
-                        "id" => $item_first['id'],
-                        "emp_code" => $item_first['emp_code'],
-                        "first_name" => $item_first['first_name'],
-                        "last_name" => $item_first['last_name'],
-                        "department" => $item_first['department'],
-                        "att_date" => Carbon::parse($item_first['punch_time'])->format('Y-m-d'),
-                        "first_punch" => $item_first['punch_time'],
-                        "last_punch" => $item_last['punch_time'],
-                        "total_time" => $diff_time->format('%H:%I')
-                    ];
+                    if (!empty($search)) {
+                        if (str_contains(strtolower($item_first['first_name']), strtolower($search))) {
+                            $attendance_reports[] =  [
+                                "id" => $item_first['id'],
+                                "emp_code" => $item_first['emp_code'],
+                                "first_name" => $item_first['first_name'],
+                                "last_name" => $item_first['last_name'],
+                                "department" => $item_first['department'],
+                                "att_date" => Carbon::parse($item_first['punch_time'])->format('Y-m-d'),
+                                "first_punch" => $item_first['punch_time'],
+                                "last_punch" => $item_last['punch_time'],
+                                "total_time" => $diff_time->format('%H:%I')
+                            ];
+                        }
+                    } else {
+                        $attendance_reports[] =  [
+                            "id" => $item_first['id'],
+                            "emp_code" => $item_first['emp_code'],
+                            "first_name" => $item_first['first_name'],
+                            "last_name" => $item_first['last_name'],
+                            "department" => $item_first['department'],
+                            "att_date" => Carbon::parse($item_first['punch_time'])->format('Y-m-d'),
+                            "first_punch" => $item_first['punch_time'],
+                            "last_punch" => $item_last['punch_time'],
+                            "total_time" => $diff_time->format('%H:%I')
+                        ];
+                    }
                 }
-                $data = collect($attendance_reports);
-                if (!empty($search)) {
-                    $data  = $data->filter(function ($element, $key) use ($search) {
-                        Log::info($element['first_name']);
-                        return str_contains(strtolower($element['first_name']), strtolower($search));
-                    });
-                }
-                $data  = $data->skip(($page - 1) * 10)->take(10);
+                $atten_count = count($attendance_reports);
+                $attendance_reports  = collect($attendance_reports)->skip(($page - 1) * 10)->take(10);
 
-                $attendance_reports_count = count(!empty($search) ? $data : $attendance_reports);
-                $next = (ceil($attendance_reports_count / 10) == $page) ?  null : $page + 1;
+                $next = (ceil($atten_count / 10) == $page) ?  null : $page + 1;
                 $attendance_reports = collect([
-                    'count' => $attendance_reports_count,
-                    'data' => $data,
+                    'count' => $atten_count,
+                    'data' => $attendance_reports,
                     'next' => $next,
                     'previous' => $page - 1,
-                    'lastPage' => ceil($attendance_reports_count / 10),
+                    'lastPage' => ceil($atten_count / 10),
                     'currentPage' => $page,
                 ]);
+
                 $attendance_reports['data'] = $attendance_reports['data']->map(function ($element) use ($shifts) {
-                    $transaction_time_first = Carbon::parse($element['first_punch'])->format('H:i:s');
-                    $transaction_time_last = Carbon::parse($element['last_punch'])->format('H:i:s');
+                    $check_in = Carbon::parse($element['first_punch'])->format('H:i:s');
+                    $check_out = Carbon::parse($element['last_punch'])->format('H:i:s');
                     $code_day = Carbon::parse($element['att_date'])->dayOfWeek;
 
                     foreach ($shifts as $shift) {
@@ -164,17 +126,21 @@ class AttendanceReportController extends Controller
                             foreach ($shiftday->shiftday_has_timetable as $keyHas => $shiftdayHas) {
                                 $in = Carbon::createFromTimeString($shiftdayHas->timetable->in_time);
                                 $out = Carbon::createFromTimeString($shiftdayHas->timetable->out_time);
-                                $punch = Carbon::createFromTimeString($transaction_time_first);
+                                $punchIn = Carbon::createFromTimeString($check_in);
+                                $punchOut = Carbon::createFromTimeString($check_out);
 
-                                // check apakah out lebih kecil dari in, klo ya tambah 1 hari
-                                if ($out->lessThan($in)) {
-                                    $punch->addDay();
-                                    $out->addDay();
-                                }
-                                if ($code_day == $shiftday->code_day && $punch->between($in, $out)) {
-                                    $element['shift_id'] = $shift->id;
-                                    $element['shift_name'] = $shift->name;
-                                    $element['weekday'] = $shiftday->name;
+                                // // check apakah out lebih kecil dari in, klo ya tambah 1 hari
+                                // if ($out->lessThan($in)) {
+                                //     $punch->addDay();
+                                //     $out->addDay();
+                                // }
+
+                                if ($code_day == $shiftday->code_day) {
+                                    if ($punchIn->lt($in->addHour())) {
+                                        $element['shift']['id'] = $shift->id;
+                                        $element['shift']['name'] = $shift->name;
+                                    }
+                                    $element['shift']['weekday'] = $shiftday->name;
                                 }
                             }
                         }
@@ -183,115 +149,6 @@ class AttendanceReportController extends Controller
                     return $element;
                 });
 
-                Log::info("page =" . $page);
-
-
-
-                // for ($i = 0; $i < count($collection); $i++) {
-                //     $transaction_time_first = Carbon::parse($collection[$i]['first_punch'])->format('H:i:s');
-                //     $transaction_time_last = Carbon::parse($collection[$i]['last_punch'])->format('H:i:s');
-                //     $code_day = Carbon::parse($collection[$i]['att_date'])->dayOfWeek;
-
-                //     foreach ($shifts as $shift) {
-                //         // if ($collection[$i]['first_name'] == "karyawan#001") {
-                //         //     Log::info('keynya= ' . $collection[$i]['first_name'] . '  shif_name' . $shift->name );
-                //         //     // Log::info($shift->shiftday);
-                //         // }
-                //         foreach ($shift->shiftday as $shiftday) {
-                //             foreach ($shiftday->shiftday_has_timetable as $keyHas => $shiftdayHas) {
-                //                 // Log::info('keynya= ' . $keyHas . ' shift_id = ' . $shift->id . ' shiftday_id = '.$shiftday->name . $shiftday->id);
-                //                 $in = Carbon::createFromTimeString($shiftdayHas->timetable->in_time);
-                //                 $out = Carbon::createFromTimeString($shiftdayHas->timetable->out_time);
-                //                 $punch = Carbon::createFromTimeString($transaction_time_first);
-
-                //                 // check apakah out lebih kecil dari in, klo ya tambah 1 hari
-                //                 if ($out->lessThan($in)) {
-                //                     $punch->addDay();
-                //                     $out->addDay();
-                //                 }
-                //                 // if ($code_day == $shiftday->code_day && $collection[$i]['first_name'] == "karyawan#001") {
-                //                 //     Log::info('first_name= ' . $collection[$i]['first_name'] . '  shif_name=' . $shift->name . '  transaction_time_first=' . $punch . '  in' . $in . '  out' . $out);
-                //                 // }
-                //                 if ($code_day == $shiftday->code_day && $punch->between($in, $out)) {
-                //                     $collection[$i]['shift_id'] = $shift->id;
-                //                     $collection[$i]['shift_name'] = $shift->name;
-                //                     $collection[$i]['weekday'] = $shiftday->name;
-                //                 }
-                //             }
-                //         }
-                //     }
-                // }
-
-
-                // Log::info(response()->json($attendance_reports));
-
-                // $dataTess = [$transactions['data'][0]];
-                // $transaction_days = [];
-                // foreach ($dataTess as $keyT => $transaction) {
-
-                //     $punch_time = new Carbon($transaction['punch_time']);
-                //     $transaction_time = Carbon::createFromTimeString($punch_time->format('H:i:s'));
-                //     $code_day = $punch_time->dayOfWeek;
-
-                //     // $shifts->map(function ($shift) use ($code_day, $transaction_time, $transaction) {
-                //     //     $shift->shiftday[$code_day - 1]['transaction_days'] = [];
-                //     //     foreach ($shift->shiftday as $shiftday) {
-                //     //         foreach ($shiftday->shiftday_has_timetable as $shiftdayHas) {
-                //     //             $in = Carbon::createFromTimeString($shiftdayHas->timetable->in_time);
-                //     //             $out = Carbon::createFromTimeString($shiftdayHas->timetable->out_time);
-
-                //     //             // check apakah out lebih kecil dari in, klo ya tambah 1 hari
-                //     //             if ($out->lessThan($in)) $out->addDay();
-                //     //             if ($transaction_time->between($in, $out) && $code_day == $shiftday->code_day) {
-                //     //     $shift->shiftday[$code_day - 1]['transaction_days'] = [];
-                //     //                 // Log::info($shift->shiftday[$code_day - 1]['transaction_days']);
-                //     //                 // break;
-                //     //             }
-                //     //         }
-                //     //     }
-                //     //     return $shift;
-                //     // });
-
-                //     foreach ($shifts as $shift) {
-                //         $transaction_days = [];
-                //         foreach ($shift->shiftday as $shiftday) {
-                //             foreach ($shiftday->shiftday_has_timetable as $keyHas => $shiftdayHas) {
-                //                 // Log::info("jalan ke-".$keyHas);
-                //                 // $in = Carbon::createFromTimeString($shiftdayHas->timetable->in_time);
-                //                 // $out = Carbon::createFromTimeString($shiftdayHas->timetable->out_time);
-
-                //                 // // check apakah out lebih kecil dari in, klo ya tambah 1 hari
-                //                 // if ($out->lessThan($in)) $out->addDay();
-                //                 // if ($transaction_time->between($in, $out)) {
-                //                 //     $transactions['data'][$keyT]['shift_id'] = $shift->id;
-                //                 //     Log::info('time =' . $transaction_time . ', name =' . $shiftday->name . ', code_day = ' . $code_day . ', ' . $transaction['first_name']);
-                //                 //     // break;
-                //                 // }
-                //             }
-                //         }
-                //     }
-                //     // $shift->shiftday[$code_day - 1]['transaction_days'] = [0 => "Sdfsdf"];
-                //     // Log::info(count($transaction_days));
-
-                //     // $punch =  new Carbon('2022-10-01 13:24:28');
-                //     // $now = Carbon::createFromTimeString($punch->format('H:i:s'));
-                //     // $start = Carbon::createFromTimeString('14:00');
-                //     // $end = Carbon::createFromTimeString('08:00')->addDay();
-                //     // $tes = $now->between($start, $end);
-                //     // Log::info("-----==");
-                //     // Log::info($tes);
-                //     // Log::info(Carbon::createFromFormat('H:i:s','07:00:00')->format('Y-m-d H:i:s'));
-                // }
-
-
-
-
-                // if ($request->has('sort')) {
-                //     $sort = $request->sort;
-                //     $order = $sort['order'];
-                //     $kasbons->orderBy($sort['name'], $sort['order']);
-                // }
-                // $kasbons = $kasbons->paginate(10);
                 $order = null;
                 $render =  view('Report.attendance_report.table', compact('attendance_reports', 'order'))->render();
 
@@ -587,6 +444,8 @@ class AttendanceReportController extends Controller
                                     if ($code_day == $shiftday->code_day) {
                                         $data['shift']['weekday'] = $shiftday->name;
                                         if ($punchF->lessThan($in)) {
+                                            $data['shift']['shift_id'] = $shift->id;
+                                            $data['shift']['name'] = $shift->name;
                                             $diff_time = $punchF->diffInSeconds($in);
                                             $minute = intval(gmdate('i', $diff_time));
                                             $hours = intval(gmdate('G', $diff_time));
@@ -600,6 +459,8 @@ class AttendanceReportController extends Controller
                                         }
 
                                         if ($out->lessThan($punchL)) {
+                                            $data['shift']['shift_id'] = $shift->id;
+                                            $data['shift']['name'] = $shift->name;
                                             $diff_time = $out->diffInSeconds($punchL);
                                             $minute = intval(gmdate('i', $diff_time));
                                             $hours = intval(gmdate('G', $diff_time));
@@ -624,7 +485,7 @@ class AttendanceReportController extends Controller
                                                     $data['in'] = '1/2';
                                                 }
                                             }
-                                        } 
+                                        }
                                     }
                                 }
                             }
@@ -660,7 +521,20 @@ class AttendanceReportController extends Controller
         }
     }
 
-
+    function _group_by_date_and_emp($array)
+    {
+        $return = array();
+        foreach ($array as $val) {
+            $date = Carbon::parse($val['punch_time'])->format('Y-m-d');
+            if (!empty($date)) {
+                $return[$date . '-' . $val['emp']][] = $val;
+                usort($return[$date . '-' . $val['emp']], function ($a, $b) {
+                    return strtotime($a['punch_time']) - strtotime($b['punch_time']);
+                });
+            }
+        }
+        return $return;
+    }
 
     /**
      * Rules validation group.

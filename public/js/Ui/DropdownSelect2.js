@@ -1,15 +1,17 @@
-function select2_employee(primary_field = 'id') {
+function select2_employee(url, primary_field = 'id') {
     $(".select2-employee").select2({
         ajax: {
-            url: '/search-employee-for-dropdown',
+            url: url,
             data: function (params) {
                 return { q: params.term };
             },
             processResults: function (data) {
-                return { results: data.data.map(e => {
-                    e.id = e[primary_field];
-                    return e;
-                }) };
+                return {
+                    results: data.data.map(e => {
+                        e.id = e[primary_field];
+                        return e;
+                    })
+                };
             }
         },
         templateResult: templateResultEmp,
@@ -45,7 +47,60 @@ function select2_employee(primary_field = 'id') {
 
         var $opt = $(
             `<div class="flex items-center">
+                <div class="flex gap-2 items-center py-1 px-1">
+                    ${(!isDefault) ? `<img src="${API + opt.photo}" alt="" class="w-5 object-cover h-5 min-w-[20px] min-h-[20px] rounded-full">` : ''}
+                    <div>
+                        <p class="${!isDefault ? 'text-gray-900' : 'text-gray-500'} text-sm font-medium truncate">
+                            ${opt.first_name ?? opt.text ?? ''} ${opt.last_name ?? ''}
+                        </p>
+                    </div>
+                </div>
+            </div> `
+        );
+        return $opt;
+    };
+}
+
+function select2_employee_off_in_dept(data = {}) {
+    $(".select2-employee").select2({
+        ajax: {
+            data: (params) => { return { q: params.term, ...data }; },
+            processResults: (data) => { return { results: data }; }
+        },
+        templateResult: templateResultEmp,
+        templateSelection: templateSelectionEmp,
+    });
+
+    function templateResultEmp(opt) {
+        opt.photo = (opt.photo) ? opt.photo : 'files/nophoto.gif';
+        var $opt = $(
+            `<div class="flex items-center">
                 <div class="flex gap-3 items-center py">
+                    <img src="${API + opt.photo}" alt="" class="w-8 object-cover h-8 min-w-[32px] min-h-[32px] rounded-full">
+                    <div>
+                        <p class="text-gray-900 text-sm font-medium truncate sm/max:w-12">
+                            ${opt.first_name ?? opt.text ?? '-'} ${opt.last_name ?? ''}
+                        </p>
+                        <p class="text-gray-500 text-sm font-normal truncate sm/max:w-12">
+                            ${opt.email ?? '-'}
+                        </p>
+                    </div>
+                </div>
+            </div> `
+        );
+        return $opt;
+    };
+
+    function templateSelectionEmp(opt) {
+        var isDefault = false;
+        var attr = $(opt.element).attr('default');
+        isDefault = (typeof attr !== 'undefined' && attr !== false);
+
+        opt.photo = (opt.photo) ? opt.photo : 'files/nophoto.gif';
+
+        var $opt = $(
+            `<div class="flex items-center">
+                <div class="flex gap-2 items-center py-1 px-1">
                     ${(!isDefault) ? `<img src="${API + opt.photo}" alt="" class="w-5 object-cover h-5 min-w-[20px] min-h-[20px] rounded-full">` : ''}
                     <div>
                         <p class="${!isDefault ? 'text-gray-900' : 'text-gray-500'} text-sm font-medium truncate">
@@ -106,4 +161,24 @@ function select2_timetable() {
             return $opt;
         },
     });
+}
+function select2_operational(onchange = () => { }) {
+    $(".select2-operational").select2({
+        placeholder: "Silahkan pilih operasional",
+        templateSelection: option_element,
+        templateResult: option_element,
+    });
+
+    function option_element(opt) {
+        var $opt = $(
+            `<div class="flex items-center">
+                    <div class="flex flex-1 gap-2 items-center">
+                        <p>${opt.text}</p>
+                        <p class="font-bold text-xs" style="padding-top: 4px;">${opt.title ? '(' + opt.title + ')' : ''}</p>
+                    </div>
+                </div>`
+        );
+        return $opt;
+    }
+    $('.select2-operational').on("select2:select", onchange);
 }

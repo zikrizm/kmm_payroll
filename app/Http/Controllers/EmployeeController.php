@@ -5,20 +5,23 @@ namespace App\Http\Controllers;
 use App\Rules\NIK;
 use App\Rules\Mobile;
 use App\Models\Employee;
+use App\Models\Operational;
 use App\Utils\ResponseUtil;
 use Illuminate\Http\Request;
 use App\Services\Api\ApiServices;
 use Illuminate\Support\Facades\DB;
 use App\Models\EmployeeHasPosition;
 use Illuminate\Support\Facades\Log;
+use Maatwebsite\Excel\Facades\Excel;
 use App\Exceptions\ResponseExeception;
 use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
-use Maatwebsite\Excel\Facades\Excel;
 use App\Http\Controllers\EmployeePhotoController;
-use Maatwebsite\Excel\Exceptions\NoTypeDetectedException;
 use Maatwebsite\Excel\Validators\ValidationException;
+use Maatwebsite\Excel\Exceptions\NoTypeDetectedException;
+use Illuminate\Database\Eloquent\Builder;
+
 
 class EmployeeController extends Controller
 {
@@ -451,9 +454,24 @@ class EmployeeController extends Controller
         }
 
         if ($request->has('q')) {
-            Log::info($request);
             $employees = $this->apiService->get_employees(['employee_icontains' => $request->q]);
             return response()->json($employees);
+        } else {
+            return [];
+        }
+    }
+
+    public function employee_off_in_depts(Request $request)
+    {
+        if (!$request->ajax()) abort(403, 'Unauthorized action.');
+        if ($request->has('q') && !empty($request->input('q'))) {
+            $business_id = Session::get('business_id');
+            $operationals = Operational::where('business_id', $business_id)->where('id', $request->operational_id)->with(['operational_groups' => function ($query) {
+                $query->where('status', 'inactive');
+            }])->first();
+            $dept_inactive = implode(',',  array_column($operationals->operational_groups->toArray(), 'dept_id'));
+            $employees = $this->apiService->get_employees(['departments' => $dept_inactive, 'employee_icontains' => $request->q]);
+            return response()->json($employees['data']);
         } else {
             return [];
         }
@@ -468,34 +486,34 @@ class EmployeeController extends Controller
     }
     public function uploadCSVtess(Request $request)
     {
-       // Log::info($request);
+        // Log::info($request);
         // try {
-            try {
-                // $headings = (new HeadingRowImport)->toArray($request->file);
-    
-                // Log::info($request);
-                // Log::info($request->file('file')[0]);
-                // Excel::import(new UsersImport, $request->file);
-                // Log::info($tess);
-                return 'berhasil';
-            } catch (ValidationException $e) {
-                Log::info("Sdfsdfsdfsdf");
-                $failures = $e->failures();
-    
-                Log::info($failures);
-    
-                foreach ($failures as $failure) {
-                    $failure->row(); // row that went wrong
-                    $failure->attribute(); // either heading key (if using heading row concern) or column index
-                    $failure->errors(); // Actual error messages from Laravel validator
-                    $failure->values(); // The values of the row that has failed.
-                }
-            } catch (NoTypeDetectedException $e) {
-                // return Redirect::back();
-                Log::info("errro");
-            } catch (\Exception $e) {
-                Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
+        try {
+            // $headings = (new HeadingRowImport)->toArray($request->file);
+
+            // Log::info($request);
+            // Log::info($request->file('file')[0]);
+            // Excel::import(new UsersImport, $request->file);
+            // Log::info($tess);
+            return 'berhasil';
+        } catch (ValidationException $e) {
+            Log::info("Sdfsdfsdfsdf");
+            $failures = $e->failures();
+
+            Log::info($failures);
+
+            foreach ($failures as $failure) {
+                $failure->row(); // row that went wrong
+                $failure->attribute(); // either heading key (if using heading row concern) or column index
+                $failure->errors(); // Actual error messages from Laravel validator
+                $failure->values(); // The values of the row that has failed.
             }
+        } catch (NoTypeDetectedException $e) {
+            // return Redirect::back();
+            Log::info("errro");
+        } catch (\Exception $e) {
+            Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
+        }
     }
 
     /**

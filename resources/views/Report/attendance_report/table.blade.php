@@ -43,8 +43,7 @@
                             <div class="pl-4 py-2">
                                 {!! FormCustom::checkbox() !!}
                             </div>
-                            <div class="flex gap-3 items-center px-6 py-3 hover:underline hover:text-gray-500 cursor-pointer text-gray-500 text-sm"
-                                onclick="get_modal('{{ $item['id'] }}')">
+                            <div class="flex gap-3 items-center px-6 py-3 cursor-pointer text-gray-500 text-sm">
                                 <x-icon icon="calendar" width=18 height=18 viewBox="20 20" />
                                 <p class="truncate ">
                                     {{ date('Y-m-d', strtotime($item['att_date'])) }}
@@ -61,7 +60,7 @@
                         {{ $item['department'] ?? '-' }}
                     </td>
                     <td class='px-3 py text-gray-500 text-sm text-center'>
-                        <p class="capitalize">{{ $item['weekday'] ?? '' }}</p>
+                        <p class="capitalize">{{ $item['shift']['weekday'] ?? '' }}</p>
                     </td>
                     <td class='px-3 py text-gray-500 text-sm'>
                         <div class="flex items-center gap-2">
@@ -80,16 +79,18 @@
                         </div>
                     </td>
                     <td class='px-3 py text-gray-500 text-sm'>
-                        ({{ $item['shift_id'] ?? '' }}) {{ $item['shift_name'] ?? '' }}
+                        @if (!empty($item['shift']) && !empty($item['shift']['id']))
+                        ({{ $item['shift']['id'] ?? '' }})
+                        @else
+                        -
+                        @endif {{ $item['shift']['name'] ?? '' }}
                     </td>
                 </tr>
                 @endforeach
             </tbody>
         </table>
         <footer class='flex justify-between items-center px-6 pt-3 pb-4'>
-            <p class='text-gray-700 text-sm'>
-                Page <span> {{ $attendance_reports['currentPage']}}
-                </span>
+            <p class='text-gray-700 text-sm'> Page <span> {{ $attendance_reports['currentPage']}} </span>
                 of <span> {{ $attendance_reports['lastPage']}}</span>
             </p>
             <div class='flex gap-3'>

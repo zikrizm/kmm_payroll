@@ -271,19 +271,21 @@ function hideAllHintText() {
 }
 
 function insertHintText(errors) {
+    var isExist = false;
     for (const error in errors) {
         var textError = errors[error][0];
         var keys = error.split('.');
 
-        if(keys.length > 1) {
+        if (keys.length > 1) {
             $(`.${keys.join('-')}`).text(textError);
             $(`.${keys.join('-')}`).css('display', 'flex');
-        }else {
+            isExist = true;
+        } else {
             $(`.${error}`).text(textError);
             $(`.${error}`).css('display', 'flex');
         }
-       
     }
+    return isExist;
 }
 
 function setErorrsformInputs(errors) {
@@ -292,13 +294,10 @@ function setErorrsformInputs(errors) {
             if (!errors) return;
             if (Object.keys(errors).length == 0) return;
 
-
-            console.log("errors",errors)
-
             // * Hide all hint text input ----->
             hideAllHintText();
             // * Insert hint text input ----->
-            insertHintText(errors);
+            var isExist = insertHintText(errors);
 
             var firstError = Object.keys(errors)[0];
             var firstErrorNode = document.querySelector('.' + firstError);
@@ -321,12 +320,13 @@ function setErorrsformInputs(errors) {
                 intersectionObserver.observe(firstErrorParentNode);
                 firstErrorParentNode.scrollIntoView({ behavior: "smooth" });
             } else {
-                console.log(errors)
-                handleMessageError(errors)
+                if (!isExist)
+                    handleMessageError(errors)
             }
         }
     } catch (error) {
-        handleMessageError({ error })
+        // console.log("error", error)
+        // handleMessageError({ error })
     }
 }
 
@@ -520,6 +520,8 @@ function convertLocalTimezone(date, dateFormat) {
     if (dateFormat) {
         var dateUTC = moment.utc(date);
         var localDate = dateUTC.local();
+        localDate.set({hour:23,minute:59,second:59});
+        console.log(localDate.format('YYYY/MM/DD HH:mm:ss'));
         return localDate.format(dateFormat);
     }
 }

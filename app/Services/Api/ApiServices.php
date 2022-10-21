@@ -100,6 +100,7 @@ class ApiServices extends NetworkUtils
             'last_name_icontains' => $data['last_name_icontains'] ?? null,
             'employee_icontains' => $data['employee_icontains'] ?? null,
             'department' => $data['department'] ?? null,
+            'departments' => $data['departments'] ?? null,
             'areas' => $data['areas'] ?? null,
             'ordering' => $data['ordering'] ?? null,
         ];

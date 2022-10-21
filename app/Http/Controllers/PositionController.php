@@ -58,6 +58,7 @@ class PositionController extends Controller
                     foreach ($positions['data'] as $key => $position) {
                         if ($posi->position_id == $position['id']) {
                             $positions['data'][$key]['must_attend'] = $posi->must_attend;
+                            $positions['data'][$key]['permanently'] = $posi->permanently;
                             $positions['data'][$key]['extra_pay'] = $posi->extra_pay;
                         }
                     }
@@ -210,27 +211,20 @@ class PositionController extends Controller
 
         try {
             $validator = Validator::make($request->all(), $this->rules());
+            Log::info($request);
 
             if ($validator->fails()) {
                 return $this->buildRes->RESPONSE_REQ('error', null, $validator->errors());
             } else {
                 $position_data = $request->only([
-                    'position_code', 'position_name', 'must_attend', 'extra_pay_check', 'extra_pay','permanently'
+                    'position_code', 'position_name', 'must_attend', 'extra_pay_check', 'extra_pay', 'permanently'
                 ]);
                 $position_data['id'] = $position;
 
                 $res = $this->apiService->update_position($position_data);
                 if ($res['status'] == 'success') {
                     $this->__createPositionIfNotExists($position, $request);
-                    Position::where('position_id', $position)->update(
-                        [
-                            'extra_pay' => (!empty($position_data['extra_pay_check'])) ?
-                                str_replace('.', '', $position_data['extra_pay']) : null,
-                            'updated_user' => auth()->user()->id,
-                            'must_attend' => $position_data['must_attend'],
-                            'permanently' => $position_data['permanently'],
-                        ]
-                    );
+
                     return response()->json($res);
                 } else {
                     return response()->json($res);
@@ -272,9 +266,9 @@ class PositionController extends Controller
      */
     private function __createPositionIfNotExists($position_id, Request $request)
     {
-        $dept = Position::where('position_id', $position_id)->first();
-        if (empty($dept)) {
-            $dept = new Position([
+        $position = Position::where('position_id', $position_id)->first();
+        if (empty($position)) {
+            $position = new Position([
                 'position_id' => $position_id,
                 'created_user' => auth()->user()->id,
                 'updated_user' => auth()->user()->id,
@@ -283,7 +277,16 @@ class PositionController extends Controller
                 'extra_pay' => (!empty($request->input('extra_pay_check'))) ?
                     str_replace('.', '', $request['extra_pay']) : null
             ]);
-            $dept->save();
+            $position->save();
+        } else {
+            $position->update([
+                'position_id' => $position_id,
+                'extra_pay' => (!empty($request['extra_pay_check'])) ?
+                    str_replace('.', '', $request['extra_pay']) : null,
+                'updated_user' => auth()->user()->id,
+                'must_attend' => $request['must_attend'] ?? 0,
+                'permanently' => $request['permanently'] ?? 0,
+            ]);
         }
     }
 

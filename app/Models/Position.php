@@ -23,4 +23,11 @@ class Position extends Model
     {
         return $this->belongsTo(User::class, 'updated_user');
     }
+    /**
+     * Get the user that owns the work section.
+     */
+    public function employee_has_position()
+    {
+        return $this->hasMany(EmployeeHasPosition::class, 'position_id');
+    }
 }

@@ -102,7 +102,7 @@
         var URL = (transaction_code) ? '/transaction/' + transaction_code + '/edit' : '/transaction/create';
         var res = await ApiService.get_modal(URL, null);
         $('.select2').select2();
-        select2_employee();
+        select2_employee('/search-employee-for-dropdown');
         $('.date_input').daterangepicker({
             locale: { format: 'YYYY-MM-DD HH:mm:ss' },
             singleDatePicker: true,

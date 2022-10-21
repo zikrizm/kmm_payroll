@@ -5,5 +5,5 @@
                 focus:shadow-xs/focused(4px-primary) focus:border-violet-300 xs/max:text-xs xs/max:rounded {{ $atr->class }}" {{
             $atr->required ? 'required': '' }} autocomplete="{{ $atr->autocomplete }}">{{ $value }}</textarea>
     </div>
-    <label class="font-normal text-xs text-red-500 xs/max:text-xs hint-text {{ $name }}"></label>
+    <label class="font-normal text-xs text-red-500 xs/max:text-xs hint-text {{ $atr->hintclass }} {{ $name }}"></label>
 </div>

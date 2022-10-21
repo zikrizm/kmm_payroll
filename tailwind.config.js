@@ -15,16 +15,10 @@ module.exports = {
       'md/max': { 'max': '767px' },
       'sm/max': { 'max': '639px' },
       'xs/max': { 'max': '425px' },
-
-      '2xl': { 'max': '1535px' },
-      'xl': { 'max': '1279px' },
-      'lg': { 'max': '1023px' },
-      'md': { 'max': '767px' },
-      'sm': { 'max': '639px' },
     },
     extend: {
       colors: {
-        'violet-25' : '#f8f7ff',
+        'violet-25': '#f8f7ff',
         'gray-dark-mode': '#1e1f20',
         'light-primary': '#3A36DB',
         'light-secondary': '#FF69B4',

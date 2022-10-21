@@ -8,7 +8,7 @@
     <header class="flex justify-between items-start">
         <div class="flex flex-col gap-1">
             <p class="text-3xl font-medium text-gray-900">Laporan absensi</p>
-            <p class="text-base font-normal text-gray-500">Disini untuk mengatur status laporan absensi.</p>
+            <p class="text-base font-normal text-gray-500">Disini untuk melihat status laporan absensi.</p>
         </div>
         <div class="">
             <button onclick="get_modal()" class="flex items-center gap-2.5 px-4 py-2 text-gray-500 text-sm font-medium 
@@ -115,7 +115,7 @@
             var URL = '/attendance-report/attendance-card';
             var res = await ApiService.get_modal(URL, null);
 
-            select2_employee('emp_code');
+            select2_employee('/search-employee-for-dropdown','emp_code');
             $('input[name="date"]').daterangepicker({
                 locale: { format: 'YYYY-MM-DD' },
                 startDate: moment().startOf("month").toDate(),

@@ -2,9 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Utils\Util;
+use App\Models\Shift;
 use App\Models\Holiday;
+use App\Models\Employee;
+use App\Models\Position;
 use App\Utils\ResponseUtil;
+use App\Models\EmployeeDebt;
+use App\Models\EmployeeHasPosition;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use App\Services\Api\ApiServices;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Session;
@@ -14,11 +21,13 @@ class PayrollReportController extends Controller
 {
     private $apiService;
     private $buildRes;
+    private $util;
 
-    public function __construct(ApiServices $apiService, ResponseUtil $buildRes)
+    public function __construct(ApiServices $apiService, Util $util, ResponseUtil $buildRes)
     {
         $this->apiService = $apiService;
         $this->buildRes = $buildRes;
+        $this->util = $util;
     }
 
     /**
@@ -34,26 +43,221 @@ class PayrollReportController extends Controller
         }
 
         try {
+            $business_id = Session::get('business_id');
             if (request()->ajax()) {
-                $business_id = Session::get('business_id');
-                $holidays = Holiday::where('business_id', $business_id);
-                if ($request->has('q')) {
-                    $search = $request->q;
-                    $holidays = $holidays->where('name', 'LIKE', "%" . $search . "%");
+                // * Pagination page
+                $page = 1;
+                if (!empty($request->input('page'))) {
+                    $page = (int)$request->page;
                 }
 
-                if ($request->has('page')) {
-                    $filter['page'] = $request->page;
+                // * Employee search
+                $search = '';
+                if (!empty($request->input('q'))) {
+                    $search = $request->q;
                 }
+
+                $emp_count = $this->apiService->get_employees([])["count"];
+                $emps = $this->apiService->get_employees(["employee_icontains" => $search, "page_size" => $emp_count])['data'];
+
+                // * Employee filter
+                $filter = [];
+                $slug_week = ['sen', 'sel', 'rab', 'kam', 'jum', 'sab', 'mgg'];
+                if (!empty($request->input('date'))) {
+                    $start_time = Carbon::parse($request->date['start_time']);
+                    $end_time = Carbon::parse($request->date['end_time']);
+                    $filter['start_time'] = $request->date['start_time'];
+                    $filter['end_time'] = $request->date['end_time'];
+                    $dates = $this->util->generateDateRange($start_time, $end_time);
+                }
+
+                $atten_count = $this->apiService->get_transactions($filter)['count'];
+                $filter['page_size'] = $atten_count;
+                $attens = collect($this->apiService->get_transactions($filter)['data']);
+                $empDBs = Employee::where('business_id', $business_id)->get();
+                $posis = Position::with('employee_has_position')->get();
+                $debts = EmployeeDebt::where('business_id', $business_id)
+                    ->whereBetween('date', array($start_time, $end_time))->get();
+                $shifts = Shift::where('business_id', $business_id)->with(
+                    ['shiftday' => function ($query) {
+                        $query->with(['shiftday_has_timetable' => function ($query) {
+                            $query->with(['timetable']);
+                        }]);
+                    }]
+                )->get();
+
+                $th_dates = [];
+                foreach ($dates as $date) {
+                    $code_day = Carbon::parse($date)->dayOfWeek;
+                    $th_dates[] = [
+                        'slug' => $slug_week[$code_day],
+                        'date' => $date,
+                    ];
+                }
+
+                $attendance_reports = [];
+                foreach (($emps ?? []) as $emp) {
+                    $attens_groupings = $this->_group_by_date($attens->filter(function ($atten) use ($emp) {
+                        return $atten['emp'] === $emp['id'];
+                    }));
+                    $emp_depts = $debts->filter(function ($item) use ($emp) {
+                        return $item->emp_id === $emp['id'];
+                    });
+
+                    $position_extra_pay = 0;
+                    foreach ($posis as $posi) {
+                        foreach ($posi->employee_has_position as $posiHas) {
+                            if ($posiHas['emp_id'] === $emp['id']) {
+                                $position_extra_pay += $posi->extra_pay;
+                            }
+                        }
+                    }
+
+                    $emp_index = $empDBs->search(function ($item) use ($emp) {
+                        return $item->emp_id === $emp['id'];
+                    });
+
+
+                    $date_datas = [];
+                    $emp_overtimes = [];
+                    $emp_ins = [];
+
+                    $daily_salary = ($emp_index != '') ? $empDBs[$emp_index]->daily_salary :  0;
+                    foreach ($dates as $date) {
+                        if (!empty($attens_groupings[$date])) {
+                            $items = $attens_groupings[$date];
+                            $item_first = $items[0];
+                            $item_last = $items[count($items) - 1];
+
+                            $diff_time = Carbon::parse($item_first['punch_time'])->diff(Carbon::parse($item_last['punch_time']));
+                            $check_in = Carbon::parse($item_first['punch_time'])->format('H:i:s');
+                            $check_out = Carbon::parse($item_last['punch_time'])->format('H:i:s');
+                            $code_day = Carbon::parse($date)->dayOfWeek;
+
+                            $shift_data = [];
+                            $plusInTime = 0;
+                            $overtime = 0;
+                            foreach ($shifts as $shift) {
+                                foreach ($shift->shiftday as $shiftday) {
+                                    foreach ($shiftday->shiftday_has_timetable as $keyHas => $shiftdayHas) {
+                                        $in = Carbon::createFromTimeString($shiftdayHas->timetable->in_time);
+                                        $out = Carbon::createFromTimeString($shiftdayHas->timetable->out_time);
+                                        $punchIn = Carbon::createFromTimeString($check_in);
+                                        $punchOut = Carbon::createFromTimeString($check_out);
+
+                                        if ($code_day == $shiftday->code_day) {
+                                            if ($punchIn->lt($in->addHour())) {
+                                                $shift_data['id'] = $shift->id;
+                                                $shift_data['name'] = $shift->name;
+
+                                                if ($punchIn->lt($in)) {
+                                                    $diff_time_in = $punchIn->diffInSeconds($in);
+                                                    $minute = intval(gmdate('i', $diff_time_in));
+                                                    $plusInTime += intval(gmdate('G', $diff_time_in));
+                                                    if ($minute >= $shiftdayHas->timetable->overtime_half_hour && $minute < $shiftdayHas->timetable->overtime_one_hour) {
+                                                        $plusInTime = $plusInTime + 0.5;
+                                                    } else if ($minute >= $shiftdayHas->timetable->overtime_one_hour) {
+                                                        $plusInTime++;
+                                                    }
+
+                                                    $time_period = $shiftdayHas->timetable->time_period;
+                                                    $overtime_pay = $shiftdayHas->timetable->overtime_pay;
+                                                    $total_plusIn_date = ((($plusInTime ?? 0) * 60) / $time_period) * $overtime_pay;
+                                                    $emp_ins[] = [
+                                                        "value" => $plusInTime,
+                                                        "in" => $total_plusIn_date,
+                                                    ];
+                                                }
+                                                if ($punchOut->gt($out)) {
+                                                    $diff_time_out = $out->diffInSeconds($punchOut);
+                                                    $minute = intval(gmdate('i', $diff_time_out));
+                                                    $overtime += intval(gmdate('G', $diff_time_out));
+                                                    if ($minute >= $shiftdayHas->timetable->overtime_half_hour && $minute < $shiftdayHas->timetable->overtime_one_hour) {
+                                                        $overtime = $overtime + 0.5;
+                                                    } else if ($minute >= $shiftdayHas->timetable->overtime_one_hour) {
+                                                        $overtime++;
+                                                    }
+
+                                                    $time_period = $shiftdayHas->timetable->time_period;
+                                                    $overtime_pay = $shiftdayHas->timetable->overtime_pay;
+                                                    $total_overtime_date = ((($overtime ?? 0) * 60) / $time_period) * $overtime_pay;
+                                                    $emp_overtimes[] = [
+                                                        "value" => $overtime,
+                                                        "overtime" => $total_overtime_date,
+                                                        "is_calculate_one_shift" => $punchOut->gt($out->addHour(8)),
+                                                    ];
+                                                }
+                                            }
+                                            $shift_data['weekday'] = $shiftday->name;
+                                            $shift_data['slug'] = $slug_week[$code_day - 1];
+                                        }
+                                    }
+                                }
+                            }
+
+                            $date_datas[] =  [
+                                "date" => $date,
+                                "first_punch" => $item_first['punch_time'],
+                                "last_punch" => $item_last['punch_time'],
+                                "total_time" => $diff_time->format('%H:%I'),
+                                "overtime" => $overtime,
+                                "in" => $plusInTime,
+                                "shift" => $shift_data,
+                            ];
+                        } else {
+                            $date_datas[] =  [
+                                "date" => $date,
+                                "first_punch" => null,
+                                "last_punch" => null,
+                                "overtime" => null,
+                                "in" => null,
+                                "shift" => [],
+                            ];
+                        }
+                    }
+
+                    $overtime_count = 0;
+                    $overtime_payment = 0;
+                    $plus_in_payment = 0;
+                    $in_count = 0;
+                    $plus_in_payment = 0;
+                    $is_calculate_one_shift_count = 0;
+
+                    foreach ($emp_overtimes as $item) {
+                        if ($item['is_calculate_one_shift']) {
+                            $is_calculate_one_shift_count++;
+                        } else {
+                            $overtime_count += $item['value'];
+                            $overtime_payment += $item['overtime'];
+                        }
+                    }
+                    foreach ($emp_ins as $item) {
+                        $in_count += $item['value'];
+                        $plus_in_payment += $item['in'];
+                    }
+
+
+                    $total = ($overtime_payment + $plus_in_payment) + (($is_calculate_one_shift_count > 0) ? $is_calculate_one_shift_count * $daily_salary : $daily_salary);
+                    $attendance_reports[] = [
+                        'employee' => $emp,
+                        'range_date' => $request->input('date'),
+                        'daily_salary' => $daily_salary,
+                        'position_extra_pay' => $position_extra_pay,
+                        'dept' => array_sum(array_column($emp_depts->toArray(), 'remainder_debt')),
+                        'overtime_count' => $overtime_count,
+                        'overtime_payment' => $overtime_payment,
+                        'in_count' => $in_count,
+                        'plus_in_payment' => $plus_in_payment,
+                        'is_calculate_one_shift_count' => $is_calculate_one_shift_count,
+                        'total' => $total,
+                        'reports' => $date_datas,
+                    ];
+                }
+
+                Log::info(response()->json($attendance_reports));
 
                 $order = null;
-                if ($request->has('sort')) {
-                    $sort = $request->sort;
-                    $order = $sort['order'];
-                    $holidays->orderBy($sort['name'], $sort['order']);
-                }
-                $holidays = $holidays->paginate(10);
-                $render =  view('Report.payroll_report.table', compact('holidays', 'order'))->render();
+                $render =  view('Report.payroll_report.table', compact('attendance_reports', 'th_dates', 'order'))->render();
 
                 return $this->buildRes->RESPONSE_REQ('success', $render, null);
             }
@@ -66,166 +270,19 @@ class PayrollReportController extends Controller
         }
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function create(Request $request)
+    function _group_by_date($array)
     {
-        if (!auth()->user()->can('holiday.create') || !request()->ajax()) {
-            abort(403, 'Unauthorized action.');
-        }
-
-        try {
-            $render = view('Shift.holiday.create')->render();
-
-            return $this->buildRes->RESPONSE_REQ('success', $render, null);
-        } catch (\Exception $e) {
-            Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
-
-            return $this->buildRes->RESPONSE_REQ('error', null, ['error' => 'something wrong']);
-        }
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function store(Request $request)
-    {
-        if (!auth()->user()->can('holiday.create')  || !$request->ajax()) {
-            abort(403, 'Unauthorized action.');
-        }
-
-        try {
-            $validator = Validator::make($request->all(), $this->rules());
-
-            if ($validator->fails()) {
-                return $this->buildRes->RESPONSE_REQ('error', null, $validator->errors());
-            } else {
-                $holiday_data = $request->only(['name', 'holiday_date']);
-                $holiday_data['business_id'] = Session::get('business_id');
-
-                $start_date = trim(explode(' - ', $holiday_data['holiday_date'])[0]);
-                $end_date = trim(explode(' - ', $holiday_data['holiday_date'])[1]);
-                $holiday_data['start_date'] = $start_date;
-                $holiday_data['end_date'] = $end_date;
-                $holiday_data['created_user'] = auth()->user()->id;
-                $holiday_data['updated_user'] = auth()->user()->id;
-
-                $holiday = new Holiday($holiday_data);
-                $holiday->save();
-
-                return $this->buildRes->RESPONSE_REQ('success', null,  ['success' => ['Add holiday succesfully']]);
+        $return = array();
+        foreach ($array as $val) {
+            $date = Carbon::parse($val['punch_time'])->format('Y-m-d');
+            if (!empty($date)) {
+                $return[$date][] = $val;
+                usort($return[$date], function ($a, $b) {
+                    return strtotime($a['punch_time']) - strtotime($b['punch_time']);
+                });
             }
-        } catch (\Exception $e) {
-            Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
-
-            return $this->buildRes->RESPONSE_REQ('error', null, ['error' => 'something wrong']);
         }
-    }
-
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function show($id)
-    {
-        if (!auth()->user()->can('group.view')) {
-            abort(403, 'Unauthorized action.');
-        }
-    }
-
-
-    /**
-     * Display the specified resource.
-     *
-     * @param  Holiday $holiday
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function edit(Holiday $holiday, Request $request)
-    {
-        if (!auth()->user()->can('holiday.update') || !$request->ajax()) {
-            abort(403, 'Unauthorized action.');
-        }
-
-        try {
-            $render = view('Shift.holiday.edit', compact('holiday'))->render();
-
-            return $this->buildRes->RESPONSE_REQ('success', $render, null);
-        } catch (\Exception $e) {
-            Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
-
-            return $this->buildRes->RESPONSE_REQ('error', null, ['error' => 'something wrong']);
-        }
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  Holiday $holiday
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Holiday $holiday, Request $request)
-    {
-        if (!auth()->user()->can('holiday.update') || !$request->ajax()) {
-            abort(403, 'Unauthorized action.');
-        }
-
-        try {
-            $validator = Validator::make($request->all(), $this->rules());
-
-            if ($validator->fails()) {
-                return $this->buildRes->RESPONSE_REQ('error', null, $validator->errors());
-            } else {
-
-                $holiday_data = $request->only(['name', 'holiday_date']);
-                $holiday_data['business_id'] = Session::get('business_id');
-
-                $start_date = trim(explode(' - ', $holiday_data['holiday_date'])[0]);
-                $end_date = trim(explode(' - ', $holiday_data['holiday_date'])[1]);
-                $holiday_data['start_date'] = $start_date;
-                $holiday_data['end_date'] = $end_date;
-                $holiday_data['updated_user'] = auth()->user()->id;
-                $holiday->update($holiday_data);
-
-                return $this->buildRes->RESPONSE_REQ('success', null, ['success' => ['Update holiday succesfully']]);
-            }
-        } catch (\Exception $e) {
-            Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
-
-            return $this->buildRes->RESPONSE_REQ('error', null, ['error' => 'something wrong']);
-        }
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  Holiday $holiday
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy(Holiday $holiday, Request $request)
-    {
-        if (!auth()->user()->can('holiday.delete') || !$request->ajax()) {
-            abort(403, 'Unauthorized action.');
-        }
-
-        try {
-            $holiday->delete();
-
-            return $this->buildRes->RESPONSE_REQ('success', null, ['success' => ['Delete holiday succesfully']]);
-        } catch (\Exception $e) {
-            return $this->buildRes->RESPONSE_REQ('error', null, ['error' => 'something wrong']);
-        }
+        return $return;
     }
 
     /**

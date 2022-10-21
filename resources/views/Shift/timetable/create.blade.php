@@ -54,9 +54,13 @@
                 </ul>
                 <div class="flex flex-col gap-4" id="basic-settings-content">
                     <div class="flex items-start gap-3">
-                        <div class="flex-1 flex flex-col gap-1 flex-2">
-                            <label class="text-sm font-normal text-gray-500">Check in*</label>
-                            {!! FormCustom::input('in_time', '00:00:00', [ "placeholder" => '-', 'type' => 'time']) !!}
+                        <div class="flex-2">
+                            <div class="flex-1 flex flex-col gap-1 flex-2">
+                                <label class="text-sm font-normal text-gray-500">Check in*</label>
+                                {!! FormCustom::input('in_time', '00:00:00', [ "placeholder" => '-', 'type' => 'time'])
+                                !!}
+                            </div>
+                            <p class="text-xs text-gray-500">Batas plus minus (60 menit)</p>
                         </div>
                         <div class="flex-1 flex flex-col gap-1 flex-2">
                             <label class="text-sm font-normal text-gray-500">Check out*</label>
@@ -113,12 +117,12 @@
                 <div class="flex flex-col gap-4 hidden" id="break-time-settings-content">
                     <section class="flex flex-col gap-1 flex-1">
                         <div class="flex items-center gap-2">
-                            {!! FormCustom::checkbox('overtime_rounded', -1) !!}
+                            {!! FormCustom::checkbox('overtime_rounded', -1, ['checked' => true]) !!}
                             <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Pembulatan</label>
                         </div>
                         <label class="font-normal text-xs text-red-500 xs/max:text-xs cross_day hint-text"></label>
                     </section>
-                    <div id="overtime-rounded-content" class="hidden">
+                    <div id="overtime-rounded-content" class="">
                         <div class="flex flex-col gap-4">
                             <div class="flex-1 flex flex-col gap-1">
                                 <label class="text-sm font-normal text-gray-500 flex items-center gap-1">Durasi minimal

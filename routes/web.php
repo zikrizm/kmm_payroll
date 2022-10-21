@@ -78,11 +78,24 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('device', 'DeviceController', ['except' => ['update']]);
     Route::resource('transaction', 'TransactionController', ['except' => ['update']]);
     Route::resource('attendance-report', 'AttendanceReportController', ['except' => ['update', 'show']]);
+    Route::resource('attendance-card', 'AttendanceCardController', ['except' => ['update', 'show']]);
     Route::resource('payroll-report', 'PayrollReportController', ['except' => ['update', 'show']]);
     Route::resource('overtime-rice-report', 'OvertimeRiceReportController', ['except' => ['update', 'show']]);
+    Route::resource('operational', 'OperationalController', ['except' => ['update']]);
+    Route::resource('foreman-management', 'ForemanManagementController', ['except' => ['update']]);
+    Route::resource('employee-call', 'EmployeeCallController', ['except' => ['update']]);
+
+
+    Route::resource('additional-employee', 'AdditionalEmployeeController', ['except' => ['update']]);
+    Route::post('/additional-employee/{additional_employee}', 'AdditionalEmployeeController@update')->name('additional-employee.update');
+    Route::resource('rendaman', 'RendamanController', ['except' => ['update']]);
+    Route::post('/rendaman/{rendaman}', 'RendamanController@update')->name('rendaman.update');
 
     Route::get('/attendance-report/attendance-card', 'AttendanceReportController@showAttendanceCard')->name('show-attendance-card');
     Route::post('/attendance-report/attendance-card', 'AttendanceReportController@checkAttendanceCard')->name('check-attendance-card');
+    Route::get('/operational/{operational}/add-employees-to-help', 'OperationalController@add_employees_to_help')->name('operasional.add-employees-to-help');
+    Route::post('/operational/add-employees-to-help', 'OperationalController@post_employees_to_help')->name('operasional.add-employees-to-help.store');
+    Route::get('/operational-card-sub-dept', 'OperationalController@card_sub_dept')->name('operasional.cardSubDept');
 
     Route::post('/user/{user}', 'ManageUserController@update')->name('user.update');
     Route::post('/role/{role}', 'RoleController@update')->name('role.update');
@@ -98,10 +111,15 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/holiday/{holiday}', 'HolidayController@update')->name('holiday.update');
     Route::post('/device/{device}', 'DeviceController@update')->name('device.update');
     Route::post('/transaction/{transaction}', 'TransactionController@update')->name('transaction.update');
+    Route::post('/operational/{operational}', 'OperationalController@update')->name('operational.update');
+    Route::post('/foreman-management/{foreman_management}', 'OperationalController@update')->name('foreman.update');
+    Route::post('/employee-call/{employee_call}', 'EmployeeCallController@update')->name('employee-call.update');
+    
 
     Route::get('/employee-photo', 'EmployeePhotoController@index')->name('employee-photo.index');
     Route::post('/employee-photo', 'EmployeePhotoController@store')->name('employee-photo.store');
 
+    Route::get('/search-employee-off-in-depts', 'EmployeeController@employee_off_in_depts')->name('employee.search-employee-off-in-depts');
     Route::get('/search-employee-for-dropdown', 'EmployeeController@searchEmployeeForDropdown')->name('employee.search-employee-for-dropdown');
     Route::get('/search-break-time-for-dropdown', 'BreakTimeController@searchBreakTimeForDropdown')->name('break-time.search-break-time-for-dropdown');
     Route::get('/search-timetable-for-dropdown', 'TimetableController@searchTimetableForDropdown')->name('timetable.search-timetable-for-dropdown');

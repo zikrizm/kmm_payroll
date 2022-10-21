@@ -104,7 +104,7 @@
         var URL = (resign_id) ? '/resign/' + resign_id + '/edit' : '/resign/create';
         var res = await ApiService.get_modal(URL, null);
         $('.select2').select2();
-        select2_employee();
+        select2_employee('/search-employee-for-dropdown');
 
         $('.date_input').daterangepicker({
             locale: { format: 'YYYY-MM-DD' },

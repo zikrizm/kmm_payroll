@@ -1,0 +1,154 @@
+<div class="w-full overflow-auto overflow-y-hidden flex-1">
+    <div class="grid gap-5 grid-cols-3 xl/max:grid-cols-2 lg/max:grid-cols-1 w-max items-start">
+        @foreach ($attendance_reports as $item)
+        <div class="flex flex-col gap-2.5 border rounded p-4 w-[375px]" style="min-width: 375px;">
+            <header class="relative">
+                <div>
+                    <p class="font-bold text-gray-700 text-xl">KARTU ABSEN</p>
+                    <p class="font-medium text-gray-500 text-xs ">{{ Auth::user()->business->name }}</p>
+                </div>
+                <div class="flex items-end absolute top-[5px] w-full">
+                    <hr class="flex-1 border-[1.5px] bg-black rounded ">
+                    <div class="w-14 h-14 bg-white mb-[-10px] rounded-full overflow-hidden">
+                        @if (!empty($item['employee']['photo']))
+                        <img class="w-full h-full object-cover" src="@zkPhoto({{ $item['employee']['photo'] }})" alt="">
+                        @else
+                        <img class="w-full h-full object-cover" src="@zkPhoto(files/nophoto.gif)" alt="">
+                        @endif
+                    </div>
+                    <hr class="w-10 border-[1.5px] bg-black rounded ">
+                </div>
+            </header>
+            <div class="flex flex-col mt-4">
+                <table class='table border-collapse w-full '>
+                    <tr class="align-middle">
+                        <td class="w-14 text-gray-500">
+                            <table class='table border-collapse w-full '>
+                                <tr class="align-middle">
+                                    <td class="w-6 text-gray-500">
+                                        <x-icon icon="calendar" width=14 height=14 viewBox="20 20" />
+                                    </td>
+                                    <td class="align-middle">
+                                        <p class="text-gray-500 text-xs text-middle mt-0.5 pl-0.5">
+                                            Tanggal&nbsp;&nbsp;:</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                        <td class="align-middle">
+                            <p class="text-gray-500 text-xs text-middle mt-0.5">
+                                {{ date('Y-m-d', strtotime($item['range_date']['start_time'])) }} -
+                                {{ date('Y-m-d', strtotime($item['range_date']['end_time'])) }}
+                        </td>
+                    </tr>
+                </table>
+                <table class='table border-collapse w-full '>
+                    <tr class="align-middle">
+                        <td class="w-14 text-gray-500">
+                            <table class='table border-collapse w-full '>
+                                <tr class="align-middle">
+                                    <td class="w-6 text-gray-500">
+                                        <x-icon icon="user" width=14 height=14 viewBox="20 20" />
+                                    </td>
+                                    <td class="align-middle">
+                                        <p class="text-gray-500 text-xs text-middle mt-0.5 pl-0.5">
+                                            Nama&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                        <td class="align-middle">
+                            <p class="text-gray-500 text-xs text-middle mt-0.5">
+                                {{ $item['employee']['first_name'] }}
+                                {{ $item['employee']['last_name'] }}
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+                <table class='table border-collapse w-full '>
+                    <tr class="align-middle">
+                        <td class="w-14 text-gray-500">
+                            <table class='table border-collapse w-full '>
+                                <tr class="align-middle">
+                                    <td class="w-6 text-gray-500">
+                                        <x-icon icon="briefcase" width=14 height=14 viewBox="20 20" />
+                                    </td>
+                                    <td class="align-middle">
+                                        <p class="text-gray-500 text-xs text-middle mt-0.5 pl-0.5">
+                                            Bagian&nbsp;&nbsp;&nbsp;&nbsp;:</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                        <td class="align-middle">
+                            <p class="text-gray-500 text-xs text-middle mt-0.5">
+                                {{ $item['employee']['department']['dept_name'] ?? '-' }}
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <table class='table border-collapse w-full border '>
+                <thead class=''>
+                    <tr class='border border-2 '>
+                        <th class='text-left border  '>
+                            <p class="text-xs font-medium text-gray-500 text-center truncate">Tgl</p>
+                        </th>
+                        <th class='text-left border '>
+                            <p class="text-xs font-medium text-gray-500 text-center truncate">Masuk</p>
+                        </th>
+                        <th class='text-left border '>
+                            <p class="text-xs font-medium text-gray-500 text-center truncate">Keluar</p>
+                        </th>
+                        <th class='text-left border '>
+                            <p class="text-xs font-medium text-gray-500 text-center truncate">Shift</p>
+                        </th>
+                        <th class='text-left border '>
+                            <p class="text-xs font-medium text-gray-500 text-center truncate">Lembur</p>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach ($item['reports'] as $key => $item)
+                    <tr class='hover:bg-gray-50 border '>
+                        <td class=' text-xs border text-gray-500 text-center w-8'>
+                            {{ date('d', strtotime($item['date'])) }}
+                        </td>
+                        <td class=' text-xs border text-gray-500 text-center w-12'>
+                            @if (!empty($item['first_punch']))
+                            {{ date('H:i', strtotime($item['first_punch'])) }}
+                            @else
+                            -
+                            @endif
+                        </td>
+                        <td class=' text-xs border text-gray-500 text-center w-12'>
+                            @if (!empty($item['last_punch']))
+                            {{ date('H:i', strtotime($item['last_punch'])) }}
+                            @else
+                            -
+                            @endif
+                        </td>
+                        <td class=' text-xs border text-gray-500 text-center'>
+                            @if (!empty($item['shift'] && !empty($item['shift']['id'])))
+                            ({{ $item['shift']['id'] }})
+                            @else
+                            -
+                            @endif
+                            {{ $item['shift']['name'] ?? '' }}
+                        </td>
+                        <td class=' text-xs border text-gray-500 text-center w-14'>
+                            @if (!empty($item['shift'] && !empty($item['shift']['id'])))
+                            ({{ $item['shift']['id'] }})
+                            @else
+                            -
+                            @endif
+                            {{ $item['shift']['name'] ?? '' }}
+                        </td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+        @endforeach
+    </div>
+</div>
