@@ -15,15 +15,9 @@
                         </div>
                     </th>
                     <th class='px-3 py-3 text-left cursor-pointer'>
-                        <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Tanggal operasional</p>
-                    </th>
-                    <th class='px-3 py-3 text-left cursor-pointer'>
-                        <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Bantu ke bagian</p>
-                    </th>
-                    <th class='px-3 py-3 text-left cursor-pointer'>
                         <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Karyawan</p>
                     </th>
-                    @canany(['call-employee.update', 'call-employee.delete'])
+                    @canany(['additional-employee.update', 'additional-employee.delete'])
                     <th class='px-3 py-3 text-left text-gray-500 text-xs font-medium'></th>
                     @endcanany
                 </tr>
@@ -37,7 +31,7 @@
                                 {!! FormCustom::checkbox() !!}
                             </div>
                             <div class="flex gap-3 items-center px-6 py-3 hover:underline hover:text-gray-500 cursor-pointer text-gray-500 text-sm"
-                                onclick="get_modal('{{ $item['id'] }}', '{{ $item->operational->id }}')">
+                                onclick="get_modal('{{ $item['id'] }}', '{{ $item->operational_group->operational_id }}')">
                                 <x-icon icon="calendar" width=18 height=18 viewBox="20 20" />
                                 <p class="truncate text-sm">
                                     {{ date('Y-m-d', strtotime($item->start_date)) }} -
@@ -47,40 +41,20 @@
                         </div>
                     </td>
                     <td class='px-3 py text-gray-500 text-sm'>
-                        <div class="flex gap-2 items-center text-gray-500 text-sm">
-                            <x-icon icon="calendar" width=18 height=18 viewBox="20 20" />
-                            <p class="truncate text-sm">
-                                {{ date('Y-m-d', strtotime($item->operational->start_date)) }} -
-                                {{ date('Y-m-d', strtotime($item->operational->end_date)) }}
-                            </p>
-                        </div>
-                    </td>
-                    <td class='px-3 py text-gray-500 text-sm'>
-                        <div class="flex gap-2 items-center text-gray-500 text-sm">
-                            <p class="truncate text-sm">
-                                {{ $item->dept_name }}
-                            </p>
-                            <x-icon icon="arrow-right" width=18 height=18 viewBox="20 20" />
-                            <p class="truncate font-semibold text-sm ">
-                                {{ $item->operational->dept_name }}
-                            </p>
-                        </div>
-                    </td>
-                    <td class='px-3 py text-gray-500 text-sm'>
                         {{ implode(', ', array_column($item->call_employee_helps->toArray(), 'emp_first_name')) }}
                     </td>
-                    @canany(['call-employee.update', 'call-employee.delete'])
+                    @canany(['additional-employee.update', 'additional-employee.delete'])
                     <td class='px-3 py'>
                         <div class='flex gap-1'>
-                            @can('call-employee.delete')
+                            @can('additional-employee.delete')
                             <button onclick="open_modal_confirm('{{ $item['id'] }}')"
                                 class='px-2.5 cursor-pointer text-gray-500 delete-btn'>
                                 <x-icon icon="trash-2" width=18 height=18 viewBox="20 20" />
                             </button>
                             @endcan
-                            @can('call-employee.update')
+                            @can('additional-employee.update')
                             <button class='px-2.5 cursor-pointer text-gray-500 edit-btn'
-                                onclick="get_modal('{{ $item['id'] }}', '{{ $item->operational->id }}')">
+                                onclick="get_modal('{{ $item['id'] }}', '{{ $item->operational_group->operational_id }}')">
                                 <x-icon icon="edit" width=18 height=18 viewBox="20 20" />
                             </button>
                             @endcan

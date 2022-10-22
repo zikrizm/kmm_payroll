@@ -16,11 +16,13 @@ use Maatwebsite\Excel\Facades\Excel;
 use App\Exceptions\ResponseExeception;
 use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Session;
+use Maatwebsite\Excel\HeadingRowImport;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Validator;
 use App\Http\Controllers\EmployeePhotoController;
+use App\Imports\EmployeesImport;
 use Maatwebsite\Excel\Validators\ValidationException;
 use Maatwebsite\Excel\Exceptions\NoTypeDetectedException;
-use Illuminate\Database\Eloquent\Builder;
 
 
 class EmployeeController extends Controller
@@ -484,24 +486,23 @@ class EmployeeController extends Controller
         return $this->buildRes->RESPONSE_REQ('success', $render, null);
         # code...
     }
-    public function uploadCSVtess(Request $request)
+    public function uploadCSV_store(Request $request)
     {
-        // Log::info($request);
+        Log::info($request);
         // try {
         try {
             // $headings = (new HeadingRowImport)->toArray($request->file);
 
             // Log::info($request);
             // Log::info($request->file('file')[0]);
-            // Excel::import(new UsersImport, $request->file);
-            // Log::info($tess);
-            return 'berhasil';
+            $rows = Excel::toCollection(new EmployeesImport, $request->file('file_csv'));
+            
+            Log::info(response()->json($rows[0]));
+            // return 'berhasil';
         } catch (ValidationException $e) {
-            Log::info("Sdfsdfsdfsdf");
             $failures = $e->failures();
 
             Log::info($failures);
-
             foreach ($failures as $failure) {
                 $failure->row(); // row that went wrong
                 $failure->attribute(); // either heading key (if using heading row concern) or column index
@@ -510,7 +511,7 @@ class EmployeeController extends Controller
             }
         } catch (NoTypeDetectedException $e) {
             // return Redirect::back();
-            Log::info("errro");
+            Log::info("error");
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
         }

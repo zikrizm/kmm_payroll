@@ -3,9 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Operational;
-use App\Models\OperationalHasDepartment;
 use App\Utils\ResponseUtil;
 use Illuminate\Http\Request;
+use App\Models\OperationalGroup;
 use App\Services\Api\ApiServices;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Session;
@@ -135,18 +135,17 @@ class OperationalController extends Controller
                 foreach ($request_data['group'] as $item) {
                     $start_date = trim(explode(' - ', $item['date'])[0]);
                     $end_date = trim(explode(' - ', $item['date'])[1]);
-                    $status = (empty($item['status'])) ? 'inactive' : 'active';
-                    $operational_has_employee = new OperationalHasDepartment([
+                    $operational_group = new OperationalGroup([
                         'operational_id' => $operational->id,
                         'dept_id' => $item['dept_id'],
                         'dept_code' => $item['dept_code'],
                         'dept_name' => $item['dept_name'],
                         'start_date' => $start_date,
                         'end_date' => $end_date,
-                        'status' => $status,
+                        'status' => $item['status'],
                         'note' => $item['note'],
                     ]);
-                    $operational_has_employee->save();
+                    $operational_group->save();
                 }
 
                 return $this->buildRes->RESPONSE_REQ('success', null,  ['success' => ['Add operational succesfully']]);
@@ -166,7 +165,7 @@ class OperationalController extends Controller
      */
     public function show($id)
     {
-        if (!auth()->user()->can('operational.view')) {
+        if (!auth()->user()->can('kasbon.view')) {
             abort(403, 'Unauthorized action.');
         }
     }
@@ -175,7 +174,7 @@ class OperationalController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  Operationas $operational
+     * @param  Operational $operational
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
@@ -187,7 +186,7 @@ class OperationalController extends Controller
 
         try {
             $departments = collect($this->apiService->get_departments([]));
-            $operational = $operational->with('operational_has_depertments')->first();
+            $operational = $operational->with('operational_groups')->first();
             $departments_group = [];
             foreach ($departments['data'] as $e) {
                 if (!empty($e['parent_dept']) && $e['parent_dept']['id'] == $operational->dept_id)  $departments_group[] = $e;
@@ -195,8 +194,6 @@ class OperationalController extends Controller
             $departments['data'] = collect($departments['data'])->filter(function ($e) {
                 return empty($e['parent_dept']);
             });
-
-
 
             $render = view('Task.operational.edit', compact('operational', 'departments', 'departments_group'))->render();
             return $this->buildRes->RESPONSE_REQ('success', $render, null);
@@ -210,7 +207,7 @@ class OperationalController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param  \Illuminate\Http\Request $request
+     * @param  \Illuminate\Http\Request  $request
      * @param  Operational $operational
      * @return \Illuminate\Http\Response
      */
@@ -219,7 +216,9 @@ class OperationalController extends Controller
         if (!auth()->user()->can('operational.update') || !$request->ajax()) {
             abort(403, 'Unauthorized action.');
         }
+
         Log::info($request);
+
         try {
             $validator = Validator::make($request->all(), $this->rules());
 
@@ -231,6 +230,8 @@ class OperationalController extends Controller
                 $start_date = trim(explode(' - ', $request_data['date'])[0]);
                 $end_date = trim(explode(' - ', $request_data['date'])[1]);
 
+                Log::info($department);
+
                 $operational_data = [
                     'dept_id' => $department['id'],
                     'dept_code' => $department['dept_code'],
@@ -240,26 +241,24 @@ class OperationalController extends Controller
                     'updated_user' => auth()->user()->id,
                 ];
                 $operational->update($operational_data);
-
-                OperationalHasDepartment::where('operational_id', $operational->id)->each(function ($item) {
+                OperationalGroup::where('operational_id', $operational->id)->each(function ($item) {
                     $item->delete();
                 });
 
                 foreach ($request_data['group'] as $item) {
                     $start_date = trim(explode(' - ', $item['date'])[0]);
                     $end_date = trim(explode(' - ', $item['date'])[1]);
-                    $status = (empty($item['status'])) ? 'inactive' : 'active';
-                    $operational_has_employee = new OperationalHasDepartment([
+                    $operational_group = new OperationalGroup([
                         'operational_id' => $operational->id,
                         'dept_id' => $item['dept_id'],
                         'dept_code' => $item['dept_code'],
                         'dept_name' => $item['dept_name'],
                         'start_date' => $start_date,
                         'end_date' => $end_date,
-                        'status' => $status,
+                        'status' => $item['status'],
                         'note' => $item['note'],
                     ]);
-                    $operational_has_employee->save();
+                    $operational_group->save();
                 }
                 return $this->buildRes->RESPONSE_REQ('success', null, ['success' => ['Update operational succesfully']]);
             }
@@ -294,7 +293,7 @@ class OperationalController extends Controller
 
     public function card_sub_dept(Request $request)
     {
-        if (!request()->ajax()) {
+        if (!auth()->user()->can('operational.create') || !request()->ajax()) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -307,12 +306,49 @@ class OperationalController extends Controller
                     $departments[] = $e;
             }
 
-            $render = view('Task.operational.cards.deparment_card', compact('departments'))->render();
+            $render = view('Task.operational.card.card_sub_dept', compact('departments'))->render();
             return $this->buildRes->RESPONSE_REQ('success', $render, null);
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
 
             return $this->buildRes->RESPONSE_REQ('error', null, ['error' => 'something wrong']);
+        }
+    }
+
+    public function add_employees_to_help(Operational $operational, Request $request)
+    {
+        // if (!auth()->user()->can('operational-add-employees-to-help.create') || !$request->ajax()) {
+        //     abort(403, 'Unauthorized action.');
+        // }
+
+        try {
+            $operational = $operational->with('operational_group')->first();
+
+            $render = view('Task.operational.modals.add_employees_to_help', compact('operational'))->render();
+            return $this->buildRes->RESPONSE_REQ('success', $render, null);
+        } catch (\Exception $e) {
+            Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
+
+            return $this->buildRes->RESPONSE_REQ('error', null, ['error' => 'something wrong']);
+        }
+    }
+
+    public function post_employees_to_help(Request $request)
+    {
+    }
+
+    public function search_employees_to_help(Request $request)
+    {
+        Log::info($request);
+        if (!$request->ajax()) abort(403, 'Unauthorized action.');
+        if ($request->has('q')) {
+            $operational = Operational::where('id', $request['operational_id'])
+                ->with('operational_group')->first();
+            Log::info($operational);
+            $employees = $this->apiService->get_employees(['employee_icontains' => $request->q]);
+            return response()->json($employees);
+        } else {
+            return [];
         }
     }
 
@@ -328,6 +364,8 @@ class OperationalController extends Controller
             'department' => 'required',
             'group' => 'required',
             'group.*.date' => 'required',
+            'group.*.status' => 'required',
+            // 'group.*.note' => 'required',
         ];
     }
 }

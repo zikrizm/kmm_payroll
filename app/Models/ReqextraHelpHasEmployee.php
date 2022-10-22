@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Operational extends Model
+class ReqextraHelpHasEmployee extends Model
 {
     use HasFactory;
 
@@ -15,12 +15,4 @@ class Operational extends Model
      * @var array
      */
     protected $guarded = ['id'];
-
-     /**
-     * Get the operational_has_depertments.
-     */
-    public function operational_has_depertments()
-    {
-        return $this->hasMany(OperationalHasDepartment::class, 'operational_id');
-    }
 }

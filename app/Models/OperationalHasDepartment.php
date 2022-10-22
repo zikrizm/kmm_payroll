@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Operational extends Model
+class OperationalHasDepartment extends Model
 {
     use HasFactory;
 
@@ -16,11 +16,11 @@ class Operational extends Model
      */
     protected $guarded = ['id'];
 
-     /**
-     * Get the operational_has_depertments.
+    /**
+     * Get the operational.
      */
-    public function operational_has_depertments()
+    public function operational()
     {
-        return $this->hasMany(OperationalHasDepartment::class, 'operational_id');
+        return $this->belongsTo(Operational::class, 'operational_id');
     }
 }

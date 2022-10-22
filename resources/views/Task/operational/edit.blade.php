@@ -3,7 +3,7 @@
     @csrf
     <!-- {{ csrf_field() }} -->
     <section
-        class="flex flex-col gap-8 pt-4 bg-white w-[375px] max-h-[95vh] overflow-y-auto overflow-x-hidden relative rounded-lg no-scrollbar">
+        class="flex flex-col gap-8 pt-4 bg-white w-[675px] max-h-[95vh] overflow-y-auto overflow-x-hidden relative rounded-lg no-scrollbar">
         <header class="px-4 flex flex-col gap-5 pt-4 xs/max:gap-3 relative">
             <button
                 class="absolute top-[-5px] right-3 xs/max:top-[-6px] modal-close hover:bg-gray-100 text-red rounded p-2">
@@ -51,8 +51,8 @@
                     </select>
                     <label class="font-normal text-xs text-red-500 xs/max:text-xs department hint-text"></label>
                 </section>
-                <div id="sub-department-content" class="flex flex-col gap-3">
-                    @include('Task.operational.card.card_sub_dept', ['departments' => $departments_group,
+                <div id="sub-department-content" class="grid grid-cols-2 gap-3">
+                    @include('Task.operational.cards.deparment_card', ['departments' => $departments_group,
                     'operational' => $operational])
                 </div>
             </main>

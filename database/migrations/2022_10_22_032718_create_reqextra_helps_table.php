@@ -13,21 +13,17 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('call_employees', function (Blueprint $table) {
+        Schema::create('reqextra_helps', function (Blueprint $table) {
             $table->increments('id');
             $table->integer('business_id')->unsigned();
-            $table->integer('operational_id')->unsigned();
+            $table->integer('operational_has_department_id')->unsigned();
             $table->dateTime('start_date');
             $table->dateTime('end_date');
-            $table->integer('dept_id');
-            $table->string('dept_code');
-            $table->string('dept_name');
-
             $table->integer('created_user')->unsigned();
             $table->integer('updated_user')->nullable()->unsigned();
             $table->foreign('created_user')->references('id')->on('users')->onDelete('cascade');
             $table->foreign('updated_user')->references('id')->on('users')->onDelete('cascade');
-            $table->foreign('operational_id')->references('id')->on('operationals')->onDelete('cascade');
+            $table->foreign('operational_has_department_id')->references('id')->on('operational_has_departments')->onDelete('cascade');
             $table->foreign('business_id')->references('id')->on('business')->onDelete('cascade');
             $table->timestamps();
         });
@@ -40,6 +36,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('call_employees');
+        Schema::dropIfExists('reqextra_helps');
     }
 };

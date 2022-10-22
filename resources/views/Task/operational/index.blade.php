@@ -137,8 +137,10 @@
 
             $('.operational_date').on('change', function(){
                 if($('.specific_date').length) {
-                    $('.specific_date').data('daterangepicker').minDate = moment($('.operational_date').data('daterangepicker').startDate._d);
-                    $('.specific_date').data('daterangepicker').maxDate = moment($('.operational_date').data('daterangepicker').endDate._d);
+                    $('.specific_date').each(function(e) {
+                        $(this).data('daterangepicker').minDate = moment($('.operational_date').data('daterangepicker').startDate._d);
+                        $(this).data('daterangepicker').maxDate = moment($('.operational_date').data('daterangepicker').endDate._d);
+                    })
                 }
             });
 
@@ -150,6 +152,7 @@
                     // * SHOW NOTIFICATION ----->
                 } else {
                     $('#sub-department-content').html(_response.data);
+                    $('#note-content').addClass('hidden');
                     $('.select2-status').select2();
                     $('.specific_date').daterangepicker({
                         locale: { format: 'YYYY-MM-DD' },
@@ -172,6 +175,38 @@
                         drops: "auto",
                         maxYear: parseInt(moment().format('YYYY'), 10)
                     });
+                    
+                    $("input[name*='group']").each(function(e) {
+                        var subname= this.name.split('[').pop().split(']').shift();
+                        if(subname == 'date') {
+                            var a = moment($('.operational_date').data('daterangepicker').startDate._d);
+                            var b = moment($('.operational_date').data('daterangepicker').endDate._d).add(1, 'd');
+                            $(this).parent().parent().children('.hint-text').removeClass('text-red-500');
+                            $(this).parent().parent().children('.hint-text').addClass('text-gray-300');
+                            $(this).parent().parent().children('.hint-text').html(`Range tanggal oprasional-nya: <span class="font-bold">${b.diff(a, 'days')}</span>`);
+                            $(this).on('apply.daterangepicker', function(ev, picker) {
+                                var a = moment(picker.startDate);
+                                var b = moment(picker.endDate).add(1, 'd');
+                                $(this).parent().parent().children('.hint-text').removeClass('text-red-500');
+                                $(this).parent().parent().children('.hint-text').addClass('text-gray-300');
+                                $(this).parent().parent().children('.hint-text').html(`Range tanggal oprasional-nya: <span class="font-bold">${b.diff(a, 'days')}</span>`);
+                            });
+
+                            $(this).on('cancel.daterangepicker', function(ev, picker) {
+                                $(this).val('');
+                            });
+                        }else if(subname == 'status') {
+                            $(this).on('change', function(e) {
+                                $(this).parent().parent().parent().parent().toggle('hidden');
+                                setTimeout(() => {
+                                    $(this).parent().parent().parent().parent().parent().toggle('hidden');
+                                }, 200);
+                            })
+                        }
+
+                        console.log(subname)
+                    })
+                    
                 }
             });
             $('.select2-status').select2();

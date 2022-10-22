@@ -30,14 +30,18 @@
             <main class="px-4 flex flex-col gap-2.5 xs/max:gap-3 mb-8">
                 <section class="flex flex-col gap-1">
                     <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Tanggal operasional*</label>
-                    <select class="select2-operational" name="operational">
+                    <select class="select2-operational" name="operational_group">
                         <option value="" disabled selected>Silahkan Pilih</option>
                         @php
-                            $operational_groups = array_column($operationals->toArray(), 'operational_groups');
-                            $indexs = array_keys($operational_groups);
+                        $operational_groups = array_column($operationals->toArray(), 'operational_groups');
+                        $indexs = array_keys($operational_groups);
                         @endphp
                         @foreach (array_column($operational_groups, array_shift($indexs)) as $item)
-                        <option value="{{ $item['id'] }}" title="{{ $item['dept_name'] }}">
+                        @php
+                        $indexOp = array_search($item['operational_id'], array_column($operationals->toArray(), 'id'));
+                        @endphp
+                        <option data-group="{{ json_encode($item) }}" data-operational="{{ $operationals[$indexOp] }}"
+                            value="{{ $item['id'] }}" title="{{ $item['dept_name'] }}">
                             {{ date('Y-m-d', strtotime($item['start_date'])) }} -
                             {{ date('Y-m-d', strtotime($item['end_date'])) }}
                         </option>
@@ -56,12 +60,6 @@
                             'readonly' => true,
                             'prefixiconname' => 'calendar',
                             ]) !!}
-                        </section>
-                        <section class="flex flex-col gap-1">
-                            <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Sub-bagian*</label>
-                            <select class="select2-dept" name="department">
-                            </select>
-                            <label class="font-normal text-xs text-red-500 xs/max:text-xs department hint-text"></label>
                         </section>
                         <section class="flex flex-col gap-1">
                             <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Karyawan libur*</label>

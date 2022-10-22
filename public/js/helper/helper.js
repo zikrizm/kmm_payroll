@@ -521,7 +521,6 @@ function convertLocalTimezone(date, dateFormat) {
         var dateUTC = moment.utc(date);
         var localDate = dateUTC.local();
         localDate.set({hour:23,minute:59,second:59});
-        console.log(localDate.format('YYYY/MM/DD HH:mm:ss'));
         return localDate.format(dateFormat);
     }
 }

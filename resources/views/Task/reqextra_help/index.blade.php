@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'call employee')
+@section('title', 'Additional employee')
 @section('css')
 <style></style>
 @endsection
@@ -121,7 +121,7 @@
                 $(".select2-dept").select2();
                 select2_employee_off_in_dept({operational_id});
             }
-            $('.call-employee-date').daterangepicker({
+            $('.additional-employee-date').daterangepicker({
                 locale: { format: 'YYYY-MM-DD' },
                 startDate: moment().subtract(6, 'days'),
                 endDate: moment(),
@@ -144,32 +144,36 @@
             select2_operational(function(e) { 
                 try {
                     var select_operational = $(e.currentTarget).find(":selected").data("operational");
+                    var select_group = $(e.currentTarget).find(":selected").data("group");
                     var select_groups = select_operational.operational_groups;
-                    $(".select2-dept").html('').select2({
-                        data: [{id: '', text: 'Silahkan pilih', selected: true, disabled: true}, ...select_groups.map((e) => {
-                            return {id: e.dept_id, text: e.dept_name}
-                        })]}
-                    );
+                    // $(".select2-dept").html('').select2({
+                    //     data: [{id: '', text: 'Silahkan pilih', selected: true, disabled: true}, ...select_groups.map((e) => {
+                    //         return {id: e.dept_id, text: e.dept_name}
+                    //     })]}
+                    // );
                     $(".select2-employee").html('');
                     select2_employee_off_in_dept({operational_id: select_operational.id});
+
                     if(select_operational) {
-                        if ($('#call-employee-content').is(':hidden')) {
-                            $('#call-employee-content').toggle('hidden');
+                        if ($('#additional-employee-content').is(':hidden')) {
+                            $('#additional-employee-content').toggle('hidden');
                         }
-                        if($('.call-employee-date').length) {
-                            $('.call-employee-date').data('daterangepicker').startDate = moment(select_operational.start_date);
-                            $('.call-employee-date').data('daterangepicker').endDate = moment(select_operational.end_date);
-                            $('.call-employee-date').data('daterangepicker').minDate = moment(select_operational.start_date);
-                            $('.call-employee-date').data('daterangepicker').maxDate = moment(select_operational.end_date);
+                        if($('.additional-employee-date').length) {
+                            $('.additional-employee-date').data('daterangepicker').startDate = moment(select_group.start_date);
+                            $('.additional-employee-date').data('daterangepicker').endDate = moment(select_group.end_date);
+                            $('.additional-employee-date').data('daterangepicker').minDate = moment(select_group.start_date);
+                            $('.additional-employee-date').data('daterangepicker').maxDate = moment(select_group.end_date);
                         }
                     }
-                } catch (error) { }
+                } catch (error) { 
+                    console.log(error)
+                }
             });
             
             // **
             // * submit form ----->
             // *
-            var resSubmit = ApiService.submit_form('.submit-call-employee', (data) => { 
+            var resSubmit = ApiService.submit_form('.submit-additional-employee', (data) => { 
                 onInit( { q: $('.search-data-input').val() });
             });
         }
@@ -178,7 +182,7 @@
         // **
         // * open modal confirm ----->
         // *
-        await ApiService.get_confirm('.submit-delete-call-employee', '/additional-employee/' + call_emp_id, null, () => {
+        await ApiService.get_confirm('.submit-delete-additional-employee', '/additional-employee/' + call_emp_id, null, () => {
             onInit();
         })
     }

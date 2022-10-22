@@ -24,11 +24,12 @@ class CallEmployee extends Model
     {
         return $this->hasMany(CallEmployeeHelp::class, 'call_employee_id');
     }
+    
     /**
-     * Get the operational.
+     * Get the operational_group.
      */
-    public function operational()
+    public function operational_group()
     {
-        return $this->belongsTo(Operational::class, 'operational_id');
+        return $this->belongsTo(OperationalGroup::class, 'operational_group_id');
     }
 }

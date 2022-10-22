@@ -30,27 +30,34 @@
             <main class="px-4 flex flex-col gap-2.5 xs/max:gap-3 mb-8">
                 <section class="flex flex-col gap-1">
                     <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Tanggal operasional*</label>
-                    <select class="select2-operational" name="operational">
+                    <select class="select2-operational" name="operational_group">
                         <option value="" disabled selected>Silahkan Pilih</option>
-                        @foreach ($operationals as $item)
-                        <option value="{{ $item->id }}" {{ $call_employee->operational->id == $item->id? 'selected': ''
-                            }}
-                            data-operational="{{ $item}}" title="{{ $item->dept_name }}">
-                            {{ date('Y-m-d', strtotime($item->start_date)) }} -
-                            {{ date('Y-m-d', strtotime($item->end_date)) }}
+                        @php
+                        $operational_groups = array_column($operationals->toArray(), 'operational_groups');
+                        $indexs = array_keys($operational_groups);
+                        @endphp
+                        @foreach (array_column($operational_groups, array_shift($indexs)) as $item)
+                        @php
+                        $indexOp = array_search($item['operational_id'], array_column($operationals->toArray(), 'id'));
+                        @endphp
+                        <option {{ $call_employee->operational_group_id == $item->id? 'selected': ''
+                        }} data-group="{{ json_encode($item) }}" data-operational="{{ $operationals[$indexOp] }}"
+                            value="{{ $item['id'] }}" title="{{ $item['dept_name'] }}">
+                            {{ date('Y-m-d', strtotime($item['start_date'])) }} -
+                            {{ date('Y-m-d', strtotime($item['end_date'])) }}
                         </option>
                         @endforeach
                     </select>
                     <label class="font-normal text-xs text-red-500 xs/max:text-xs operational hint-text"></label>
                 </section>
-                <div id="call-employee-content">
+                <div id="additional-employee-content">
                     <div class="flex flex-col gap-2.5">
                         <section class="flex flex-col gap-1 flex-1">
                             <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Tanggal bantuan*</label>
                             {!! FormCustom::input('date', date('Y-m-d', strtotime($call_employee->start_date)).' - '.
                             date('Y-m-d', strtotime($call_employee->end_date)), [
                             'placeholder' => 'Pilih tanggal bantuan',
-                            'class' => 'call-employee-date',
+                            'class' => 'additional-employee-date',
                             'readonly' => true,
                             'prefixiconname' => 'calendar',
                             ]) !!}

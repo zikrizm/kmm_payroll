@@ -2,17 +2,17 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\CallEmployee;
-use App\Models\CallEmployeeHelp;
-use App\Models\Operational;
 use App\Utils\ResponseUtil;
+use App\Models\ReqextraHelp;
 use Illuminate\Http\Request;
 use App\Services\Api\ApiServices;
+use App\Models\OperationalSchedule;
 use Illuminate\Support\Facades\Log;
+use App\Models\ReqextraHelpHasEmployee;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
 
-class AdditionalEmployeeController extends Controller
+class ReqextraHelpController extends Controller
 {
     private $apiService;
     private $buildRes;
@@ -31,20 +31,20 @@ class AdditionalEmployeeController extends Controller
      */
     public function index(Request $request)
     {
-        // if (!auth()->user()->can('additional-employee.view')) {
-        //     abort(403, 'Unauthorized action.');
-        // }
+        if (!auth()->user()->can('reqextra-help.view')) {
+            abort(403, 'Unauthorized action.');
+        }
 
         try {
             if (request()->ajax()) {
                 $business_id = Session::get('business_id');
-                $call_employees = CallEmployee::where('business_id', $business_id)->with(['operational_group', 'call_employee_helps']);
+                $reqtask_help = ReqextraHelp::where('business_id', $business_id)->with(['operational_group', 'call_employee_helps']);
                 if ($request->has('q') && !empty($request->input('q'))) {
                     $search = $request->q;
-                    $call_employees = $call_employees->where('dept_name', 'LIKE', "%" . $search . "%")->orWhere('dept_id', 'LIKE', "%" . $search . "%")->orWhere('dept_code', 'LIKE', "%" . $search . "%");
+                    $reqtask_help = $reqtask_help->where('dept_name', 'LIKE', "%" . $search . "%")->orWhere('dept_id', 'LIKE', "%" . $search . "%")->orWhere('dept_code', 'LIKE', "%" . $search . "%");
                 }
                 if ($request->has('date') && !empty($request->input('date'))) {
-                    $call_employees = $call_employees->whereBetween('start_date', [$request['date']['start_date'], $request['date']['end_date']])
+                    $reqtask_help = $reqtask_help->whereBetween('start_date', [$request['date']['start_date'], $request['date']['end_date']])
                         ->orWhereBetween('end_date', [$request['date']['start_date'], $request['date']['end_date']]);
                 }
 
@@ -52,12 +52,11 @@ class AdditionalEmployeeController extends Controller
                 if ($request->has('sort')) {
                     $sort = $request->sort;
                     $order = $sort['order'];
-                    $call_employees->orderBy($sort['name'], $sort['order']);
+                    $reqtask_help->orderBy($sort['name'], $sort['order']);
                 }
 
-                $call_employees = $call_employees->paginate(10);
-                Log::info($call_employees);
-                $render =  view('Task.additional_employee.table', compact('call_employees', 'order'))->render();
+                $reqtask_help = $reqtask_help->paginate(10);
+                $render =  view('Task.reqextra_help.table', compact('reqtask_help', 'order'))->render();
                 return $this->buildRes->RESPONSE_REQ('success', $render, null);
             }
 
@@ -77,17 +76,17 @@ class AdditionalEmployeeController extends Controller
      */
     public function create(Request $request)
     {
-        // if (!auth()->user()->can('additional-employee.view')) {
-        //     abort(403, 'Unauthorized action.');
-        // }
+        if (!auth()->user()->can('reqextra-help.view')) {
+            abort(403, 'Unauthorized action.');
+        }
 
         try {
             $business_id = Session::get('business_id');
-            $operationals = Operational::where('business_id', $business_id)->with(['operational_groups' => function ($query) {
+            $operational_schedules = OperationalSchedule::where('business_id', $business_id)->with(['operational_has_depertments' => function ($query) {
                 $query->where('status', 'active');
             }])->get();
 
-            $render = view('Task.additional_employee.create', compact('operationals'))->render();
+            $render = view('Task.reqextra_help.create', compact('operational_schedules'))->render();
             return $this->buildRes->RESPONSE_REQ('success', $render, null);
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
@@ -104,9 +103,9 @@ class AdditionalEmployeeController extends Controller
      */
     public function store(Request $request)
     {
-        // if (!auth()->user()->can('additional-employee.create')  || !$request->ajax()) {
-        //     abort(403, 'Unauthorized action.');
-        // }
+        if (!auth()->user()->can('reqextra-help.create')  || !$request->ajax()) {
+            abort(403, 'Unauthorized action.');
+        }
 
         try {
             $validator = Validator::make($request->all(), $this->rules());
@@ -114,34 +113,34 @@ class AdditionalEmployeeController extends Controller
             if ($validator->fails()) {
                 return $this->buildRes->RESPONSE_REQ('error', null, $validator->errors());
             } else {
-                $request_data = $request->only(['operational_group', 'date', 'department', 'emps']);
+                $request_data = $request->only(['operational_schedule_has_department_id', 'date', 'department', 'emps']);
                 $start_date = trim(explode(' - ', $request_data['date'])[0]);
                 $end_date = trim(explode(' - ', $request_data['date'])[1]);
                 $business_id = Session::get('business_id');
 
-                $call_employee = new CallEmployee([
+                $reqextra_help = new ReqextraHelp([
                     'business_id' => $business_id,
-                    'operational_group_id' => $request_data['operational_group'],
+                    'operational_schedule_has_department_id' => $request_data['operational_schedule_has_department_id'],
                     'start_date' => $start_date,
                     'end_date' => $end_date,
                     'created_user' => auth()->user()->id,
                     'updated_user' => auth()->user()->id,
                 ]);
-                $call_employee->save();
+                $reqextra_help->save();
 
                 foreach ($request_data['emps'] as $item) {
                     $employee = $this->apiService->read_employee($item);
-                    $call_employee_help = new CallEmployeeHelp([
-                        'call_employee_id' => $call_employee->id,
+                    $reqextra_help_has_employee = new ReqextraHelpHasEmployee([
+                        'reqextra_help_id' => $reqextra_help->id,
                         'emp_id' => $employee['id'],
                         'emp_code' => $employee['emp_code'],
                         'emp_first_name' => $employee['first_name'],
                         'emp_last_name' => $employee['last_name'],
                     ]);
-                    $call_employee_help->save();
+                    $reqextra_help_has_employee->save();
                 }
 
-                return $this->buildRes->RESPONSE_REQ('success', null,  ['success' => ['Add call employee succesfully']]);
+                return $this->buildRes->RESPONSE_REQ('success', null,  ['success' => ['Add call req extra help succesfully']]);
             }
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
@@ -158,7 +157,7 @@ class AdditionalEmployeeController extends Controller
      */
     public function show($id)
     {
-        if (!auth()->user()->can('additional-employee.view')) {
+        if (!auth()->user()->can('reqextra-help.view')) {
             abort(403, 'Unauthorized action.');
         }
     }
@@ -167,27 +166,27 @@ class AdditionalEmployeeController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  CallEmployee $additional_employee
+     * @param  ReqextraHelp $reqextra_help
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function edit(CallEmployee $additional_employee, Request $request)
+    public function edit(ReqextraHelp $reqextra_help, Request $request)
     {
-        // if (!auth()->user()->can('additional-employee.update') || !$request->ajax()) {
-        //     abort(403, 'Unauthorized action.');
-        // }
+        if (!auth()->user()->can('reqextra-help.update') || !$request->ajax()) {
+            abort(403, 'Unauthorized action.');
+        }
 
         try {
             $business_id = Session::get('business_id');
-            $call_employee = $additional_employee->with(['operational.operational_groups' => function ($query) {
-                $query->where('status', 'active');
-            }, 'call_employee_helps'])->first();
-            $operationals = Operational::where('business_id', $business_id)->with(['operational_groups' => function ($query) {
-                $query->where('status', 'active');
-            }])->get();
+            // $call_employee = $reqextra_help->with(['operational.operational_groups' => function ($query) {
+            //     $query->where('status', 'active');
+            // }, 'call_employee_helps'])->first();
+            // $operationals = Operational::where('business_id', $business_id)->with(['operational_groups' => function ($query) {
+            //     $query->where('status', 'active');
+            // }])->get();
 
-            $render = view('Task.additional_employee.edit', compact('call_employee', 'operationals'))->render();
-            return $this->buildRes->RESPONSE_REQ('success', $render, null);
+            // $render = view('Task.reqextra_help.edit', compact('call_employee', 'operationals'))->render();
+            // return $this->buildRes->RESPONSE_REQ('success', $render, null);
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
 
@@ -198,15 +197,15 @@ class AdditionalEmployeeController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  CallEmployee $additional_employee
+     * @param  \Illuminate\Http\Request $request
+     * @param  ReqextraHelp $reqextra_help
      * @return \Illuminate\Http\Response
      */
-    public function update(CallEmployee $additional_employee, Request $request)
+    public function update(ReqextraHelp $reqextra_help, Request $request)
     {
-        // if (!auth()->user()->can('call-employee.update') || !$request->ajax()) {
-        //     abort(403, 'Unauthorized action.');
-        // }
+        if (!auth()->user()->can('reqextra-help.update') || !$request->ajax()) {
+            abort(403, 'Unauthorized action.');
+        }
 
         try {
             $validator = Validator::make($request->all(), $this->rules());
@@ -214,24 +213,24 @@ class AdditionalEmployeeController extends Controller
             if ($validator->fails()) {
                 return $this->buildRes->RESPONSE_REQ('error', null, $validator->errors());
             } else {
-                $request_data = $request->only(['operational_group', 'date', 'department', 'emps']);
+                $request_data = $request->only(['operational_schedule_has_department_id', 'date', 'department', 'emps']);
                 $start_date = trim(explode(' - ', $request_data['date'])[0]);
                 $end_date = trim(explode(' - ', $request_data['date'])[1]);
 
-                $call_employee_data = [
-                    'operational_group_id' => $request_data['operational_group'],
+                $reqextra_help_data = [
+                    'operational_schedule_has_department_id' => $request_data['operational_schedule_has_department_id'],
                     'start_date' => $start_date,
                     'end_date' => $end_date,
                     'updated_user' => auth()->user()->id,
                 ];
-                $additional_employee->update($call_employee_data);
-                CallEmployeeHelp::where('call_employee_id', $additional_employee->id)->each(function ($item) {
+                $reqextra_help->update($reqextra_help_data);
+                ReqextraHelpHasEmployee::where('reqextra_help_id', $reqextra_help->id)->each(function ($item) {
                     $item->delete();
                 });
                 foreach ($request_data['emps'] as $item) {
                     $employee = $this->apiService->read_employee($item);
-                    $call_employee_help = new CallEmployeeHelp([
-                        'call_employee_id' => $additional_employee->id,
+                    $call_employee_help = new ReqextraHelpHasEmployee([
+                        'reqextra_help_id' => $reqextra_help->id,
                         'emp_id' => $employee['id'],
                         'emp_code' => $employee['emp_code'],
                         'emp_first_name' => $employee['first_name'],
@@ -240,7 +239,7 @@ class AdditionalEmployeeController extends Controller
                     $call_employee_help->save();
                 }
 
-                return $this->buildRes->RESPONSE_REQ('success', null, ['success' => ['Update call employee succesfully']]);
+                return $this->buildRes->RESPONSE_REQ('success', null, ['success' => ['Update reqextra help succesfully']]);
             }
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
@@ -252,13 +251,13 @@ class AdditionalEmployeeController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  CallEmployee $additional_employee
+     * @param  ReqextraHelp $additional_employee
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function destroy(CallEmployee $additional_employee, Request $request)
+    public function destroy(ReqextraHelp $additional_employee, Request $request)
     {
-        if (!auth()->user()->can('call-employee.delete') || !$request->ajax()) {
+        if (!auth()->user()->can('reqextra-help.delete') || !$request->ajax()) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -279,10 +278,8 @@ class AdditionalEmployeeController extends Controller
     public function rules()
     {
         return [
-            'operational_group' => 'required',
-            // 'operational' => 'required',
+            'operational_schedule_has_department_id' => 'required',
             'date' => 'required',
-            // 'department' => 'required',
             'emps' => 'required',
         ];
     }

@@ -13,14 +13,14 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('operationals', function (Blueprint $table) {
+        Schema::create('reqtasks', function (Blueprint $table) {
             $table->increments('id');
             $table->integer('business_id')->unsigned();
             $table->dateTime('start_date');
             $table->dateTime('end_date');
-            $table->integer('dept_id');
-            $table->string('dept_code');
-            $table->string('dept_name');
+            $table->integer('position_id');
+            $table->string('position_code');
+            $table->string('position_name');
 
             $table->integer('created_user')->unsigned();
             $table->integer('updated_user')->nullable()->unsigned();
@@ -38,6 +38,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('operationals');
+        Schema::dropIfExists('reqtasks');
     }
 };

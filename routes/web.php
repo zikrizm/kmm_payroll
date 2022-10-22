@@ -114,7 +114,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/operational/{operational}', 'OperationalController@update')->name('operational.update');
     Route::post('/foreman-management/{foreman_management}', 'OperationalController@update')->name('foreman.update');
     Route::post('/employee-call/{employee_call}', 'EmployeeCallController@update')->name('employee-call.update');
-    
+
 
     Route::get('/employee-photo', 'EmployeePhotoController@index')->name('employee-photo.index');
     Route::post('/employee-photo', 'EmployeePhotoController@store')->name('employee-photo.store');
@@ -128,8 +128,19 @@ Route::middleware(['auth'])->group(function () {
 
 
     Route::get('/employee-csv', 'EmployeeController@uploadCSV')->name('employee.uploadCSV');
-    Route::post('/employee-csv', 'EmployeeController@uploadCSVtess')->name('employee.uploadCSVtess');
+    Route::post('/employee-csv', 'EmployeeController@uploadCSV_store')->name('employee.uploadCSV-store');
 
+
+
+    // * operational-schedule.
+    Route::resource('operational-schedule', 'OperationalScheduleController', ['except' => ['update']]);
+    Route::post('/operational-schedule/{operational_schedule}', 'OperationalScheduleController@update')->name('operational-schedule.update');
+    // * reqtask-help.
+    Route::resource('reqtask-help', 'ReqtaskHelpController', ['except' => ['update']]);
+    Route::post('/reqtask-help/{reqtask_help}', 'ReqtaskHelpController@update')->name('reqtask-help.update');
+    // * reqtask.
+    Route::resource('reqtask', 'ReqtaskController', ['except' => ['update']]);
+    Route::post('/reqtask/{reqtask}', 'ReqtaskController@update')->name('reqtask.update');
 
     Route::get('logout', '\App\Http\Controllers\Auth\LoginController@logout')->name('logout');
 });

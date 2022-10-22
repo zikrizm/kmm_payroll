@@ -150,7 +150,7 @@
                             <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Jenis karyawan*</label>
                             <select class="select2" name="emp_type">
                                 <option value="" disabled selected>Silahkan Pilih</option>
-                                <option value="1">Resmi</option>
+                                <option value="1">Tetap</option>
                                 <option value="2">Sementara</option>
                                 <option value="3">Masa percobaan</option>
                             </select>

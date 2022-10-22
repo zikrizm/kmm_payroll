@@ -17,9 +17,6 @@
                     <th class='px-3 py-3 text-left cursor-pointer'>
                         <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Bagian</p>
                     </th>
-                    <th class='px-3 py-3 text-left cursor-pointer'>
-                        <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">+ Karyawan</p>
-                    </th>
                     @canany(['operational.update', 'operational.delete'])
                     <th class='px-3 py-3 text-left text-gray-500 text-xs font-medium'></th>
                     @endcanany
@@ -45,13 +42,6 @@
                     </td>
                     <td class='px-3 py text-gray-500 text-sm'>
                         ({{ $item->dept_id }}) {{ $item->dept_name }}
-                    </td>
-                    <td class='px-3 py text-gray-500 text-sm'>
-                        <div class="flex justify-center">
-                            <button onclick="get_modal_add_employee('{{ $item['id'] }}')" class='px-2.5 cursor-pointer text-gray-500 rounded-lg border py-1 hover:bg-gray-100'>
-                                <x-icon icon="user-plus" width=18 height=18 viewBox="20 20" />
-                            </button>
-                        </div>
                     </td>
                     @canany(['operational.update', 'operational.delete'])
                     <td class='px-3 py'>

@@ -168,15 +168,15 @@ function select2_operational(onchange = () => { }) {
         templateSelection: option_element,
         templateResult: option_element,
     });
-
     function option_element(opt) {
         var $opt = $(
             `<div class="flex items-center">
-                    <div class="flex flex-1 gap-2 items-center">
-                        <p>${opt.text}</p>
-                        <p class="font-bold text-xs" style="padding-top: 4px;">${opt.title ? '(' + opt.title + ')' : ''}</p>
-                    </div>
-                </div>`
+                <div class="flex flex-1 gap-2 items-center">
+                    <p class="text-sm text-gray-900">${opt.text}</p>
+                    <p class="font-medium text-xs text-gray-400 lowercase pt-0.5" style="letter-spacing: 1px;">
+                            ${opt.title ?? ''}</p>  
+                </div>
+            </div>`
         );
         return $opt;
     }
