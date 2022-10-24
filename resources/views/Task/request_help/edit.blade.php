@@ -1,5 +1,5 @@
-<form autocomplete="off" action="{{ route('request-help.update', ['request_help' => $request_help->id]) }}" method="POST"
-    class="submit-request-help flex items-start gap-5 justify-center">
+<form autocomplete="off" action="{{ route('request-help.update', ['request_help' => $request_help->id]) }}"
+    method="POST" class="submit-request-help flex items-start gap-5 justify-center">
     @csrf
     <!-- {{ csrf_field() }} -->
     <section
@@ -33,19 +33,22 @@
                     <select class="select2-operational" name="operational_has_dept_id">
                         <option value="" disabled selected>Silahkan Pilih</option>
                         @php
-                            $operational_has_depts = array_column($operationals->toArray(), 'operational_has_depts');
-                            $indexs = array_keys($operational_has_depts);
+                        $result = array();
+                        $operational_has_depts = array_column($operationals->toArray(), 'operational_has_depts');
+                        foreach($operational_has_depts as $v) {
+                        $result = array_merge($result, $v);
+                        }
                         @endphp
-                        @foreach (array_column($operational_has_depts, array_shift($indexs)) as $item)
-                            @php
-                                $indexOp = array_search($item['operational_id'], array_column($operationals->toArray(), 'id'));
-                            @endphp
-                            <option {{ $request_help->operational_has_dept_id == $item->id ? 'selected' : '' }}
-                                data-group="{{ json_encode($item) }}" data-operational="{{ $operationals[$indexOp] }}"
-                                value="{{ $item['id'] }}" title="{{ $item['dept_name'] }}">
-                                {{ date('Y-m-d', strtotime($item['start_date'])) }} -
-                                {{ date('Y-m-d', strtotime($item['end_date'])) }}
-                            </option>
+                        @foreach ($result as $item)
+                        @php
+                        $indexOp = array_search($item['operational_id'], array_column($operationals->toArray(), 'id'));
+                        @endphp
+                        <option @selected($request_help->operational_has_dept_id == $item['id'])
+                            data-group="{{ json_encode($item) }}" data-operational="{{ $operationals[$indexOp] }}"
+                            value="{{ $item['id'] }}" title="{{ $item['dept_name'] }}">
+                            {{ date('Y-m-d', strtotime($item['start_date'])) }} -
+                            {{ date('Y-m-d', strtotime($item['end_date'])) }}
+                        </option>
                         @endforeach
                     </select>
                     <label class="font-normal text-xs text-red-500 xs/max:text-xs operational hint-text"></label>
@@ -55,14 +58,15 @@
                         <section class="flex flex-col gap-1 flex-1">
                             <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Tanggal bantuan*</label>
                             {!! FormCustom::input(
-                                'date',
-                                date('Y-m-d', strtotime($request_help->start_date)) . ' - ' . date('Y-m-d', strtotime($request_help->end_date)),
-                                [
-                                    'placeholder' => 'Pilih tanggal bantuan',
-                                    'class' => 'additional-employee-date',
-                                    'readonly' => true,
-                                    'prefixiconname' => 'calendar',
-                                ],
+                            'date',
+                            date('Y-m-d', strtotime($request_help->start_date)) . ' - ' . date('Y-m-d',
+                            strtotime($request_help->end_date)),
+                            [
+                            'placeholder' => 'Pilih tanggal bantuan',
+                            'class' => 'additional-employee-date',
+                            'readonly' => true,
+                            'prefixiconname' => 'calendar',
+                            ],
                             ) !!}
                         </section>
                         <section class="flex flex-col gap-1">
@@ -70,9 +74,9 @@
                             <select data-ajax--url="{{ route('employee.search-employee-off-in-depts') }}"
                                 data-ajax--cache="true" class="select2-employee" name="emps[]" multiple="multiple">
                                 @foreach ($request_help->request_help_has_emps as $item)
-                                    <option value="{{ $item->emp_id }}" selected>
-                                        {{ $item->emp_first_name }} {{ $item->emp_last_name ?? '' }}
-                                    </option>
+                                <option value="{{ $item->emp_id }}" selected>
+                                    {{ $item->emp_first_name }} {{ $item->emp_last_name ?? '' }}
+                                </option>
                                 @endforeach
                             </select>
                             <label class="font-normal text-xs text-red-500 xs/max:text-xs emps hint-text"></label>

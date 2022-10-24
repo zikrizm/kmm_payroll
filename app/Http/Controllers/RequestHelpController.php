@@ -38,15 +38,15 @@ class RequestHelpController extends Controller
         try {
             if (request()->ajax()) {
                 $business_id = Session::get('business_id');
-                $reqtask_helps = RequestHelp::where('business_id', $business_id);
+                $request_helps = RequestHelp::where('business_id', $business_id);
                 if ($request->has('q') && !empty($request->input('q'))) {
                     $search = $request->q;
-                    $reqtask_helps = $reqtask_helps->where('dept_name', 'LIKE', "%" . $search . "%")
+                    $request_helps = $request_helps->where('dept_name', 'LIKE', "%" . $search . "%")
                         ->orWhere('dept_id', 'LIKE', "%" . $search . "%")
                         ->orWhere('dept_code', 'LIKE', "%" . $search . "%");
                 }
                 if ($request->has('date') && !empty($request->input('date'))) {
-                    $reqtask_helps = $reqtask_helps->whereBetween('start_date', [$request['date']['start_date'], $request['date']['end_date']])
+                    $request_helps = $request_helps->whereBetween('start_date', [$request['date']['start_date'], $request['date']['end_date']])
                         ->orWhereBetween('end_date', [$request['date']['start_date'], $request['date']['end_date']]);
                 }
 
@@ -54,11 +54,11 @@ class RequestHelpController extends Controller
                 if ($request->has('sort') && !empty($request->input('sort'))) {
                     $sort = $request->sort;
                     $order = $sort['order'];
-                    $reqtask_helps->orderBy($sort['name'], $sort['order']);
+                    $request_helps->orderBy($sort['name'], $sort['order']);
                 }
 
-                $reqtask_helps = $reqtask_helps->with(['operational_has_dept', 'request_help_has_emps'])->paginate(10);
-                $render =  view('Task.request_help.table', compact('reqtask_helps', 'order'))->render();
+                $request_helps = $request_helps->with(['operational_has_dept', 'request_help_has_emps'])->paginate(10);
+                $render =  view('Task.request_help.table', compact('request_helps', 'order'))->render();
                 return $this->buildRes->RESPONSE_REQ('success', $render, null);
             }
 
@@ -180,15 +180,13 @@ class RequestHelpController extends Controller
 
         try {
             $business_id = Session::get('business_id');
-            $reqtask_helps = $request_help->with(['operational.operational_has_dept' => function ($query) {
-                $query->where('status', 'active');
-            }, 'request_help_has_emps'])->first();
+            $request_help = $request_help->with(['request_help_has_emps'])->first();
 
-            $operationals = Operational::where('business_id', $business_id)->with(['operational_has_dept' => function ($query) {
+            $operationals = Operational::where('business_id', $business_id)->with(['operational_has_depts' => function ($query) {
                 $query->where('status', 'active');
             }])->get();
 
-            $render = view('Task.request_help.edit', compact('re$reqtask_helps', 'operationals'))->render();
+            $render = view('Task.request_help.edit', compact('request_help', 'operationals'))->render();
             return $this->buildRes->RESPONSE_REQ('success', $render, null);
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());

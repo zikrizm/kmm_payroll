@@ -47,6 +47,7 @@ module.exports = {
       boxShadow: {
         'custom2pxGreen': '0px 0px 2px 2px rgb(21, 128, 62)',
         'xs/focused(4px-primary)': '0px 1px 2px rgba(16, 24, 40, 0.05), 0px 0px 0px 4px #f5f3ff',
+        'xs/focused(2px-primary)': '0px 1px 2px rgba(16, 24, 40, 0.05), 0px 0px 0px 2px #f5f3ff',
       }
     },
   },

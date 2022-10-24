@@ -3,12 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Utils\ResponseUtil;
-use App\Models\RequestHelp;
 use Illuminate\Http\Request;
 use App\Services\Api\ApiServices;
 use App\Models\Operational;
 use Illuminate\Support\Facades\Log;
-use App\Models\RequestHelpHasEmp;
+use App\Models\RequestTaskHasEmp;
+use App\Models\RequestTask;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
 
@@ -31,22 +31,22 @@ class RequestTaskController extends Controller
      */
     public function index(Request $request)
     {
-        if (!auth()->user()->can('request-help.view')) {
+        if (!auth()->user()->can('request-task.view')) {
             abort(403, 'Unauthorized action.');
         }
 
         try {
             if (request()->ajax()) {
                 $business_id = Session::get('business_id');
-                $reqtask_helps = RequestHelp::where('business_id', $business_id);
+                $request_tasks = RequestTask::where('business_id', $business_id);
                 if ($request->has('q') && !empty($request->input('q'))) {
                     $search = $request->q;
-                    $reqtask_helps = $reqtask_helps->where('dept_name', 'LIKE', "%" . $search . "%")
-                        ->orWhere('dept_id', 'LIKE', "%" . $search . "%")
-                        ->orWhere('dept_code', 'LIKE', "%" . $search . "%");
+                    $request_tasks = $request_tasks->where('dept_name', 'LIKE', "%" . $search . "%")
+                        ->orWhere('position_id', 'LIKE', "%" . $search . "%")
+                        ->orWhere('position_name', 'LIKE', "%" . $search . "%");
                 }
                 if ($request->has('date') && !empty($request->input('date'))) {
-                    $reqtask_helps = $reqtask_helps->whereBetween('start_date', [$request['date']['start_date'], $request['date']['end_date']])
+                    $request_tasks = $request_tasks->whereBetween('start_date', [$request['date']['start_date'], $request['date']['end_date']])
                         ->orWhereBetween('end_date', [$request['date']['start_date'], $request['date']['end_date']]);
                 }
 
@@ -54,15 +54,16 @@ class RequestTaskController extends Controller
                 if ($request->has('sort') && !empty($request->input('sort'))) {
                     $sort = $request->sort;
                     $order = $sort['order'];
-                    $reqtask_helps->orderBy($sort['name'], $sort['order']);
+                    $request_tasks->orderBy($sort['name'], $sort['order']);
                 }
 
-                $reqtask_helps = $reqtask_helps->with(['operational_has_dept', 'request_help_has_emps'])->paginate(10);
-                $render =  view('Task.request_help.table', compact('reqtask_helps', 'order'))->render();
+                $request_tasks = $request_tasks->with(['request_task_has_emps'])->paginate(10);
+                Log::info($request_tasks);
+                $render =  view('Task.request_task.table', compact('request_tasks', 'order'))->render();
                 return $this->buildRes->RESPONSE_REQ('success', $render, null);
             }
 
-            return  view('Task.request_help.index');
+            return  view('Task.request_task.index');
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
 
@@ -78,17 +79,12 @@ class RequestTaskController extends Controller
      */
     public function create(Request $request)
     {
-        if (!auth()->user()->can('request-help.view')) {
+        if (!auth()->user()->can('request-task.view')) {
             abort(403, 'Unauthorized action.');
         }
 
         try {
-            $business_id = Session::get('business_id');
-            $operationals = Operational::where('business_id', $business_id)->with(['operational_has_depts' => function ($query) {
-                $query->where('status', 'active');
-            }])->get();
-
-            $render = view('Task.request_help.create', compact('operationals'))->render();
+            $render = view('Task.request_task.create')->render();
             return $this->buildRes->RESPONSE_REQ('success', $render, null);
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
@@ -105,7 +101,7 @@ class RequestTaskController extends Controller
      */
     public function store(Request $request)
     {
-        if (!auth()->user()->can('request-help.create')  || !$request->ajax()) {
+        if (!auth()->user()->can('request-task.create')  || !$request->ajax()) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -115,34 +111,33 @@ class RequestTaskController extends Controller
             if ($validator->fails()) {
                 return $this->buildRes->RESPONSE_REQ('error', null, $validator->errors());
             } else {
-                $request_data = $request->only(['operational_has_dept_id', 'date', 'department', 'emps']);
+                $request_data = $request->only(['date', 'emps']);
                 $start_date = trim(explode(' - ', $request_data['date'])[0]);
                 $end_date = trim(explode(' - ', $request_data['date'])[1]);
                 $business_id = Session::get('business_id');
 
-                $request_help = new RequestHelp([
+                $request_task = new RequestTask([
                     'business_id' => $business_id,
-                    'operational_has_dept_id' => $request_data['operational_has_dept_id'],
                     'start_date' => $start_date,
                     'end_date' => $end_date,
                     'created_user' => auth()->user()->id,
                     'updated_user' => auth()->user()->id,
                 ]);
-                $request_help->save();
+                $request_task->save();
 
                 foreach ($request_data['emps'] as $item) {
                     $employee = $this->apiService->read_employee($item);
-                    $request_help_has_emp = new RequestHelpHasEmp([
-                        'request_help_id' => $request_help->id,
+                    $request_task_has_emp = new RequestTaskHasEmp([
+                        'request_task_id' => $request_task->id,
                         'emp_id' => $employee['id'],
                         'emp_code' => $employee['emp_code'],
                         'emp_first_name' => $employee['first_name'],
                         'emp_last_name' => $employee['last_name'],
                     ]);
-                    $request_help_has_emp->save();
+                    $request_task_has_emp->save();
                 }
 
-                return $this->buildRes->RESPONSE_REQ('success', null,  ['success' => ['Add request help succesfully']]);
+                return $this->buildRes->RESPONSE_REQ('success', null,  ['success' => ['Add request task succesfully']]);
             }
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
@@ -159,7 +154,7 @@ class RequestTaskController extends Controller
      */
     public function show($id)
     {
-        if (!auth()->user()->can('request-help.view')) {
+        if (!auth()->user()->can('request-task.view')) {
             abort(403, 'Unauthorized action.');
         }
     }
@@ -168,27 +163,21 @@ class RequestTaskController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  RequestHelp $request_help
+     * @param  RequestTask $request_task
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function edit(RequestHelp $request_help, Request $request)
+    public function edit(RequestTask $request_task, Request $request)
     {
-        if (!auth()->user()->can('request-help.update') || !$request->ajax()) {
+        if (!auth()->user()->can('request-task.update') || !$request->ajax()) {
             abort(403, 'Unauthorized action.');
         }
 
         try {
             $business_id = Session::get('business_id');
-            $reqtask_helps = $request_help->with(['operational.operational_has_dept' => function ($query) {
-                $query->where('status', 'active');
-            }, 'request_help_has_emps'])->first();
+            $request_task = $request_task->with(['request_task_has_emps'])->first();
 
-            $operationals = Operational::where('business_id', $business_id)->with(['operational_has_dept' => function ($query) {
-                $query->where('status', 'active');
-            }])->get();
-
-            $render = view('Task.request_help.edit', compact('re$reqtask_helps', 'operationals'))->render();
+            $render = view('Task.request_task.edit', compact('request_task'))->render();
             return $this->buildRes->RESPONSE_REQ('success', $render, null);
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
@@ -201,12 +190,12 @@ class RequestTaskController extends Controller
      * Update the specified resource in storage.
      *
      * @param  \Illuminate\Http\Request $request
-     * @param  RequestHelp $request_help
+     * @param  RequestTask $request_task
      * @return \Illuminate\Http\Response
      */
-    public function update(RequestHelp $request_help, Request $request)
+    public function update(RequestTask $request_task, Request $request)
     {
-        if (!auth()->user()->can('request-help.update') || !$request->ajax()) {
+        if (!auth()->user()->can('request-task.update') || !$request->ajax()) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -216,34 +205,33 @@ class RequestTaskController extends Controller
             if ($validator->fails()) {
                 return $this->buildRes->RESPONSE_REQ('error', null, $validator->errors());
             } else {
-                $request_data = $request->only(['operational_has_dept_id', 'date', 'department', 'emps']);
+                $request_data = $request->only(['date', 'emps']);
                 $start_date = trim(explode(' - ', $request_data['date'])[0]);
                 $end_date = trim(explode(' - ', $request_data['date'])[1]);
 
-                $request_help_data = [
-                    'operational_has_dept_id' => $request_data['operational_has_dept_id'],
+                $request_task_data = [
                     'start_date' => $start_date,
                     'end_date' => $end_date,
                     'updated_user' => auth()->user()->id,
                 ];
-                $request_help->update($request_help_data);
+                $request_task->update($request_task_data);
 
-                RequestHelpHasEmp::where('request_help_id', $request_help->id)->each(function ($item) {
+                RequestTaskHasEmp::where('request_task_id', $request_task->id)->each(function ($item) {
                     $item->delete();
                 });
                 foreach ($request_data['emps'] as $item) {
                     $employee = $this->apiService->read_employee($item);
-                    $request_help_has_emp = new RequestHelpHasEmp([
-                        'request_help_id' => $request_help->id,
+                    $request_task_has_emp = new RequestTaskHasEmp([
+                        'request_task_id' => $request_task->id,
                         'emp_id' => $employee['id'],
                         'emp_code' => $employee['emp_code'],
                         'emp_first_name' => $employee['first_name'],
                         'emp_last_name' => $employee['last_name'],
                     ]);
-                    $request_help_has_emp->save();
+                    $request_task_has_emp->save();
                 }
 
-                return $this->buildRes->RESPONSE_REQ('success', null, ['success' => ['Update request help succesfully']]);
+                return $this->buildRes->RESPONSE_REQ('success', null, ['success' => ['Update request task succesfully']]);
             }
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
@@ -255,20 +243,20 @@ class RequestTaskController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  RequestHelp $request_help
+     * @param  RequestTask $request_task
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function destroy(RequestHelp $request_help, Request $request)
+    public function destroy(RequestTask $request_task, Request $request)
     {
         if (!auth()->user()->can('request-help.delete') || !$request->ajax()) {
             abort(403, 'Unauthorized action.');
         }
 
         try {
-            $request_help->delete();
+            $request_task->delete();
 
-            return $this->buildRes->RESPONSE_REQ('success', null, ['success' => ['Delete request help succesfully']]);
+            return $this->buildRes->RESPONSE_REQ('success', null, ['success' => ['Delete request task succesfully']]);
         } catch (\Exception $e) {
             return $this->buildRes->RESPONSE_REQ('error', null, ['error' => 'something wrong']);
         }
@@ -282,7 +270,6 @@ class RequestTaskController extends Controller
     public function rules()
     {
         return [
-            'operational_has_dept_id' => 'required',
             'date' => 'required',
             'emps' => 'required',
         ];

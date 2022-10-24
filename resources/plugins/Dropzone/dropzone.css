@@ -245,6 +245,7 @@
     position: relative;
     display: inline-block;
     vertical-align: top;
+    /* width: 100%; */
     /* margin: 16px; */
     /* min-height: 100px; */
   }
@@ -276,7 +277,14 @@
   .dropzone .dz-preview .dz-remove {
     font-size: 14px;
     text-align: center;
-    display: block;
+    display: none;
+    cursor: pointer;
+    border: none;
+  }
+  .dropzone .dz-preview .dz-remove.dz-remove-file {
+    font-size: 14px;
+    text-align: center;
+    display: flex;
     cursor: pointer;
     border: none;
   }

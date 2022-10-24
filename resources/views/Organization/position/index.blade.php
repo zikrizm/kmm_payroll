@@ -75,6 +75,7 @@
             })
 
             $('#add-info').on('click', function(e) {
+                $('.add-info-icon').toggleClass('rotate-180');
                 $('#add-info-content').toggle('hidden');
             });
 

@@ -33,10 +33,13 @@
                     <select class="select2-operational" name="operational_has_dept_id">
                         <option value="" disabled selected>Silahkan Pilih</option>
                         @php
+                        $result = array();
                         $operational_has_depts = array_column($operationals->toArray(), 'operational_has_depts');
-                        $indexs = array_keys($operational_has_depts);
+                        foreach($operational_has_depts as $v) {
+                        $result = array_merge($result, $v);
+                        }
                         @endphp
-                        @foreach (array_column($operational_has_depts, array_shift($indexs)) as $item)
+                        @foreach ($result as $item)
                         @php
                         $indexOp = array_search($item['operational_id'], array_column($operationals->toArray(), 'id'));
                         @endphp
@@ -47,7 +50,8 @@
                         </option>
                         @endforeach
                     </select>
-                    <label class="font-normal text-xs text-red-500 xs/max:text-xs operational_has_dept_id hint-text"></label>
+                    <label
+                        class="font-normal text-xs text-red-500 xs/max:text-xs operational_has_dept_id hint-text"></label>
                 </section>
                 <div id="request-help-content" class="hidden">
                     <div class="flex flex-col gap-2.5">

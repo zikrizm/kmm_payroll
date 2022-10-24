@@ -1,5 +1,5 @@
-<form autocomplete="off" action="{{ route('rendaman.store') }}" method="POST"
-    class="submit-rendaman flex items-start gap-5 justify-center">
+<form autocomplete="off" action="{{ route('request-task.store') }}" method="POST"
+    class="submit-request-task flex items-start gap-5 justify-center">
     @csrf
     <!-- {{ csrf_field() }} -->
     <section
@@ -28,23 +28,19 @@
         </header>
         <div>
             <main class="px-4 flex flex-col gap-2.5 xs/max:gap-3 mb-8">
-                <section class="flex flex-col gap-1">
-                    <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Tanggal operasional*</label>
-                    <select class="select2-operational" name="operational">
-                        <option value="" disabled selected>Silahkan Pilih</option>
-                        @foreach ($operationals as $item)
-                            <option value="{{ $item->id }}" data-operational="{{ $item }}"
-                                title="{{ $item->dept_name }}">
-                                {{ date('Y-m-d', strtotime($item->start_date)) }} -
-                                {{ date('Y-m-d', strtotime($item->end_date)) }}
-                            </option>
-                        @endforeach
-                    </select>
-                    <label class="font-normal text-xs text-red-500 xs/max:text-xs operational hint-text"></label>
+                <section class="flex flex-col gap-1 flex-1">
+                    <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Tanggal
+                        penugasan*</label>
+                    {!! FormCustom::input('date', null, [
+                    'placeholder' => 'Pilih tanggal penugasan',
+                    'class' => 'request-task-date',
+                    'readonly' => true,
+                    'prefixiconname' => 'calendar',
+                    ]) !!}
                 </section>
                 <section class="flex flex-col gap-1">
-                    <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Karyawan libur*</label>
-                    <select data-ajax--url="{{ route('employee.search-employee-off-in-depts') }}"
+                    <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Karyawan*</label>
+                    <select data-ajax--url="{{ route('employee.search-employee-request-position') }}"
                         data-ajax--cache="true" class="select2-employee" name="emps[]" multiple="multiple">
                     </select>
                     <label class="font-normal text-xs text-red-500 xs/max:text-xs emps hint-text"></label>

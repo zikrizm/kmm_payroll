@@ -39,6 +39,14 @@
                         'placeholder' => 'Masukkan nama jabatan',
                     ]) !!}
                 </section>
+                <button type="button" class="mt-3 text-left" id="add-info">
+                    <p class="text-base font-medium text-gray-900">Informasi tambahan</p>
+                    <div class="flex items-center justify-between text-sm font-normal text-gray-500">
+                        <p> Silakan lengkapi data jababan ini jika dibutuhkan </p>
+                        <x-icon icon="chevron-down" class="add-info-icon duration-300" width=18 height=18
+                            viewBox="20 20" />
+                    </div>
+                </button>
                 <div id="add-info-content" class="hidden">
                     <section>
                         <div class="flex items-start gap-2.5">

@@ -117,6 +117,27 @@
             // *
             var URL = (id) ? '/request-task/' + id + '/edit' : '/request-task/create';
             var res = await ApiService.get_modal(URL, null);
+            $(".select2-position").select2();
+            select2_employee_off_in_dept();
+            $('.request-task-date').daterangepicker({
+                locale: { format: 'YYYY-MM-DD' },
+                startDate: moment().subtract(6, 'days'),
+                endDate: moment(),
+                ranges: {
+                    'Today': [moment(), moment()],
+                    'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+                    'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+                    'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+                    'This Month': [moment().startOf('month'), moment().endOf('month')],
+                    'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+                },
+                alwaysShowCalendars: true,
+                showCustomRangeLabel: false,
+                showDropdowns: true,
+                minYear: 2000,
+                drops: "auto",
+                maxYear: parseInt(moment().format('YYYY'), 10)
+            });
             
             // **
             // * submit form ----->

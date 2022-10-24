@@ -18,9 +18,6 @@ return new class extends Migration
             $table->integer('business_id')->unsigned();
             $table->dateTime('start_date');
             $table->dateTime('end_date');
-            $table->integer('position_id');
-            $table->string('position_code');
-            $table->string('position_name');
             $table->integer('created_user')->unsigned();
             $table->integer('updated_user')->nullable()->unsigned();
 

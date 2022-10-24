@@ -271,8 +271,8 @@ class PositionController extends Controller
                 'position_id' => $position_id,
                 'created_user' => auth()->user()->id,
                 'updated_user' => auth()->user()->id,
-                'must_attend' => $request['must_attend'],
-                'permanently' => $request['permanently'],
+                'must_attend' => $request['must_attend'] ?? 0,
+                'permanently' => $request['permanently'] ?? 0,
                 'extra_pay' => (!empty($request->input('extra_pay_check'))) ?
                     str_replace('.', '', $request['extra_pay']) : null
             ]);

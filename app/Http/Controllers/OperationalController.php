@@ -122,36 +122,42 @@ class OperationalController extends Controller
                 $end_date = trim(explode(' - ', $request_data['date'])[1]);
                 $business_id = Session::get('business_id');
 
-                $operational = new Operational([
-                    'business_id' => $business_id,
-                    'dept_id' => $department['id'],
-                    'dept_code' => $department['dept_code'],
-                    'dept_name' => $department['dept_name'],
-                    'start_date' => $start_date,
-                    'end_date' => $end_date,
-                    'created_user' => auth()->user()->id,
-                    'updated_user' => auth()->user()->id,
-                ]);
-                $operational->save();
-
-                foreach ($request_data['group'] as $item) {
-                    $start_date = trim(explode(' - ', $item['date'])[0]);
-                    $end_date = trim(explode(' - ', $item['date'])[1]);
-                    $status = (empty($item['status'])) ? 'inactive' : 'active';
-                    $operational_has_dept = new OperationalHasDept([
-                        'operational_id' => $operational->id,
-                        'dept_id' => $item['dept_id'],
-                        'dept_code' => $item['dept_code'],
-                        'dept_name' => $item['dept_name'],
+                $operational_exist = Operational::whereBetween('start_date', [$start_date, $end_date])
+                    ->orWhereBetween('end_date', [$start_date, $end_date])->get();
+                if (count($operational_exist) == 0) {
+                    $operational = new Operational([
+                        'business_id' => $business_id,
+                        'dept_id' => $department['id'],
+                        'dept_code' => $department['dept_code'],
+                        'dept_name' => $department['dept_name'],
                         'start_date' => $start_date,
                         'end_date' => $end_date,
-                        'status' => $status,
-                        'note' => $item['note'],
+                        'created_user' => auth()->user()->id,
+                        'updated_user' => auth()->user()->id,
                     ]);
-                    $operational_has_dept->save();
-                }
+                    $operational->save();
 
-                return $this->buildRes->RESPONSE_REQ('success', null,  ['success' => ['Add operational succesfully']]);
+                    foreach ($request_data['group'] as $item) {
+                        $start_date = trim(explode(' - ', $item['date'])[0]);
+                        $end_date = trim(explode(' - ', $item['date'])[1]);
+                        $status = (empty($item['status'])) ? 'inactive' : 'active';
+                        $operational_has_dept = new OperationalHasDept([
+                            'operational_id' => $operational->id,
+                            'dept_id' => $item['dept_id'],
+                            'dept_code' => $item['dept_code'],
+                            'dept_name' => $item['dept_name'],
+                            'start_date' => $start_date,
+                            'end_date' => $end_date,
+                            'status' => $status,
+                            'note' => $item['note'],
+                        ]);
+                        $operational_has_dept->save();
+                    }
+
+                    return $this->buildRes->RESPONSE_REQ('success', null,  ['success' => ['Add operational succesfully']]);
+                } else {
+                    return $this->buildRes->RESPONSE_REQ('error', null,  ['date' => ['Operational date range already exists']]);
+                }
             }
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
@@ -221,7 +227,6 @@ class OperationalController extends Controller
         if (!auth()->user()->can('operational.update') || !$request->ajax()) {
             abort(403, 'Unauthorized action.');
         }
-        Log::info($request);
         try {
             $validator = Validator::make($request->all(), $this->rules());
 

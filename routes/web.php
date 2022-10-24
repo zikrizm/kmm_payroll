@@ -119,9 +119,9 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/employee-photo', 'EmployeePhotoController@index')->name('employee-photo.index');
     Route::post('/employee-photo', 'EmployeePhotoController@store')->name('employee-photo.store');
-    Route::post('/ajax_file_upload_handler', 'EmployeePhotoController@ajax_file_upload_handler')->name('ajax_file_upload_handler.store');
     
     Route::get('/search-employee-off-in-depts', 'EmployeeController@employee_off_in_depts')->name('employee.search-employee-off-in-depts');
+    Route::get('/search-employee-request-position', 'EmployeeController@employee_request_position')->name('employee.search-employee-request-position');
     Route::get('/search-employee-for-dropdown', 'EmployeeController@searchEmployeeForDropdown')->name('employee.search-employee-for-dropdown');
     Route::get('/search-break-time-for-dropdown', 'BreakTimeController@searchBreakTimeForDropdown')->name('break-time.search-break-time-for-dropdown');
     Route::get('/search-timetable-for-dropdown', 'TimetableController@searchTimetableForDropdown')->name('timetable.search-timetable-for-dropdown');

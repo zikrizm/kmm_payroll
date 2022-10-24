@@ -1,5 +1,5 @@
-<form autocomplete="off" action="{{ route('call-employee.update', ['call_employee' => $call_employee->id]) }}"
-    method="POST" class="submit-call-employee flex items-start gap-5 justify-center">
+<form autocomplete="off" action="{{ route('request-task.update', ['request_task' => $request_task->id]) }}"
+    method="POST" class="submit-request-task flex items-start gap-5 justify-center">
     @csrf
     <!-- {{ csrf_field() }} -->
     <section
@@ -16,10 +16,10 @@
                         <x-icon icon="users" width=16 height=16 viewBox="20 20" />
                     </div>
                     <div>
-                        <p class="text-xl font-semibold text-gray-900">Bantuan
+                        <p class="text-xl font-semibold text-gray-900">Penugasan
                         </p>
                         <p class="text-sm font-normal text-gray-500 xs/max:text-xs">
-                            Harap berikan detail bantuan ke bagian lain.
+                            Harap berikan detail panugasan.
                         </p>
                     </div>
                 </div>
@@ -28,59 +28,29 @@
         </header>
         <div>
             <main class="px-4 flex flex-col gap-2.5 xs/max:gap-3 mb-8">
+                <section class="flex flex-col gap-1 flex-1">
+                    <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Tanggal
+                        penugasan*</label>
+                    {!! FormCustom::input('date', date('Y-m-d', strtotime($request_task->start_date)).' - '.
+                    date('Y-m-d', strtotime($request_task->end_date)), [
+                    'placeholder' => 'Pilih tanggal penugasan',
+                    'class' => 'request-task-date',
+                    'readonly' => true,
+                    'prefixiconname' => 'calendar',
+                    ]) !!}
+                </section>
                 <section class="flex flex-col gap-1">
-                    <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Tanggal operasional*</label>
-                    <select class="select2-operational" name="operational">
-                        <option value="" disabled selected>Silahkan Pilih</option>
-                        @foreach ($operationals as $item)
-                        <option value="{{ $item->id }}" {{ $call_employee->operational->id == $item->id? 'selected': ''
-                            }}
-                            data-operational="{{ $item}}" title="{{ $item->dept_name }}">
-                            {{ date('Y-m-d', strtotime($item->start_date)) }} -
-                            {{ date('Y-m-d', strtotime($item->end_date)) }}
+                    <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Karyawan*</label>
+                    <select data-ajax--url="{{ route('employee.search-employee-request-position') }}"
+                        data-ajax--cache="true" class="select2-employee" name="emps[]" multiple="multiple">
+                        @foreach ($request_task->request_task_has_emps as $item)
+                        <option value="{{ $item->emp_id }}" selected>
+                            {{ $item->emp_first_name }} {{ $item->emp_last_name ?? '' }}
                         </option>
                         @endforeach
                     </select>
-                    <label class="font-normal text-xs text-red-500 xs/max:text-xs operational hint-text"></label>
+                    <label class="font-normal text-xs text-red-500 xs/max:text-xs emps hint-text"></label>
                 </section>
-                <div id="call-employee-content">
-                    <div class="flex flex-col gap-2.5">
-                        <section class="flex flex-col gap-1 flex-1">
-                            <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Tanggal bantuan*</label>
-                            {!! FormCustom::input('date', date('Y-m-d', strtotime($call_employee->start_date)).' - '.
-                            date('Y-m-d', strtotime($call_employee->end_date)), [
-                            'placeholder' => 'Pilih tanggal bantuan',
-                            'class' => 'call-employee-date',
-                            'readonly' => true,
-                            'prefixiconname' => 'calendar',
-                            ]) !!}
-                        </section>
-                        <section class="flex flex-col gap-1">
-                            <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Sub-bagian*</label>
-                            <select class="select2-dept" name="department">
-                                @foreach ($call_employee->operational->operational_groups as $item)
-                                <option value="{{ $item->dept_id }}" {{ $call_employee->dept_id == $item->dept_id?
-                                    'selected': '' }}>
-                                    {{ $item->dept_name }}
-                                </option>
-                                @endforeach
-                            </select>
-                            <label class="font-normal text-xs text-red-500 xs/max:text-xs department hint-text"></label>
-                        </section>
-                        <section class="flex flex-col gap-1">
-                            <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Karyawan libur*</label>
-                            <select data-ajax--url="{{ route('employee.search-employee-off-in-depts') }}"
-                                data-ajax--cache="true" class="select2-employee" name="emps[]" multiple="multiple">
-                                @foreach ($call_employee->call_employee_helps as $item)
-                                <option value="{{ $item->emp_id }}" selected>
-                                    {{ $item->emp_first_name }} {{ $item->emp_last_name ?? '' }}
-                                </option>
-                                @endforeach
-                            </select>
-                            <label class="font-normal text-xs text-red-500 xs/max:text-xs emps hint-text"></label>
-                        </section>
-                    </div>
-                </div>
             </main>
             <hr>
             <footer class="flex justify-end items-center gap-3 p-4  pb-6">
