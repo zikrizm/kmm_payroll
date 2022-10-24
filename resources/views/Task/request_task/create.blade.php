@@ -16,10 +16,10 @@
                         <x-icon icon="users" width=16 height=16 viewBox="20 20" />
                     </div>
                     <div>
-                        <p class="text-xl font-semibold text-gray-900">Tambah rendaman
+                        <p class="text-xl font-semibold text-gray-900">Tambah penugasan
                         </p>
                         <p class="text-sm font-normal text-gray-500 xs/max:text-xs">
-                            Harap berikan detail rendaman.
+                            Harap berikan detail penugasan karyawan.
                         </p>
                     </div>
                 </div>
@@ -33,10 +33,11 @@
                     <select class="select2-operational" name="operational">
                         <option value="" disabled selected>Silahkan Pilih</option>
                         @foreach ($operationals as $item)
-                        <option value="{{ $item->id }}" data-operational="{{ $item}}" title="{{ $item->dept_name }}">
-                            {{ date('Y-m-d', strtotime($item->start_date)) }} -
-                            {{ date('Y-m-d', strtotime($item->end_date)) }}
-                        </option>
+                            <option value="{{ $item->id }}" data-operational="{{ $item }}"
+                                title="{{ $item->dept_name }}">
+                                {{ date('Y-m-d', strtotime($item->start_date)) }} -
+                                {{ date('Y-m-d', strtotime($item->end_date)) }}
+                            </option>
                         @endforeach
                     </select>
                     <label class="font-normal text-xs text-red-500 xs/max:text-xs operational hint-text"></label>

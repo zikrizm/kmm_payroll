@@ -13,7 +13,7 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('operational_has_departments', function (Blueprint $table) {
+        Schema::create('operational_has_depts', function (Blueprint $table) {
             $table->increments('id');
             $table->integer('operational_id')->unsigned();
             $table->integer('dept_id');
@@ -23,6 +23,7 @@ return new class extends Migration
             $table->dateTime('end_date');
             $table->text('note')->nullable();
             $table->enum('status', ['active', 'inactive'])->default('active');
+            
             $table->foreign('operational_id')->references('id')->on('operationals')->onDelete('cascade');
             $table->timestamps();
         });
@@ -35,6 +36,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('operational_has_departments');
+        Schema::dropIfExists('operational_has_depts');
     }
 };

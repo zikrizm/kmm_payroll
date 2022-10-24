@@ -8469,7 +8469,7 @@ var Dropzone = /*#__PURE__*/function (_Emitter) {
         selectedSize = Math.round(10 * selectedSize) / 10; // Cutting of digits
       }
 
-      return "<strong>".concat(selectedSize, "</strong> ").concat(this.options.dictFileSizeUnits[selectedUnit]);
+      return "".concat(selectedSize, " ").concat(this.options.dictFileSizeUnits[selectedUnit]);
     } // Adds or removes the `dz-max-files-reached` class from the form.
 
   }, {

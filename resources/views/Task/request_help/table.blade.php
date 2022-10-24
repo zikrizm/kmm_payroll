@@ -9,24 +9,21 @@
                                 {!! FormCustom::checkbox() !!}
                             </div>
                             <div class='px-6 py-3 cursor-pointer flex-1'>
-                                <x-ui.sort-table text="Tanggal operasional" url="{{ route('operational.index') }}"
-                                    field="date" order="{{ $order }}" />
+                                <x-ui.sort-table text="Tanggal bantuan" url="{{ route('request_help.index') }}"
+                                    field="start_date" order="{{ $order }}" />
                             </div>
                         </div>
                     </th>
                     <th class='px-3 py-3 text-left cursor-pointer'>
-                        <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Bagian</p>
+                        <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Karyawan</p>
                     </th>
-                    <th class='px-3 py-3 text-left cursor-pointer'>
-                        <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Group</p>
-                    </th>
-                    @canany(['operational.update', 'operational.delete'])
+                    @canany(['request_help.update', 'request_help.delete'])
                         <th class='px-3 py-3 text-left text-gray-500 text-xs font-medium'></th>
                     @endcanany
                 </tr>
             </thead>
             <tbody>
-                @foreach ($operationals as $item)
+                @foreach ($request_helps as $item)
                     <tr class='hover:bg-gray-50 border-b border-gray-200 cursor-pointer'>
                         <td class='text-left'>
                             <div class="flex items-center">
@@ -34,9 +31,9 @@
                                     {!! FormCustom::checkbox() !!}
                                 </div>
                                 <div class="flex gap-3 items-center px-6 py-3 hover:underline hover:text-gray-500 cursor-pointer text-gray-500 text-sm"
-                                    onclick="get_modal('{{ $item->id }}')">
+                                    onclick="get_modal('{{ $item['id'] }}', '{{ $item->operational_has_dept->operational_id }}')">
                                     <x-icon icon="calendar" width=18 height=18 viewBox="20 20" />
-                                    <p class="truncate ">
+                                    <p class="truncate text-sm">
                                         {{ date('Y-m-d', strtotime($item->start_date)) }} -
                                         {{ date('Y-m-d', strtotime($item->end_date)) }}
                                     </p>
@@ -44,33 +41,20 @@
                             </div>
                         </td>
                         <td class='px-3 py text-gray-500 text-sm'>
-                            ({{ $item->dept_id }}) {{ $item->dept_name }}
+                            {{ implode(', ', array_column($item->request_help_has_emps->toArray(), 'emp_first_name')) }}
                         </td>
-                        <td class='px-3 py text-gray-500 text-sm'>
-                            @foreach ($item->operational_has_depts as $dept)
-                                @php
-                                    $is_active = $dept->status == 'active';
-                                @endphp
-                                <div class="flex items-center gap-1 rounded-xl px-2.5 py-0.5 w-max {{ ($is_active) ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700' }}">
-                                    {{-- <span class="w-1.5 h-1.5 rounded-full block {{ ($is_active) ? 'bg-green-700' : 'bg-red-700') }}"></span> --}}
-                                    <p class="text-xs font-normal flex items-center gap-1 capitalize text-green-600">
-                                        {{ $dept->dept_name }}
-                                    </p>
-                                </div>
-                            @endforeach
-                        </td>
-                        @canany(['operational.update', 'operational.delete'])
+                        @canany(['request_help.update', 'request_help.delete'])
                             <td class='px-3 py'>
                                 <div class='flex gap-1'>
-                                    @can('operational.delete')
+                                    @can('request_help.delete')
                                         <button onclick="open_modal_confirm('{{ $item['id'] }}')"
                                             class='px-2.5 cursor-pointer text-gray-500 delete-btn'>
                                             <x-icon icon="trash-2" width=18 height=18 viewBox="20 20" />
                                         </button>
                                     @endcan
-                                    @can('operational.update')
+                                    @can('request_help.update')
                                         <button class='px-2.5 cursor-pointer text-gray-500 edit-btn'
-                                            onclick="get_modal('{{ $item['id'] }}')">
+                                            onclick="get_modal('{{ $item['id'] }}', '{{ $item->operational_has_dept->operational_id }}')">
                                             <x-icon icon="edit" width=18 height=18 viewBox="20 20" />
                                         </button>
                                     @endcan
@@ -82,17 +66,18 @@
             </tbody>
         </table>
         <footer class='flex justify-between items-center px-6 pt-3 pb-4'>
-            <p class="text-gray-700 text-sm">Page <span>{{ $operationals->currentPage() }}</span> of <span>
-                    {{ $operationals->lastPage() }}</span></p>
+            <p class="text-gray-700 text-sm">Page <span>{{ $request_helps->currentPage() }}</span> of <span>
+                    {{ $request_helps->lastPage() }}</span></p>
             <div class='flex gap-3'>
-                @if (!$operationals->onFirstPage())
-                    <button data-pagination-url="{{ $operationals->previousPageUrl() }}"
+                @if (!$request_helps->onFirstPage())
+                    <button data-pagination-url="{{ $request_helps->previousPageUrl() }}"
                         class='pagination-button px-3.5 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50'>Previous</button>
                 @endif
-                @if ($operationals->hasMorePages())
-                    <button data-pagination-url="{{ $operationals->nextPageUrl() }}"
+                @if ($request_helps->hasMorePages())
+                    <button data-pagination-url="{{ $request_helps->nextPageUrl() }}"
                         class='pagination-button px-3.5 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50'>Next</button>
                 @endif
             </div>
         </footer>
+    </div>
 </main>

@@ -3,7 +3,7 @@
     @csrf
     <!-- {{ csrf_field() }} -->
     <section
-        class="flex flex-col gap-8 pt-4 bg-white w-[375px] max-h-[90vh] overflow-y-auto overflow-x-hidden relative rounded-lg">
+        class="flex flex-col gap-8 pt-4 bg-white w-[375px] max-h-[95vh] overflow-y-auto overflow-x-hidden relative rounded-lg">
         <header class="px-4 flex flex-col gap-5 pt-4 xs/max:gap-3 relative">
             <button
                 class="absolute top-[-5px] right-3 xs/max:top-[-6px] modal-close hover:bg-gray-100 text-red rounded p-2">

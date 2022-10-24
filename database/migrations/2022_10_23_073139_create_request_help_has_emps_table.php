@@ -13,15 +13,15 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('reqextra_help_has_employees', function (Blueprint $table) {
+        Schema::create('request_help_has_emps', function (Blueprint $table) {
             $table->increments('id');
-            $table->integer('reqextra_help_id')->unsigned();
+            $table->integer('request_help_id')->unsigned();
             $table->integer('emp_id');
             $table->string('emp_code');
             $table->string('emp_first_name')->nullable();
             $table->string('emp_last_name')->nullable();
 
-            $table->foreign('reqextra_help_id')->references('id')->on('reqextra_helps')->onDelete('cascade');
+            $table->foreign('request_help_id')->references('id')->on('request_helps')->onDelete('cascade');
             $table->timestamps();
         });
     }
@@ -33,6 +33,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('reqextra_help_has_employees');
+        Schema::dropIfExists('request_help_has_emps');
     }
 };

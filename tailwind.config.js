@@ -18,14 +18,7 @@ module.exports = {
     },
     extend: {
       colors: {
-        'violet-25': '#f8f7ff',
-        'gray-dark-mode': '#1e1f20',
-        'light-primary': '#3A36DB',
-        'light-secondary': '#FF69B4',
-        'light-accent': '#03A89E',
-        'light-text': '#06152B',
-        'light-text-light': '#99B2C6',
-        'light-bg': '#F1F4FA',
+        'violet-25': '#fbfbff',
       },
       borderRadius: {
         '1': '1px',

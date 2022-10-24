@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Operational;
-use App\Models\OperationalHasDepartment;
+use App\Models\OperationalHasDept;
 use App\Utils\ResponseUtil;
 use Illuminate\Http\Request;
 use App\Services\Api\ApiServices;
@@ -41,10 +41,12 @@ class OperationalController extends Controller
 
                 if ($request->has('q') && !empty($request->input('q'))) {
                     $search = $request->q;
-                    $operationals = $operationals->where('dept_name', 'LIKE', "%" . $search . "%")->orWhere('dept_id', 'LIKE', "%" . $search . "%")->orWhere('dept_code', 'LIKE', "%" . $search . "%");
+                    $operationals = $operationals->where('dept_name', 'LIKE', "%" . $search . "%")
+                        ->orWhere('dept_id', 'LIKE', "%" . $search . "%")
+                        ->orWhere('dept_code', 'LIKE', "%" . $search . "%");
                 }
 
-                if ($request->has('date')) {
+                if ($request->has('date') && !empty($request->input('date'))) {
                     $operationals = $operationals->whereBetween('start_date', [$request['date']['start_date'], $request['date']['end_date']])
                         ->orWhereBetween('end_date', [$request['date']['start_date'], $request['date']['end_date']]);
                 }
@@ -55,7 +57,7 @@ class OperationalController extends Controller
                     $order = $sort['order'];
                     $operationals->orderBy($sort['name'], $sort['order']);
                 }
-                $operationals = $operationals->paginate(10);
+                $operationals = $operationals->with('operational_has_depts')->paginate(10);
                 $render =  view('Task.operational.table', compact('operationals', 'order'))->render();
 
                 return $this->buildRes->RESPONSE_REQ('success', $render, null);
@@ -136,7 +138,7 @@ class OperationalController extends Controller
                     $start_date = trim(explode(' - ', $item['date'])[0]);
                     $end_date = trim(explode(' - ', $item['date'])[1]);
                     $status = (empty($item['status'])) ? 'inactive' : 'active';
-                    $operational_has_employee = new OperationalHasDepartment([
+                    $operational_has_dept = new OperationalHasDept([
                         'operational_id' => $operational->id,
                         'dept_id' => $item['dept_id'],
                         'dept_code' => $item['dept_code'],
@@ -146,7 +148,7 @@ class OperationalController extends Controller
                         'status' => $status,
                         'note' => $item['note'],
                     ]);
-                    $operational_has_employee->save();
+                    $operational_has_dept->save();
                 }
 
                 return $this->buildRes->RESPONSE_REQ('success', null,  ['success' => ['Add operational succesfully']]);
@@ -187,18 +189,18 @@ class OperationalController extends Controller
 
         try {
             $departments = collect($this->apiService->get_departments([]));
-            $operational = $operational->with('operational_has_depertments')->first();
-            $departments_group = [];
+            $operational = $operational->with('operational_has_depts')->first();
+
+            $sub_departments = [];
             foreach ($departments['data'] as $e) {
-                if (!empty($e['parent_dept']) && $e['parent_dept']['id'] == $operational->dept_id)  $departments_group[] = $e;
+                if (!empty($e['parent_dept']) && $e['parent_dept']['id'] == $operational->dept_id)
+                    $sub_departments[] = $e;
             }
             $departments['data'] = collect($departments['data'])->filter(function ($e) {
                 return empty($e['parent_dept']);
             });
 
-
-
-            $render = view('Task.operational.edit', compact('operational', 'departments', 'departments_group'))->render();
+            $render = view('Task.operational.edit', compact('operational', 'departments', 'sub_departments'))->render();
             return $this->buildRes->RESPONSE_REQ('success', $render, null);
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
@@ -241,7 +243,7 @@ class OperationalController extends Controller
                 ];
                 $operational->update($operational_data);
 
-                OperationalHasDepartment::where('operational_id', $operational->id)->each(function ($item) {
+                OperationalHasDept::where('operational_id', $operational->id)->each(function ($item) {
                     $item->delete();
                 });
 
@@ -249,7 +251,7 @@ class OperationalController extends Controller
                     $start_date = trim(explode(' - ', $item['date'])[0]);
                     $end_date = trim(explode(' - ', $item['date'])[1]);
                     $status = (empty($item['status'])) ? 'inactive' : 'active';
-                    $operational_has_employee = new OperationalHasDepartment([
+                    $operational_has_employee = new OperationalHasDept([
                         'operational_id' => $operational->id,
                         'dept_id' => $item['dept_id'],
                         'dept_code' => $item['dept_code'],

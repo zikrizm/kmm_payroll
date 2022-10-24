@@ -90,8 +90,7 @@ class PositionController extends Controller
         }
 
         try {
-            $positions = $this->apiService->get_positions([]);
-            $render = view('Organization.position.create', compact('positions'))->render();
+            $render = view('Organization.position.create')->render();
 
             return $this->buildRes->RESPONSE_REQ('success', $render, null);
         } catch (\Exception $e) {

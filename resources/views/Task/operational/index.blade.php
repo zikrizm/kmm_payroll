@@ -109,11 +109,11 @@
             })
         }
     
-        async function get_modal(operational_id) {
+        async function get_modal(id) {
             // **
             // * open modal form ----->
             // *
-            var URL = (operational_id) ? '/operational/' + operational_id + '/edit' : '/operational/create';
+            var URL = (id) ? '/operational/' + id + '/edit' : '/operational/create';
             var res = await ApiService.get_modal(URL, null);
             $('.operational_date').daterangepicker({
                 locale: { format: 'YYYY-MM-DD' },
@@ -146,7 +146,6 @@
 
             $('.select2-department').select2();
             $('.select2-department').on('select2:select', async function (e) {
-                // var str = $("#s2id_search_code .select2-choice span").text('ss');
                 let _response = await (new NetworkUtils()).emitter('GET', '/operational-card-sub-dept', {dept_id: this.value}, {})
                 if (_response.response < 200 || _response.response >= 300) {
                     // * SHOW NOTIFICATION ----->
@@ -195,7 +194,7 @@
                             $(this).on('cancel.daterangepicker', function(ev, picker) {
                                 $(this).val('');
                             });
-                        }else if(subname == 'status') {
+                        } else if(subname == 'status') {
                             $(this).on('change', function(e) {
                                 $(this).parent().parent().parent().parent().toggle('hidden');
                                 setTimeout(() => {
@@ -203,8 +202,6 @@
                                 }, 200);
                             })
                         }
-
-                        console.log(subname)
                     })
                     
                 }
@@ -235,47 +232,20 @@
             // **
             // * submit form ----->
             // *
-            var resSubmit = ApiService.submit_form('.submit-operational', (data) => { 
-                onInit( { q: $('.search-data-input').val() });
+            var resSubmit = ApiService.submit_form('.submit-operational', (_response) => { 
+                if (_response.response < 200 || _response.response >= 300) {
+                    // * SET NOTIFICATION MESSAGE REQUIRED ----->
+                } else {
+                    onInit( { q: $('.search-data-input').val() });
+                }
             });
-        }
-        // '/search-employee-for-dropdown'
-        async function get_modal_add_employee(operational_id) {
-            // **
-            // * open modal form ----->
-            // *
-            var URL = '/operational/' + operational_id + '/add-employees-to-help';
-            var res = await ApiService.get_modal(URL, null);
-            $('.select2').select2();
-            select2_employee_to_help('/search-employees-to-help', {
-                operational_id: operational_id,
-            });
-            $('.employee-helpdate').daterangepicker({
-                locale: { format: 'YYYY-MM-DD' },
-                ranges: {
-                    'Today': [moment(), moment()],
-                    'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
-                    'Last 7 Days': [moment().subtract(6, 'days'), moment()],
-                    'Last 30 Days': [moment().subtract(29, 'days'), moment()],
-                    'This Month': [moment().startOf('month'), moment().endOf('month')],
-                    'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
-                },
-                alwaysShowCalendars: true,
-                showCustomRangeLabel: false,
-                showDropdowns: true,
-                minYear: 2000,
-                drops: "auto",
-                maxYear: parseInt(moment().format('YYYY'), 10)
-            });
-            $('.employee-helpdate').data('daterangepicker').minDate = moment($('.employee-helpdate').data('daterangepicker').startDate._d);
-            $('.employee-helpdate').data('daterangepicker').maxDate = moment($('.employee-helpdate').data('daterangepicker').endDate._d);
         }
 
-        async function open_modal_confirm(operational_id) {
+        async function open_modal_confirm(id) {
         // **
         // * open modal confirm ----->
         // *
-        await ApiService.get_confirm('.submit-delete-operational', '/operational/' + operational_id, null, () => {
+        await ApiService.get_confirm('.submit-delete-operational', '/operational/' + id, null, () => {
             onInit();
         })
     }

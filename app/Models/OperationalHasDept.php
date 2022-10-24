@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class ReqextraHelpHasEmployee extends Model
+class OperationalHasDept extends Model
 {
     use HasFactory;
 
@@ -15,4 +15,12 @@ class ReqextraHelpHasEmployee extends Model
      * @var array
      */
     protected $guarded = ['id'];
+
+    /**
+     * Get the operational.
+     */
+    public function operational()
+    {
+        return $this->belongsTo(Operational::class, 'operational_id');
+    }
 }

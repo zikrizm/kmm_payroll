@@ -27,7 +27,7 @@
             <hr>
         </header>
         <div>
-            <main class="px-4 flex flex-col gap-2.5 xs/max:gap-3 mb-8">
+            <main class="px-4 flex flex-col gap-2.5 xs/max:gap-3 mb-8" id="dropzone">
                 <label for="contained-button-file" class="flex items-center cursor-pointer bg-gray-50">
                     <input name="file_csv" id="contained-button-file" class="hidden" type="file" />
                     <section
@@ -52,4 +52,5 @@
             </footer>
         </div>
     </section>
+    
 </form>

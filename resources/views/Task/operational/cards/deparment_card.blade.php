@@ -6,10 +6,10 @@ $note_name = "group[$key][note]";
 $date_hint = "group-$key-date";
 $note_hint = "group-$key-note";
 $date_value = (!empty($operational) ? (date('Y-m-d',
-strtotime($operational->operational_has_depertments[$key]->start_date))
-.' - '.date('Y-m-d', strtotime($operational->operational_has_depertments[$key]->end_date))): null);
-$node_value = !empty($operational) ? $operational->operational_has_depertments[$key]->note: null;
-$status_value = !empty($operational) ? $operational->operational_has_depertments[$key]->status: null;
+strtotime($operational->operational_has_depts[$key]->start_date))
+.' - '.date('Y-m-d', strtotime($operational->operational_has_depts[$key]->end_date))): null);
+$node_value = !empty($operational) ? $operational->operational_has_depts[$key]->note: null;
+$status_value = !empty($operational) ? $operational->operational_has_depts[$key]->status: null;
 @endphp
 <div class="bg-gray-100 {{ $status_value =='inactive' ? 'hidden' : '' }}">
     <div class="bg-white {{ $status_value =='inactive' ? 'hidden' : '' }}">

@@ -34,26 +34,24 @@
                             <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Tanggal
                                 operasional*</label>
                             {!! FormCustom::input('date', null, [
-                            'placeholder' => 'Pilih tanggal operasional',
-                            'class' => 'operational_date',
-                            'readonly' => true,
-                            'prefixiconname' => 'calendar',
+                                'placeholder' => 'Pilih tanggal operasional',
+                                'class' => 'operational_date',
+                                'readonly' => true,
+                                'prefixiconname' => 'calendar',
                             ]) !!}
                         </section>
                         <section class="flex flex-col gap-1 w-[375px]">
                             <select class="select2-department" name="department">
                                 <option value="" disabled selected>Silahkan Pilih Bagian</option>
-                                @foreach ($departments['data'] as $item)
-                                <option value="{{ $item['id'] }}">{{ $item['dept_name'] }}</option>
+                                @foreach ($departments['data'] ?? [] as $item)
+                                    <option value="{{ $item['id'] }}">{{ $item['dept_name'] }}</option>
                                 @endforeach
                             </select>
                             <label class="font-normal text-xs text-red-500 xs/max:text-xs department hint-text"></label>
                         </section>
                     </div>
                 </div>
-                <div id="sub-department-content" class="grid grid-cols-2 gap-3">
-
-                </div>
+                <div id="sub-department-content" class="grid grid-cols-2 gap-3"></div>
                 <div id="note-content" class="">
                     <div class="flex justify-center w-full">
                         <div class="flex flex-col gap-2.5 border rounded p-4 w-[375px]">

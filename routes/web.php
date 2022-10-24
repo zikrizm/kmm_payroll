@@ -116,9 +116,11 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/employee-call/{employee_call}', 'EmployeeCallController@update')->name('employee-call.update');
 
 
+
     Route::get('/employee-photo', 'EmployeePhotoController@index')->name('employee-photo.index');
     Route::post('/employee-photo', 'EmployeePhotoController@store')->name('employee-photo.store');
-
+    Route::post('/ajax_file_upload_handler', 'EmployeePhotoController@ajax_file_upload_handler')->name('ajax_file_upload_handler.store');
+    
     Route::get('/search-employee-off-in-depts', 'EmployeeController@employee_off_in_depts')->name('employee.search-employee-off-in-depts');
     Route::get('/search-employee-for-dropdown', 'EmployeeController@searchEmployeeForDropdown')->name('employee.search-employee-for-dropdown');
     Route::get('/search-break-time-for-dropdown', 'BreakTimeController@searchBreakTimeForDropdown')->name('break-time.search-break-time-for-dropdown');
@@ -132,15 +134,15 @@ Route::middleware(['auth'])->group(function () {
 
 
 
-    // * operational-schedule.
-    Route::resource('operational-schedule', 'OperationalScheduleController', ['except' => ['update']]);
-    Route::post('/operational-schedule/{operational_schedule}', 'OperationalScheduleController@update')->name('operational-schedule.update');
-    // * reqtask-help.
-    Route::resource('reqtask-help', 'ReqtaskHelpController', ['except' => ['update']]);
-    Route::post('/reqtask-help/{reqtask_help}', 'ReqtaskHelpController@update')->name('reqtask-help.update');
-    // * reqtask.
-    Route::resource('reqtask', 'ReqtaskController', ['except' => ['update']]);
-    Route::post('/reqtask/{reqtask}', 'ReqtaskController@update')->name('reqtask.update');
+    // * operational.
+    Route::resource('operational', 'OperationalController', ['except' => ['update']]);
+    Route::post('/operational/{operational}', 'OperationalController@update')->name('operational.update');
+    // * request-help.
+    Route::resource('request-help', 'RequestHelpController', ['except' => ['update']]);
+    Route::post('/request-help/{request_help}', 'RequestHelpController@update')->name('request-help.update');
+    // * request-task.
+    Route::resource('request-task', 'RequestTaskController', ['except' => ['update']]);
+    Route::post('/request-task/{request_task}', 'RequestTaskController@update')->name('request-task.update');
 
     Route::get('logout', '\App\Http\Controllers\Auth\LoginController@logout')->name('logout');
 });

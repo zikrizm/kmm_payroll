@@ -41,6 +41,7 @@ class AppServiceProvider extends ServiceProvider
             $sub_menu_shifts = ['break-time', 'timetable', 'shift', 'holiday'];
             $sub_menu_attendances = ['device', 'transaction', 'transaction-report'];
             $sub_menu_organizations = ['department', 'position', 'area'];
+            $sub_menu_tasks = ['operational', 'request-help', 'request-task'];
             $sub_menu_settings = ['setting', 'location'];
 
             switch ($menu) {
@@ -64,6 +65,9 @@ class AppServiceProvider extends ServiceProvider
                     break;
                 case 'setting':
                     $is_active = in_array($segment_first, $sub_menu_settings);
+                    break;
+                case 'task-management':
+                    $is_active = in_array($segment_first, $sub_menu_tasks);
                     break;
                 default:
                     $is_active = ($segment_first == $menu);

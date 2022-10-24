@@ -2,7 +2,7 @@
     @csrf
     <!-- {{ csrf_field() }} -->
     <main
-        class="flex flex-col gap-8  pt-4 w-[375px] bg-white max-h-[90vh] overflow-y-auto overflow-x-hidden relative rounded-lg">
+        class="flex flex-col gap-8  pt-4 w-[375px] bg-white max-h-[95vh] overflow-y-auto overflow-x-hidden relative rounded-lg">
         <header class="px-4 flex flex-col gap-5 pt-4 xs/max:gap-3 relative">
             <button
                 class="absolute top-[-5px] right-3 xs/max:top-[-6px] modal-close hover:bg-gray-100 text-red rounded p-2">
@@ -26,57 +26,77 @@
             <hr>
         </header>
         <div>
-            <main class="px-4 flex flex-col gap-4 xs/max:gap-3 mb-8">
+            <main class="px-4 flex flex-col gap-2.5 xs/max:gap-3 mb-8">
                 <section class="flex flex-col gap-1">
                     <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Kode jabatan*</label>
-                    {!! FormCustom::input('position_code', null, [ "placeholder" => 'Masukkan kode jabatan']) !!}
+                    {!! FormCustom::input('position_code', null, ['placeholder' => 'Masukkan kode jabatan']) !!}
                 </section>
                 <section class="flex flex-col gap-1">
-                    <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Name jabatan*</label>
-                    {!! FormCustom::input('position_name', null, [ "placeholder" => 'Masukkan nama jabatan']) !!}
+                    <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Nama jabatan*</label>
+                    {!! FormCustom::input('position_name', null, ['placeholder' => 'Masukkan nama jabatan']) !!}
                 </section>
-                <section>
-                    <div class="flex items-start gap-2.5">
-                        <span class="pt-0.5">
-                            {!! FormCustom::checkbox('must_attend', -1, ['checked'=>true]) !!}
-                        </span>
-                        <div class="flex flex-col gap-px">
-                            <p class="font-medium text-sm text-gray-700">Wajib hadir</p>
-                            <p class="font-normal text-sm text-gray-500">Atur yang boleh hadir / tidak hadir
-                            </p>
-                        </div>
+                <button type="button" class="mt-3 text-left" id="add-info">
+                    <p class="text-base font-medium text-gray-900">Informasi tambahan</p>
+                    <div class="flex items-center justify-between text-sm font-normal text-gray-500">
+                        <p> Silakan lengkapi data jababan ini jika di butuhkan </p>
+                        <x-icon icon="chevron-down" class="add-info-icon duration-300" width=18 height=18
+                            viewBox="20 20" />
                     </div>
-                </section>
-                <section>
-                    <div class="flex items-start gap-2.5">
-                        <span class="pt-0.5">
-                            {!! FormCustom::checkbox('permanently', -1, ['checked'=>true]) !!}
-                        </span>
-                        <div class="flex flex-col gap-px">
-                            <p class="font-medium text-sm text-gray-700">Tetap</p>
-                            <p class="font-normal text-sm text-gray-500">Jika tidak tetap maka sesuai permintaan
-                            </p>
-                        </div>
-                    </div>
-                </section>
-                <div class="flex flex-col gap-2">
-                    <section>
-                        <div class="flex items-start gap-2.5">
-                            <span class="pt-0.5">
-                                {!! FormCustom::checkbox('extra_pay_check', -1) !!}
-                            </span>
-                            <div class="flex flex-col gap-px">
-                                <p class="font-medium text-sm text-gray-700">Upah tambahan</p>
-                                <p class="font-normal text-sm text-gray-500">Atur upah tambahan posisi
-                                </p>
+                </button>
+                <div id="add-info-content" class="hidden">
+                    <div class="flex flex-col gap-2.5">
+                        <hr class="mb-2">
+                        <section>
+                            <div class="flex items-start gap-2.5">
+                                <span class="pt-0.5">
+                                    {!! FormCustom::checkbox('must_attend', -1, ['checked' => true]) !!}
+                                </span>
+                                <div class="flex flex-col gap-px">
+                                    <p class="font-medium text-sm text-gray-700">Wajib hadir</p>
+                                    <p class="font-normal text-sm text-gray-500">
+                                        Karyawan dibolehkan tidak hadir
+                                        {{-- Atur yang boleh hadir / tidak hadir --}}
+                                    </p>
+                                </div>
+                            </div>
+                        </section>
+                        <section>
+                            <div class="flex items-start gap-2.5">
+                                <span class="pt-0.5">
+                                    {!! FormCustom::checkbox('permanently', -1, ['checked' => true]) !!}
+                                </span>
+                                <div class="flex flex-col gap-px">
+                                    <p class="font-medium text-sm text-gray-700">Tetap</p>
+                                    <p class="font-normal text-sm text-gray-500">
+                                        Jika tidak tetap maka sesuai permintaan
+                                    </p>
+                                </div>
+                            </div>
+                        </section>
+                        <div class="flex flex-col gap-2">
+                            <section>
+                                <div class="flex items-start gap-2.5">
+                                    <span class="pt-0.5">
+                                        {!! FormCustom::checkbox('extra_pay_check', -1) !!}
+                                    </span>
+                                    <div class="flex flex-col gap-px">
+                                        <p class="font-medium text-sm text-gray-700">Upah tambahan</p>
+                                        <p class="font-normal text-sm text-gray-500">
+                                            Atur upah tambahan jababan
+                                        </p>
+                                    </div>
+                                </div>
+                            </section>
+                            <div id="extra-pay-content" class="hidden">
+                                <section class="flex flex-col gap-1 pl-[26px]">
+                                    {!! FormCustom::input('extra_pay', null, [
+                                        'prefixtext' => 'Rp',
+                                        'placeholder' => 'Masukkan upah tambahan',
+                                        'class' => 'number',
+                                    ]) !!}
+                                </section>
                             </div>
                         </div>
-                    </section>
-                    <div id="extra-pay-content" class="hidden">
-                        <section class="flex flex-col gap-1 pl-[26px]">
-                            {!! FormCustom::input('extra_pay', null, ['prefixtext' => 'Rp',
-                            "placeholder" => 'Masukkan upah tambahan', 'class'=> 'number']) !!}
-                        </section>
                     </div>
                 </div>
             </main>

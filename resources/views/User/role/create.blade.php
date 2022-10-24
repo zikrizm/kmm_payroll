@@ -2,7 +2,7 @@
     @csrf
     <!-- {{ csrf_field() }} -->
     <section
-        class="flex flex-col gap-8  pt-4 w-[975px] bg-white max-h-[90vh] overflow-y-auto overflow-x-hidden relative rounded-lg">
+        class="flex flex-col gap-8  pt-4 w-[975px] bg-white max-h-[95vh] overflow-y-auto overflow-x-hidden relative rounded-lg">
         <header class="px-4 flex flex-col gap-5 pt-4 xs/max:gap-3 relative">
             <button
                 class="absolute top-[-5px] right-3 xs/max:top-[-6px] modal-close hover:bg-gray-100 text-red rounded p-2">
@@ -15,9 +15,9 @@
                         <x-icon icon="settings" width=18 height=18 viewBox="20 20" />
                     </div>
                     <div>
-                        <p class="text-xl font-semibold text-gray-900">New manage role</p>
+                        <p class="text-xl font-semibold text-gray-900">Tambah wewenang</p>
                         <p class="text-sm font-normal text-gray-500 xs/max:text-xs">
-                            Please provide the role's detail.
+                            Harap berikan detail wewenang.
                         </p>
                     </div>
                 </div>
@@ -27,9 +27,8 @@
         <div>
             <main class="px-4 flex flex-col gap-4 xs/max:gap-3 mb-8">
                 <section class="flex flex-col gap-1">
-                    <label class="font-normal text-sm text-gray-500 xs/max:text-xs">name*</label>
-                    {!! FormCustom::input('name', null, [ "placeholder" => 'Enter new your role name'])
-                    !!}
+                    <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Nama wewenang*</label>
+                    {!! FormCustom::input('name', null, ['placeholder' => 'Masukkan nama wewenang']) !!}
                 </section>
                 <div class="grid grid-cols-3 gap-4">
                     @foreach ($permissions as $item)

@@ -52,7 +52,7 @@
                     <label class="font-normal text-xs text-red-500 xs/max:text-xs department hint-text"></label>
                 </section>
                 <div id="sub-department-content" class="grid grid-cols-2 gap-3">
-                    @include('Task.operational.cards.deparment_card', ['departments' => $departments_group,
+                    @include('Task.operational.cards.deparment_card', ['departments' => $sub_departments,
                     'operational' => $operational])
                 </div>
             </main>

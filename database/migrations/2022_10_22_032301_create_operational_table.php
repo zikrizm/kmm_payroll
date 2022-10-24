@@ -23,6 +23,7 @@ return new class extends Migration
             $table->string('dept_name');
             $table->integer('created_user')->unsigned();
             $table->integer('updated_user')->nullable()->unsigned();
+            
             $table->foreign('created_user')->references('id')->on('users')->onDelete('cascade');
             $table->foreign('updated_user')->references('id')->on('users')->onDelete('cascade');
             $table->foreign('business_id')->references('id')->on('business')->onDelete('cascade');

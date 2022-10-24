@@ -16,11 +16,11 @@ class Operational extends Model
      */
     protected $guarded = ['id'];
 
-     /**
-     * Get the operational_has_depertments.
+    /**
+     * Get the operational_has_depts.
      */
-    public function operational_has_depertments()
+    public function operational_has_depts()
     {
-        return $this->hasMany(OperationalHasDepartment::class, 'operational_id');
+        return $this->hasMany(OperationalHasDept::class, 'operational_id');
     }
 }

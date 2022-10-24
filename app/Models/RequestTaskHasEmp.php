@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class CallEmployeeHelp extends Model
+class RequestTaskHasEmp extends Model
 {
     use HasFactory;
 

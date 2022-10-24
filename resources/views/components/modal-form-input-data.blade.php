@@ -3,6 +3,6 @@
     <div class="fixed inset-0 bg-gray-500 bg-opacity-50 transition-opacity inner-modal" aria-hidden="true"></div>
 
     <div class="flex justify-center items-center w-full h-full z-10 relative">
-        <div class="content-main-modal  bg-white max-h-[90vh] overflow-y-auto overflow-x-hidden relative rounded-lg"></div>
+        <div class="content-main-modal  bg-white max-h-[95vh] overflow-y-auto overflow-x-hidden relative rounded-lg"></div>
     </div>
 </div>

@@ -14,8 +14,20 @@
     <link rel="dns-prefetch" href="//fonts.gstatic.com">
     <link href="https://fonts.googleapis.com/css?family=Nunito" rel="stylesheet">
 
+    <style>
+        .dropzone {
+    background: white;
+    border-radius: 5px;
+    border: 2px dashed rgb(0, 135, 247);
+    border-image: none;
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
+}
+    </style>
     <!-- Styling -->
     <link href="{{ asset('plugins/Daterangepicker/daterangepicker.css') }}" rel="stylesheet">
+    {{-- <link href="{{ asset('plugins/Dropzone/dropzone.css') }}" rel="stylesheet"> --}}
 
     <!-- Scripts -->
     @vite([
@@ -24,6 +36,8 @@
     'resources/plugins/Select2/js/select2.full.min.js',
     'resources/plugins/Toastr/toastr.css',
     'resources/plugins/Toastr/toastr.js',
+    'resources/plugins/Dropzone/dropzone.css',
+    'resources/plugins/Dropzone/dropzone.js',
     'resources/plugins/Jquery-validate/jquery-validate.js',
     'resources/plugins/Jquery-validate/additional-methods.js',
     // 'resources/plugins/TwElements/css/index.min.css',
@@ -36,7 +50,7 @@
     <script src="{{ asset('plugins/Moment/moment.js') }}" type="text/javascript"></script>
     <script src="{{ asset('plugins/AutoNumeric/autoNumeric.js') }}" type="text/javascript"></script>
     <script src="{{ asset('plugins/Daterangepicker/daterangepicker.js') }}" type="module"></script>
-    <script src="{{ asset('plugins/Dropzone/dropzone.js') }}" type="text/javascript"></script>
+    {{-- <script src="{{ asset('plugins/Dropzone/dropzone.js') }}" type="text/javascript"></script> --}}
     <script src="{{ asset('js/Ui/DropdownSelect2.js') }}" type="text/javascript"></script>
     <script src="{{ asset('js/Remote/networkUtils.js') }}"></script>
     <script src="{{ asset('js/Remote/apiService.js') }}"></script>
@@ -381,9 +395,9 @@
                         @endcan
                     </div>
                     @endcanany
-                    @canany(['operational.view', 'employee-call.view'])
+                    @canany(['operational.view', 'request-help.view', 'request-task.view'])
                     <section class="my-dropdown-menu flex items-center justify-between p-2.5 rounded-lg w-full
-                                    @activemenu('reports') bg-gray-100 active @else hover:bg-gray-50 @endactivemenu"
+                                    @activemenu('task-management') bg-gray-100 active @else hover:bg-gray-50 @endactivemenu"
                         data-dropdown-toggle="dropdown-menu-task-management">
                         <div class="flex items-center gap-2.5">
                             <span class="text-gray-600">
@@ -407,13 +421,23 @@
                             </div>
                         </a>
                         @endcan
-                        @can('foreman.view')
-                        <a href="{{ route('foreman.index') }}"
+                        @can('request-help.view')
+                        <a href="{{ route('request-help.index') }}"
                             class="flex items-center justify-between p-2.5 rounded-lg w-full hover:underline hover:decoration-gray-500 
-                                    @activemenu('foreman') bg-gray-100 active @else hover:bg-gray-50 @endactivemenu">
+                                    @activemenu('request-help') bg-gray-100 active @else hover:bg-gray-50 @endactivemenu">
                             <div class="flex items-center gap-2.5">
                                 <div class="w-5"></div>
-                                <p class="text-sm font-medium text-gray-600">Mandor</p>
+                                <p class="text-sm font-medium text-gray-600">Tenaga tambahan</p>
+                            </div>
+                        </a>
+                        @endcan
+                        @can('request-task.view')
+                        <a href="{{ route('request-task.index') }}"
+                            class="flex items-center justify-between p-2.5 rounded-lg w-full hover:underline hover:decoration-gray-500 
+                                    @activemenu('request-task') bg-gray-100 active @else hover:bg-gray-50 @endactivemenu">
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-5"></div>
+                                <p class="text-sm font-medium text-gray-600">Penugasan</p>
                             </div>
                         </a>
                         @endcan
@@ -520,9 +544,6 @@
         var res = await ApiService.get_table(url, data );
         $('.table-content').html(res);
     }
-
-
-   
 </script>
 
 </html>
