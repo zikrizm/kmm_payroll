@@ -54,6 +54,7 @@ class EmployeeController extends Controller
 
                 $order = null;
                 $filter = [];
+                $page_size = 10;
 
                 if ($request->has('q')) {
                     $filter['employee_icontains'] = $request->q;
@@ -61,6 +62,10 @@ class EmployeeController extends Controller
 
                 if ($request->has('page')) {
                     $filter['page'] = $request->page;
+                }
+                if ($request->has('page_size')) {
+                    $filter['page_size'] = $request->page_size;
+                    $page_size = $request->page_size;
                 }
 
                 if ($request->has('sort')) {
@@ -87,7 +92,7 @@ class EmployeeController extends Controller
                     $employees['data'][$emp_i]['position'] = $_positions;
                 }
 
-                $render = view('Employee.employee.table', compact('employees', 'order'))->render();
+                $render = view('Employee.employee.table', compact('employees', 'order', 'page_size'))->render();
                 return $this->buildRes->RESPONSE_REQ('success', $render, null);
             }
 
@@ -512,7 +517,12 @@ class EmployeeController extends Controller
             $business_id = Session::get('business_id');
             $user_id = auth()->user()->id;
             $emp_count = $this->apiService->get_employees([])['count'];
+            $dept_count = $this->apiService->get_departments([])['count'];
+            // if(empty($emp_count) || empty($dept_count)) {
+            //     return $this->buildRes->RESPONSE_REQ('error', null, ['error' => ['connection problem, please try again']]);
+            // }
             $employees = $this->apiService->get_employees(['page_size' => $emp_count])['data'];
+            $depts = $this->apiService->get_departments(['page_size' => $dept_count])['data'];
             $files = $request->file('file');
             foreach ($files as $key => $item) {
                 $rows = Excel::toArray(new EmployeesImport, $item);
@@ -532,13 +542,14 @@ class EmployeeController extends Controller
                 } else {
                     foreach ($rows[0] as $key => $value) {
                         $key = array_search($value['emp_code'], array_column($employees, 'emp_code'));
+                        $keydept = array_search($value['department'], array_column($depts, 'dept_code'));
                         if ($key == '') {
                             // ** Add employee for biotime 
                             $res = $this->apiService->create_employee(
                                 [
                                     "emp_code" => (string)$value['emp_code'],
                                     "first_name" => trim($value['first_name']),
-                                    "department" => $value['department'],
+                                    "department" => $depts[$keydept] ? $depts[$keydept]['id'] : $value['department'],
                                     "emp_type" => $value['emp_type'],
                                     "area" => is_array(json_decode($value['area'])) ? json_decode($value['area']) : [json_decode($value['area'])],
                                     "gender" => $value['gender'],
@@ -603,6 +614,7 @@ class EmployeeController extends Controller
             Log::info("error");
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
+            return $this->buildRes->RESPONSE_REQ('error', null, ['error' => ['something wrong']]);
         }
     }
 

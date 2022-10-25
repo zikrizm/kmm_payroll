@@ -43,16 +43,16 @@
             
             dataParams = {
                 date: { 
-                    start_time: convertLocalTimezone(moment().startOf("month").toDate(), 'YYYY-MM-DD'), 
-                    end_time: convertLocalTimezone(moment().subtract(6, 'days'), 'YYYY-MM-DD')
+                    start_time: convertLocalTimezone(moment().subtract(6, 'days'), 'YYYY-MM-DD'), 
+                    end_time: convertLocalTimezone(moment(), 'YYYY-MM-DD')
                 }
             }
             onInit(dataParams);
 
             $('input[name="date"]').daterangepicker({
                 locale: { format: 'YYYY-MM-DD' },
-                startDate: moment().startOf("month").toDate(),
-                endDate: moment().subtract(6, 'days'),
+                startDate: moment().subtract(6, 'days'),
+                endDate: moment(),
                 ranges: {
                     'Today': [moment(), moment()],
                     'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],

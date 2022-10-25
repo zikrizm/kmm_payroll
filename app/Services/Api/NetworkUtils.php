@@ -63,25 +63,25 @@ class NetworkUtils
                 // **
                 // * HTTP CLIENT GET ----->
                 // *
-                $res = Http::withHeaders($headers)->timeout(2)
+                $res = Http::withHeaders($headers)->timeout(20)
                     ->get($this->api_zkteco . $url, $data);
             } else if (strtolower($method) == 'post') {
                 // **
                 // * HTTP CLIENT POST ----->
                 // *
-                $res = Http::withHeaders($headers)->timeout(2)
+                $res = Http::withHeaders($headers)->timeout(20)
                     ->post($this->api_zkteco . $url, $data);
             } else if (strtolower($method) == 'put') {
                 // **
                 // * HTTP CLIENT PUT ----->
                 // *
-                $res = Http::withHeaders($headers)->timeout(2)
+                $res = Http::withHeaders($headers)->timeout(20)
                     ->put($this->api_zkteco . $url, $data);
             } else if (strtolower($method) == 'delete') {
                 // **
                 // * HTTP CLIENT DELETE ----->
                 // *
-                $res = Http::withHeaders($headers)->timeout(2)
+                $res = Http::withHeaders($headers)->timeout(20)
                     ->delete($this->api_zkteco . $url, $data);
             }
 

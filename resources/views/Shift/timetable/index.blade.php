@@ -69,7 +69,8 @@
             var res = await ApiService.get_modal(URL, null);
             $('.select2').select2();
             select2_break_time();
-            var anElement = new AutoNumeric.multiple('.number',{decimalPlaces:0,minimumValue: 0,decimalCharacter: ',', digitGroupSeparator : "."});
+            var anElement = new AutoNumeric.multiple('.number', {decimalPlaces:0, minimumValue: 0, decimalCharacter: ',', digitGroupSeparator : "."});
+            var anElement2 = new AutoNumeric.multiple('.plus-minus', {vMax: 60, decimalPlaces:0, minimumValue: 0, decimalCharacter: ',', digitGroupSeparator : ""});
 
             $('*[data-ref-class-content]').on('click', function(e) {
                 let _idContent = $(this).data('ref-class-content');
@@ -91,6 +92,11 @@
             })
             $('input[name="is_overtime_rice"]').on('change', function(e) {
                 $('#rice-overtime-content').toggle('hidden');
+            })
+
+            $('#add-info').on('click', function(e) {
+                $('.add-info-icon').toggleClass('rotate-180');
+                $('#add-info-content').toggle('hidden');
             })
 
             // **

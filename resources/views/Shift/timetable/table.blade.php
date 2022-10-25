@@ -25,7 +25,7 @@
                     <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Waktu Kerja</p>
                 </th>
                 <th class='px-3 py-3 text-left cursor-pointer'>
-                    <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Jenis Hari</p>
+                    <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Tipe Hari</p>
                 </th>
                 <th class='px-3 py-3 text-left cursor-pointer'>
                     <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Beda Hari</p>
@@ -46,9 +46,9 @@
                         <div class="pl-4 py ">
                             {!! FormCustom::checkbox() !!}
                         </div>
-                        <div class="flex gap-3 items-center px-6 py-3 hover:underline decoration-blue-400 cursor-pointer"
+                        <div class="flex gap-3 items-center px-6 py-3 underline decoration-violet-600 cursor-pointer"
                             onclick="get_modal('{{ $item['id'] }}')">
-                            <p class="text-blue-400 text-sm">
+                            <p class="text-violet-600 text-sm">
                                 {{ $item->name }}
                             </p>
                         </div>

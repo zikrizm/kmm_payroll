@@ -20,7 +20,9 @@ return new class extends Migration
             $table->string('name');
 
             $table->time('in_time');
+            $table->integer('in_time_plus_minus')->default(0);
             $table->time('out_time');
+            $table->integer('out_time_plus_minus')->default(0);
             $table->integer('work_time')->default(0);
             $table->integer('work_type')->default(0);
             $table->integer('cross_day')->nullable();

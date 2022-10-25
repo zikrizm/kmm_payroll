@@ -1,5 +1,6 @@
 <?php
 
+use App\Events\HelloEvent;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -14,14 +15,11 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
-});
+Route::get('/', 'HomeController@index')->name('home.index');
 
 Auth::routes();
 Route::get('/business/register', 'BusinessController@getBusinessRegister')->name('business.index.register');
 Route::post('/business/register', 'BusinessController@storeBusinessRegister')->name('business.store.register');
-
 Route::middleware(['auth'])->group(function () {
     Route::get('/home', 'HomeController@index')->name('home.index');
     Route::get('/get-token-zkteco', 'HomeController@get_token_zkteco')->name('get_token_zkteco')->middleware('only.ajax');
@@ -119,7 +117,7 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/employee-photo', 'EmployeePhotoController@index')->name('employee-photo.index');
     Route::post('/employee-photo', 'EmployeePhotoController@store')->name('employee-photo.store');
-    
+
     Route::get('/search-employee-off-in-depts', 'EmployeeController@employee_off_in_depts')->name('employee.search-employee-off-in-depts');
     Route::get('/search-employee-request-position', 'EmployeeController@employee_request_position')->name('employee.search-employee-request-position');
     Route::get('/search-employee-for-dropdown', 'EmployeeController@searchEmployeeForDropdown')->name('employee.search-employee-for-dropdown');
@@ -143,6 +141,8 @@ Route::middleware(['auth'])->group(function () {
     // * request-task.
     Route::resource('request-task', 'RequestTaskController', ['except' => ['update']]);
     Route::post('/request-task/{request_task}', 'RequestTaskController@update')->name('request-task.update');
+
+
 
     Route::get('logout', '\App\Http\Controllers\Auth\LoginController@logout')->name('logout');
 });

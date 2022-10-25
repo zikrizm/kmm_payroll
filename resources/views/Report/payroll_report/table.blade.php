@@ -12,14 +12,14 @@
                     <th class='px-3 py-3 text-left cursor-pointer'>
                         <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Tanggal hitung</p>
                     </th>
-                    {{-- @foreach ($th_dates as $item)
+                    @foreach ($th_dates as $item)
                     <th class='px-3 py-3 text-left cursor-pointer'>
                         <p class="text-xs font-medium text-gray-500 truncate cursor-pointer text-center">
                             {{ date('d', strtotime($item['date'])) }}/{{ $item['slug'] }}
                         </p>
                     </th>
-                    @endforeach --}}
-                    <th class='px-3 py-3 text-left cursor-pointer'>
+                    @endforeach
+                    {{-- <th class='px-3 py-3 text-left cursor-pointer'>
                         <p class="text-xs font-medium text-gray-500 truncate cursor-pointer text-center">HK</p>
                     </th>
                     <th class='px-3 py-3 text-left cursor-pointer'>
@@ -42,7 +42,7 @@
                     </th>
                     <th class='px-3 py-3 text-left cursor-pointer'>
                         <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Total</p>
-                    </th>
+                    </th> --}}
                 </tr>
             </thead>
             <tbody>
@@ -58,14 +58,14 @@
                     <td class='px-3 py-2 text-gray-500 text-sm'>
                         <p class="truncate">2022-10-10</p>
                     </td>
-                    {{-- @foreach ($item['reports'] as $item_report)
+                    @foreach ($item['reports'] as $item_report)
                     <th class='px-3 py-3 text-left cursor-pointer'>
                         <p class="text-xs font-medium text-gray-500 truncate cursor-pointer text-center">
                             {{ ($item_report['overtime'] ?? 0) + ($item_report['in'] ?? 0) }}
                         </p>
                     </th>
-                    @endforeach --}}
-                    <td class='px-3 py-2 text-gray-500 text-sm'>
+                    @endforeach
+                    {{-- <td class='px-3 py-2 text-gray-500 text-sm'>
                         <p class="truncate text-center">{{ $item['in_count'] }}</p>
                     </td>
                     <td class='px-3 py-2 text-gray-500 text-sm'>
@@ -88,7 +88,7 @@
                     </td>
                     <td class='px-3 py-2 text-gray-500 text-sm'>
                         <p class="truncate">@convertnorp($item['total'])</p>
-                    </td>
+                    </td> --}}
                 </tr>
                 @endforeach
             </tbody>

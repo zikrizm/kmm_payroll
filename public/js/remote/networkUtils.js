@@ -11,10 +11,8 @@ class NetworkUtils {
                 cache: false,
                 ...options,
                 success: function (_response) {
-                    console.log('_response',_response);
                     resolve(_response);
                 }, error: function (error) {
-                    console.log(error);
                     reject(error);
                     // **
                     // * SHOW NOTIFICATION ----->

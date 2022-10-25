@@ -7,12 +7,13 @@ use App\Models\Shift;
 use App\Models\Holiday;
 use App\Models\Employee;
 use App\Models\Position;
+use App\Models\Operational;
 use App\Utils\ResponseUtil;
 use App\Models\EmployeeDebt;
-use App\Models\EmployeeHasPosition;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use App\Services\Api\ApiServices;
+use App\Models\EmployeeHasPosition;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
@@ -29,6 +30,14 @@ class PayrollReportController extends Controller
         $this->buildRes = $buildRes;
         $this->util = $util;
     }
+
+    // $shifts = Shift::where('business_id', $business_id)->with(
+    //     ['shiftday' => function ($query) {
+    //         $query->with(['shiftday_has_timetable' => function ($query) {
+    //             $query->with(['timetable']);
+    //         }]);
+    //     }]
+    // )->get();
 
     /**
      * Display a listing of the resource.
@@ -57,11 +66,11 @@ class PayrollReportController extends Controller
                     $search = $request->q;
                 }
 
-                $emp_count = $this->apiService->get_employees([])["count"];
-                $emps = $this->apiService->get_employees(["employee_icontains" => $search, "page_size" => $emp_count])['data'];
-
                 // * Employee filter
                 $filter = [];
+
+                $dates = [];
+                $th_dates = [];
                 $slug_week = ['sen', 'sel', 'rab', 'kam', 'jum', 'sab', 'mgg'];
                 if (!empty($request->input('date'))) {
                     $start_time = Carbon::parse($request->date['start_time']);
@@ -69,41 +78,52 @@ class PayrollReportController extends Controller
                     $filter['start_time'] = $request->date['start_time'];
                     $filter['end_time'] = $request->date['end_time'];
                     $dates = $this->util->generateDateRange($start_time, $end_time);
+
+                    foreach ($dates as $date) {
+                        $code_day = Carbon::parse($date)->dayOfWeek;
+                        $th_dates[] = ['slug' => $slug_week[$code_day], 'date' => $date];
+                    }
                 }
 
-                $atten_count = $this->apiService->get_transactions($filter)['count'];
-                $filter['page_size'] = $atten_count;
-                $attens = collect($this->apiService->get_transactions($filter)['data']);
-                $empDBs = Employee::where('business_id', $business_id)->get();
+                // ** get employee data dari biotime
+                $emp_bio_count = $this->apiService->get_employees([])["count"];
+                $emp_bios = $this->apiService->get_employees(["employee_icontains" => $search, "page_size" => $emp_bio_count])['data'];
+                // ** get absensi data dari biotime
+                $atten_bio_count = $this->apiService->get_transactions($filter)['count'];
+                $atten_bios = collect($this->apiService->get_transactions(array_merge(['page_size' => $atten_bio_count], $filter))['data']);
+
+                // ** get employee data dari database local
+                $emp_form_databases = Employee::where('business_id', $business_id)->get();
+                // ** get posisi data dari database local
                 $posis = Position::with('employee_has_position')->get();
-                $debts = EmployeeDebt::where('business_id', $business_id)
-                    ->whereBetween('date', array($start_time, $end_time))->get();
-                $shifts = Shift::where('business_id', $business_id)->with(
-                    ['shiftday' => function ($query) {
-                        $query->with(['shiftday_has_timetable' => function ($query) {
-                            $query->with(['timetable']);
-                        }]);
-                    }]
-                )->get();
-
-                $th_dates = [];
-                foreach ($dates as $date) {
-                    $code_day = Carbon::parse($date)->dayOfWeek;
-                    $th_dates[] = [
-                        'slug' => $slug_week[$code_day],
-                        'date' => $date,
-                    ];
-                }
+                // ** get kasbon data dari database local
+                $debts = EmployeeDebt::where('business_id', $business_id)->whereBetween('date', array($start_time, $end_time))->get();
+                // ** get shift data dari database local
+                $shifts = Shift::where('business_id', $business_id)->with(['shiftday.shiftday_has_timetable.timetable'])->get();
+                // ** get operational data dari database local
+                $operational = Operational::where('business_id', $business_id)->whereBetween('start_date', [$start_time, $end_time])
+                    ->orWhereBetween('end_date', [$start_time, $end_time])->with('operational_has_depts')->first();
 
                 $attendance_reports = [];
-                foreach (($emps ?? []) as $emp) {
-                    $attens_groupings = $this->_group_by_date($attens->filter(function ($atten) use ($emp) {
+                foreach (($emp_bios ?? []) as $emp) {
+                    // ** groupping absen karyawan berdasarkan tanggal
+                    $attens_groupings = $this->_group_by_date($atten_bios->filter(function ($atten) use ($emp) {
                         return $atten['emp'] === $emp['id'];
                     }));
+                    // ** filterkasbon
                     $emp_depts = $debts->filter(function ($item) use ($emp) {
                         return $item->emp_id === $emp['id'];
                     });
-
+                    // ** searchkaryawan yang dari data local
+                    $emp_form_db_index = $emp_form_databases->search(function ($item) use ($emp) {
+                        return $item->emp_id === $emp['id'];
+                    });
+                    // ** searchkaryawan untuk group
+                    $group = $operational->operational_has_depts->filter(function ($item) use ($emp) {
+                        return $item->dept_id === $emp['department']['id'];
+                    });
+                    Log::info(response()->json($group));
+                    // ** sum upah tambahan dari jabatan
                     $position_extra_pay = 0;
                     foreach ($posis as $posi) {
                         foreach ($posi->employee_has_position as $posiHas) {
@@ -113,16 +133,11 @@ class PayrollReportController extends Controller
                         }
                     }
 
-                    $emp_index = $empDBs->search(function ($item) use ($emp) {
-                        return $item->emp_id === $emp['id'];
-                    });
-
-
                     $date_datas = [];
-                    $emp_overtimes = [];
                     $emp_ins = [];
+                    $emp_overtimes = [];
+                    $daily_salary = ($emp_form_db_index != '') ? $emp_form_databases[$emp_form_db_index]->daily_salary : 0;
 
-                    $daily_salary = ($emp_index != '') ? $empDBs[$emp_index]->daily_salary :  0;
                     foreach ($dates as $date) {
                         if (!empty($attens_groupings[$date])) {
                             $items = $attens_groupings[$date];
@@ -254,11 +269,10 @@ class PayrollReportController extends Controller
                     ];
                 }
 
-                Log::info(response()->json($attendance_reports));
+                // Log::info(response()->json($attendance_reports));
 
                 $order = null;
                 $render =  view('Report.payroll_report.table', compact('attendance_reports', 'th_dates', 'order'))->render();
-
                 return $this->buildRes->RESPONSE_REQ('success', $render, null);
             }
 

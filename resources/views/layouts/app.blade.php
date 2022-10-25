@@ -16,18 +16,18 @@
 
     <style>
         .dropzone {
-    background: white;
-    border-radius: 5px;
-    border: 2px dashed rgb(0, 135, 247);
-    border-image: none;
-    max-width: 500px;
-    margin-left: auto;
-    margin-right: auto;
-}
+            background: white;
+            border-radius: 5px;
+            border: 2px dashed rgb(0, 135, 247);
+            border-image: none;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+        }
     </style>
     <!-- Styling -->
     <link href="{{ asset('plugins/Daterangepicker/daterangepicker.css') }}" rel="stylesheet">
-    {{-- <link href="{{ asset('plugins/Dropzone/dropzone.css') }}" rel="stylesheet"> --}}
+    <link href="{{ asset('plugins/Timepicker/timepicker.css') }}" rel="stylesheet">
 
     <!-- Scripts -->
     @vite([
@@ -50,7 +50,7 @@
     <script src="{{ asset('plugins/Moment/moment.js') }}" type="text/javascript"></script>
     <script src="{{ asset('plugins/AutoNumeric/autoNumeric.js') }}" type="text/javascript"></script>
     <script src="{{ asset('plugins/Daterangepicker/daterangepicker.js') }}" type="module"></script>
-    {{-- <script src="{{ asset('plugins/Dropzone/dropzone.js') }}" type="text/javascript"></script> --}}
+    <script src="{{ asset('plugins/Timepicker/timepicker.js') }}" type="module"></script>
     <script src="{{ asset('js/Ui/DropdownSelect2.js') }}" type="text/javascript"></script>
     <script src="{{ asset('js/Remote/networkUtils.js') }}"></script>
     <script src="{{ asset('js/Remote/apiService.js') }}"></script>
@@ -58,7 +58,7 @@
 
 </head>
 
-<body class="">
+<body class="overflow-hidden">
     {{-- Loading elemnt --}}
     <div id="loading-block-document" style="display: none;">
         <div class="fixed flex items-center justify-center z-[999] h-screen w-full">
@@ -66,7 +66,7 @@
             <x-icon icon="loader" class="animate-spin" width=25 height=25 viewBox="20 20" />
         </div>
     </div>
-    <div class="w-full h-screen flex">
+    <div class="w-full h-screen flex overflow-hidden">
         @if (request()->segment(2) != 'register' && request()->segment(1) != 'employee-photo')
         @if (Auth::user())
         <aside
@@ -130,7 +130,7 @@
                     </div>
                     @endcanany
 
-                    @canany(['employee.view', 'resign.view', 'kasbon.view'])
+                    @canany(['employee.view', 'resign.view', 'kasbon.view', 'transaction.view'])
                     <section class="my-dropdown-menu flex items-center justify-between p-2.5 rounded-lg w-full 
                                     @activemenu('employees') bg-gray-100 active @else hover:bg-gray-50 @endactivemenu"
                         data-dropdown-toggle="dropdown-menu-employee">
@@ -176,6 +176,14 @@
                             </div>
                         </a>
                         @endcan
+                        <a href="{{ route('transaction.index') }}"
+                        class="flex items-center justify-between p-2.5 rounded-lg w-full hover:underline hover:decoration-gray-500 
+                                    @activemenu('transaction') bg-gray-100 active @else hover:bg-gray-50 @endactivemenu">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-5"></div>
+                            <p class="text-sm font-medium text-gray-600">Absensi</p>
+                        </div>
+                    </a>
                     </div>
                     @endcanany
 
@@ -237,50 +245,7 @@
                         @endcan
                     </div>
                     @endcanany
-                    @canany(['transaction.view'])
-                    <section
-                        class="my-dropdown-menu flex items-center justify-between p-2.5 rounded-lg w-full
-                                    @activemenu('attendances') bg-gray-100 active @else hover:bg-gray-50 @endactivemenu"
-                        data-dropdown-toggle="dropdown-menu-attendance">
-                        <div class="flex items-center gap-2.5">
-                            <span class="text-gray-600">
-                                <x-icon icon="smartphone" width=18 height=18 viewBox="20 20" />
-                            </span>
-                            <p class="text-sm font-medium text-gray-600">Perangkat</p>
-                        </div>
-                        <span class="text-gray-500 chevron-icon duration-300">
-                            <x-icon icon="chevron-down" width=18 height=18 viewBox="20 20" />
-                        </span>
-                    </section>
-                    <div id="dropdown-menu-attendance" class="flex flex-col gap-1 
-                                 @activemenu('attendances') @else hidden @endactivemenu">
-                        <a href="{{ route('device.index') }}"
-                            class="flex items-center justify-between p-2.5 rounded-lg w-full hover:underline hover:decoration-gray-500 
-                                        @activemenu('device') bg-gray-100 active @else hover:bg-gray-50 @endactivemenu">
-                            <div class="flex items-center gap-2.5">
-                                <div class="w-5"></div>
-                                <p class="text-sm font-medium text-gray-600">Perangkat</p>
-                            </div>
-                        </a>
-                        <a href="{{ route('transaction.index') }}"
-                            class="flex items-center justify-between p-2.5 rounded-lg w-full hover:underline hover:decoration-gray-500 
-                                        @activemenu('transaction') bg-gray-100 active @else hover:bg-gray-50 @endactivemenu">
-                            <div class="flex items-center gap-2.5">
-                                <div class="w-5"></div>
-                                <p class="text-sm font-medium text-gray-600">Absensi</p>
-                            </div>
-                        </a>
-                        <a href="{{ route('transaction.index') }}"
-                            class="flex items-center justify-between p-2.5 rounded-lg w-full hover:underline hover:decoration-gray-500
-                                        @activemenu('transaction-report') bg-gray-100 active @else hover:bg-gray-50 @endactivemenu">
-                            <div class="flex items-center gap-2.5">
-                                <div class="w-5"></div>
-                                <p class="text-sm font-medium text-gray-600">Laporan Absensi</p>
-                            </div>
-                        </a>
-                    </div>
-                    @endcanany
-                    @canany(['department.view', 'position.view', 'area.view'])
+                    @canany(['department.view', 'position.view', 'area.view', 'device.view'])
                     <section
                         class="my-dropdown-menu flex items-center justify-between p-2.5 rounded-lg w-full
                                     @activemenu('organizations') bg-gray-100 active @else hover:bg-gray-50 @endactivemenu"
@@ -335,6 +300,14 @@
                             </div>
                         </a>
                         @endcan
+                        <a href="{{ route('device.index') }}"
+                            class="flex items-center justify-between p-2.5 rounded-lg w-full hover:underline hover:decoration-gray-500 
+                                        @activemenu('device') bg-gray-100 active @else hover:bg-gray-50 @endactivemenu">
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-5"></div>
+                                <p class="text-sm font-medium text-gray-600">Perangkat</p>
+                            </div>
+                        </a>
                     </div>
                     @endcanany
                     @canany(['attendance-report.view', 'payroll-report.view', 'overtime-rice-report.view'])
@@ -393,10 +366,19 @@
                             </div>
                         </a>
                         @endcan
+                        <a href="{{ route('transaction.index') }}"
+                            class="flex items-center justify-between p-2.5 rounded-lg w-full hover:underline hover:decoration-gray-500
+                                        @activemenu('transaction-report') bg-gray-100 active @else hover:bg-gray-50 @endactivemenu">
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-5"></div>
+                                <p class="text-sm font-medium text-gray-600">Log Absensi</p>
+                            </div>
+                        </a>
                     </div>
                     @endcanany
                     @canany(['operational.view', 'request-help.view', 'request-task.view'])
-                    <section class="my-dropdown-menu flex items-center justify-between p-2.5 rounded-lg w-full
+                    <section
+                        class="my-dropdown-menu flex items-center justify-between p-2.5 rounded-lg w-full
                                     @activemenu('task-management') bg-gray-100 active @else hover:bg-gray-50 @endactivemenu"
                         data-dropdown-toggle="dropdown-menu-task-management">
                         <div class="flex items-center gap-2.5">
@@ -443,7 +425,7 @@
                         @endcan
                     </div>
                     @endcanany
-                    @canany(['business_settings.access'])
+                    {{-- @canany(['business_settings.access'])
                     <section class="my-dropdown-menu flex items-center justify-between p-2.5 rounded-lg w-full 
                                     @activemenu('settings') bg-gray-100 active @else hover:bg-gray-50 @endactivemenu"
                         data-dropdown-toggle="dropdown-menu-setting">
@@ -468,14 +450,18 @@
                             </div>
                         </a>
                     </div>
-                    @endcanany
+                    @endcanany --}}
                 </main>
             </div>
             <hr>
             <footer class="flex items-center justify-between pb-8 w-full">
                 <div class="flex items-center gap-2 ">
                     <div class="w-10 h-10 rounded-full bg-gray-100 overflow-hidden">
+                        @if (!empty( Auth::user()->photo ))
                         <img src="{{ Auth::user()->photo }}" alt="" class="w-full h-full object-cover">
+                        @else
+                        <img src="@zkPhoto(files/nophoto.gif)" alt="" class="w-full h-full object-cover">
+                        @endif
                     </div>
                     <div class="flex flex-col justify-center text-sm">
                         <p class="text-gray-900 font-medium text-sm truncate w-28">
@@ -498,9 +484,14 @@
     <x-ui.main-modal></x-ui.main-modal>
 </body>
 @stack('script')
+<script type="module">
+    Echo.channel(`hello`)
+        .listen('HelloEvent', (e) => {
+            console.log(e);
+        });
+</script>
 <script type="application/javascript">
     const API = "{{ config('constants.api') }}";
-    console.log()
     window.addEventListener('DOMContentLoaded', (event) => {
         $('.my-dropdown-menu').each(function (e) {
             $(this).on('click', function(e) {
@@ -517,33 +508,37 @@
         });
     });
 
-    function resetSortTable() {
-        $('.sort-table').each(function(e) {
-            $(this).removeClass('active');
-            $(this).children('.sort-icon').removeClass('rotate-180');
-        })
-    }
+    // function resetSortTable() {
+    //     $('.sort-table').each(function(e) {
+    //         $(this).removeClass('active');
+    //         $(this).children('.sort-icon').removeClass('rotate-180');
+    //     })
+    // }
 
-    function sort_data(event) {
-        let sortKey = $(event).data('sort-key');
-        let sortUrl = $(event).data('sort-url');
-        let isActive = $(event).hasClass('active');
+    // function sort_data(event) {
+    //     let sortKey = $(event).data('sort-key');
+    //     let sortUrl = $(event).data('sort-url');
+    //     let isActive = $(event).hasClass('active');
 
-        // Reset sort table
-        resetSortTable();
-        // Build Data sort table
-        let field = { q: $('.search-data-input').val(), };
-        if(!isActive) {
-            field.sort = { name: sortKey, order: (isActive) ? 'DESC': 'ASC'}
-        }
-        // Get Data sort table
-        get_data_table(sortUrl, field);
-    }
+    //     // Reset sort table
+    //     resetSortTable();
+    //     // Build Data sort table
+    //     let field = { q: $('.search-data-input').val(), };
+    //     if(!isActive) {
+    //         field.sort = { name: sortKey, order: (isActive) ? 'DESC': 'ASC'}
+    //     }
+    //     // Get Data sort table
+    //     get_data_table(sortUrl, field);
+    // }
 
-    async function get_data_table(url, data) {
-        var res = await ApiService.get_table(url, data );
-        $('.table-content').html(res);
-    }
+    // async function get_data_table(url, data) {
+    //     var res = await ApiService.get_table(url, data );
+    //     $('.table-content').html(res);
+    //     $('.select2-page').on('select2:select', function (e) {
+    //         delete dataParams.page;
+    //         onInit({page_size: $(this).val()})
+    //     });  
+    // }
 </script>
 
 </html>

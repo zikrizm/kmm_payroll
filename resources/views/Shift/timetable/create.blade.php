@@ -2,7 +2,7 @@
     @csrf
     <!-- {{ csrf_field() }} -->
     <section
-        class="flex flex-col gap-6 pt-4 w-[520px] bg-white max-h-[95vh] overflow-y-auto overflow-x-hidden relative rounded-lg no-scrollbar">
+        class="flex flex-col gap-6 pt-4 w-[550px] bg-white max-h-[95vh] overflow-y-auto overflow-x-hidden relative rounded-lg no-scrollbar">
         <header class="px-4 flex flex-col gap-5 pt-4 xs/max:gap-3 relative">
             <button
                 class="absolute top-[-5px] right-3 xs/max:top-[-6px] modal-close hover:bg-gray-100 text-red rounded p-2">
@@ -42,7 +42,7 @@
                     <li>
                         <button type="button" data-ref-class-content="break-time-settings-content"
                             class="text-gray-500 mr-4 pt px-1 pb-[19px] border-violet-700 text-sm font-medium">
-                            Pembulatan Lembur
+                            Pembulatan lembur
                         </button>
                     </li>
                     <li>
@@ -52,22 +52,36 @@
                         </button>
                     </li>
                 </ul>
-                <div class="flex flex-col gap-4" id="basic-settings-content">
-                    <div class="flex items-start gap-3">
-                        <div class="flex-2">
-                            <div class="flex-1 flex flex-col gap-1 flex-2">
-                                <label class="text-sm font-normal text-gray-500">Check in*</label>
+                <div class="flex flex-col gap-2.5" id="basic-settings-content">
+                    <div class="flex items-start gap-3 w-full">
+                        <div class="flex items-center gap-1 flex-col flex-1">
+                            <div class="flex flex-col gap-1 w-full">
+                                <label class="text-sm font-normal text-gray-500">Masuk*</label>
                                 {!! FormCustom::input('in_time', '00:00:00', [ "placeholder" => '-', 'type' => 'time'])
                                 !!}
                             </div>
-                            <p class="text-xs text-gray-500">Batas plus minus (60 menit)</p>
+                            <div class="flex flex-col gap-1 w-full">
+                                <label class="text-sm font-normal text-gray-500">Batas ± (60 menit)*</label>
+                                {!! FormCustom::input('in_time_plus_minus', null, [ "placeholder" => '-',
+                                'prefixiconname' => 'plus-minus','class' => 'plus-minus' ])
+                                !!}
+                            </div>
                         </div>
-                        <div class="flex-1 flex flex-col gap-1 flex-2">
-                            <label class="text-sm font-normal text-gray-500">Check out*</label>
-                            {!! FormCustom::input('out_time', '00:00:00', [ "placeholder" => '-', 'type' => 'time']) !!}
+                        <div class="flex items-center gap-1 flex-col flex-1">
+                            <div class="flex flex-col gap-1 w-full">
+                                <label class="text-sm font-normal text-gray-500">Keluar*</label>
+                                {!! FormCustom::input('out_time', '00:00:00', [ "placeholder" => '-', 'type' => 'time'])
+                                !!}
+                            </div>
+                            <div class="flex flex-col gap-1 w-full">
+                                <label class="text-sm font-normal text-gray-500">Batas ± (60 menit)*</label>
+                                {!! FormCustom::input('out_time_plus_minus', null, [ "placeholder" => '-',
+                                'prefixiconname' => 'plus-minus','class' => 'plus-minus' ])
+                                !!}
+                            </div>
                         </div>
                         <section class="flex flex-col gap-1 flex-1">
-                            <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Cross day*</label>
+                            <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Beda Hari*</label>
                             <select class="select2" name="cross_day">
                                 <option value="0" selected>0 hari</option>
                                 <option value="1">1 hari</option>
@@ -78,7 +92,7 @@
                         </section>
                     </div>
                     <section class="flex flex-col gap-1">
-                        <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Work type*</label>
+                        <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Jenis Hari*</label>
                         <select class="select2" name="work_type">
                             <option value="0" selected>Hari kerja</option>
                             <option value="1">Minggu</option>
@@ -98,45 +112,47 @@
                         </select>
                         <label class="font-normal text-xs text-red-500 xs/max:text-xs break_time hint-text"></label>
                     </section>
-                    <section class="flex flex-col gap-1 flex-1">
-                        <div class="flex items-center gap-2">
-                            {!! FormCustom::checkbox('is_without_break', -1, ['checked' => true]) !!}
-                            <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Bisa tanpa istirahat</label>
+                    <section>
+                        <div class="flex items-start gap-2.5">
+                            <span class="pt-0.5">
+                                {!! FormCustom::checkbox('is_without_break', -1) !!}
+                            </span>
+                            <div class="flex flex-col gap-px">
+                                <p class="font-medium text-sm text-gray-700">Bisa tanpa istirahat</p>
+                                <p class="font-normal text-sm text-gray-500">
+                                    Karyawan di perbolehkan untuk tidak istirahat
+                                </p>
+                            </div>
                         </div>
-                        <label class="font-normal text-xs text-red-500 xs/max:text-xs cross_day hint-text"></label>
                     </section>
-                    <div class="flex flex-col gap-1">
-                        <p class="text-sm font-medium text-gray-900">*Keterangan </p>
-                        <div class="flex flex-col pl-3">
-                            <p class="text-sm font-normal text-gray-500">
-                                - Semua pengaturan lintas hari didasarkan pada check-in.
-                            </p>
-                        </div>
-                    </div>
                 </div>
                 <div class="flex flex-col gap-4 hidden" id="break-time-settings-content">
-                    <section class="flex flex-col gap-1 flex-1">
-                        <div class="flex items-center gap-2">
-                            {!! FormCustom::checkbox('overtime_rounded', -1, ['checked' => true]) !!}
-                            <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Pembulatan</label>
+                    <section>
+                        <div class="flex items-start gap-2.5">
+                            <span class="pt-0.5">
+                                {!! FormCustom::checkbox('overtime_rounded', -1, ['checked' => true]) !!}
+                            </span>
+                            <div class="flex flex-col gap-px">
+                                <p class="font-medium text-sm text-gray-700">Pembulatan</p>
+                                <p class="font-normal text-sm text-gray-500">
+                                    Untuk mengatur pembulatan lembur dan masuk lebih awal
+                                </p>
+                            </div>
                         </div>
-                        <label class="font-normal text-xs text-red-500 xs/max:text-xs cross_day hint-text"></label>
                     </section>
                     <div id="overtime-rounded-content" class="">
-                        <div class="flex flex-col gap-4">
+                        <div class="flex flex-col gap-2.5">
                             <div class="flex-1 flex flex-col gap-1">
-                                <label class="text-sm font-normal text-gray-500 flex items-center gap-1">Durasi minimal
-                                    Pembulatan 1 jam <span class="text-xs"> (menit)</span>*</label>
-                                {!! FormCustom::input('overtime_one_hour', '40', [ "placeholder" => 'Masukkan
-                                durasi','type'=>
-                                'number']) !!}
+                                <label class="text-sm font-normal text-gray-500 flex items-center gap-1">Durasi min
+                                    pembulatan 1 jam <span class="text-xs"> (menit)</span>*</label>
+                                {!! FormCustom::input('overtime_one_hour', '40',
+                                [ "placeholder" => 'Masukkan durasi','class'=> 'plus-minus']) !!}
                             </div>
                             <div class="flex-1 flex flex-col gap-1">
-                                <label class="text-sm font-normal text-gray-500 flex items-center gap-1">Durasi minimal
-                                    Pembulatan 1/2 jam <span class="text-xs"> (menit)</span>*</label>
-                                {!! FormCustom::input('overtime_half_hour', '20', [ "placeholder" => 'Masukkan
-                                durasi','type'=>
-                                'number']) !!}
+                                <label class="text-sm font-normal text-gray-500 flex items-center gap-1">Durasi min
+                                    pembulatan 1/2 jam <span class="text-xs"> (menit)</span>*</label>
+                                {!! FormCustom::input('overtime_half_hour', '20',
+                                [ "placeholder" => 'Masukkan durasi','class'=> 'plus-minus']) !!}
                             </div>
                         </div>
                     </div>

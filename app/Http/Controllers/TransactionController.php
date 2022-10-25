@@ -55,7 +55,7 @@ class TransactionController extends Controller
                     $order = $request->sort['order'];
                 }
 
-                $transactionsss = Transaction::all();
+                $transactions = Transaction::all();
 
                 $transactions = $this->apiService->get_transactions($filter);
                 $transactions['next'] = $this->getParamsUrl($transactions['next'], 'page');

@@ -166,7 +166,7 @@ class BusinessController extends Controller
                 $business->save();
 
                 DB::commit();
-                return $this->buildRes->RESPONSE_REQ('success', null, 'business update succesfully');
+                return $this->buildRes->RESPONSE_REQ('success', null, ['success' => 'business update succesfully']);
             }
         } catch (\Exception $e) {
             DB::rollBack();

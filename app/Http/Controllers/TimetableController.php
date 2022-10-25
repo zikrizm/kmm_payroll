@@ -117,7 +117,7 @@ class TimetableController extends Controller
                 return $this->buildRes->RESPONSE_REQ('error', null, $validator->errors());
             } else {
                 $timetable_data = $request->only([
-                    'name', 'in_time', 'out_time', 'cross_day', 'work_type', 'overtime_rounded', 'overtime_one_hour', 'overtime_half_hour', 'break_time', 'is_without_break',
+                    'name', 'in_time', 'in_time_plus_minus', 'out_time', 'out_time_plus_minus', 'cross_day', 'work_type', 'overtime_rounded', 'overtime_one_hour', 'overtime_half_hour', 'break_time', 'is_without_break',
                     'is_overtime', 'time_period', 'overtime_pay', 'duration_calculate_one_shift', 'is_overtime_rice', 'duration_rice_shift'
                 ]);
                 $timetable_data['business_id'] = Session::get('business_id');
@@ -235,7 +235,7 @@ class TimetableController extends Controller
                 return $this->buildRes->RESPONSE_REQ('error', null, $validator->errors());
             } else {
                 $timetable_data = $request->only([
-                    'name', 'in_time', 'out_time', 'cross_day', 'work_type', 'overtime_rounded', 'overtime_one_hour', 'overtime_half_hour', 'break_time', 'is_without_break',
+                    'name',  'in_time', 'in_time_plus_minus', 'out_time', 'out_time_plus_minus', 'cross_day', 'work_type', 'overtime_rounded', 'overtime_one_hour', 'overtime_half_hour', 'break_time', 'is_without_break',
                     'is_overtime', 'time_period', 'overtime_pay', 'duration_calculate_one_shift', 'is_overtime_rice', 'duration_rice_shift'
                 ]);
                 $timetable_data['business_id'] = Session::get('business_id');
@@ -349,6 +349,8 @@ class TimetableController extends Controller
             'name' => 'required|string|max:255',
             'in_time' => 'required',
             'out_time' => 'required',
+            'in_time_plus_minus' => 'required',
+            'out_time_plus_minus' => 'required',
             'work_type' => 'required',
             'is_overtime' => 'nullable',
             'time_period' => [

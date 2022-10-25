@@ -222,21 +222,53 @@
         // *
         var res = await ApiService.get_table('/employee', dataParams);
         $('.table-content').html(res);
+        $('.select2-page').select2({ minimumResultsForSearch: -1 });  
+        $('.select2-page').on('select2:select', function (e) {
+            delete dataParams.page;
 
-        
+            onInit({page_size: $(this).val()})
+        });      
         // **
         // * pagination table ----->
         // *
         $('.pagination-button').on('click', function() {
             var url = new URL($(this).data('pagination-url'));
-            var page = url.searchParams.get("page");
-            onInit({page})
+            var objURL = {};
+            url.search.replace(
+                new RegExp( "([^?=&]+)(=([^&]*))?", "g" ),
+                function( $0, $1, $2, $3 ){
+                    objURL[ $1 ] = $3;
+                }
+            );
+            onInit({page: objURL.page})
         })
+    }
+
+    function resetSortTable() {
+        $('.sort-table').each(function(e) {
+            $(this).removeClass('active');
+            $(this).children('.sort-icon').removeClass('rotate-180');
+        })
+    }
+
+    function sort_data(event) {
+        let sortKey = $(event).data('sort-key');
+        let sortUrl = $(event).data('sort-url');
+        let isActive = $(event).hasClass('active');
+
+        // Reset sort table
+        resetSortTable();
+        // Build Data sort table
+        let field = { q: $('.search-data-input').val(), };
+        if(!isActive) {
+            field.sort = { name: sortKey, order: (isActive) ? 'DESC': 'ASC'}
+        }
+        // Get Data sort table
+        onInit(field)
     }
 
     async function get_modal_CSV() {
         var res = await ApiService.get_modal('/employee-csv', null);
-        console.log("Sdfsdfsd");
         Dropzone.autoDiscover = false;
         var dropzone = new Dropzone('#upload_csv', {
             url: "{{ route('employee.uploadCSV-store') }}", 
@@ -249,6 +281,7 @@
             parallelUploads: 10,
             addRemoveLinks: true,
             acceptedFiles: 'text/csv',
+            maxFiles: 1,
             init: function() {
                 $("#submit-all").on('click', function(e) {
                     e.preventDefault();
@@ -256,7 +289,8 @@
                     if(dropzone.getQueuedFiles().length === 0) {
                         alert("Please drop or select file to upload !!!");
                     } else {
-                       dropzone.processQueue();
+                        $('#loading-block-document').show();
+                        dropzone.processQueue();
                     } 
                 })
 
@@ -267,6 +301,7 @@
 
                 this.on("success", function(file, response) {
                     handleMessage(response)
+                    $('#loading-block-document').hide();
                     if (response.response < 200 || response.response >= 300) {
                         var boxPreviewElement = $(file.previewElement).find('#box-preview');
                         boxPreviewElement.removeClass('border-gray-200');

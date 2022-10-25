@@ -91,7 +91,7 @@
             <table class='table border-collapse w-full border '>
                 <thead class=''>
                     <tr class='border border-2 '>
-                        <th class='text-left border  '>
+                        <th class='text-left border '>
                             <p class="text-xs font-medium text-gray-500 text-center truncate">Tgl</p>
                         </th>
                         <th class='text-left border '>
@@ -136,16 +136,24 @@
                             @endif
                             {{ $item['shift']['name'] ?? '' }}
                         </td>
-                        <td class=' text-xs border text-gray-500 text-center w-14'>
-                            @if (!empty($item['shift'] && !empty($item['shift']['id'])))
-                            ({{ $item['shift']['id'] }})
-                            @else
-                            -
-                            @endif
-                            {{ $item['shift']['name'] ?? '' }}
+                         <td class=' text-xs border text-gray-500 text-center w-14'>
+                           {{ $item['overtime'] }}
                         </td>
                     </tr>
                     @endforeach
+                    <tr class='hover:bg-gray-50'>
+                        <td class=' text-xs text-center'>
+                        </td>
+                        <td class=' text-xs text-center'>
+                        </td>
+                        <td class=' text-xs text-center border text-gray-500'>
+                        </td>
+                        <td class=' text-xs text-center border text-gray-500'>
+                        </td>
+                        <td class=' text-xs text-center'>
+                            {{ $item['overtime_count'] ?? '' }}
+                        </td>
+                    </tr>
                 </tbody>
             </table>
         </div>

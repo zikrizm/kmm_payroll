@@ -110,6 +110,7 @@
         }
     
         async function get_modal(id) {
+            console.log('id', id);
             // **
             // * open modal form ----->
             // *
@@ -117,8 +118,8 @@
             var res = await ApiService.get_modal(URL, null);
             $('.operational_date').daterangepicker({
                 locale: { format: 'YYYY-MM-DD' },
-                startDate: moment().subtract(6, 'days'),
-                endDate: moment(),
+                startDate: id ? undefined: moment().subtract(6, 'days'),
+                endDate: id ? undefined: moment(),
                 ranges: {
                     'Today': [moment(), moment()],
                     'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],

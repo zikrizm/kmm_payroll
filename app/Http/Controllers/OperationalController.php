@@ -122,7 +122,7 @@ class OperationalController extends Controller
                 $end_date = trim(explode(' - ', $request_data['date'])[1]);
                 $business_id = Session::get('business_id');
 
-                $operational_exist = Operational::whereBetween('start_date', [$start_date, $end_date])
+                $operational_exist = Operational::where('dept_id', $request_data['department'])->orWhereBetween('start_date', [$start_date, $end_date])
                     ->orWhereBetween('end_date', [$start_date, $end_date])->get();
                 if (count($operational_exist) == 0) {
                     $operational = new Operational([
@@ -183,11 +183,11 @@ class OperationalController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  Operationas $operational
+     * @param  int $operational
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function edit(Operational $operational, Request $request)
+    public function edit(int $operational, Request $request)
     {
         if (!auth()->user()->can('operational.update') || !$request->ajax()) {
             abort(403, 'Unauthorized action.');
@@ -195,7 +195,7 @@ class OperationalController extends Controller
 
         try {
             $departments = collect($this->apiService->get_departments([]));
-            $operational = $operational->with('operational_has_depts')->first();
+            $operational = Operational::where('id', $operational)->with('operational_has_depts')->first();
 
             $sub_departments = [];
             foreach ($departments['data'] as $e) {

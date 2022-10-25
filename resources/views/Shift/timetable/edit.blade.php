@@ -44,7 +44,7 @@
                     <li>
                         <button type="button" data-ref-class-content="break-time-settings-content"
                             class="text-gray-500 mr-4 pt px-1 pb-[19px] border-violet-700 text-sm font-medium">
-                            Pembulatan Lembur
+                            Pembulatan lembur
                         </button>
                     </li>
                     <li>
@@ -54,24 +54,37 @@
                         </button>
                     </li>
                 </ul>
-                <div class="flex flex-col gap-4" id="basic-settings-content">
-                    <div>
-                        <p class="text-base font-medium text-gray-900 xs/max:font-semibold">Pengaturan awal</p>
-                        <p class="text-sm font-normal text-gray-500 xs/max:text-xs">
-                            Mohon lengkapi data ini.
-                        </p>
-                    </div>
-                    <hr>
-                    <div class="flex items-start gap-3">
-                        <div class="flex-1 flex flex-col gap-1 flex-2">
-                            <label class="text-sm font-normal text-gray-500">Masuk*</label>
-                            {!! FormCustom::input('in_time', $timetable->in_time, [ "placeholder" => '-', 'type' =>
-                            'time']) !!}
+                <div class="flex flex-col gap-2.5" id="basic-settings-content">
+                    <div class="flex items-start gap-3 w-full">
+                        <div class="flex items-center gap-1 flex-col flex-1">
+                            <div class="flex flex-col gap-1 w-full">
+                                <label class="text-sm font-normal text-gray-500">Masuk*</label>
+                                {!! FormCustom::input('in_time', $timetable->in_time, [ "placeholder" => '-', 'type' =>
+                                'time'])
+                                !!}
+                            </div>
+                            <div class="flex flex-col gap-1 w-full">
+                                <label class="text-sm font-normal text-gray-500">Batas ± (60 menit)*</label>
+                                {!! FormCustom::input('in_time_plus_minus', $timetable->in_time_plus_minus, [
+                                "placeholder" => '-',
+                                'prefixiconname' => 'plus-minus','class' => 'plus-minus' ])
+                                !!}
+                            </div>
                         </div>
-                        <div class="flex-1 flex flex-col gap-1 flex-2">
-                            <label class="text-sm font-normal text-gray-500">Keluar*</label>
-                            {!! FormCustom::input('out_time', $timetable->out_time, [ "placeholder" => '-', 'type' =>
-                            'time']) !!}
+                        <div class="flex items-center gap-1 flex-col flex-1">
+                            <div class="flex flex-col gap-1 w-full">
+                                <label class="text-sm font-normal text-gray-500">Keluar*</label>
+                                {!! FormCustom::input('out_time', $timetable->out_time, [ "placeholder" => '-', 'type'
+                                => 'time'])
+                                !!}
+                            </div>
+                            <div class="flex flex-col gap-1 w-full">
+                                <label class="text-sm font-normal text-gray-500">Batas ± (60 menit)*</label>
+                                {!! FormCustom::input('out_time_plus_minus', $timetable->out_time_plus_minus, [
+                                "placeholder" => '-',
+                                'prefixiconname' => 'plus-minus','class' => 'plus-minus' ])
+                                !!}
+                            </div>
                         </div>
                         <section class="flex flex-col gap-1 flex-1">
                             <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Beda Hari*</label>
@@ -125,14 +138,6 @@
                         </div>
                         <label class="font-normal text-xs text-red-500 xs/max:text-xs cross_day hint-text"></label>
                     </section>
-                    <div class="flex flex-col gap-1">
-                        <p class="text-sm font-medium text-gray-900">*Keterangan </p>
-                        <div class="flex flex-col pl-3">
-                            <p class="text-sm font-normal text-gray-500">
-                                - Semua pengaturan lintas hari didasarkan pada check-in.
-                            </p>
-                        </div>
-                    </div>
                 </div>
                 <div class="flex flex-col gap-4 hidden" id="break-time-settings-content">
                     <section class="flex flex-col gap-1 flex-1">

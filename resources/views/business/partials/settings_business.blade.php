@@ -15,7 +15,7 @@
     <main class="flex flex-col gap-3 w-full">
         <section>
             <p class='text-gray-700 text-sm font-medium'>Your logo</p>
-        <p class='text-gray-500 text-sm font-normal'>This will be displayed on your profile.</p>
+            <p class='text-gray-500 text-sm font-normal'>This will be displayed on your profile.</p>
         </section>
         <section class='flex justify-center items-center'>
             {{-- <div class="relative">
@@ -24,7 +24,7 @@
                     onclick="removePhoto('#business_logo', '#photo_preview','#contained-button-file', this)">
                     <x-icon icon="x" width=12 height=12 viewBox="20 20" />
                 </button>
-                <img src='{{ asset('storage/business_logos/'.$business->logo.'')}}' class='object-contain h-16 w-16
+                <img src='{{ asset(' storage/business_logos/'.$business->logo.'')}}' class='object-contain h-16 w-16
                 bg-gray-50 rounded-full overflow-hidden' id="photo_preview">
             </div> --}}
             <label for="contained-button-file" class="flex items-center justify-center cursor-pointer">
@@ -39,7 +39,7 @@
                         onclick="removePhoto('#business_logo', '#photo_preview','#contained-button-file', this)">
                         <x-icon icon="x" width=12 height=12 viewBox="20 20" />
                     </button>
-                    <img src='{{ asset('storage/business_logos/'.$business->logo.'')}}' class='object-cover h-16 w-16
+                    <img src='{{$business->logo}}' class='object-cover h-16 w-16
                     bg-gray-50 rounded-full overflow-hidden' id="photo_preview">
                 </div>
             </label>
