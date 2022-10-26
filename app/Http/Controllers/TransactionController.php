@@ -2,13 +2,21 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Transaction;
+
+use App\Models\Employee;
 use App\Utils\ResponseUtil;
 use Illuminate\Http\Request;
 use App\Services\Api\ApiServices;
+use App\Imports\TransactionsImport;
 use Illuminate\Support\Facades\Log;
+use Maatwebsite\Excel\Facades\Excel;
 use App\Exceptions\ResponseExeception;
-use App\Models\Transaction;
+use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
+use Maatwebsite\Excel\Validators\ValidationException;
+use Maatwebsite\Excel\Exceptions\NoTypeDetectedException;
+
 
 class TransactionController extends Controller
 {
@@ -68,7 +76,7 @@ class TransactionController extends Controller
                 $atten_count = $this->apiService->get_transactions($filter)['count'];
                 $transactions = $this->apiService->get_transactions(array_merge($filter, ['page_size' => $atten_count]))['data'];
                 $attenDBs = $attenDBs->get()->toArray();
-                $transactions = array_merge($transactions,$attenDBs);
+                $transactions = array_merge($transactions, $attenDBs);
 
                 $next = (ceil($atten_count / $page_size) == $page) ?  null : $page + 1;
                 $transactions = collect($transactions)->skip(($page - 1) * $page_size)->take($page_size);
@@ -238,23 +246,16 @@ class TransactionController extends Controller
         }
 
         try {
-            $res = $this->apiService->delete_transaction($transaction);
-            $transaction = Transaction::where('id', $transaction)->delete();
+            $transaction = Transaction::where('id', $transaction)->first();
+            if (empty($transaction)) {
+                $res = $this->apiService->delete_transaction($transaction);
+            } else {
+                $transaction->delete();
+            }
             return $this->buildRes->RESPONSE_REQ('success', null,  ['success' => 'Delete transaction succesfully']);
         } catch (\Exception $e) {
             return $this->buildRes->RESPONSE_REQ('error', null, ['error' => 'something wrong']);
         }
-    }
-
-    public function getParamsUrl($url, $field)
-    {
-        if (empty($url)) return null;
-
-        $parts = parse_url($url);
-        if (empty($parts['query'])) return 1;
-
-        parse_str($parts['query'], $query);
-        return $query[$field] ?? 1;
     }
 
     /**

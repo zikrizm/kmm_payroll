@@ -11,11 +11,11 @@
             <p class="text-base font-normal text-gray-500">Disini untuk melihat status laporan absensi.</p>
         </div>
         <div class="">
-            <button onclick="get_modal()" class="flex items-center gap-2.5 px-4 py-2 text-gray-500 text-sm font-medium 
+            {{-- <button onclick="get_modal()" class="flex items-center gap-2.5 px-4 py-2 text-gray-500 text-sm font-medium 
                 flex items-center border border-gray-200 shadow-sm rounded-lg">
                 <x-icon icon="file-text" width=18 height=18 viewBox="20 20" />
                 Kartu absen
-            </button>
+            </button> --}}
         </div>
     </header>
     <hr>
