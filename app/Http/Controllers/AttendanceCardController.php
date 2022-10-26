@@ -81,7 +81,7 @@ class AttendanceCardController extends Controller
 
                 // ** get employee data dari biotime
                 $emp_bio_count = $this->apiService->get_employees([])["count"];
-                $emp_bios = $this->apiService->get_employees(["employee_icontains" => $search, "page_size" => 10])['data'];
+                $emp_bios = $this->apiService->get_employees(["employee_icontains" => $search, "page_size" => 12])['data'];
                 // ** get absensi data dari biotime
                 $atten_bio_count = $this->apiService->get_transactions($filter)['count'];
                 $atten_bios = collect($this->apiService->get_transactions(array_merge(['page_size' => $atten_bio_count], $filter))['data']);

@@ -300,8 +300,7 @@ class ShiftController extends Controller
     {
         $business_id = Session::get('business_id');
         $shifts = Shift::where('business_id', $business_id)->get();
-        $departments = $this->apiService->get_departments([]);
-        // Log::info($departments);
+        $departments = $this->apiService->get_departments(['page_size' => 999]);
         $onlyParentDept = [];
         foreach ($departments['data'] as $department) {
             if (count($shifts) != 0) {

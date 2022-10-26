@@ -5,7 +5,6 @@ namespace App\Imports;
 use App\Models\Employee;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
-use Maatwebsite\Excel\Concerns\WithProgressBar;
 use Maatwebsite\Excel\Concerns\WithValidation;
 
 class EmployeesImport implements ToModel, WithHeadingRow, WithValidation

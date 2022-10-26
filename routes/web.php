@@ -126,8 +126,8 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/user-csv', 'ManageUserController@uploadUsers')->name('user.upload-csv');
 
 
+    Route::get('/upload_csv', 'HelperController@upload_csv')->name('upload_csv');
     Route::get('/employee-csv', 'EmployeeController@uploadCSV')->name('employee.uploadCSV');
-    // Route::get('/employee-csv', 'EmployeeController@uploadCSV')->name('employee.uploadCSV');
     Route::post('/employee-csv', 'EmployeeController@uploadCSV_store')->name('employee.uploadCSV-store');
 
 
