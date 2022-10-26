@@ -160,7 +160,7 @@ class AttendanceCardController extends Controller
                                         if ($code_day == $shiftday->code_day) {
                                             if ($punchIn->lt($in->addHour())) {
                                                 // $shift_data['id'] = $shiftdayHas->id;
-                                                $shift_data['name'] = $shiftdayHas->name;
+                                                $shift_data['name'] = $shiftdayHas->timetable->name;
 
                                                 if ($punchIn->lt($in)) {
                                                     $diff_time_in = $punchIn->diffInSeconds($in);
