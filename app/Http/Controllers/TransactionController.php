@@ -36,32 +36,53 @@ class TransactionController extends Controller
             if (request()->ajax()) {
                 $order = null;
                 $filter = [];
+                $page_size = 10;
+
+                $attenDBs = new Transaction();
                 if (!empty($request->input('q'))) {
-                    $filter['emp_code'] = $request->q;
-                    // $filter['terminal_sn'] = $request->q;
+                    $search = $request->q;
+                    $filter['emp_code'] = $search;
+                    $attenDBs = $attenDBs->where('first_name', 'LIKE', "%" . $search . "%");
                 }
 
-                if (!empty($request->input('transaction_date'))) {
-                    $filter['start_time'] = $request->transaction_date['start_time'];
-                    $filter['end_time'] = $request->transaction_date['end_time'];
+                if (!empty($request->input('date'))) {
+                    $attenDBs = $attenDBs->whereBetween('punch_time', [$request->date['start_time'], $request->date['end_time']]);
+                    $filter['start_time'] = $request->date['start_time'];
+                    $filter['end_time'] = $request->date['end_time'];
                 }
 
+                if ($request->has('page_size')) {
+                    $filter['page_size'] = $request->page_size;
+                    $page_size = $request->page_size;
+                }
+
+                $page = 1;
                 if (!empty($request->input('page'))) {
-                    $filter['page'] = $request->page;
+                    $page = (int)$request->page;
                 }
 
                 if ($request->has('sort')) {
                     $filter['ordering'] = $request->sort['name'];
                     $order = $request->sort['order'];
                 }
+                $atten_count = $this->apiService->get_transactions($filter)['count'];
+                $transactions = $this->apiService->get_transactions(array_merge($filter, ['page_size' => $atten_count]))['data'];
+                $attenDBs = $attenDBs->get()->toArray();
+                $transactions = array_merge($transactions,$attenDBs);
 
-                $transactions = Transaction::all();
+                $next = (ceil($atten_count / $page_size) == $page) ?  null : $page + 1;
+                $transactions = collect($transactions)->skip(($page - 1) * $page_size)->take($page_size);
+                $transactions = collect([
+                    'count' => $atten_count,
+                    'data' => $transactions,
+                    'next' => $next,
+                    'previous' => $page - 1,
+                    'lastPage' => ceil($atten_count / $page_size),
+                    'currentPage' => $page,
+                ]);
 
-                $transactions = $this->apiService->get_transactions($filter);
-                $transactions['next'] = $this->getParamsUrl($transactions['next'], 'page');
-                $transactions['previous'] = $this->getParamsUrl($transactions['previous'], 'page');
 
-                $render =  view('Transaction.transaction.table', compact('transactions', 'order'))->render();
+                $render =  view('Transaction.transaction.table', compact('transactions', 'order', 'page_size'))->render();
                 return $this->buildRes->RESPONSE_REQ('success', $render, null);
             }
 
@@ -82,7 +103,7 @@ class TransactionController extends Controller
      */
     public function create(Request $request)
     {
-        if (!auth()->user()->can('position.create') || !request()->ajax()) {
+        if (!auth()->user()->can('transaction.create') || !request()->ajax()) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -105,10 +126,9 @@ class TransactionController extends Controller
      */
     public function store(Request $request)
     {
-        if (!auth()->user()->can('position.create')  || !$request->ajax()) {
+        if (!auth()->user()->can('transaction.create')  || !$request->ajax()) {
             abort(403, 'Unauthorized action.');
         }
-        Log::info($request);
 
         try {
             $validator = Validator::make($request->all(), $this->rules());
@@ -116,10 +136,10 @@ class TransactionController extends Controller
             if ($validator->fails()) {
                 return $this->buildRes->RESPONSE_REQ('error', null, $validator->errors());
             } else {
-                $transaction_data = $request->only(['emp_id', 'punch_time', 'punch_state', 'work_code', 'apply_reason']);
+                $transaction_data = $request->only(['emp_id', 'punch_time', 'punch_state', 'apply_reason']);
 
                 $employee = $this->apiService->read_employee($transaction_data['emp_id']);
-                $transaction_data['emp'] = $employee['emp_code'];
+                $transaction_data['emp'] = $transaction_data['emp_id'];
                 $transaction_data['emp_code'] = $employee['emp_code'];
                 $transaction_data['first_name'] = $employee['first_name'];
                 $transaction_data['last_name'] = $employee['last_name'];
@@ -127,8 +147,6 @@ class TransactionController extends Controller
                 $transaction_data['verify_type_display'] = 'Manual';
                 $transaction_data['department'] = (!empty($employee['department'])) ? $employee['department']['dept_name'] : null;
                 $transaction_data['position'] = (!empty($employee['position'])) ? $employee['position']['position_name'] : null;
-                // TODO belom tau isinya apa
-                $transaction_data['area_alias'] = '';
 
                 $transaction = new Transaction($transaction_data);
                 $transaction->save();
@@ -145,12 +163,12 @@ class TransactionController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  $position
+     * @param  $transaction
      * @return \Illuminate\Http\Response
      */
-    public function show($position)
+    public function show($transaction)
     {
-        if (!auth()->user()->can('position.view')) {
+        if (!auth()->user()->can('transaction.view')) {
             abort(403, 'Unauthorized action.');
         }
     }
@@ -159,22 +177,18 @@ class TransactionController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  $position
+     * @param  $transaction
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function edit($position, Request $request)
+    public function edit($transaction, Request $request)
     {
-        if (!auth()->user()->can('position.update') || !$request->ajax()) {
+        if (!auth()->user()->can('transaction.update') || !$request->ajax()) {
             abort(403, 'Unauthorized action.');
         }
 
         try {
-            $position = $this->apiService->read_position($position);
-            $positions = $this->apiService->get_positions([]);
-            $render = view('Organization.position.edit', compact('position', 'positions'))->render();
-
-            return $this->buildRes->RESPONSE_REQ('success', $render, null);
+            return $this->buildRes->RESPONSE_REQ('error', null, ['error' => ['Edit menu not available']]);
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
 
@@ -186,12 +200,12 @@ class TransactionController extends Controller
      * Update the specified resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  $position
+     * @param  Transaction $transaction
      * @return \Illuminate\Http\Response
      */
-    public function update($position, Request $request)
+    public function update(Transaction $transaction, Request $request)
     {
-        if (!auth()->user()->can('position.update') || !$request->ajax()) {
+        if (!auth()->user()->can('transaction.update') || !$request->ajax()) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -201,11 +215,7 @@ class TransactionController extends Controller
             if ($validator->fails()) {
                 return $this->buildRes->RESPONSE_REQ('error', null, $validator->errors());
             } else {
-                $position_data = $request->only(['position_code', 'position_name', 'parent_position']);
-                $position_data['id'] = $position;
-
-                $res = $this->apiService->update_position($position_data);
-                return response()->json($res);
+                return $this->buildRes->RESPONSE_REQ('error', null, ['error' => ['Update menu not available']]);
             }
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
@@ -217,19 +227,20 @@ class TransactionController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  $position
+     * @param  $transaction
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function destroy($position, Request $request)
+    public function destroy($transaction, Request $request)
     {
-        if (!auth()->user()->can('position.delete') || !$request->ajax()) {
+        if (!auth()->user()->can('transaction.delete') || !$request->ajax()) {
             abort(403, 'Unauthorized action.');
         }
 
         try {
-            $res = $this->apiService->delete_position($position);
-            return response()->json($res);
+            $res = $this->apiService->delete_transaction($transaction);
+            $transaction = Transaction::where('id', $transaction)->delete();
+            return $this->buildRes->RESPONSE_REQ('success', null,  ['success' => 'Delete transaction succesfully']);
         } catch (\Exception $e) {
             return $this->buildRes->RESPONSE_REQ('error', null, ['error' => 'something wrong']);
         }
@@ -256,6 +267,7 @@ class TransactionController extends Controller
         return [
             'emp_id' => 'required|string|max:255',
             'punch_time' => 'required',
+            'punch_state' => 'required',
         ];
     }
 }

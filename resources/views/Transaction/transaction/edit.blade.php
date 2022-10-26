@@ -41,7 +41,8 @@
                     <div class="flex gap-3">
                         <div class="flex justify-start items-start flex-col gap-3 flex-1">
                             <section class="flex flex-col gap-1 w-full">
-                                <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Employee code*</label>
+                                <label class="font-normal text-sm text-gray-500 xs/max:text-xs" data-ajax--url="{{ route('employee.search-employee-for-dropdown') }}"
+                                data-ajax--cache="true">Employee code*</label>
                                 {!! FormCustom::input('emp_code', $emp['emp_code'],
                                 [ "placeholder" => 'Enter new your employee code'])!!}
                             </section>

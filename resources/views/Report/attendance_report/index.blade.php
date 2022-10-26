@@ -115,7 +115,7 @@
             var URL = '/attendance-report/attendance-card';
             var res = await ApiService.get_modal(URL, null);
 
-            select2_employee('/search-employee-for-dropdown','emp_code');
+            select2_employee({},'emp_code');
             $('input[name="date"]').daterangepicker({
                 locale: { format: 'YYYY-MM-DD' },
                 startDate: moment().startOf("month").toDate(),

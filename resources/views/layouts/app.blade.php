@@ -55,6 +55,7 @@
     <script src="{{ asset('js/Remote/networkUtils.js') }}"></script>
     <script src="{{ asset('js/Remote/apiService.js') }}"></script>
     <script src="{{ asset('js/Helper/helper.js') }}"></script>
+    <script src="{{ asset('js/Helper/dropzoneUploadCsv.js') }}"></script>
 
 </head>
 
@@ -181,7 +182,7 @@
                                     @activemenu('transaction') bg-gray-100 active @else hover:bg-gray-50 @endactivemenu">
                         <div class="flex items-center gap-2.5">
                             <div class="w-5"></div>
-                            <p class="text-sm font-medium text-gray-600">Absensi</p>
+                            <p class="text-sm font-medium text-gray-600">Absensi karyawan</p>
                         </div>
                     </a>
                     </div>
@@ -485,6 +486,7 @@
 </body>
 @stack('script')
 <script type="module">
+    Dropzone.autoDiscover = false;
     Echo.channel(`hello`)
         .listen('HelloEvent', (e) => {
             console.log(e);

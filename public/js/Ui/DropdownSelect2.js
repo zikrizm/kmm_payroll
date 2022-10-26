@@ -1,13 +1,10 @@
-function select2_employee(url, primary_field = 'id') {
+function select2_employee(data, primary_field = 'id') {
     $(".select2-employee").select2({
         ajax: {
-            url: url,
-            data: function (params) {
-                return { q: params.term };
-            },
-            processResults: function (data) {
+            data: (params) => { return { q: params.term, ...data }; },
+            processResults: (data) => {
                 return {
-                    results: data.data.map(e => {
+                    results: data.map(e => {
                         e.id = e[primary_field];
                         return e;
                     })

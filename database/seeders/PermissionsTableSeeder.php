@@ -79,7 +79,6 @@ class PermissionsTableSeeder extends Seeder
             ['name' => 'area.delete'],
             ['name' => 'transaction.view'],
             ['name' => 'transaction.create'],
-            ['name' => 'transaction.update'],
             ['name' => 'transaction.delete'],
             ['name' => 'device.view'],
             ['name' => 'device.create'],

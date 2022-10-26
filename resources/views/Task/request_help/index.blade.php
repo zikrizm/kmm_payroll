@@ -1,41 +1,40 @@
 @extends('layouts.app')
 @section('title', 'Request help')
 @section('css')
-    <style></style>
+<style></style>
 @endsection
 @section('content')
-    <div class="flex flex-col gap-6 flex-1 h-full overflow-auto bg-white px-8 pt-8 pb-12">
-        <header class="flex justify-between items-start">
-            <div class="flex flex-col gap-1">
-                <p class="text-3xl font-medium text-gray-900">Tenaga Tambahan</p>
-                <p class="text-base font-normal text-gray-500">Disini untuk memanggil karyawan untuk membantu bagian lain.
-                </p>
-            </div>
-            <div class="">
-                <button onclick="get_modal()"
-                    class="flex items-center gap-2.5 px-4 py-2 text-gray-500 text-sm font-medium 
-                flex items-center border border-gray-200 shadow-sm rounded-lg">
-                    <x-icon icon="plus" width=18 height=18 viewBox="20 20" />
-                    Tambah tenaga tambahan
-                </button>
-            </div>
-        </header>
-        <hr>
-        <div class="flex justify-between">
-            <div class="w-72">
-                {!! FormCustom::input('date', null, [
-                    'placeholder' => 'Pilih tanggal tenaga tambahan',
-                    'readonly' => true,
-                    'prefixiconname' => 'calendar',
-                ]) !!}
-            </div>
-            <x-ui.search-data placeholder="Cari tenaga karyawan tambahan" url="{{ route('request-help.index') }}" />
+<div class="flex flex-col gap-6 flex-1 h-full overflow-auto bg-white px-8 pt-8 pb-12">
+    <header class="flex justify-between items-start">
+        <div class="flex flex-col gap-1">
+            <p class="text-3xl font-medium text-gray-900">Tenaga Tambahan</p>
+            <p class="text-base font-normal text-gray-500">Disini untuk memanggil karyawan untuk membantu bagian lain.
+            </p>
         </div>
-        <div class="table-content"></div>
-        <x-ui.confirm-modal class="submit-delete-request-help"></x-ui.confirm-modal>
+        <div class="">
+            <button onclick="get_modal()" class="flex items-center gap-2.5 px-4 py-2 text-gray-500 text-sm font-medium 
+                flex items-center border border-gray-200 shadow-sm rounded-lg">
+                <x-icon icon="plus" width=18 height=18 viewBox="20 20" />
+                Tambah tenaga tambahan
+            </button>
+        </div>
+    </header>
+    <hr>
+    <div class="flex justify-between">
+        <div class="w-72">
+            {!! FormCustom::input('date', null, [
+            'placeholder' => 'Pilih tanggal tenaga tambahan',
+            'readonly' => true,
+            'prefixiconname' => 'calendar',
+            ]) !!}
+        </div>
+        <x-ui.search-data placeholder="Cari tenaga karyawan tambahan" url="{{ route('request-help.index') }}" />
     </div>
+    <div class="table-content"></div>
+    <x-ui.confirm-modal class="submit-delete-request-help"></x-ui.confirm-modal>
+</div>
 
-    <script type="application/javascript">
+<script type="application/javascript">
     let dataParams = {};
 
         window.addEventListener('DOMContentLoaded', (event) => {
@@ -44,8 +43,8 @@
             onInit( { 
                 q: $('.search-data-input').val(),
                 date: { 
-                    start_date: convertLocalTimezone(moment().subtract(6, 'days')), 
-                    end_date: convertLocalTimezone(moment())
+                    start_date: convertLocalTimezone(moment().subtract(6, 'days'),'YYYY-MM-DD'), 
+                    end_date: convertLocalTimezone(moment(),'YYYY-MM-DD')
                 }
             });
 
@@ -119,7 +118,7 @@
 
             if(operational_id) {
                 $(".select2-dept").select2();
-                select2_employee_off_in_dept({operational_id});
+                select2_employee({operational_id});
             }
             $('.request-help-date').daterangepicker({
                 locale: { format: 'YYYY-MM-DD' },
@@ -153,7 +152,7 @@
                     // );
 
                     $(".select2-employee").html('');
-                    select2_employee_off_in_dept({operational_id: select_operational.id});
+                    select2_employee({operational_id: select_operational.id});
 
                     if(select_operational) {
                         if ($('#request-help-content').is(':hidden')) {

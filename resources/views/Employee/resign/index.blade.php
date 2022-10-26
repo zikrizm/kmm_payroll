@@ -36,7 +36,13 @@
     window.addEventListener('DOMContentLoaded', (event) => {
         $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
 
-        onInit($('.search-data-input').val());
+        onInit({ 
+            q: $('.search-data-input').val(),
+            date: { 
+                start_date: convertLocalTimezone(moment().startOf("month").toDate(), 'YYYY-MM-DD'), 
+                end_date: convertLocalTimezone(moment().endOf("month").toDate(), 'YYYY-MM-DD')
+            }
+        });
 
         $('input[name="resign_date"]').daterangepicker({
             locale: { format: 'YYYY-MM-DD' },
@@ -61,7 +67,7 @@
             $('.search-data-input').val('');
             delete dataParams.page;
             onInit({ 
-                transaction_date: { 
+                date: { 
                     start_time: convertLocalTimezone(start, dateFormat), 
                     end_time: convertLocalTimezone(end, dateFormat)
                 } 
@@ -104,7 +110,7 @@
         var URL = (resign_id) ? '/resign/' + resign_id + '/edit' : '/resign/create';
         var res = await ApiService.get_modal(URL, null);
         $('.select2').select2();
-        select2_employee('/search-employee-for-dropdown');
+        select2_employee();
 
         $('.date_input').daterangepicker({
             locale: { format: 'YYYY-MM-DD' },

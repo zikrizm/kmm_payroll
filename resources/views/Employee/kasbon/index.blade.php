@@ -115,7 +115,7 @@
             // *
             var URL = (kasbon_id) ? '/kasbon/' + kasbon_id + '/edit' : '/kasbon/create';
             var res = await ApiService.get_modal(URL, null);
-            select2_employee('/search-employee-for-dropdown');
+            select2_employee();
 
             var anElement = new AutoNumeric.multiple('.number',{decimalPlaces:0,minimumValue: 0,decimalCharacter: ',', digitGroupSeparator : "."});
             $('input[name="date"]').daterangepicker({

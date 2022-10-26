@@ -38,7 +38,7 @@
                     'prefixiconname' => 'calendar',
                     ]) !!}
                 </section>
-                <section class="flex flex-col gap-1">
+                <section class="flex fleøx-col gap-1">
                     <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Karyawan*</label>
                     <select data-ajax--url="{{ route('employee.search-employee-request-position') }}"
                         data-ajax--cache="true" class="select2-employee" name="emps[]" multiple="multiple">

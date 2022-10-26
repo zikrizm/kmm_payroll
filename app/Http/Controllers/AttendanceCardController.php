@@ -8,6 +8,7 @@ use App\Utils\ResponseUtil;
 use App\Models\EmployeeDebt;
 use App\Models\Operational;
 use App\Models\Position;
+use App\Models\Transaction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use App\Services\Api\ApiServices;
@@ -57,111 +58,19 @@ class AttendanceCardController extends Controller
                     $search = $request->q;
                 }
 
-                // $emp_count = $this->apiService->get_employees([])['count'];
-                // $emps = $this->apiService->get_employees(["employee_icontains" => $search, "page_size" =>10])['data'];
-
-                // // * Employee filter
-                // $filter = [];
-                // $slug_week = ['sen', 'sel', 'rab', 'kam', 'jum', 'sab', 'mgg'];
-                // if (!empty($request->input('date'))) {
-                //     $filter['start_time'] = $request->date['start_time'];
-                //     $filter['end_time'] = $request->date['end_time'];
-                //     $dates = $this->util->generateDateRange(Carbon::parse($filter['start_time']), Carbon::parse($filter['end_time']));
-                // }
-
-                // $atten_count = $this->apiService->get_transactions($filter)['count'];
-                // $filter['page_size'] = $atten_count;
-                // $attens = collect($this->apiService->get_transactions($filter)['data']);
-                // $shifts = Shift::where('business_id', $business_id)->with(
-                //     ['shiftday' => function ($query) {
-                //         $query->with(['shiftday_has_timetable' => function ($query) {
-                //             $query->with(['timetable']);
-                //         }]);
-                //     }]
-                // )->get();
-
-                // $attendance_reports = [];
-                // foreach (($emps ?? []) as $emp) {
-                //     $attens_groupings = $this->_group_by_date($attens->filter(function ($atten) use ($emp) {
-                //         return $atten['emp'] === $emp['id'];
-                //     }));
-
-                //     $date_datas = [];
-                //     foreach ($dates as $date) {
-                //         if (!empty($attens_groupings[$date])) {
-
-                //             $items = $attens_groupings[$date];
-                //             $item_first = $items[0];
-                //             $item_last = $items[count($items) - 1];
-
-                //             $diff_time = Carbon::parse($item_first['punch_time'])->diff(Carbon::parse($item_last['punch_time']));
-                //             $check_in = Carbon::parse($item_first['punch_time'])->format('H:i:s');
-                //             $check_out = Carbon::parse($item_last['punch_time'])->format('H:i:s');
-                //             $code_day = Carbon::parse($date)->dayOfWeek;
-
-                //             $shift_data = [];
-                //             foreach ($shifts as $shift) {
-                //                 foreach ($shift->shiftday as $shiftday) {
-                //                     foreach ($shiftday->shiftday_has_timetable as $keyHas => $shiftdayHas) {
-                //                         $in = Carbon::createFromTimeString($shiftdayHas->timetable->in_time);
-                //                         $out = Carbon::createFromTimeString($shiftdayHas->timetable->out_time);
-                //                         $punchIn = Carbon::createFromTimeString($check_in);
-                //                         $punchOut = Carbon::createFromTimeString($check_out);
-
-                //                         // // check apakah out lebih kecil dari in, klo ya tambah 1 hari
-                //                         // if ($out->lessThan($in)) {
-                //                         //     $punch->addDay();
-                //                         //     $out->addDay();
-                //                         // }
-
-                //                         if ($code_day == $shiftday->code_day) {
-                //                             if ($punchIn->lt($in->addHour())) {
-                //                                 $shift_data['id'] = $shift->id;
-                //                                 $shift_data['name'] = $shift->name;
-                //                             }
-                //                             $shift_data['weekday'] = $shiftday->name;
-                //                             $shift_data['slug'] = $slug_week[$code_day - 1];
-                //                         }
-                //                     }
-                //                 }
-                //             }
-
-                //             $date_datas[] =  [
-                //                 "date" => $date,
-                //                 "first_punch" => $item_first['punch_time'],
-                //                 "last_punch" => $item_last['punch_time'],
-                //                 "total_time" => $diff_time->format('%H:%I'),
-                //                 "shift" => $shift_data,
-                //             ];
-                //         } else {
-                //             $date_datas[] =  [
-                //                 "date" => $date,
-                //                 "first_punch" => null,
-                //                 "last_punch" => null,
-                //                 "total_time" => null,
-                //                 "shift" => [],
-                //             ];
-                //         }
-                //     }
-
-                //     $attendance_reports[] = [
-                //         'employee' => $emp,
-                //         'range_date' => $request->input('date'),
-                //         'reports' => $date_datas,
-                //     ];
-                // }
-
                 // * Employee filter
                 $filter = [];
 
                 $dates = [];
                 $th_dates = [];
+                $attenDBs = [];
                 $slug_week = ['sen', 'sel', 'rab', 'kam', 'jum', 'sab', 'mgg'];
                 if (!empty($request->input('date'))) {
                     $start_time = Carbon::parse($request->date['start_time']);
                     $end_time = Carbon::parse($request->date['end_time']);
                     $filter['start_time'] = $request->date['start_time'];
                     $filter['end_time'] = $request->date['end_time'];
+                    $attenDBs = Transaction::whereBetween('punch_time', [$start_time->hour(0)->minute(0)->second(0), $end_time->hour(0)->minute(0)->second(0)])->get();
                     $dates = $this->util->generateDateRange($start_time, $end_time);
 
                     foreach ($dates as $date) {
@@ -176,7 +85,12 @@ class AttendanceCardController extends Controller
                 // ** get absensi data dari biotime
                 $atten_bio_count = $this->apiService->get_transactions($filter)['count'];
                 $atten_bios = collect($this->apiService->get_transactions(array_merge(['page_size' => $atten_bio_count], $filter))['data']);
+                foreach ($attenDBs as $key => $value) {
+                    $value['id'] = $value['emp'];
+                    $atten_bios[] = $value->toArray();
+                }
 
+                // Log::info($attenDBs);
                 // ** get employee data dari database local
                 $emp_form_databases = Employee::where('business_id', $business_id)->get();
                 // ** get posisi data dari database local
@@ -188,7 +102,6 @@ class AttendanceCardController extends Controller
                 // ** get operational data dari database local
                 $operational = Operational::where('business_id', $business_id)->whereBetween('start_date', [$start_time, $end_time])
                     ->orWhereBetween('end_date', [$start_time, $end_time])->with('operational_has_depts')->first();
-                Log::info($operational);
                 $attendance_reports = [];
                 foreach (($emp_bios ?? []) as $emp) {
                     // ** groupping absen karyawan berdasarkan tanggal
@@ -352,7 +265,6 @@ class AttendanceCardController extends Controller
                         'reports' => $date_datas,
                     ];
                 }
-                Log::info(response()->json($attendance_reports));
                 $order = null;
                 $render =  view('Report.attendance_card.table', compact('attendance_reports', 'order'))->render();
 

@@ -125,9 +125,7 @@
     <x-ui.confirm-modal class="submit-delete-employee"></x-ui.confirm-modal>
 </div>
 
-<script type="module">
-    Dropzone.autoDiscover = false;
-</script>
+
 
 <script type="application/javascript">
     let dataParams = {};
@@ -334,7 +332,7 @@
                 });
 
                 this.on("sending", function(file, xhr, data) {
-                    console.log(file);
+                    // console.log(file);
                     // First param is the variable name used server side
                     // Second param is the value, you can add what you what
                     // Here I added an input value
@@ -431,7 +429,6 @@
         // * submit form ----->
         // *
         var resSubmit = await ApiService.submit_form('.submit-employee', (data) => {
-            console.log('data', data)
             if(data.status == 'error'){
                 if(data?.msg?.user_capture && data?.msg?.user_capture[0]?.toLowerCase().includes('invalid photo, no face found')) {
                     $('input[name=is_error_image]').val(-1);

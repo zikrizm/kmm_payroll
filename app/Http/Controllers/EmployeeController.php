@@ -455,13 +455,10 @@ class EmployeeController extends Controller
 
     public function searchEmployeeForDropdown(Request $request)
     {
-        if (!$request->ajax()) {
-            abort(403, 'Unauthorized action.');
-        }
-
-        if ($request->has('q')) {
+        if (!$request->ajax()) abort(403, 'Unauthorized action.');
+        if ($request->has('q')  && !empty($request->input('q'))) {
             $employees = $this->apiService->get_employees(['employee_icontains' => $request->q]);
-            return response()->json($employees);
+            return response()->json($employees['data']);
         } else {
             return [];
         }
@@ -518,9 +515,6 @@ class EmployeeController extends Controller
             $user_id = auth()->user()->id;
             $emp_count = $this->apiService->get_employees([])['count'];
             $dept_count = $this->apiService->get_departments([])['count'];
-            // if(empty($emp_count) || empty($dept_count)) {
-            //     return $this->buildRes->RESPONSE_REQ('error', null, ['error' => ['connection problem, please try again']]);
-            // }
             $employees = $this->apiService->get_employees(['page_size' => $emp_count])['data'];
             $depts = $this->apiService->get_departments(['page_size' => $dept_count])['data'];
             $files = $request->file('file');

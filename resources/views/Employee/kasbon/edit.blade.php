@@ -30,7 +30,8 @@
             <main class="px-4 flex flex-col gap-2.5 xs/max:gap-3 mb-8">
                 <section class="flex flex-col gap-1">
                     <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Karyawan*</label>
-                    <select class="select2-employee" name="emp_id">
+                    <select class="select2-employee" name="emp_id" data-ajax--url="{{ route('employee.search-employee-for-dropdown') }}"
+                        data-ajax--cache="true">
                         <option value="{{ $employee['id'] }}">
                             <div class="flex items-center">
                                 <div class="flex gap-3 items-center py">

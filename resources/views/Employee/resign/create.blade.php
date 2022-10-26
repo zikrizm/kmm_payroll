@@ -30,7 +30,8 @@
             <main class="px-4 flex flex-col gap-2.5 xs/max:gap-3 mb-8">
                 <section class="flex flex-col gap-1">
                     <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Karyawan*</label>
-                    <select class="select2-employee" name="employee">
+                    <select class="select2-employee" name="employee" data-ajax--url="{{ route('employee.search-employee-for-dropdown') }}"
+                    data-ajax--cache="true">
                         <option value="" default disabled selected> Silahkan pilih </option>
                     </select>
                     <label class="font-normal text-xs text-red-500 xs/max:text-xs employee hint-text"></label>

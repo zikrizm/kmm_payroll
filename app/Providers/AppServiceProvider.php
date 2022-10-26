@@ -37,18 +37,15 @@ class AppServiceProvider extends ServiceProvider
             $segment_second = request()->segment(2);
 
             $sub_menu_users = ['user', 'role'];
-            $sub_menu_employees = ['employee', 'kasbon', 'resign'];
+            $sub_menu_employees = ['employee', 'kasbon', 'resign', 'transaction'];
             $sub_menu_shifts = ['break-time', 'timetable', 'shift', 'holiday'];
-            $sub_menu_attendances = ['device', 'transaction', 'transaction-report'];
-            $sub_menu_organizations = ['department', 'position', 'area'];
+            $sub_menu_organizations = ['department', 'position', 'area', 'device'];
             $sub_menu_tasks = ['operational', 'request-help', 'request-task'];
+            $sub_menu_reports = ['attendance-report', 'attendance-card', 'overtime-rice-report', 'transaction-report'];
             $sub_menu_settings = ['setting', 'location'];
 
             switch ($menu) {
                 case 'users':
-                    $is_active = in_array($segment_first, $sub_menu_users);
-                    break;
-                case 'users_sub_menu':
                     $is_active = in_array($segment_first, $sub_menu_users);
                     break;
                 case 'employees':
@@ -56,9 +53,6 @@ class AppServiceProvider extends ServiceProvider
                     break;
                 case 'shifts':
                     $is_active = in_array($segment_first, $sub_menu_shifts);
-                    break;
-                case 'attendances':
-                    $is_active = in_array($segment_first, $sub_menu_attendances);
                     break;
                 case 'organization':
                     $is_active = in_array($segment_first, $sub_menu_organizations);
@@ -68,6 +62,9 @@ class AppServiceProvider extends ServiceProvider
                     break;
                 case 'task-management':
                     $is_active = in_array($segment_first, $sub_menu_tasks);
+                    break;
+                case 'reports':
+                    $is_active = in_array($segment_first, $sub_menu_reports);
                     break;
                 default:
                     $is_active = ($segment_first == $menu);

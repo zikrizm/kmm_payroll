@@ -16,10 +16,10 @@
                         <x-icon icon="file" width=18 height=18 viewBox="20 20" />
                     </div>
                     <div>
-                        <p class="text-xl font-semibold text-gray-900">New transaction
+                        <p class="text-xl font-semibold text-gray-900">Tambah absensi
                         </p>
                         <p class="text-sm font-normal text-gray-500 xs/max:text-xs">
-                            Please provide the transaction's detail.
+                            Harap memberikan rincian kehadiran.
                         </p>
                     </div>
                 </div>
@@ -27,35 +27,32 @@
             <hr>
         </header>
         <div>
-            <main class="px-4 flex flex-col gap-4 xs/max:gap-3 mb-8">
+            <main class="px-4 flex flex-col gap-2.5 xs/max:gap-3 mb-8">
                 <section class="flex flex-col gap-1">
-                    <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Employee*</label>
-                    <select class="select2-employee" name="emp_id">
+                    <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Karyawan*</label>
+                    <select class="select2-employee" name="emp_id" data-ajax--url="{{ route('employee.search-employee-for-dropdown') }}"
+                    data-ajax--cache="true">
                         <option value="" default disabled selected>Silahkan Pilih</option>
                     </select>
-                    <label class="font-normal text-xs text-red-500 xs/max:text-xs emp_code hint-text"></label>
+                    <label class="font-normal text-xs text-red-500 xs/max:text-xs emp_id hint-text"></label>
                 </section>
                 <section class="flex flex-col gap-1">
-                    <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Punch time*</label>
-                    {!! FormCustom::input('punch_time', null, [ 'placeholder' => 'Enter new your punch time',
+                    <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Tanggal absen*</label>
+                    {!! FormCustom::input('punch_time', null, [ 'placeholder' => 'Masukkan tanggal absen',
                     'class' => 'date_input', 'readonly' => true, 'prefixiconname' => 'calendar' ]) !!}
                 </section>
                 <section class="flex flex-col gap-1">
-                    <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Punch state</label>
+                    <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Status absen*</label>
                     <select class="select2" name="punch_state">
                         <option value="" disabled selected>Silahkan Pilih</option>
-                        <option value="1">Check in</option>
-                        <option value="2">Check out</option>
+                        <option value="1">Check In</option>
+                        <option value="2">Check Out</option>
                     </select>
-                    <label class="font-normal text-xs text-red-500 xs/max:text-xs parent_position hint-text"></label>
+                    <label class="font-normal text-xs text-red-500 xs/max:text-xs punch_state hint-text"></label>
                 </section>
                 <section class="flex flex-col gap-1">
-                    <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Work code</label>
-                    {!! FormCustom::input('work_code', null, [ "placeholder" => 'Enter new your work code']) !!}
-                </section>
-                <section class="flex flex-col gap-1">
-                    <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Apply Reason</label>
-                    {!! FormCustom::textarea('apply_reason', null, [ "placeholder" => 'Enter new your apply reason'])
+                    <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Alasan</label>
+                    {!! FormCustom::textarea('apply_reason', null, [ "placeholder" => 'Masukkan alasan absen'])
                     !!}
                 </section>
             </main>

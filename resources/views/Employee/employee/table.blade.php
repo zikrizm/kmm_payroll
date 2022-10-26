@@ -116,7 +116,6 @@
         }else {
         $page = $page_of;
         }
-
         @endphp
         <div class="flex items-center gap-3">
                 <select class="select2-page w-14" name="" id="">

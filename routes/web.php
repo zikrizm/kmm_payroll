@@ -74,7 +74,7 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('shift', 'ShiftController', ['except' => ['update']]);
     Route::resource('holiday', 'HolidayController', ['except' => ['update']]);
     Route::resource('device', 'DeviceController', ['except' => ['update']]);
-    Route::resource('transaction', 'TransactionController', ['except' => ['update']]);
+    Route::resource('transaction', 'TransactionController', ['except' => ['update', 'edit']]);
     Route::resource('attendance-report', 'AttendanceReportController', ['except' => ['update', 'show']]);
     Route::resource('attendance-card', 'AttendanceCardController', ['except' => ['update', 'show']]);
     Route::resource('payroll-report', 'PayrollReportController', ['except' => ['update', 'show']]);
@@ -108,7 +108,6 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/shift/{shift}', 'ShiftController@update')->name('shift.update');
     Route::post('/holiday/{holiday}', 'HolidayController@update')->name('holiday.update');
     Route::post('/device/{device}', 'DeviceController@update')->name('device.update');
-    Route::post('/transaction/{transaction}', 'TransactionController@update')->name('transaction.update');
     Route::post('/operational/{operational}', 'OperationalController@update')->name('operational.update');
     Route::post('/foreman-management/{foreman_management}', 'OperationalController@update')->name('foreman.update');
     Route::post('/employee-call/{employee_call}', 'EmployeeCallController@update')->name('employee-call.update');
@@ -128,6 +127,7 @@ Route::middleware(['auth'])->group(function () {
 
 
     Route::get('/employee-csv', 'EmployeeController@uploadCSV')->name('employee.uploadCSV');
+    // Route::get('/employee-csv', 'EmployeeController@uploadCSV')->name('employee.uploadCSV');
     Route::post('/employee-csv', 'EmployeeController@uploadCSV_store')->name('employee.uploadCSV-store');
 
 
