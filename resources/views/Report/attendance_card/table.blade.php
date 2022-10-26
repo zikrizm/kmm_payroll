@@ -109,49 +109,58 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach ($item['reports'] as $key => $item)
+                    @foreach ($item['reports'] as $key => $item_report)
                     <tr class='hover:bg-gray-50 border '>
                         <td class=' text-xs border text-gray-500 text-center w-8'>
-                            {{ date('d', strtotime($item['date'])) }}
+                            {{ date('d', strtotime($item_report['date'])) }}
                         </td>
                         <td class=' text-xs border text-gray-500 text-center w-12'>
-                            @if (!empty($item['first_punch']))
-                            {{ date('H:i', strtotime($item['first_punch'])) }}
+                            @if (!empty($item_report['first_punch']))
+                            {{ date('H:i', strtotime($item_report['first_punch'])) }}
                             @else
                             -
                             @endif
                         </td>
                         <td class=' text-xs border text-gray-500 text-center w-12'>
-                            @if (!empty($item['last_punch']))
-                            {{ date('H:i', strtotime($item['last_punch'])) }}
+                            @if (!empty($item_report['last_punch']))
+                            {{ date('H:i', strtotime($item_report['last_punch'])) }}
                             @else
                             -
                             @endif
                         </td>
                         <td class=' text-xs border text-gray-500 text-center'>
-                            @if (!empty($item['shift'] && !empty($item['shift']['id'])))
-                            ({{ $item['shift']['id'] }})
+                            @if (!empty($item_report['shift'] && !empty($item_report['shift']['id'])))
+                            ({{ $item_report['shift']['id'] }})
                             @else
                             -
                             @endif
-                            {{ $item['shift']['name'] ?? '' }}
+                            {{ $item_report['shift']['name'] ?? '' }}
                         </td>
                          <td class=' text-xs border text-gray-500 text-center w-14'>
-                           {{ $item['overtime'] }}
+                           {{ $item_report['overtime'] }}
                         </td>
                     </tr>
                     @endforeach
                     <tr class='hover:bg-gray-50'>
-                        <td class=' text-xs text-center'>
+                        <td class='text-xs text-center'>
                         </td>
-                        <td class=' text-xs text-center'>
+                        <td class='text-xs text-center'>
                         </td>
-                        <td class=' text-xs text-center border text-gray-500'>
+                        <td class='text-xs text-center'>
                         </td>
-                        <td class=' text-xs text-center border text-gray-500'>
+                        <td class='text-xs text-center'>
                         </td>
-                        <td class=' text-xs text-center'>
-                            {{ $item['overtime_count'] ?? '' }}
+                        <td class='text-center'>
+                            <div>
+                                <div class="flex items-center">
+                                    <p class="text-gray-500 flex-1 text-center text-[10px] border">HK</p>
+                                    <p class="text-gray-500 flex-1 text-center text-[10px] border">JL</p>
+                                </div>
+                                <div class="flex items-center">
+                                    <p class="text-gray-500 flex-1 text-center text-[10px]">{{ $item['in_count'] }}</p>
+                                    <p class="text-gray-500 flex-1 text-center text-[10px]">{{ $item['overtime_count'] }}</p>
+                                </div>
+                            </div>
                         </td>
                     </tr>
                 </tbody>

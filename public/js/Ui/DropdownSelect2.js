@@ -124,7 +124,7 @@ function select2_break_time() {
                         <p class="text-sm font-medium text-gray-700 capitalize">${_data.name}</p> 
                         <div class="flex items-center gap-2"> 
                             <p class="text-sm text-gray-700">${_data.start_time} -</p> 
-                            <p class="text-sm text-gray-700">${_data.start_time}</p> 
+                            <p class="text-sm text-gray-700">${_data.end_time}</p> 
                         </div>
                     </div>
                     <div class="flexc items-center"> 
