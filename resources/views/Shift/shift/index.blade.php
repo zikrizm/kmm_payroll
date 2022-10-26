@@ -7,8 +7,8 @@
 <div class="flex flex-col gap-6 flex-1 h-full overflow-auto bg-white px-8 pt-8 pb-12">
     <header class="flex justify-between items-start">
         <div class="flex flex-col gap-1">
-            <p class="text-3xl font-medium text-gray-900">Shift</p>
-            <p class="text-base font-normal text-gray-500">Di sini untuk mengelola status setiap shift.</p>
+            <p class="text-3xl font-medium text-gray-900">Shift Bagian</p>
+            <p class="text-base font-normal text-gray-500">Di sini untuk mengelola status setiap shift bagian.</p>
         </div>
         <div class="">
             <button onclick="get_modal()" class="flex items-center gap-2.5 px-4 py-2 text-gray-500 text-sm font-medium 
