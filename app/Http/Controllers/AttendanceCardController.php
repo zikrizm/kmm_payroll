@@ -83,6 +83,8 @@ class AttendanceCardController extends Controller
                     }
                 }
 
+                // ** get department data dari biotime
+                $dept_bios = $this->apiService->get_departments(["page_size" => 999])['data'];
                 // ** get employee data dari biotime
                 // $emp_bio_count = $this->apiService->get_employees([])["count"];
                 $emp_bios = $this->apiService->get_employees(array_merge(["employee_icontains" => $search, "page_size" => 12], (!is_null($dept_id) ? ["departments" => $dept_id] : [])))['data'];
@@ -102,22 +104,32 @@ class AttendanceCardController extends Controller
                 // ** get kasbon data dari database local
                 $debts = EmployeeDebt::where('business_id', $business_id)->whereBetween('date', array($start_time, $end_time))->get();
                 // ** get shift data dari database local
-                $shifts = Shift::where('business_id', $business_id)->with(['shiftday.shiftday_has_timetable.timetable'])->get();
+                $shifts = Shift::where('business_id', $business_id)->with(['shiftday', ])->get();
                 // ** get operational data dari database local
                 $operational = Operational::where('business_id', $business_id)->whereBetween('start_date', [$start_time, $end_time])
                     ->orWhereBetween('end_date', [$start_time, $end_time])->with('operational_has_depts')->first();
                 $attendance_reports = [];
-                Log::info("======================");
+                Log::info("============");
                 foreach (($emp_bios ?? []) as $emp) {
                     // ** groupping absen karyawan berdasarkan tanggal
                     $attens_groupings = $this->_group_by_date($atten_bios->filter(function ($atten) use ($emp) {
                         return $atten['emp'] === $emp['id'];
                     }));
 
-                    // Log::info(response()->json($attens_groupings));
+                    // ** searchDepartment
+                    $emp_dept = collect($dept_bios)->search(function ($item) use ($emp) {
+                        return $item['id'] === $emp['department']['id'];
+                    });
+                    $emp['department'] = $dept_bios[$emp_dept];
+                    $dept_id = null;
+                    if (empty($emp['department']['parent_dept'])) {
+                        $dept_id = $emp['department']['id'];
+                    } else {
+                        $dept_id = $emp['department']['parent_dept']['id'];
+                    }
 
                     // ** filterkasbon
-                    $emp_depts = $debts->filter(function ($item) use ($emp) {
+                    $emp_debts = $debts->filter(function ($item) use ($emp) {
                         return $item->emp_id === $emp['id'];
                     });
                     // ** searchkaryawan yang dari data local
@@ -143,7 +155,7 @@ class AttendanceCardController extends Controller
                     $emp_overtimes = [];
                     $daily_salary = ($emp_form_db_index != '') ? $emp_form_databases[$emp_form_db_index]->daily_salary : 0;
 
-                    foreach ($dates as $date) {
+                    foreach ($dates as $date_key => $date) {
                         if (!empty($attens_groupings[$date])) {
                             $items = $attens_groupings[$date];
                             $item_first = $items[0];
@@ -157,64 +169,110 @@ class AttendanceCardController extends Controller
                             $shift_data = [];
                             $plusInTime = 0;
                             $overtime = 0;
+                            $is_cross = null;
                             foreach ($shifts as $shift) {
-                                foreach ($shift->shiftday as $shiftday) {
-                                    foreach ($shiftday->shiftday_has_timetable as $keyHas => $shiftdayHas) {
-                                        $in = Carbon::createFromTimeString($shiftdayHas->timetable->in_time);
-                                        $out = Carbon::createFromTimeString($shiftdayHas->timetable->out_time);
-                                        $punchIn = Carbon::createFromTimeString($check_in);
-                                        $punchOut = Carbon::createFromTimeString($check_out);
+                                if ($dept_id == $shift->dept_id) {
+                                    foreach ($shift->shiftday as $shiftday) {
+                                        foreach ($shiftday->shiftday_has_timetable as $keyHas => $shiftdayHas) {
+                                            $in = Carbon::createFromTimeString($shiftdayHas->timetable->in_time);
+                                            $out = Carbon::createFromTimeString($shiftdayHas->timetable->out_time);
+                                            $punchIn = Carbon::createFromTimeString($check_in);
+                                            $punchOut = Carbon::createFromTimeString($check_out);
 
-                                        if ($code_day == $shiftday->code_day) {
-                                            $temp_in_add = Carbon::createFromTimeString($shiftdayHas->timetable->in_time);
-                                            $temp_in_sub = Carbon::createFromTimeString($shiftdayHas->timetable->in_time);
-                                            $temp_in_sub->subMinutes($shiftdayHas->timetable->in_time_plus_minus);
-                                            $temp_in_add->addMinutes($shiftdayHas->timetable->in_time_plus_minus);
-                                            if ($punchIn->between($temp_in_add, $temp_in_sub)) {
+                                            if ($code_day == $shiftday->code_day) {
+                                                $temp_in_add = Carbon::createFromTimeString($shiftdayHas->timetable->in_time);
+                                                $temp_in_sub = Carbon::createFromTimeString($shiftdayHas->timetable->in_time);
+                                                $temp_in_sub->subMinutes($shiftdayHas->timetable->in_time_plus_minus);
+                                                $temp_in_add->addMinutes($shiftdayHas->timetable->in_time_plus_minus);
+                                                if ($punchIn->between($temp_in_add, $temp_in_sub)) {
 
-                                                // $shift_data['id'] = $shiftdayHas->id;
-                                                $shift_data['name'] = $shiftdayHas->timetable->name;
+                                                    // $shift_data['id'] = $shiftdayHas->id;
+                                                    $shift_data['name'] = $shiftdayHas->timetable->name;
+                                                    if (!empty($shiftdayHas->timetable->cross_day)) {
+                                                        $next_date_index = $dates[$date_key + 1];
+                                                        if (!empty($attens_groupings[$next_date_index])) {
+                                                            $cross_data_attendances = [];
+                                                            $no_cross_data_attendances = [];
+                                                            // foreach ($attens_groupings[$next_date_index] as $key_next_atten => $item) {
+                                                            //     $first_data_timetable = $shiftday->shiftday_has_timetable[0];
+                                                            //     $first_timetable_in_shift = Carbon::createFromTimeString($first_data_timetable->timetable->in_time)
+                                                            //         ->subMinutes($first_data_timetable->in_time_plus_minus);
+                                                            //     if ($punchOut->gt($first_timetable_in_shift)) {
+                                                            //         $cross_data_attendances[] = $item;
+                                                            //         // unset($item[$next_date_index][$key_next_atten]);
+                                                            //     }else {
+                                                            //         $no_cross_data_attendances[] = $item;
+                                                            //     }
+                                                            // }
 
-                                                if ($punchIn->lt($in)) {
-                                                    $diff_time_in = $punchIn->diffInSeconds($in);
-                                                    $minute = intval(gmdate('i', $diff_time_in));
-                                                    $plusInTime += intval(gmdate('G', $diff_time_in));
-                                                    if ($minute >= $shiftdayHas->timetable->overtime_half_hour && $minute < $shiftdayHas->timetable->overtime_one_hour) {
-                                                        $plusInTime = $plusInTime + 0.5;
-                                                    } else if ($minute >= $shiftdayHas->timetable->overtime_one_hour) {
-                                                        $plusInTime++;
+                                                            // $attens_groupings[$next_date_index]
+
+                                                            // Log::info(response()->json($attens_groupings));
+
+
+                                                            // dirubah karena timetable nya ad CROSS-nya
+                                                            // biar perhitungan jam keluarnya berubah
+                                                            $item_last = $cross_data_attendances[count($cross_data_attendances) - 1];
+                                                            $diff_time = Carbon::parse($item_first['punch_time'])->diff(Carbon::parse($item_last['punch_time']));
+                                                            $check_out = Carbon::parse($item_last['punch_time'])->format('H:i:s');
+                                                            $punchOut = Carbon::createFromTimeString($check_out);
+                                                        } else {
+                                                        }
                                                     }
 
-                                                    $time_period = $shiftdayHas->timetable->time_period;
-                                                    $overtime_pay = $shiftdayHas->timetable->overtime_pay;
-                                                    $total_plusIn_date = ((($plusInTime ?? 0) * 60) / $time_period) * $overtime_pay;
-                                                    $emp_ins[] = [
-                                                        "value" => $plusInTime,
-                                                        "in" => $total_plusIn_date,
-                                                    ];
-                                                }
-                                                if ($punchOut->gt($out)) {
-                                                    $diff_time_out = $out->diffInSeconds($punchOut);
-                                                    $minute = intval(gmdate('i', $diff_time_out));
-                                                    $overtime += intval(gmdate('G', $diff_time_out));
-                                                    if ($minute >= $shiftdayHas->timetable->overtime_half_hour && $minute < $shiftdayHas->timetable->overtime_one_hour) {
-                                                        $overtime = $overtime + 0.5;
-                                                    } else if ($minute >= $shiftdayHas->timetable->overtime_one_hour) {
-                                                        $overtime++;
+                                                    $plusInTime = 0;
+                                                    if ($punchIn->lt($in)) {
+                                                        $diff_time_in = $punchIn->diffInSeconds($in);
+                                                        $minute = intval(gmdate('i', $diff_time_in));
+                                                        $plusInTime += intval(gmdate('G', $diff_time_in));
+                                                        if ($minute >= $shiftdayHas->timetable->overtime_half_hour && $minute < $shiftdayHas->timetable->overtime_one_hour) {
+                                                            $plusInTime = $plusInTime + 0.5;
+                                                        } else if ($minute >= $shiftdayHas->timetable->overtime_one_hour) {
+                                                            $plusInTime++;
+                                                        }
+
+                                                        $time_period = $shiftdayHas->timetable->time_period;
+                                                        $overtime_pay = $shiftdayHas->timetable->overtime_pay;
+                                                        $total_plusIn_date = ((($plusInTime ?? 0) * 60) / $time_period) * $overtime_pay;
+                                                        $emp_ins[] = [
+                                                            "value" => $plusInTime,
+                                                            "in" => $total_plusIn_date,
+                                                        ];
                                                     }
 
-                                                    $time_period = $shiftdayHas->timetable->time_period;
-                                                    $overtime_pay = $shiftdayHas->timetable->overtime_pay;
-                                                    $total_overtime_date = ((($overtime ?? 0) * 60) / $time_period) * $overtime_pay;
-                                                    $emp_overtimes[] = [
-                                                        "value" => $overtime,
-                                                        "overtime" => $total_overtime_date,
-                                                        "is_calculate_one_shift" => $punchOut->gt($out->addMinute($shiftdayHas->timetable->duration_calculate_one_shift ?? 0)),
-                                                    ];
+                                                    if ($punchOut->gt($out)) {
+                                                        $diff_time_out = $out->diffInSeconds($punchOut);
+                                                        $minute = intval(gmdate('i', $diff_time_out));
+                                                        $overtime += intval(gmdate('G', $diff_time_out));
+
+
+                                                        if ($minute >= $shiftdayHas->timetable->overtime_half_hour && $minute < $shiftdayHas->timetable->overtime_one_hour) {
+                                                            $overtime = $overtime + 0.5;
+                                                        } else if ($minute >= $shiftdayHas->timetable->overtime_one_hour) {
+                                                            $overtime++;
+                                                        }
+
+                                                        $time_period = $shiftdayHas->timetable->time_period;
+                                                        $overtime_pay = $shiftdayHas->timetable->overtime_pay;
+                                                        $total_overtime_date = ((($overtime ?? 0) * 60) / $time_period) * $overtime_pay;
+
+                                                        // $is_calculate_one_shift = $punchOut->gte($out->addHours($shiftdayHas->timetable->duration_calculate_one_shift ?? 0));
+                                                        // bagi dengan jam yang di set jika lewat dari jam itu di kalkulasi 1 shift
+                                                        // if($is_calculate_one_shift != '') {
+                                                        //     $overtime = $overtime % $shiftdayHas->timetable->duration_calculate_one_shift;
+                                                        //     $overtime += $plusInTime;
+                                                        // }
+
+                                                        $emp_overtimes[] = [
+                                                            "value" => $overtime,
+                                                            "overtime" => $total_overtime_date,
+                                                            "is_calculate_one_shift" => $punchOut->gte($out->addHours($shiftdayHas->timetable->duration_calculate_one_shift ?? 0)),
+                                                        ];
+                                                    }
                                                 }
+                                                $shift_data['weekday'] = $shiftday->name;
+                                                $shift_data['slug'] = $slug_week[$code_day - 1];
                                             }
-                                            $shift_data['weekday'] = $shiftday->name;
-                                            $shift_data['slug'] = $slug_week[$code_day - 1];
                                         }
                                     }
                                 }
@@ -251,10 +309,9 @@ class AttendanceCardController extends Controller
                     foreach ($emp_overtimes as $item) {
                         if ($item['is_calculate_one_shift']) {
                             $is_calculate_one_shift_count++;
-                        } else {
-                            $overtime_count += $item['value'];
-                            $overtime_payment += $item['overtime'];
                         }
+                        $overtime_count += $item['value'];
+                        $overtime_payment += $item['overtime'];
                     }
                     foreach ($emp_ins as $item) {
                         $in_count += $item['value'];
@@ -268,7 +325,7 @@ class AttendanceCardController extends Controller
                         'range_date' => $request->input('date'),
                         'daily_salary' => $daily_salary,
                         'position_extra_pay' => $position_extra_pay,
-                        'dept' => array_sum(array_column($emp_depts->toArray(), 'remainder_debt')),
+                        'dept' => array_sum(array_column($emp_debts->toArray(), 'remainder_debt')),
                         'overtime_count' => $overtime_count,
                         'overtime_payment' => $overtime_payment,
                         'in_count' => $in_count,

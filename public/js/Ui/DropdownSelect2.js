@@ -16,6 +16,7 @@ function select2_employee(data, primary_field = 'id') {
     });
 
     function templateResultEmp(opt) {
+        console.log(opt)
         opt.photo = (opt.photo) ? opt.photo : 'files/nophoto.gif';
         var $opt = $(
             `<div class="flex items-center">
@@ -23,10 +24,10 @@ function select2_employee(data, primary_field = 'id') {
                     <img src="${API + opt.photo}" alt="" class="w-8 object-cover h-8 min-w-[32px] min-h-[32px] rounded-full">
                     <div>
                         <p class="text-gray-900 text-sm font-medium truncate sm/max:w-12">
-                            ${opt.emp_code} ${opt.first_name ?? opt.text ?? '-'} ${opt.last_name ?? ''}
+                            ${opt?.emp_code ? opt?.emp_code + ' - ' : ''}${opt.first_name ?? opt.text ?? '-'} ${opt.last_name ?? ''}
                         </p>
                         <p class="text-gray-500 text-sm font-normal truncate sm/max:w-12">
-                            ${opt.email ?? '-'}
+                            ${opt?.department?.dept_name ?? '-'}
                         </p>
                     </div>
                 </div>

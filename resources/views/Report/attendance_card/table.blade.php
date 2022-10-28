@@ -129,12 +129,12 @@
                             @endif
                         </td>
                         <td class=' text-xs border text-gray-500 text-center'>
-                            @if (!empty($item_report['shift'] && !empty($item_report['shift']['id'])))
+                            {{-- @if (!empty($item_report['shift'] && !empty($item_report['shift']['id'])))
                             ({{ $item_report['shift']['id'] }})
                             @else
                             -
-                            @endif
-                            {{ $item_report['shift']['name'] ?? '' }}
+                            @endif --}}
+                            {{ $item_report['shift']['name'] ?? '' }} 
                         </td>
                          <td class=' text-xs border text-gray-500 text-center w-14'>
                            {{ $item_report['overtime'] }}
@@ -157,7 +157,9 @@
                                     <p class="text-gray-500 flex-1 text-center text-[10px] border">JL</p>
                                 </div>
                                 <div class="flex items-center">
-                                    <p class="text-gray-500 flex-1 text-center text-[10px]">{{ $item['in_count'] }}</p>
+                                    <p class="text-gray-500 flex-1 text-center text-[10px]">
+                                        {{-- {{ $item['in_count'] }} --}}
+                                    </p>
                                     <p class="text-gray-500 flex-1 text-center text-[10px]">{{ $item['overtime_count'] }}</p>
                                 </div>
                             </div>

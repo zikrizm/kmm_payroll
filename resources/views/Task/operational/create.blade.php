@@ -64,6 +64,15 @@
                         </div>
                     </div>
                 </div>
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        {!! FormCustom::checkbox('status', -1) !!}
+                        <p class="text-gray-500 text-sm font-medium">Senin</p>
+                    </div>
+                    <div class="">
+
+                    </div>
+                </div>
                 {{-- <div id="sub-department-content" class="grid grid-cols-2 gap-3"></div> --}}
                 {{-- <div id="note-content" class="">
                     <div class="flex justify-center w-full">

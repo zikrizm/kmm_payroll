@@ -37,11 +37,9 @@
                     </section>
                     <section class="flex flex-col gap-1 flex-1">
                         <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Bagian*</label>
-                        <select class="select2" name="dept_id">
-                            @foreach ($onlyParentDept as $item)
-                            <option value="{{ $item['id'] }}" {{ $item['id']==$shift->dept_id ? 'selected' :''}}>{{
-                                $item['dept_name'] }}</option>
-                            @endforeach
+                        <select class="select2" name="dept_id" disabled>
+                            <option value="{{ $department['id'] }}" selected>{{
+                                $department['dept_name']}}</option>
                         </select>
                         <label class="font-normal text-xs text-red-500 xs/max:text-xs cross_day hint-text"></label>
                     </section>
