@@ -5,9 +5,12 @@ namespace App\Http\Controllers;
 use App\Rules\NIK;
 use App\Rules\Mobile;
 use App\Models\Employee;
+use App\Models\Position;
+use App\Models\ActivityLog;
 use App\Models\Operational;
 use App\Utils\ResponseUtil;
 use Illuminate\Http\Request;
+use App\Imports\EmployeesImport;
 use App\Services\Api\ApiServices;
 use Illuminate\Support\Facades\DB;
 use App\Models\EmployeeHasPosition;
@@ -20,8 +23,6 @@ use Maatwebsite\Excel\HeadingRowImport;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Validator;
 use App\Http\Controllers\EmployeePhotoController;
-use App\Imports\EmployeesImport;
-use App\Models\Position;
 use Maatwebsite\Excel\Validators\ValidationException;
 use Maatwebsite\Excel\Exceptions\NoTypeDetectedException;
 
@@ -181,8 +182,11 @@ class EmployeeController extends Controller
                     $emp_id = $employees['data'][0]['id'];
                 } else {
                     $res = $this->apiService->create_employee($emp_data);
-                    if ($res['status'] == 'success')
+                    if ($res['status'] == 'success') {
                         $emp_id = $res['data']['id'];
+                        // ** create activity log user
+                        ActivityLog::created_activity('CRUD employee', 'User ' . auth()->user()->username . ' create new employee');
+                    }
                 }
 
                 if ($res['status'] == 'success') {
@@ -235,7 +239,6 @@ class EmployeeController extends Controller
                     if ($request->hasFile('user_capture') && $request->file('user_capture')->isValid()) {
                         $resPhoto = app('App\Http\Controllers\EmployeePhotoController')->store($request);
                         if ($resPhoto['status'] == 'error') {
-                            Log::info($resPhoto);
                             $msg_text = $resPhoto['msg']['error'];
                             if (str_contains(strtolower($msg_text), 'invalid photo') || str_contains(strtolower($msg_text), 'cannot write mode')) {
                                 $resPhoto['msg']['user_capture'] = [$msg_text];
@@ -248,6 +251,8 @@ class EmployeeController extends Controller
                         }
                     } else {
                         DB::commit();
+
+                        return $this->buildRes->RESPONSE_REQ('success', null, ['success' => 'Create employee succesfully']);
                     }
                 } else {
                     return response()->json($res);
@@ -340,8 +345,6 @@ class EmployeeController extends Controller
                     'verify_mode', 'emp_type', 'app_status', 'app_role', 'hire_date', 'department', 'position', 'area', 'daily_salary', 'payment_period'
                 ]);
 
-                Log::info($emp_data);
-
                 if (!empty($request->input('area')) && count($request->input('area'))) {
                     $areas_data = $request->input('area');
                     if (in_array('all', $areas_data)) {
@@ -403,12 +406,11 @@ class EmployeeController extends Controller
                         }
                     }
 
-                    if ($request->hasFile('user_capture') && $request->file('user_capture')->isValid()) {
+                    if ($request->hasFile('user_capture') && request()->file('user_capture')->isValid()) {
                         $resPhoto = app('App\Http\Controllers\EmployeePhotoController')->store($request);
                         if ($resPhoto['status'] == 'error') {
                             $msg_text = $resPhoto['msg']['error'];
                             if (str_contains(strtolower($msg_text), 'invalid photo') || str_contains(strtolower($msg_text), 'cannot write mode')) {
-                                Log::info("SDfsdfsdf");
                                 $resPhoto['msg']['user_capture'] = [$msg_text];
                                 unset($resPhoto['msg']['error']);
                             }
@@ -419,7 +421,11 @@ class EmployeeController extends Controller
                         }
                     } else {
                         DB::commit();
+                        return $this->buildRes->RESPONSE_REQ('success', null, ['success' => 'Create employee succesfully']);
                     }
+
+                    // ** create activity log user
+                    ActivityLog::created_activity('CRUD employee', 'User ' . auth()->user()->username . ' edit data employee');
                 } else {
                     return response()->json($res);
                 }
@@ -447,6 +453,9 @@ class EmployeeController extends Controller
 
         try {
             $res = $this->apiService->delete_employee($employee);
+
+            // ** create activity log user
+            ActivityLog::created_activity('CRUD employee', 'User ' . auth()->user()->username . ' delete data employee');
             return response()->json($res);
         } catch (\Exception $e) {
             return $this->buildRes->RESPONSE_REQ('error', null, ['error' => 'something wrong']);
@@ -631,7 +640,7 @@ class EmployeeController extends Controller
             'gender' => 'required',
             'daily_salary' => 'required',
             'payment_period' => 'required',
-            'user_capture' => (empty($employee_id)) ? 'required' : 'sometimes',
+            // 'user_capture' => (empty($employee_id)) ? 'required' : 'sometimes',
         ];
     }
 }

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use App\Models\Permission;
 use App\Services\Services;
+use App\Models\ActivityLog;
 use App\Utils\BusinessUtil;
 use App\Utils\ResponseUtil;
 use Illuminate\Http\Request;
@@ -140,6 +141,8 @@ class RoleController extends Controller
                 ]);
                 $role->syncPermissions($role_data['roles']);
 
+                // ** create activity log user
+                ActivityLog::created_activity('CRUD role', 'User ' . auth()->user()->username . ' create new role');
                 return $this->buildRes->RESPONSE_REQ('success', null, ['success' => 'Add role succesfully']);
             }
         } catch (\Exception $e) {
@@ -243,6 +246,9 @@ class RoleController extends Controller
                     if (!empty($role_data['roles'])) {
                         $role->syncPermissions($role_data['roles']);
                     }
+
+                    // ** create activity log user
+                    ActivityLog::created_activity('CRUD role', 'User ' . auth()->user()->username . ' edit data role');
                     return $this->buildRes->RESPONSE_REQ('success', null, ['error' => ['Role update succesfully']]);
                 } else {
                     return $this->buildRes->RESPONSE_REQ('error', null, ['error' => ['Default role cannot be edited']]);
@@ -273,6 +279,8 @@ class RoleController extends Controller
         try {
             $role->delete();
 
+            // ** create activity log user
+            ActivityLog::created_activity('CRUD role', 'User ' . auth()->user()->username . ' delete data role');
             return $this->buildRes->RESPONSE_REQ('success', null, ['success' => 'Delete user succesfully']);
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());

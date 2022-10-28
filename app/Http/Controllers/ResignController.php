@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ActivityLog;
 use App\Utils\ResponseUtil;
 use Illuminate\Http\Request;
 use App\Services\Api\ApiServices;
@@ -101,14 +102,15 @@ class ResignController extends Controller
 
         try {
             $validator = Validator::make($request->all(), $this->rules());
-            Log::info($request);
 
             if ($validator->fails()) {
                 return $this->buildRes->RESPONSE_REQ('error', null, $validator->errors());
             } else {
                 $resign_data = $request->only(['employee', 'resign_date', 'resign_type', 'disableatt']);
-
                 $res = $this->apiService->create_resign($resign_data);
+
+                // ** create activity log user
+                ActivityLog::created_activity('CRUD resign', 'User ' . auth()->user()->username . ' create new resign');
                 return response()->json($res);
             }
         } catch (\Exception $e) {
@@ -180,6 +182,9 @@ class ResignController extends Controller
                 $resign_data['id'] = $resign;
 
                 $res = $this->apiService->update_resign($resign_data);
+
+                // ** create activity log user
+                ActivityLog::created_activity('CRUD resign', 'User ' . auth()->user()->username . ' edit data resign');
                 return response()->json($res);
             }
         } catch (\Exception $e) {
@@ -204,6 +209,9 @@ class ResignController extends Controller
 
         try {
             $res = $this->apiService->delete_resign($resign);
+
+            // ** create activity log user
+            ActivityLog::created_activity('CRUD resign', 'User ' . auth()->user()->username . ' delete data resign');
             return response()->json($res);
         } catch (\Exception $e) {
             return $this->buildRes->RESPONSE_REQ('error', null, ['error' => 'something wrong']);

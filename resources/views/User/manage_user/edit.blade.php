@@ -62,7 +62,7 @@
                 </div>
                 <section class="flex flex-col gap-1">
                     <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Email*</label>
-                    {!! FormCustom::input('email', $user->email, ['placeholder' => 'Masukkan email', 'type' => 'email']) !!}
+                    {!! FormCustom::input('email', $user->email, ['placeholder' => 'Masukkan email']) !!}
                 </section>
                 <section class="flex flex-col gap-1">
                     <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Password*</label>

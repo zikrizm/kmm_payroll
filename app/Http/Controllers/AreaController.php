@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ActivityLog;
 use App\Utils\ResponseUtil;
 use Illuminate\Http\Request;
 use App\Services\Api\ApiServices;
@@ -109,6 +110,9 @@ class AreaController extends Controller
                 $area_data = $request->only(['area_code', 'area_name', 'parent_area']);
 
                 $res = $this->apiService->create_area($area_data);
+
+                // ** create activity log user
+                ActivityLog::created_activity('CRUD area', 'User ' . auth()->user()->username . ' create new area');
                 return response()->json($res);
             }
         } catch (\Exception $e) {
@@ -181,6 +185,8 @@ class AreaController extends Controller
                 $area_data['id'] = $area;
 
                 $res = $this->apiService->update_area($area_data);
+                // ** create activity log user
+                ActivityLog::created_activity('CRUD area', 'User ' . auth()->user()->username . ' edit data area');
                 return response()->json($res);
             }
         } catch (\Exception $e) {
@@ -205,6 +211,9 @@ class AreaController extends Controller
 
         try {
             $res = $this->apiService->delete_area($area);
+
+            // ** create activity log user
+            ActivityLog::created_activity('CRUD area', 'User ' . auth()->user()->username . ' delete data area');
             return response()->json($res);
         } catch (\Exception $e) {
             return $this->buildRes->RESPONSE_REQ('error', null, ['error' => 'something wrong']);

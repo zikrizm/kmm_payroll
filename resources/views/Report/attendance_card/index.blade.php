@@ -11,18 +11,29 @@
             <p class="text-base font-normal text-gray-500">Disini untuk melihat kartu absensi karyawan.</p>
         </div>
         <div class="">
-           
+
         </div>
     </header>
     <hr>
     <div class="flex justify-between">
-        <div class="w-72">
-            {!! FormCustom::input('date', null, [
-            'placeholder' => 'Pilih tanggal absensi',
-            'class' => 'date_input',
-            'readonly' => true,
-            'prefixiconname' => 'calendar',
-            ]) !!}
+        <div class="flex items-start gap-3">
+            <div class="w-72">
+                {!! FormCustom::input('date', null, [
+                'placeholder' => 'Pilih tanggal absensi',
+                'class' => 'date_input',
+                'readonly' => true,
+                'prefixiconname' => 'calendar',
+                ]) !!}
+            </div>
+            <section class="flex flex-col gap-1 w-72">
+                <select class="select2-dept hidden" name="dept">
+                    <option value="all" selected>All bagian</option>
+                    @foreach ($dept_bios['data'] as $item)
+                    <option value="{{ $item['id'] }}">{{ $item['dept_name'] }}</option>
+                    @endforeach
+                </select>
+                <label class="font-normal text-xs text-red-500 xs/max:text-xs parent_dept hint-text"></label>
+            </section>
         </div>
         <x-ui.search-data placeholder="Cari absensi" url="{{ route('attendance-report.index') }}" />
     </div>
@@ -35,7 +46,13 @@
 
         window.addEventListener('DOMContentLoaded', (event) => {
             $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
-            $('.select2').select2();
+            $('.select2-dept').select2();
+            $('.select2-dept').show();
+            $('.select2-dept').on('select2:select', function (e) {
+                delete dataParams.page;
+
+                onInit({dept_id: $(this).val()})
+            });
 
             dataParams = {
                 date: { 
@@ -93,7 +110,7 @@
             // **
             // * get table ----->
             // *
-            var res = await ApiService.get_table('/attendance-card', data);
+            var res = await ApiService.get_table('/attendance-card', dataParams);
             $('.table-content').html(res);
 
             // **

@@ -4,13 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Models\Shift;
 use App\Models\ShiftDay;
-use App\Models\ShiftDayHasTimetable;
 use App\Models\Timetable;
+use App\Models\ActivityLog;
 use App\Utils\BusinessUtil;
 use App\Utils\ResponseUtil;
 use Illuminate\Http\Request;
 use App\Services\Api\ApiServices;
 use Illuminate\Support\Facades\Log;
+use App\Models\ShiftDayHasTimetable;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
 
@@ -124,7 +125,6 @@ class ShiftController extends Controller
         if (!auth()->user()->can('shift.create')  || !$request->ajax()) {
             abort(403, 'Unauthorized action.');
         }
-        Log::info($request);
         try {
             $validator = Validator::make($request->all(), $this->rules());
 
@@ -158,6 +158,8 @@ class ShiftController extends Controller
                     }
                 }
 
+                // ** create activity log user
+                ActivityLog::created_activity('CRUD shift', 'User ' . auth()->user()->username . ' create new shift');
                 return $this->buildRes->RESPONSE_REQ('success', null,  ['success' => ['Add shift succesfully']]);
             }
         } catch (\Exception $e) {
@@ -223,7 +225,6 @@ class ShiftController extends Controller
         if (!auth()->user()->can('shift.update') || !$request->ajax()) {
             abort(403, 'Unauthorized action.');
         }
-        Log::info($request);
 
         try {
             $validator = Validator::make($request->all(), $this->rules());
@@ -264,6 +265,8 @@ class ShiftController extends Controller
                     }
                 }
 
+                // ** create activity log user
+                ActivityLog::created_activity('CRUD shift', 'User ' . auth()->user()->username . ' edit data shift');
                 return $this->buildRes->RESPONSE_REQ('success', null, ['success' => ['Shift Update succesfully']]);
             }
         } catch (\Exception $e) {
@@ -289,6 +292,8 @@ class ShiftController extends Controller
         try {
             $shift->delete();
 
+            // ** create activity log user
+            ActivityLog::created_activity('CRUD shift', 'User ' . auth()->user()->username . ' delete data shift');
             return $this->buildRes->RESPONSE_REQ('success', null, 'Shift delete succesfully');
         } catch (\Exception $e) {
             return $this->buildRes->RESPONSE_REQ('error', null, ['error' => 'something wrong']);

@@ -2,8 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\EmployeeDebt;
+use App\Models\ActivityLog;
 use App\Utils\ResponseUtil;
+use App\Models\EmployeeDebt;
 use Illuminate\Http\Request;
 use App\Services\Api\ApiServices;
 use Illuminate\Support\Facades\Log;
@@ -121,6 +122,8 @@ class KasbonController extends Controller
                 $kasbon = new EmployeeDebt($kasbon_data);
                 $kasbon->save();
 
+                // ** create activity log user
+                ActivityLog::created_activity('CRUD debt', 'User ' . auth()->user()->username . ' create new debt');
                 return $this->buildRes->RESPONSE_REQ('success', null,  ['success' => ['Add kasbon succesfully']]);
             }
         } catch (\Exception $e) {
@@ -200,6 +203,9 @@ class KasbonController extends Controller
                 $kasbon_data['instalment'] = str_replace('.', '', $kasbon_data['instalment']);
 
                 $kasbon->update($kasbon_data);
+
+                // ** create activity log user
+                ActivityLog::created_activity('CRUD debt', 'User ' . auth()->user()->username . ' edit data debt');
                 return $this->buildRes->RESPONSE_REQ('success', null, ['success' => ['Update kasbon succesfully']]);
             }
         } catch (\Exception $e) {
@@ -225,6 +231,8 @@ class KasbonController extends Controller
         try {
             $kasbon->delete();
 
+            // ** create activity log user
+            ActivityLog::created_activity('CRUD debt', 'User ' . auth()->user()->username . ' delete data debt');
             return $this->buildRes->RESPONSE_REQ('success', null, ['success' => ['Delete kasbon succesfully']]);
         } catch (\Exception $e) {
             return $this->buildRes->RESPONSE_REQ('error', null, ['error' => 'something wrong']);

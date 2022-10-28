@@ -1,4 +1,4 @@
-<main class='border border-gray-200 rounded-lg shadow-sm overflow-hidden'>
+<main class='border border-gray-200 rounded-lg shadow-sm  overflow-hidden'>
     <div class="w-full overflow-auto overflow-y-hidden">
         <table class='table border-collapse w-full'>
             <thead class='border-b border-gray-200 bg-gray-50'>
@@ -19,7 +19,7 @@
                         </p>
                     </th>
                     @endforeach
-                    {{-- <th class='px-3 py-3 text-left cursor-pointer'>
+                    <th class='px-3 py-3 text-left cursor-pointer'>
                         <p class="text-xs font-medium text-gray-500 truncate cursor-pointer text-center">HK</p>
                     </th>
                     <th class='px-3 py-3 text-left cursor-pointer'>
@@ -42,7 +42,7 @@
                     </th>
                     <th class='px-3 py-3 text-left cursor-pointer'>
                         <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Total</p>
-                    </th> --}}
+                    </th>
                 </tr>
             </thead>
             <tbody>
@@ -65,7 +65,7 @@
                         </p>
                     </th>
                     @endforeach
-                    {{-- <td class='px-3 py-2 text-gray-500 text-sm'>
+                    <td class='px-3 py-2 text-gray-500 text-sm'>
                         <p class="truncate text-center">{{ $item['in_count'] }}</p>
                     </td>
                     <td class='px-3 py-2 text-gray-500 text-sm'>
@@ -88,7 +88,7 @@
                     </td>
                     <td class='px-3 py-2 text-gray-500 text-sm'>
                         <p class="truncate">@convertnorp($item['total'])</p>
-                    </td> --}}
+                    </td>
                 </tr>
                 @endforeach
             </tbody>

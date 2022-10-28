@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Holiday;
+use App\Models\ActivityLog;
 use App\Utils\ResponseUtil;
 use Illuminate\Http\Request;
 use App\Services\Api\ApiServices;
@@ -120,6 +121,8 @@ class HolidayController extends Controller
                 $holiday = new Holiday($holiday_data);
                 $holiday->save();
 
+                // ** create activity log user
+                ActivityLog::created_activity('CRUD holiday', 'User ' . auth()->user()->username . ' create new holiday');
                 return $this->buildRes->RESPONSE_REQ('success', null,  ['success' => ['Add holiday succesfully']]);
             }
         } catch (\Exception $e) {
@@ -197,6 +200,8 @@ class HolidayController extends Controller
                 $holiday_data['updated_user'] = auth()->user()->id;
                 $holiday->update($holiday_data);
 
+                // ** create activity log user
+                ActivityLog::created_activity('CRUD holiday', 'User ' . auth()->user()->username . ' edit data holiday');
                 return $this->buildRes->RESPONSE_REQ('success', null, ['success' => ['Update holiday succesfully']]);
             }
         } catch (\Exception $e) {
@@ -222,6 +227,8 @@ class HolidayController extends Controller
         try {
             $holiday->delete();
 
+            // ** create activity log user
+            ActivityLog::created_activity('CRUD holiday', 'User ' . auth()->user()->username . ' delete data holiday');
             return $this->buildRes->RESPONSE_REQ('success', null, ['success' => ['Delete holiday succesfully']]);
         } catch (\Exception $e) {
             return $this->buildRes->RESPONSE_REQ('error', null, ['error' => 'something wrong']);

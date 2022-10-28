@@ -80,8 +80,14 @@
                                         class="hidden" type="file"
                                         onchange="loadPic('#photo', 'photo_preview', '#remove-img')" />
                                     <span class='cursor-pointer flex w-32 h-32 border border-dashed p-2'>
+                                        @if (empty($employee["photo"]))
+                                        <img src='' class='object-cover h-full w-full overflow-hidden'
+                                            id="photo_preview">
+                                        @else
                                         <img src='@zkPhoto({{ $employee["photo"] }})'
                                             class='object-cover h-full w-full overflow-hidden' id="photo_preview">
+                                        @endif
+
                                     </span>
                                 </label>
                             </div>

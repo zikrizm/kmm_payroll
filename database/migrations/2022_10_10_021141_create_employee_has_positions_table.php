@@ -17,9 +17,8 @@ return new class extends Migration
             $table->increments('id');
 
             $table->integer('emp_id')->unsigned();
-            $table->integer('position_id')->unsigned();
+            $table->integer('position_id');
             $table->foreign('emp_id')->references('id')->on('employees')->onDelete('cascade');
-            $table->foreign('position_id')->references('id')->on('positions')->onDelete('cascade');
 
             $table->timestamps();
         });

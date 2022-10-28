@@ -4,8 +4,8 @@
     <div class="absolute top-4 right-4">
         <a href="{{ route('business.index.register') }}">
             <button
-                class="flex items-center gap-1 py-1 px-1.5 bg-violet-600 rounded shadow text-xs font-normal text-white">
-                <x-icon icon="file-plus" width=12 height=12 viewBox="20 20" />
+                class="flex items-center gap-2.5 py-1 px-1.5 border rounded text-sm font-normal text-gray-700 hover:bg-gray-100">
+                <x-icon icon="file-plus" width=14 height=14 viewBox="20 20" />
                 Register business now
             </button>
         </a>

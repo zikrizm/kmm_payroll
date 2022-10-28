@@ -4,11 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Services\Services;
+use App\Models\ActivityLog;
 use App\Utils\BusinessUtil;
 use App\Utils\ResponseUtil;
 use App\Imports\UsersImport;
 use Illuminate\Http\Request;
 use App\Services\Api\ApiServices;
+use Carbon\Carbon;
 use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Hash;
@@ -22,7 +24,6 @@ use Maatwebsite\Excel\Exceptions\NoTypeDetectedException;
 class ManageUserController extends Controller
 {
 
-    private $apiService;
     private $buildRes;
     private $businessUtil;
 
@@ -46,8 +47,8 @@ class ManageUserController extends Controller
         }
 
         try {
+            $business_id = Session::get('business_id');
             if (request()->ajax()) {
-                $business_id = Session::get('business_id');
                 $users = User::where('business_id', $business_id);
 
                 if ($request->has('q')) {
@@ -136,6 +137,9 @@ class ManageUserController extends Controller
                 $user->save();
 
                 $user->assignRole($role->name);
+
+                // ** create activity log user
+                ActivityLog::created_activity('Pengguna', 'User ' . auth()->user()->username . ' tambah user ' . $user->name);
                 return $this->buildRes->RESPONSE_REQ('success', null, ['success' => 'Add user succesfully']);
             }
         } catch (\Exception $e) {
@@ -227,6 +231,8 @@ class ManageUserController extends Controller
                     $user->assignRole($role->name);
                 }
 
+                // ** create activity log user
+                ActivityLog::created_activity('Pengguna', 'User ' . auth()->user()->username . ' edit data user ' . $user->name);
                 return $this->buildRes->RESPONSE_REQ('success', null, ['success' => 'Update user succesfully']);
             }
         } catch (\Exception $e) {
@@ -250,6 +256,8 @@ class ManageUserController extends Controller
         }
 
         try {
+            // ** create activity log user
+            ActivityLog::created_activity('Pengguna', 'User ' . auth()->user()->username . ' hapus data user ' . $user->name);
             $user->delete();
 
             return $this->buildRes->RESPONSE_REQ('success', null, ['success' => 'Delete user succesfully']);
@@ -307,7 +315,7 @@ class ManageUserController extends Controller
             'username' => (empty($user)) ?  'required|string|max:255|unique:users' : 'required|string|max:255|unique:users,username,' . $user->id,
             'email' => (empty($user)) ? 'required|string|email:rfc,dns|unique:users' : 'required|string|email:rfc,dns|unique:users,email,' . $user->id,
             'password' => 'required|string|min:6',
-            'role' => 'string|exists:roles,id',
+            'role' => 'required|exists:roles,id',
             'status' => 'required|string',
             'image' => 'image|file|max:2000',
         ];

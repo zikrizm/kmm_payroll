@@ -2,13 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Position;
+use App\Models\ActivityLog;
 use App\Utils\ResponseUtil;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use App\Services\Api\ApiServices;
 use Illuminate\Support\Facades\Log;
 use App\Exceptions\ResponseExeception;
-use App\Models\Position;
 use Illuminate\Support\Facades\Validator;
 
 class PositionController extends Controller
@@ -128,6 +129,9 @@ class PositionController extends Controller
                     $position_id = $positions['data'][0]['id'];
 
                     $this->__createPositionIfNotExists($position_id, $request);
+
+                    // ** create activity log user
+                    ActivityLog::created_activity('CRUD position', 'User ' . auth()->user()->username . ' create new position');
                     return response()->json($res);
                 } else {
                     return response()->json($res);
@@ -224,6 +228,8 @@ class PositionController extends Controller
                 if ($res['status'] == 'success') {
                     $this->__createPositionIfNotExists($position, $request);
 
+                    // ** create activity log user
+                    ActivityLog::created_activity('CRUD position', 'User ' . auth()->user()->username . ' edit data position');
                     return response()->json($res);
                 } else {
                     return response()->json($res);
@@ -251,6 +257,9 @@ class PositionController extends Controller
 
         try {
             $res = $this->apiService->delete_position($position);
+
+            // ** create activity log user
+            ActivityLog::created_activity('CRUD position', 'User ' . auth()->user()->username . ' delete data position');
             return response()->json($res);
         } catch (\Exception $e) {
             return $this->buildRes->RESPONSE_REQ('error', null, ['error' => 'something wrong']);

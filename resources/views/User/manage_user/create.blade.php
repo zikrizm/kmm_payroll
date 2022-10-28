@@ -61,7 +61,7 @@
                 </div>
                 <section class="flex flex-col gap-1">
                     <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Email*</label>
-                    {!! FormCustom::input('email', null, ['placeholder' => 'Masukkan email', 'type' => 'email']) !!}
+                    {!! FormCustom::input('email', null, ['placeholder' => 'Masukkan email']) !!}
                 </section>
                 <section class="flex flex-col gap-1">
                     <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Password*</label>
@@ -70,7 +70,7 @@
                 <section class="flex flex-col gap-1">
                     <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Wewenang*</label>
                     <select class="select2" name="role">
-                        <option value="" selected>Silahkan Pilih</option>
+                        <option value="" selected disabled>Silahkan Pilih</option>
                         @foreach ($roles as $role)
                             <option value="{{ $role->id }}">{{ $role->name }}</option>
                         @endforeach

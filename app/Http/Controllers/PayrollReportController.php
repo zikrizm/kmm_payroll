@@ -119,10 +119,9 @@ class PayrollReportController extends Controller
                         return $item->emp_id === $emp['id'];
                     });
                     // ** searchkaryawan untuk group
-                    $group = $operational->operational_has_depts->filter(function ($item) use ($emp) {
+                    $group = (!empty($operational)) ? $operational->operational_has_depts->filter(function ($item) use ($emp) {
                         return $item->dept_id === $emp['department']['id'];
-                    });
-                    Log::info(response()->json($group));
+                    }) : [];
                     // ** sum upah tambahan dari jabatan
                     $position_extra_pay = 0;
                     foreach ($posis as $posi) {

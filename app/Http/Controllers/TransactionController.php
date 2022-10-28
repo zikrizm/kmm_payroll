@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Transaction;
-
 use App\Models\Employee;
+
+use App\Models\ActivityLog;
+use App\Models\Transaction;
 use App\Utils\ResponseUtil;
 use Illuminate\Http\Request;
 use App\Services\Api\ApiServices;
@@ -159,6 +160,8 @@ class TransactionController extends Controller
                 $transaction = new Transaction($transaction_data);
                 $transaction->save();
 
+                // ** create activity log user
+                ActivityLog::created_activity('CRUD manual attendance', 'User ' . auth()->user()->username . ' create new manual attendance');
                 return $this->buildRes->RESPONSE_REQ('success', null,  ['success' => 'Add transaction succesfully']);
             }
         } catch (\Exception $e) {
@@ -252,6 +255,9 @@ class TransactionController extends Controller
             } else {
                 $transaction->delete();
             }
+
+            // ** create activity log user
+            ActivityLog::created_activity('CRUD manual attendance', 'User ' . auth()->user()->username . ' delete data manual attendance');
             return $this->buildRes->RESPONSE_REQ('success', null,  ['success' => 'Delete transaction succesfully']);
         } catch (\Exception $e) {
             return $this->buildRes->RESPONSE_REQ('error', null, ['error' => 'something wrong']);

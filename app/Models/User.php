@@ -77,7 +77,7 @@ class User extends Authenticatable
         $is_active = $this->status == 'active';
         return '<div class="flex items-center gap-1 rounded-xl px-2.5 py-0.5 w-max ' . (($is_active) ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700') .'"'.'>
             <span class="w-1.5 h-1.5 rounded-full ' . (($is_active) ? 'bg-green-700' : 'bg-red-700') . ' block"></span>
-            <p class="text-xs font-normal flex items-center gap-1 capitalize text-green-600">
+            <p class="text-xs font-normal flex items-center gap-1 capitalize '.(($is_active) ? 'text-green-600' : 'text-red-706').'">
                 ' . $this->status . '
             </p>
         </div>';
