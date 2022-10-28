@@ -2,12 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ActivityLog;
+use App\Models\Transaction;
 use App\Utils\ResponseUtil;
 use Illuminate\Http\Request;
 use App\Services\Api\ApiServices;
 use Illuminate\Support\Facades\Log;
 use App\Exceptions\ResponseExeception;
-use App\Models\Transaction;
 use Illuminate\Support\Facades\Validator;
 
 class DeviceController extends Controller
@@ -109,6 +110,9 @@ class DeviceController extends Controller
             } else {
                 $device_data = $request->only(['sn', 'alias', 'ip_address', 'area', 'is_attendance', 'terminal_tz']);
                 $res = $this->apiService->create_device($device_data);
+
+                // ** create activity log user
+                ActivityLog::created_activity('CRUD device', 'User ' . auth()->user()->username . ' create new device');
                 return response()->json($res);
             }
         } catch (\Exception $e) {
@@ -181,6 +185,9 @@ class DeviceController extends Controller
                 $device_data['id'] = $department;
 
                 $res = $this->apiService->update_device($device_data);
+
+                // ** create activity log user
+                ActivityLog::created_activity('CRUD device', 'User ' . auth()->user()->username . ' edit data device');
                 return response()->json($res);
             }
         } catch (\Exception $e) {
@@ -205,6 +212,9 @@ class DeviceController extends Controller
 
         try {
             $res = $this->apiService->delete_device($device);
+
+            // ** create activity log user
+            ActivityLog::created_activity('CRUD device', 'User ' . auth()->user()->username . ' delete data device');
             return response()->json($res);
         } catch (\Exception $e) {
             return $this->buildRes->RESPONSE_REQ('error', null, ['error' => 'something wrong']);

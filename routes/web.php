@@ -130,8 +130,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/employee-csv', 'EmployeeController@uploadCSV')->name('employee.uploadCSV');
     Route::post('/employee-csv', 'EmployeeController@uploadCSV_store')->name('employee.uploadCSV-store');
 
-
-
+    // * activity log
+    Route::get('/activity-log', 'ActifityLogController@index')->name('activity-log.index');
     // * operational.
     Route::resource('operational', 'OperationalController', ['except' => ['update']]);
     Route::post('/operational/{operational}', 'OperationalController@update')->name('operational.update');

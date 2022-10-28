@@ -128,6 +128,14 @@
                             </div>
                         </a>
                         @endcan
+                        <a href="{{ route('activity-log.index') }}"
+                            class="flex items-center justify-between p-2.5 rounded-lg w-full hover:underline hover:decoration-gray-500
+                                            @activemenu('activity-log') bg-gray-100 active @else hover:bg-gray-50 @endactivemenu">
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-5"></div>
+                                <p class="text-sm font-medium text-gray-600">Aktifitas pengguna</p>
+                            </div>
+                        </a>
                     </div>
                     @endcanany
 
@@ -220,7 +228,7 @@
                                             @activemenu('timetable') bg-gray-100 active @else hover:bg-gray-50 @endactivemenu">
                             <div class="flex items-center gap-2.5">
                                 <div class="w-5"></div>
-                                <p class="text-sm font-medium text-gray-600">Jadwal</p>
+                                <p class="text-sm font-medium text-gray-600">Jadwal Shift</p>
                             </div>
                         </a>
                         @endcan
@@ -230,7 +238,7 @@
                                             @activemenu('shift') bg-gray-100 active @else hover:bg-gray-50 @endactivemenu">
                             <div class="flex items-center gap-2.5">
                                 <div class="w-5"></div>
-                                <p class="text-sm font-medium text-gray-600">Shift</p>
+                                <p class="text-sm font-medium text-gray-600">Bagian Shift</p>
                             </div>
                         </a>
                         @endcan
@@ -426,6 +434,7 @@
                         @endcan
                     </div>
                     @endcanany
+
                     {{-- @canany(['business_settings.access'])
                     <section class="my-dropdown-menu flex items-center justify-between p-2.5 rounded-lg w-full 
                                     @activemenu('settings') bg-gray-100 active @else hover:bg-gray-50 @endactivemenu"

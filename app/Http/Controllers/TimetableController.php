@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\BreakTime;
 use App\Models\Timetable;
+use App\Models\ActivityLog;
 use App\Utils\BusinessUtil;
 use App\Utils\ResponseUtil;
 use Illuminate\Http\Request;
@@ -164,6 +165,8 @@ class TimetableController extends Controller
                     }
                 }
 
+                // ** create activity log user
+                ActivityLog::created_activity('CRUD timetable', 'User ' . auth()->user()->username . ' create new timetable');
                 return $this->buildRes->RESPONSE_REQ('success', null, ['success' => 'Add timetable succesfully']);
             }
         } catch (\Exception $e) {
@@ -289,6 +292,9 @@ class TimetableController extends Controller
                         $timetable_has_break_time->save();
                     }
                 }
+
+                // ** create activity log user
+                ActivityLog::created_activity('CRUD timetable', 'User ' . auth()->user()->username . ' edit data timetable');
                 return $this->buildRes->RESPONSE_REQ('success', null, ['success' => 'Update timetable succesfully']);
             }
         } catch (\Exception $e) {
@@ -314,6 +320,8 @@ class TimetableController extends Controller
         try {
             $timetable->delete();
 
+            // ** create activity log user
+            ActivityLog::created_activity('CRUD timetable', 'User ' . auth()->user()->username . ' delete data timetable');
             return $this->buildRes->RESPONSE_REQ('success', null, ['success' => 'Delete timetable succesfully']);
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());

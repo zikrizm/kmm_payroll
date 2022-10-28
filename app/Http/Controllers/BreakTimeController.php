@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\BreakTime;
+use App\Models\ActivityLog;
 use App\Utils\BusinessUtil;
 use App\Utils\ResponseUtil;
 use Illuminate\Http\Request;
@@ -115,6 +116,8 @@ class BreakTimeController extends Controller
                 $break_time = new BreakTime($break_time_data);
                 $break_time->save();
 
+                // ** create activity log user
+                ActivityLog::created_activity('CRUD break time', 'User ' . auth()->user()->username . ' create new break time');
                 return $this->buildRes->RESPONSE_REQ('success', null, ['success' => 'Add break-time succesfully']);
             }
         } catch (\Exception $e) {
@@ -185,6 +188,8 @@ class BreakTimeController extends Controller
                 $break_time_data = $request->only(['name', 'start_time', 'end_time', 'duration']);
                 $break_time->update($break_time_data);
 
+                // ** create activity log user
+                ActivityLog::created_activity('CRUD break time', 'User ' . auth()->user()->username . ' edit data break time');
                 return $this->buildRes->RESPONSE_REQ('success', null, ['success' => 'Update break-time succesfully']);
             }
         } catch (\Exception $e) {
@@ -210,6 +215,8 @@ class BreakTimeController extends Controller
         try {
             $break_time->delete();
 
+            // ** create activity log user
+            ActivityLog::created_activity('CRUD break time', 'User ' . auth()->user()->username . ' delete data break time');
             return $this->buildRes->RESPONSE_REQ('success', null, ['success' => 'Delete break-time succesfully']);
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());

@@ -45,7 +45,6 @@ class AttendanceCardController extends Controller
         try {
             $business_id = Session::get('business_id');
             if (request()->ajax()) {
-
                 // * Pagination page
                 $page = 1;
                 if (!empty($request->input('page'))) {
@@ -56,6 +55,11 @@ class AttendanceCardController extends Controller
                 $search = '';
                 if (!empty($request->input('q'))) {
                     $search = $request->q;
+                }
+                // * Employee dept search
+                $dept_id = null;
+                if ($request->has('dept_id') && $request->dept_id != 'all') {
+                    $dept_id = $request->dept_id;
                 }
 
                 // * Employee filter
@@ -80,8 +84,8 @@ class AttendanceCardController extends Controller
                 }
 
                 // ** get employee data dari biotime
-                $emp_bio_count = $this->apiService->get_employees([])["count"];
-                $emp_bios = $this->apiService->get_employees(["employee_icontains" => $search, "page_size" => 12])['data'];
+                // $emp_bio_count = $this->apiService->get_employees([])["count"];
+                $emp_bios = $this->apiService->get_employees(array_merge(["employee_icontains" => $search, "page_size" => 12], (!is_null($dept_id) ? ["departments" => $dept_id] : [])))['data'];
                 // ** get absensi data dari biotime
                 $atten_bio_count = $this->apiService->get_transactions($filter)['count'];
                 $atten_bios = collect($this->apiService->get_transactions(array_merge(['page_size' => $atten_bio_count], $filter))['data']);
@@ -158,7 +162,7 @@ class AttendanceCardController extends Controller
                                         $punchOut = Carbon::createFromTimeString($check_out);
 
                                         if ($code_day == $shiftday->code_day) {
-                                            if ($punchIn->lt($in->addHour())) {
+                                            if ($punchIn->lt($in->addMinute($shiftdayHas->timetable->in_time_plus_minus))) {
                                                 // $shift_data['id'] = $shiftdayHas->id;
                                                 $shift_data['name'] = $shiftdayHas->timetable->name;
 
@@ -196,7 +200,7 @@ class AttendanceCardController extends Controller
                                                     $emp_overtimes[] = [
                                                         "value" => $overtime,
                                                         "overtime" => $total_overtime_date,
-                                                        "is_calculate_one_shift" => $punchOut->gt($out->addHour(8)),
+                                                        "is_calculate_one_shift" => $punchOut->gt($out->addMinute($shiftdayHas->timetable->duration_calculate_one_shift ?? 0)),
                                                     ];
                                                 }
                                             }
@@ -270,8 +274,8 @@ class AttendanceCardController extends Controller
 
                 return $this->buildRes->RESPONSE_REQ('success', $render, null);
             }
-
-            return  view('Report.attendance_card.index');
+            $dept_bios = $this->apiService->get_departments(["page_size" => 999]);
+            return  view('Report.attendance_card.index', compact('dept_bios'));
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
 

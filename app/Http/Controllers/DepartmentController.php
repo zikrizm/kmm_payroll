@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Department;
+use App\Models\ActivityLog;
 use App\Utils\ResponseUtil;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -126,6 +127,9 @@ class DepartmentController extends Controller
                 if ($res['status'] == 'success') {
                     $dept_id = $res['data']['id'];
                     $this->__createDepartmentIfNotExists($dept_id, $request);
+
+                    // ** create activity log user
+                    ActivityLog::created_activity('CRUD department', 'User ' . auth()->user()->username . ' create new department');
                     return response()->json($res);
                 } else {
                     return response()->json($res);
@@ -225,6 +229,8 @@ class DepartmentController extends Controller
                         ]
                     );
 
+                    // ** create activity log user
+                    ActivityLog::created_activity('CRUD department', 'User ' . auth()->user()->username . ' edit data department');
                     return response()->json($res);
                 } else {
                     return response()->json($res);
@@ -252,6 +258,9 @@ class DepartmentController extends Controller
 
         try {
             $res = $this->apiService->delete_department($department);
+
+            // ** create activity log user
+            ActivityLog::created_activity('CRUD department', 'User ' . auth()->user()->username . ' delete data department');
             return response()->json($res);
         } catch (\Exception $e) {
             return $this->buildRes->RESPONSE_REQ('error', null, ['error' => 'something wrong']);

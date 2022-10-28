@@ -36,7 +36,7 @@ class AppServiceProvider extends ServiceProvider
             $segment_first = request()->segment(1);
             $segment_second = request()->segment(2);
 
-            $sub_menu_users = ['user', 'role'];
+            $sub_menu_users = ['user', 'role', 'activity-log'];
             $sub_menu_employees = ['employee', 'kasbon', 'resign', 'transaction'];
             $sub_menu_shifts = ['break-time', 'timetable', 'shift', 'holiday'];
             $sub_menu_organizations = ['department', 'position', 'area', 'device'];
