@@ -9,7 +9,7 @@
                                 {!! FormCustom::checkbox() !!}
                             </div>
                             <div class='px-6 py-3 cursor-pointer flex-1'>
-                                <x-ui.sort-table text="NIK" url="{{ route('transaction.index') }}" field="emp_code"
+                                <x-ui.sort-table text="Kode Karyawan" url="{{ route('transaction.index') }}" field="emp_code"
                                     order="{{ $order }}" />
                             </div>
                         </div>

@@ -107,11 +107,15 @@ class AttendanceCardController extends Controller
                 $operational = Operational::where('business_id', $business_id)->whereBetween('start_date', [$start_time, $end_time])
                     ->orWhereBetween('end_date', [$start_time, $end_time])->with('operational_has_depts')->first();
                 $attendance_reports = [];
+                Log::info("======================");
                 foreach (($emp_bios ?? []) as $emp) {
                     // ** groupping absen karyawan berdasarkan tanggal
                     $attens_groupings = $this->_group_by_date($atten_bios->filter(function ($atten) use ($emp) {
                         return $atten['emp'] === $emp['id'];
                     }));
+
+                    // Log::info(response()->json($attens_groupings));
+
                     // ** filterkasbon
                     $emp_depts = $debts->filter(function ($item) use ($emp) {
                         return $item->emp_id === $emp['id'];
@@ -162,7 +166,12 @@ class AttendanceCardController extends Controller
                                         $punchOut = Carbon::createFromTimeString($check_out);
 
                                         if ($code_day == $shiftday->code_day) {
-                                            if ($punchIn->lt($in->addMinute($shiftdayHas->timetable->in_time_plus_minus))) {
+                                            $temp_in_add = Carbon::createFromTimeString($shiftdayHas->timetable->in_time);
+                                            $temp_in_sub = Carbon::createFromTimeString($shiftdayHas->timetable->in_time);
+                                            $temp_in_sub->subMinutes($shiftdayHas->timetable->in_time_plus_minus);
+                                            $temp_in_add->addMinutes($shiftdayHas->timetable->in_time_plus_minus);
+                                            if ($punchIn->between($temp_in_add, $temp_in_sub)) {
+
                                                 // $shift_data['id'] = $shiftdayHas->id;
                                                 $shift_data['name'] = $shiftdayHas->timetable->name;
 
@@ -269,6 +278,7 @@ class AttendanceCardController extends Controller
                         'reports' => $date_datas,
                     ];
                 }
+                // Log::info(response()->json($attendance_reports));
                 $order = null;
                 $render =  view('Report.attendance_card.table', compact('attendance_reports', 'order'))->render();
 
