@@ -238,7 +238,7 @@
                                             @activemenu('shift') bg-gray-100 active @else hover:bg-gray-50 @endactivemenu">
                             <div class="flex items-center gap-2.5">
                                 <div class="w-5"></div>
-                                <p class="text-sm font-medium text-gray-600">Bagian Shift</p>
+                                <p class="text-sm font-medium text-gray-600">Shift Bagian</p>
                             </div>
                         </a>
                         @endcan

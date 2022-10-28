@@ -160,7 +160,11 @@ class PayrollReportController extends Controller
                                         $punchOut = Carbon::createFromTimeString($check_out);
 
                                         if ($code_day == $shiftday->code_day) {
-                                            if ($punchIn->lt($in->addHour())) {
+                                            $temp_in_add = Carbon::createFromTimeString($shiftdayHas->timetable->in_time);
+                                            $temp_in_sub = Carbon::createFromTimeString($shiftdayHas->timetable->in_time);
+                                            $temp_in_sub->subMinutes($shiftdayHas->timetable->in_time_plus_minus);
+                                            $temp_in_add->addMinutes($shiftdayHas->timetable->in_time_plus_minus);
+                                            if ($punchIn->between($temp_in_add, $temp_in_sub)) {
                                                 $shift_data['id'] = $shift->id;
                                                 $shift_data['name'] = $shift->name;
 

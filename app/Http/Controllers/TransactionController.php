@@ -48,10 +48,11 @@ class TransactionController extends Controller
                 $page_size = 10;
 
                 $attenDBs = new Transaction();
+                $search = '';
                 if (!empty($request->input('q'))) {
                     $search = $request->q;
-                    $filter['emp_code'] = $search;
-                    $attenDBs = $attenDBs->where('first_name', 'LIKE', "%" . $search . "%");
+                    // $filter['emp_code'] = $search;
+                    // $attenDBs = $attenDBs->where('first_name', 'LIKE', "%" . $search . "%");
                 }
 
                 if (!empty($request->input('date'))) {
@@ -80,7 +81,15 @@ class TransactionController extends Controller
                 $transactions = array_merge($transactions, $attenDBs);
 
                 $next = (ceil($atten_count / $page_size) == $page) ?  null : $page + 1;
-                $transactions = collect($transactions)->skip(($page - 1) * $page_size)->take($page_size);
+                Log::info(response()->json($transactions));
+                $transactions = collect($transactions)->filter(function ($atten) use ($search) {
+                    if ($search == '') return true;
+                    else {
+                        return $atten['emp_code'] === $search || $atten['first_name'] === $search
+                            || $atten['last_name'] === $search || $atten['verify_type_display'] === $search;
+                    }
+                });
+                $transactions = $transactions->skip(($page - 1) * $page_size)->take($page_size);
                 $transactions = collect([
                     'count' => $atten_count,
                     'data' => $transactions,
