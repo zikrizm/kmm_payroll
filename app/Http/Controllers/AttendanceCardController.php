@@ -72,8 +72,8 @@ class AttendanceCardController extends Controller
                 if (!empty($request->input('date'))) {
                     $start_time = Carbon::parse($request->date['start_time']);
                     $end_time = Carbon::parse($request->date['end_time']);
-                    $filter['start_time'] = $start_time->hour(0)->minute(0)->second(0);
-                    $filter['end_time'] = $end_time->hour(23)->minute(59)->second(59);
+                    $filter['start_time'] = $start_time->hour(0)->minute(0)->second(0)->format('Y-m-d H:i:s');
+                    $filter['end_time'] = $end_time->hour(23)->minute(59)->second(59)->format('Y-m-d H:i:s');
                     $attenDBs = Transaction::whereBetween('punch_time', [$filter['start_time'], $filter['end_time']])->get();
                     $dates = $this->util->generateDateRange($start_time, $end_time);
 
@@ -115,6 +115,19 @@ class AttendanceCardController extends Controller
                         return $atten['emp'] === $emp['id'];
                     }));
 
+                    // usort($attens_groupings, function ($a, $b) {
+                    //     return strtotime($a) - strtotime($b);
+                    // });
+
+                    // if ($emp['first_name'] == 'Erwan') {
+                    //     foreach ($attens_groupings as  $value1) {
+                    //         foreach ($value1 as  $value2) {
+                    //             Log::info("punch_time = {$value2['punch_time']}");
+                    //         }   
+                    //     }
+                    // }
+
+
                     // ** searchDepartment
                     $emp_dept = collect($dept_bios)->search(function ($item) use ($emp) {
                         return $item['id'] === $emp['department']['id'];
@@ -149,9 +162,7 @@ class AttendanceCardController extends Controller
                         }
                     }
 
-                    // if ($emp['first_name'] == 'karyawan003') {
-                    //     Log::info("===============================");
-                    // }
+
 
                     $report_by_date = [];
                     $daily_salary = ($emp_form_db_index != '') ? $emp_form_databases[$emp_form_db_index]->daily_salary : 0;
@@ -179,6 +190,7 @@ class AttendanceCardController extends Controller
                                             $punchOut = Carbon::createFromTimeString($check_out);
 
                                             if ($code_day == $shiftday->code_day) {
+
                                                 $check_in_add_plusmn = Carbon::createFromTimeString($shiftdayHas->timetable->check_in);
                                                 $check_in_sub_plusmn = Carbon::createFromTimeString($shiftdayHas->timetable->check_in);
                                                 $check_in_sub_plusmn->subMinutes($shiftdayHas->timetable->check_in_plusmn);
@@ -197,6 +209,7 @@ class AttendanceCardController extends Controller
 
                                                     if (!empty($shiftdayHas->timetable->cross_day)) {
                                                         $timetable['cross_day'] = $shiftdayHas->timetable->cross_day;
+
                                                         $next_date_index = $dates[$date_key + 1];
                                                         if (!empty($attens_groupings[$next_date_index])) {
                                                             $check_out_add_ot_limit = Carbon::createFromTimeString($shiftdayHas->timetable->check_out)

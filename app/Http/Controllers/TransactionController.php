@@ -55,8 +55,8 @@ class TransactionController extends Controller
                 }
 
                 if (!empty($request->input('date'))) {
-                    $filter['start_time'] = Carbon::parse($request->date['start_time'])->hour(0)->minute(0)->second(0);
-                    $filter['end_time'] = Carbon::parse($request->date['end_time'])->hour(23)->minute(59)->second(59);
+                    $filter['start_time'] = Carbon::parse($request->date['start_time'])->hour(0)->minute(0)->second(0)->format('Y-m-d H:i:s');
+                    $filter['end_time'] = Carbon::parse($request->date['end_time'])->hour(23)->minute(59)->second(59)->format('Y-m-d H:i:s');
                     $attenDBs = $attenDBs->whereBetween('punch_time', [$filter['start_time'], $filter['end_time']]);
                 }
 
@@ -96,7 +96,6 @@ class TransactionController extends Controller
                     'lastPage' => ceil($transactions->count() / $page_size),
                     'currentPage' => $page,
                 ]);
-
 
                 $render =  view('Transaction.transaction.table', compact('transactions', 'order', 'page_size'))->render();
                 return $this->buildRes->RESPONSE_REQ('success', $render, null);

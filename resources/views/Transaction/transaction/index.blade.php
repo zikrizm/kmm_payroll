@@ -55,8 +55,6 @@
                 'This Month': [moment().startOf('month'), moment().endOf('month')],
                 'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
             },
-            timePicker: true,
-            timePicker24Hour: true,
             alwaysShowCalendars: true,
             showCustomRangeLabel: false,
             showDropdowns: true,

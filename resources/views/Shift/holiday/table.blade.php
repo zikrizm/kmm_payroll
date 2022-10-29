@@ -47,7 +47,7 @@
                     <div class="flex items-center gap-2">
                         <x-icon icon="calendar" width=18 height=18 viewBox="20 20" />
                         <p class="truncate">
-                            {{ date('Y-m-d', strtotime($item->start_date)) }}
+                            {{ date('d-m-Y', strtotime($item->start_date)) }}
                         </p>
                     </div>
                 </td>
@@ -55,12 +55,13 @@
                     <div class="flex items-center gap-2">
                         <x-icon icon="calendar" width=18 height=18 viewBox="20 20" />
                         <p class="truncate">
-                            {{ date('Y-m-d', strtotime($item->end_date)) }}
+                            {{ date('d-m-Y', strtotime($item->end_date)) }}
                         </p>
                     </div>
                 </td>
                 <td class='px-3 py text-gray-500 text-sm'>
-                   {{ date_diff(new \DateTime($item->start_date), new \DateTime($item->end_date.' +1 day'))->format("%a");  }} hari
+                    {{ date_diff(new \DateTime($item->start_date), new \DateTime($item->end_date.' +1
+                    day'))->format("%a"); }} hari
                 </td>
                 @canany(['holiday.update', 'holiday.delete'])
                 <td class='px-3 py'>

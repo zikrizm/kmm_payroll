@@ -34,8 +34,8 @@
                 </section>
                 <div class="flex flex-col gap-1">
                     <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Tanggal libur</label>
-                    {!! FormCustom::input('holiday_date', date('Y-m-d', strtotime($holiday->start_date)).' - '.
-                    date('Y-m-d', strtotime($holiday->end_date)), [ 'placeholder' => 'Pilih tanggal libur',
+                    {!! FormCustom::input('holiday_date', date('d-m-Y', strtotime($holiday->start_date)).' - '.
+                    date('d-m-Y', strtotime($holiday->end_date)), [ 'placeholder' => 'Pilih tanggal libur',
                     'readonly' => true, 'prefixiconname' => 'calendar', 'class'=> 'date_input']) !!}
                 </div>
             </main>

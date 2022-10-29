@@ -46,7 +46,7 @@
                             <div class="flex gap-3 items-center px-6 py-3 cursor-pointer text-gray-500 text-sm">
                                 <x-icon icon="calendar" width=18 height=18 viewBox="20 20" />
                                 <p class="truncate ">
-                                    {{ date('Y-m-d', strtotime($item['att_date'])) }}
+                                    {{ date('d-m-Y', strtotime($item['att_date'])) }}
                                 </p>
                             </div>
                         </div>

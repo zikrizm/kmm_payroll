@@ -37,8 +37,8 @@
                                 onclick="get_modal('{{ $item->id }}')">
                                 <x-icon icon="calendar" width=18 height=18 viewBox="20 20" />
                                 <p class="truncate ">
-                                    {{ date('Y-m-d', strtotime($item->start_date)) }} -
-                                    {{ date('Y-m-d', strtotime($item->end_date)) }}
+                                    {{ date('d-m-Y', strtotime($item->start_date)) }} -
+                                    {{ date('d-m-Y', strtotime($item->end_date)) }}
                                 </p>
                             </div>
                         </div>
@@ -56,7 +56,8 @@
                                 class="flex items-center gap-1 rounded-xl px-2.5 py-0.5 w-max {{ ($is_active) ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700' }}">
                                 <span
                                     class="w-1.5 h-1.5 rounded-full block {{ ($is_active) ? 'bg-green-700' : 'bg-red-700' }}"></span>
-                                <p class="text-xs font-normal flex items-center gap-1 capitalize {{ ($is_active) ? 'text-green-600' : 'text-red-600' }}">
+                                <p
+                                    class="text-xs font-normal flex items-center gap-1 capitalize {{ ($is_active) ? 'text-green-600' : 'text-red-600' }}">
                                     {{ $dept->dept_name }}
                                 </p>
                             </div>

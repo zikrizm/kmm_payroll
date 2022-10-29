@@ -31,8 +31,8 @@
                 <section class="flex flex-col gap-1 flex-1">
                     <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Tanggal
                         penugasan*</label>
-                    {!! FormCustom::input('date', date('Y-m-d', strtotime($request_task->start_date)).' - '.
-                    date('Y-m-d', strtotime($request_task->end_date)), [
+                    {!! FormCustom::input('date', date('d-m-Y', strtotime($request_task->start_date)).' - '.
+                    date('d-m-Y', strtotime($request_task->end_date)), [
                     'placeholder' => 'Pilih tanggal penugasan',
                     'class' => 'request-task-date',
                     'readonly' => true,

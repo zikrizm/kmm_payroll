@@ -16,7 +16,7 @@
                     </th>
                     <th class='px-3 py-3 text-left cursor-pointer'>
                         <x-ui.sort-table text="Nama karyawan" url="{{ route('kasbon.index') }}" field="first_name"
-                        order="{{ $order }}" />
+                            order="{{ $order }}" />
                     </th>
                     <th class='px-3 py-3 text-left cursor-pointer'>
                         <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Kasbon</p>
@@ -47,7 +47,7 @@
                                 onclick="get_modal('{{ $item->id }}')">
                                 <x-icon icon="calendar" width=18 height=18 viewBox="20 20" />
                                 <p class="truncate ">
-                                    {{ date('Y-m-d', strtotime($item->date)) }}
+                                    {{ date('d-m-Y', strtotime($item->date)) }}
                                 </p>
                             </div>
                         </div>

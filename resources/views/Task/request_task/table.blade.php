@@ -37,8 +37,8 @@
                                 onclick="get_modal('{{ $item['id'] }}')">
                                 <x-icon icon="calendar" width=18 height=18 viewBox="20 20" />
                                 <p class="truncate text-sm">
-                                    {{ date('Y-m-d', strtotime($item->start_date)) }} -
-                                    {{ date('Y-m-d', strtotime($item->end_date)) }}
+                                    {{ date('d-m-Y', strtotime($item->start_date)) }} -
+                                    {{ date('d-m-Y', strtotime($item->end_date)) }}
                                 </p>
                             </div>
                         </div>

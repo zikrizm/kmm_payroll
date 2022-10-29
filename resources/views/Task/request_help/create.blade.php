@@ -45,8 +45,8 @@
                         @endphp
                         <option data-group="{{ json_encode($item) }}" data-operational="{{ $operationals[$indexOp] }}"
                             value="{{ $item['id'] }}" title="{{ $item['dept_name'] }}">
-                            {{ date('Y-m-d', strtotime($item['start_date'])) }} -
-                            {{ date('Y-m-d', strtotime($item['end_date'])) }}
+                            {{ date('d-m-Y', strtotime($item['start_date'])) }} -
+                            {{ date('d-m-Y', strtotime($item['end_date'])) }}
                         </option>
                         @endforeach
                     </select>

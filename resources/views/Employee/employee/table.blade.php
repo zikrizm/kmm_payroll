@@ -85,7 +85,7 @@
                     </td>
                     <td class='px-3 py text-gray-500 text-sm'>
                         <p class="truncate">
-                            {{ $item['hire_date'] }}
+                            {{ date('d-m-Y', strtotime($item['hire_date'])) }}
                         </p>
                     </td>
                     <td class='px-3 py'>

@@ -5,9 +5,9 @@ $status_name = "group[$key][status]";
 $note_name = "group[$key][note]";
 $date_hint = "group-$key-date";
 $note_hint = "group-$key-note";
-$date_value = (!empty($operational) ? (date('Y-m-d',
+$date_value = (!empty($operational) ? (date('d-m-Y',
 strtotime($operational->operational_has_depts[$key]->start_date))
-.' - '.date('Y-m-d', strtotime($operational->operational_has_depts[$key]->end_date))): null);
+.' - '.date('d-m-Y', strtotime($operational->operational_has_depts[$key]->end_date))): null);
 $node_value = !empty($operational) ? $operational->operational_has_depts[$key]->note: null;
 $status_value = !empty($operational) ? $operational->operational_has_depts[$key]->status: null;
 @endphp

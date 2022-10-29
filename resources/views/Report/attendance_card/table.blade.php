@@ -37,8 +37,8 @@
                         </td>
                         <td class="align-middle">
                             <p class="text-gray-500 text-xs text-middle mt-0.5">
-                                {{ date('Y-m-d', strtotime($item['range_date']['start_time'])) }} -
-                                {{ date('Y-m-d', strtotime($item['range_date']['end_time'])) }}
+                                {{ date('d-m-Y', strtotime($item['range_date']['start_time'])) }} -
+                                {{ date('d-m-Y', strtotime($item['range_date']['end_time'])) }}
                         </td>
                     </tr>
                 </table>
@@ -111,24 +111,24 @@
                 <tbody>
                     @foreach ($item['reports'] as $key => $item_report)
                     <tr class='hover:bg-gray-50 border '>
-                        <td class=' text-xs border text-gray-500 text-center w-8'>
+                        <td class='text-xs border text-gray-500 text-center w-8'>
                             {{ date('d', strtotime($item_report['date'])) }}
                         </td>
-                        <td class=' text-xs border text-gray-500 text-center w-12'>
+                        <td class='text-xs border text-gray-500 text-center w-12'>
                             @if (!empty($item_report['first_punch']))
                             {{ date('H:i', strtotime($item_report['first_punch'])) }}
                             @else
                             -
                             @endif
                         </td>
-                        <td class=' text-xs border text-gray-500 text-center w-12'>
+                        <td class='text-xs border text-gray-500 text-center w-12'>
                             @if (!empty($item_report['last_punch']))
                             {{ date('H:i', strtotime($item_report['last_punch'])) }}
                             @else
                             -
                             @endif
                         </td>
-                        <td class=' text-xs border text-gray-500 text-center'>
+                        <td class='text-xs border text-gray-500 text-center'>
                             @if (!empty($item_report['timetable']))
                             <div class="flex justify-center">
                                 <div class="flex items-center gap-1">

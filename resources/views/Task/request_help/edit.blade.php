@@ -46,8 +46,8 @@
                         <option @selected($request_help->operational_has_dept_id == $item['id'])
                             data-group="{{ json_encode($item) }}" data-operational="{{ $operationals[$indexOp] }}"
                             value="{{ $item['id'] }}" title="{{ $item['dept_name'] }}">
-                            {{ date('Y-m-d', strtotime($item['start_date'])) }} -
-                            {{ date('Y-m-d', strtotime($item['end_date'])) }}
+                            {{ date('d-m-Y', strtotime($item['start_date'])) }} -
+                            {{ date('d-m-Y', strtotime($item['end_date'])) }}
                         </option>
                         @endforeach
                     </select>
@@ -59,7 +59,7 @@
                             <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Tanggal bantuan*</label>
                             {!! FormCustom::input(
                             'date',
-                            date('Y-m-d', strtotime($request_help->start_date)) . ' - ' . date('Y-m-d',
+                            date('d-m-Y', strtotime($request_help->start_date)) . ' - ' . date('d-m-Y',
                             strtotime($request_help->end_date)),
                             [
                             'placeholder' => 'Pilih tanggal bantuan',
