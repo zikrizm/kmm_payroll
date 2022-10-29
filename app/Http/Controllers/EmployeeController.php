@@ -120,9 +120,9 @@ class EmployeeController extends Controller
         }
 
         try {
-            $departments = $this->apiService->get_departments([]);
-            $areas = $this->apiService->get_areas([]);
-            $positions = $this->apiService->get_positions([]);
+            $departments = $this->apiService->get_departments(["page_size" => 999]);
+            $areas = $this->apiService->get_areas(["page_size" => 999]);
+            $positions = $this->apiService->get_positions(["page_size" => 999]);
 
             $render = view('Employee.employee.create', compact('departments', 'areas', 'positions'))->render();
 
@@ -302,9 +302,9 @@ class EmployeeController extends Controller
                 $employee['payment_period'] = $employeeDB->payment_period ?? null;
                 $employee['position'] = $employeeDB->employee_has_position ?? [];
 
-                $departments = $this->apiService->get_departments([]);
-                $areas = $this->apiService->get_areas([]);
-                $positions = $this->apiService->get_positions([]);
+                $departments = $this->apiService->get_departments([ "page_size" => 999]);
+                $areas = $this->apiService->get_areas([ "page_size" => 999]);
+                $positions = $this->apiService->get_positions([ "page_size" => 999]);
                 $render = view('Employee.employee.edit', compact('employee', 'departments', 'areas', 'positions'))->render();
 
                 return $this->buildRes->RESPONSE_REQ('success', $render, null);

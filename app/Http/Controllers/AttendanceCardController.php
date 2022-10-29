@@ -72,9 +72,9 @@ class AttendanceCardController extends Controller
                 if (!empty($request->input('date'))) {
                     $start_time = Carbon::parse($request->date['start_time']);
                     $end_time = Carbon::parse($request->date['end_time']);
-                    $filter['start_time'] = $request->date['start_time'];
-                    $filter['end_time'] = $request->date['end_time'];
-                    $attenDBs = Transaction::whereBetween('punch_time', [$start_time->hour(0)->minute(0)->second(0), $end_time->hour(0)->minute(0)->second(0)])->get();
+                    $filter['start_time'] = $start_time->hour(0)->minute(0)->second(0);
+                    $filter['end_time'] = $end_time->hour(23)->minute(59)->second(59);
+                    $attenDBs = Transaction::whereBetween('punch_time', [$filter['start_time'], $filter['end_time']])->get();
                     $dates = $this->util->generateDateRange($start_time, $end_time);
 
                     foreach ($dates as $date) {
@@ -216,13 +216,14 @@ class AttendanceCardController extends Controller
 
                                                             array_push($attens_groupings[$dates[$date_key]], ...$cross_data_attendances);
                                                             $attens_groupings[$next_date_index] = $no_cross_data_attendances;
-
-                                                            // dirubah karena timetable nya ad CROSS-nya
-                                                            // biar perhitungan jam keluarnya berubah
-                                                            $atten_last = $cross_data_attendances[count($cross_data_attendances) - 1];
-                                                            $diff_time_punch = Carbon::parse($atten_first['punch_time'])->diff(Carbon::parse($atten_last['punch_time']));
-                                                            $check_out = Carbon::parse($atten_last['punch_time'])->format('H:i:s');
-                                                            $punchOut = Carbon::createFromTimeString($check_out);
+                                                            if (!empty($cross_data_attendances)) {
+                                                                // dirubah karena timetable nya ad CROSS-nya
+                                                                // biar perhitungan jam keluarnya berubah
+                                                                $atten_last = $cross_data_attendances[count($cross_data_attendances) - 1];
+                                                                $diff_time_punch = Carbon::parse($atten_first['punch_time'])->diff(Carbon::parse($atten_last['punch_time']));
+                                                                $check_out = Carbon::parse($atten_last['punch_time'])->format('H:i:s');
+                                                                $punchOut = Carbon::createFromTimeString($check_out);
+                                                            }
                                                         } else {
                                                         }
                                                     }
@@ -301,7 +302,7 @@ class AttendanceCardController extends Controller
                     $amout_of_ot_pay = 0;
                     $early_check_in = 0;
                     $early_check_in_pay = 0;
-                    $amout_day = 0;
+                    $amount_day = 0;
                     $total = 0;
 
                     foreach ($report_by_date as $value) {
@@ -310,10 +311,10 @@ class AttendanceCardController extends Controller
                             $amout_of_ot_pay += $value['timetable']['total_overtime_pay_per_day'] ?? 0;
                             $early_check_in += $value['timetable']['early_check_in'] ?? 0;
                             $early_check_in_pay += $value['timetable']['total_earlyin_pay_per_day'] ?? 0;
-                            $amout_day += $value['timetable']['per_day'] ?? 0;
+                            $amount_day += $value['timetable']['per_day'] ?? 0;
                         }
                     }
-                    $total = ($amout_of_ot_pay + $early_check_in_pay) + ($amout_day * $daily_salary);
+                    $total = ($amout_of_ot_pay + $early_check_in_pay) + ($amount_day * $daily_salary);
 
                     $attendance_reports[] = [
                         'employee' => $emp,
@@ -325,7 +326,7 @@ class AttendanceCardController extends Controller
                         'amout_of_ot_pay' => $amout_of_ot_pay,
                         'early_check_in' => $early_check_in,
                         'early_check_in_pay' => $early_check_in_pay,
-                        'amout_day' => $amout_day,
+                        'amount_day' => $amount_day,
                         'total' => $total,
                         'reports' => $report_by_date,
                     ];
