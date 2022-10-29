@@ -65,7 +65,7 @@
                             </div>
                             <section class="flex flex-col gap-1 flex-1">
                                 <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Jenis kelamin*</label>
-                                <select class="select2" name="gender">
+                                <select class="select2-modal" name="gender">
                                     <option value="" disabled>Silahkan Pilih</option>
                                     <option value="M" {{ $employee['gender']=='M' ? 'selected' :'' }}>Laki-Laki</option>
                                     <option value="F" {{ $employee['gender']=='F' ? 'selected' :'' }}>Perempuan</option>
@@ -81,7 +81,7 @@
                                         onchange="loadPic('#photo', 'photo_preview', '#remove-img')" />
                                     <span class='cursor-pointer flex w-32 h-32 border border-dashed p-2'>
                                         @if (empty($employee["photo"]))
-                                        <img src='' class='object-cover h-full w-full overflow-hidden'
+                                        <img src='@zkPhoto(files/nophoto.gif)' class='object-cover h-full w-full overflow-hidden'
                                             id="photo_preview">
                                         @else
                                         <img src='@zkPhoto({{ $employee["photo"] }})'
@@ -148,7 +148,7 @@
                     <div class="flex items-start gap-4">
                         <section class="flex flex-col gap-1 flex-2">
                             <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Bagian karyawan*</label>
-                            <select class="select2" name="department">
+                            <select class="select2-modal" name="department">
                                 <option value="" disabled>Silahkan Pilih</option>
                                 @foreach ($departments['data'] as $item)
                                 <option value="{{ $item['id'] }}" {{ !empty($employee['department']) &&
@@ -160,9 +160,9 @@
                         </section>
                         <section class="flex flex-col gap-1 flex-1">
                             <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Jenis karyawan*</label>
-                            <select class="select2" name="emp_type">
+                            <select class="select2-modal" name="emp_type">
                                 <option value="" disabled selected>Silahkan Pilih</option>
-                                <option value="1" {{ $employee['emp_type']==1?'selected':'' }}>Resmi</option>
+                                <option value="1" {{ $employee['emp_type']==1?'selected':'' }}>Tetap</option>
                                 <option value="2" {{ $employee['emp_type']==2?'selected':'' }}>Sementara</option>
                                 <option value="3" {{ $employee['emp_type']==3?'selected':'' }}>Masa percobaan</option>
                             </select>
@@ -172,7 +172,7 @@
                     <div class="flex items-start gap-4">
                         <section class="flex flex-col gap-1 flex-2">
                             <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Jabatan karyawan</label>
-                            <select class="select2" name="position[]" multiple>
+                            <select class="select2-modal" name="position[]" multiple>
                                 @foreach ($positions['data'] as $item)
                                 @php
                                 $is_ready = false;
@@ -195,7 +195,7 @@
                         </section>
                         <section class="flex flex-col gap-1 flex-1">
                             <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Area karyawan*</label>
-                            <select class="select2" name="area[]" multiple="multiple">
+                            <select class="select2-modal" name="area[]" multiple="multiple">
                                 <option value="all">Select all</option>
                                 @foreach ($areas['data'] as $item)
                                 <option value="{{ $item['id'] }}" {{ (!empty($employee['area'])) &&
@@ -218,7 +218,7 @@
                         </section>
                         <section class="flex flex-col gap-1 flex-1">
                             <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Periode pembayaran*</label>
-                            <select class="select2" name="payment_period">
+                            <select class="select2-modal" name="payment_period">
                                 <option value="" disabled selected>Silahkan Pilih</option>
                                 <option value="daily" {{ $employee['payment_period']=='daily' ?'selected' : '' }}>
                                     Harian</option>
