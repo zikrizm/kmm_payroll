@@ -139,7 +139,8 @@
                                             $item_report['timetable']['cross_day'] ?? '' }}</p>
                                         @endif
                                     </div>
-                                    @if ($item_report['timetable']['is_half_day'])
+                                    @if
+                                    (!empty($item_report['timetable']['is_half_day'])&&$item_report['timetable']['is_half_day'])
                                     <p class="text-[9px]">(1/2)</p>
                                     @else
                                     <p class="text-[9px]">{{ !empty($item_report['timetable']['per_day']) ?
