@@ -88,7 +88,7 @@
                             <span class="text-gray-600">
                                 <x-icon icon="home" width=18 height=18 viewBox="20 20" />
                             </span>
-                            <p class="text-sm font-medium text-gray-600">Beranda</p>
+                            <p class="text-sm font-medium text-gray-600">Dashboard</p>
                         </div>
                     </a>
                     @canany(['department.view', 'position.view', 'area.view', 'device.view'])
@@ -113,7 +113,7 @@
                                         @activemenu('setting') bg-gray-100 active @else hover:bg-gray-50 @endactivemenu">
                             <div class="flex items-center gap-2.5">
                                 <div class="w-5"></div>
-                                <p class="text-sm font-medium text-gray-600">Bisnis</p>
+                                <p class="text-sm font-medium text-gray-600">Perusahaan</p>
                             </div>
                         </a>
                         @can('department.view')

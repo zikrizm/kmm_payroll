@@ -14,8 +14,8 @@
     </header> --}}
     <main class="flex flex-col gap-3 w-full">
         <section>
-            <p class='text-gray-700 text-sm font-medium'>Your logo</p>
-            <p class='text-gray-500 text-sm font-normal'>This will be displayed on your profile.</p>
+            <p class='text-gray-700 text-sm font-medium'>Logo Perusahaan</p>
+            <p class='text-gray-500 text-sm font-normal'>Klik logo dibawah ini untuk merubah logo perusahaan</p>
         </section>
         <section class='flex justify-center items-center'>
             {{-- <div class="relative">
@@ -46,11 +46,11 @@
             <input type="hidden" name="business_logo" id="business_logo">
         </section>
         <section class="flex flex-col gap-1">
-            <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Business name*</label>
+            <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Nama Perusahaan*</label>
             {!! FormCustom::input('name', $business->name, [ "placeholder" => 'Enter new your business name']) !!}
         </section>
         <section class="flex flex-col gap-1">
-            <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Start date</label>
+            <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Tanggal Mulai</label>
             {!! FormCustom::input('start_date', @formatDate($business->start_date), [
             'placeholder' => 'Enter new your start date',
             'readonly' => true,

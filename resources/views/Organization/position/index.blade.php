@@ -8,7 +8,7 @@
         <header class="flex justify-between items-start">
             <div class="flex flex-col gap-1">
                 <p class="text-3xl font-medium text-gray-900">Jabatan</p>
-                <p class="text-base font-normal text-gray-500">Pengaturan upah tambahan jabatan.</p>
+                <p class="text-base font-normal text-gray-500">Pengaturan gaji setiap jabatan.</p>
             </div>
             <div class="">
                 <button onclick="get_modal()"

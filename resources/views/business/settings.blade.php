@@ -8,8 +8,8 @@
     <main class="flex flex-col gap-8 h-full">
         <header class="w-full flex flex-col gap-6 justify-center pt-6">
             <div class="flex flex-col gap-1">
-                <p class="text-3xl font-medium text-gray-900">Pengaturan bisnis</p>
-                <p class="text-base font-normal text-gray-500">Perbarui logo dan detail bisnis Anda di sini.</p>
+                <p class="text-3xl font-medium text-gray-900">Pengaturan Perusahaan</p>
+                <p class="text-base font-normal text-gray-500">Pengaturan profil perusahaan.</p>
             </div>
             <ul class="flex border-b">
                 <li>

@@ -8,7 +8,7 @@
     <header class="flex justify-between items-start">
         <div class="flex flex-col gap-1">
             <p class="text-3xl font-medium text-gray-900">Kasbon</p>
-            <p class="text-base font-normal text-gray-500">Disini untuk mengatur status setiap kasbon.</p>
+            <p class="text-base font-normal text-gray-500">Pengaturan kasbon karyawan.</p>
         </div>
         <div class="">
             <button onclick="get_modal()" class="flex items-center gap-2.5 px-4 py-2 text-gray-500 text-sm font-medium 
