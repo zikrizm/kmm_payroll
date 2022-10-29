@@ -13,6 +13,7 @@ return new class extends Migration
      */
     public function up()
     {
+        // INSERT INTO `timetables` (`id`, `business_id`, `name`, `check_in`, `check_in_plusmn`, `check_out`, `check_out_plusmn`, `work_time`, `work_type`, `cross_day`, `is_without_break`, `ot_roundone_hr`, `ot_roundhalf_hr`, `ot_period`, `ot_pay`, `duration_count_one_shift`,`duration_ot_limit`, `duration_rice_shift`, `created_at`, `updated_at`) VALUES
         Schema::create('timetables', function (Blueprint $table) {
             $table->increments('id');
             $table->integer('business_id')->unsigned();

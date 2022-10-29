@@ -91,169 +91,6 @@
                             <p class="text-sm font-medium text-gray-600">Beranda</p>
                         </div>
                     </a>
-
-                    @canany(['user.view', 'role.view'])
-                    <section class="my-dropdown-menu flex items-center justify-between p-2.5 rounded-lg w-full 
-                                        @activemenu('users') bg-gray-100 active @else hover:bg-gray-50 @endactivemenu"
-                        data-dropdown-toggle="dropdown-menu-user">
-                        <div class="flex items-center gap-2.5">
-                            <span class="text-gray-600">
-                                <x-icon icon="User" width=18 height=18 viewBox="20 20" />
-                            </span>
-                            <p class="text-sm font-medium text-gray-600">Pengaturan Pengguna</p>
-                        </div>
-                        <span class="text-gray-500 chevron-icon duration-300">
-                            <x-icon icon="chevron-down" width=18 height=18 viewBox="20 20" />
-                        </span>
-                    </section>
-                    <div id="dropdown-menu-user"
-                        class="flex flex-col gap-1 @activemenu('users') @else hidden @endactivemenu">
-                        @can('user.view')
-                        <a href="{{ route('user.index') }}"
-                            class="flex items-center justify-between p-2.5 rounded-lg w-full hover:underline hover:decoration-gray-500 
-                                            @activemenu('user') bg-gray-100 active @else hover:bg-gray-50 @endactivemenu">
-                            <div class="flex items-center gap-2.5">
-                                <div class="w-5"></div>
-                                <p class="text-sm font-medium text-gray-600">Pengguna</p>
-                            </div>
-                        </a>
-                        @endcan
-                        @can('role.view')
-                        <a href="{{ route('role.index') }}"
-                            class="flex items-center justify-between p-2.5 rounded-lg w-full hover:underline hover:decoration-gray-500
-                                            @activemenu('role') bg-gray-100 active @else hover:bg-gray-50 @endactivemenu">
-                            <div class="flex items-center gap-2.5">
-                                <div class="w-5"></div>
-                                <p class="text-sm font-medium text-gray-600">Wewenang</p>
-                            </div>
-                        </a>
-                        @endcan
-                        <a href="{{ route('activity-log.index') }}"
-                            class="flex items-center justify-between p-2.5 rounded-lg w-full hover:underline hover:decoration-gray-500
-                                            @activemenu('activity-log') bg-gray-100 active @else hover:bg-gray-50 @endactivemenu">
-                            <div class="flex items-center gap-2.5">
-                                <div class="w-5"></div>
-                                <p class="text-sm font-medium text-gray-600">Aktifitas pengguna</p>
-                            </div>
-                        </a>
-                    </div>
-                    @endcanany
-
-                    @canany(['employee.view', 'resign.view', 'kasbon.view', 'transaction.view'])
-                    <section class="my-dropdown-menu flex items-center justify-between p-2.5 rounded-lg w-full 
-                                    @activemenu('employees') bg-gray-100 active @else hover:bg-gray-50 @endactivemenu"
-                        data-dropdown-toggle="dropdown-menu-employee">
-                        <div class="flex items-center gap-2.5">
-                            <span class="text-gray-600">
-                                <x-icon icon="users" width=18 height=18 viewBox="20 20" />
-                            </span>
-                            <p class="text-sm font-medium text-gray-600">Pengaturan Karyawan</p>
-                        </div>
-                        <span class="text-gray-500 chevron-icon duration-300">
-                            <x-icon icon="chevron-down" width=18 height=18 viewBox="20 20" />
-                        </span>
-                    </section>
-                    <div id="dropdown-menu-employee" class="flex flex-col gap-1 
-                                 @activemenu('employees') @else hidden @endactivemenu">
-                        @can('employee.view')
-                        <a href="{{ route('employee.index') }}"
-                            class="flex items-center justify-between p-2.5 rounded-lg w-full hover:underline hover:decoration-gray-500 
-                                            @activemenu('employee') bg-gray-100 active @else hover:bg-gray-50 @endactivemenu">
-                            <div class="flex items-center gap-2.5">
-                                <div class="w-5"></div>
-                                <p class="text-sm font-medium text-gray-600">Karyawan</p>
-                            </div>
-                        </a>
-                        @endcan
-                        @can('kasbon.view')
-                        <a href="{{ route('kasbon.index') }}"
-                            class="flex items-center justify-between p-2.5 rounded-lg w-full hover:underline hover:decoration-gray-500 
-                                            @activemenu('kasbon') bg-gray-100 active @else hover:bg-gray-50 @endactivemenu">
-                            <div class="flex items-center gap-2.5">
-                                <div class="w-5"></div>
-                                <p class="text-sm font-medium text-gray-600">Kasbon</p>
-                            </div>
-                        </a>
-                        @endcan
-                        @can('resign.view')
-                        <a href="{{ route('resign.index') }}"
-                            class="flex items-center justify-between p-2.5 rounded-lg w-full hover:underline hover:decoration-gray-500 
-                                            @activemenu('resign') bg-gray-100 active @else hover:bg-gray-50 @endactivemenu">
-                            <div class="flex items-center gap-2.5">
-                                <div class="w-5"></div>
-                                <p class="text-sm font-medium text-gray-600">Mengundurkan diri</p>
-                            </div>
-                        </a>
-                        @endcan
-                        <a href="{{ route('transaction.index') }}"
-                        class="flex items-center justify-between p-2.5 rounded-lg w-full hover:underline hover:decoration-gray-500 
-                                    @activemenu('transaction') bg-gray-100 active @else hover:bg-gray-50 @endactivemenu">
-                        <div class="flex items-center gap-2.5">
-                            <div class="w-5"></div>
-                            <p class="text-sm font-medium text-gray-600">Absensi karyawan</p>
-                        </div>
-                    </a>
-                    </div>
-                    @endcanany
-
-                    @canany(['break-time.view', 'timetable.view', 'shift.view', 'holiday.view'])
-                    <section class="my-dropdown-menu flex items-center justify-between p-2.5 rounded-lg w-full
-                                    @activemenu('shifts') bg-gray-100 active @else hover:bg-gray-50 @endactivemenu"
-                        data-dropdown-toggle="dropdown-menu-shift">
-                        <div class="flex items-center gap-2.5">
-                            <span class="text-gray-600">
-                                <x-icon icon="clock" width=18 height=18 viewBox="20 20" />
-                            </span>
-                            <p class="text-sm font-medium text-gray-600">Pengaturan Waktu</p>
-                        </div>
-                        <span class="text-gray-500 chevron-icon duration-300">
-                            <x-icon icon="chevron-down" width=18 height=18 viewBox="20 20" />
-                        </span>
-                    </section>
-                    <div id="dropdown-menu-shift" class="flex flex-col gap-1 
-                                 @activemenu('shifts') @else hidden @endactivemenu">
-                        @can('break-time.view')
-                        <a href="{{ route('break-time.index') }}"
-                            class="flex items-center justify-between p-2.5 rounded-lg w-full hover:underline hover:decoration-gray-500
-                                            @activemenu('break-time') bg-gray-100 active @else hover:bg-gray-50 @endactivemenu">
-                            <div class="flex items-center gap-2.5">
-                                <div class="w-5"></div>
-                                <p class="text-sm font-medium text-gray-600">Istirahat</p>
-                            </div>
-                        </a>
-                        @endcan
-                        @can('timetable.view')
-                        <a href="{{ route('timetable.index') }}"
-                            class="flex items-center justify-between p-2.5 rounded-lg w-full hover:underline hover:decoration-gray-500 
-                                            @activemenu('timetable') bg-gray-100 active @else hover:bg-gray-50 @endactivemenu">
-                            <div class="flex items-center gap-2.5">
-                                <div class="w-5"></div>
-                                <p class="text-sm font-medium text-gray-600">Jadwal Shift</p>
-                            </div>
-                        </a>
-                        @endcan
-                        @can('shift.view')
-                        <a href="{{ route('shift.index') }}"
-                            class="flex items-center justify-between p-2.5 rounded-lg w-full hover:underline hover:decoration-gray-500 
-                                            @activemenu('shift') bg-gray-100 active @else hover:bg-gray-50 @endactivemenu">
-                            <div class="flex items-center gap-2.5">
-                                <div class="w-5"></div>
-                                <p class="text-sm font-medium text-gray-600">Shift Bagian</p>
-                            </div>
-                        </a>
-                        @endcan
-                        @can('holiday.view')
-                        <a href="{{ route('holiday.index') }}"
-                            class="flex items-center justify-between p-2.5 rounded-lg w-full hover:underline hover:decoration-gray-500 
-                                            @activemenu('holiday') bg-gray-100 active @else hover:bg-gray-50 @endactivemenu">
-                            <div class="flex items-center gap-2.5">
-                                <div class="w-5"></div>
-                                <p class="text-sm font-medium text-gray-600">Libur Nasional</p>
-                            </div>
-                        </a>
-                        @endcan
-                    </div>
-                    @endcanany
                     @canany(['department.view', 'position.view', 'area.view', 'device.view'])
                     <section
                         class="my-dropdown-menu flex items-center justify-between p-2.5 rounded-lg w-full
@@ -319,6 +156,219 @@
                         </a>
                     </div>
                     @endcanany
+
+                    @canany(['user.view', 'role.view'])
+                    <section class="my-dropdown-menu flex items-center justify-between p-2.5 rounded-lg w-full 
+                                        @activemenu('users') bg-gray-100 active @else hover:bg-gray-50 @endactivemenu"
+                        data-dropdown-toggle="dropdown-menu-user">
+                        <div class="flex items-center gap-2.5">
+                            <span class="text-gray-600">
+                                <x-icon icon="User" width=18 height=18 viewBox="20 20" />
+                            </span>
+                            <p class="text-sm font-medium text-gray-600">Pengaturan Pengguna</p>
+                        </div>
+                        <span class="text-gray-500 chevron-icon duration-300">
+                            <x-icon icon="chevron-down" width=18 height=18 viewBox="20 20" />
+                        </span>
+                    </section>
+                    <div id="dropdown-menu-user"
+                        class="flex flex-col gap-1 @activemenu('users') @else hidden @endactivemenu">
+                        @can('user.view')
+                        <a href="{{ route('user.index') }}"
+                            class="flex items-center justify-between p-2.5 rounded-lg w-full hover:underline hover:decoration-gray-500 
+                                            @activemenu('user') bg-gray-100 active @else hover:bg-gray-50 @endactivemenu">
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-5"></div>
+                                <p class="text-sm font-medium text-gray-600">Pengguna</p>
+                            </div>
+                        </a>
+                        @endcan
+                        @can('role.view')
+                        <a href="{{ route('role.index') }}"
+                            class="flex items-center justify-between p-2.5 rounded-lg w-full hover:underline hover:decoration-gray-500
+                                            @activemenu('role') bg-gray-100 active @else hover:bg-gray-50 @endactivemenu">
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-5"></div>
+                                <p class="text-sm font-medium text-gray-600">Wewenang</p>
+                            </div>
+                        </a>
+                        @endcan
+                        <a href="{{ route('activity-log.index') }}"
+                            class="flex items-center justify-between p-2.5 rounded-lg w-full hover:underline hover:decoration-gray-500
+                                            @activemenu('activity-log') bg-gray-100 active @else hover:bg-gray-50 @endactivemenu">
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-5"></div>
+                                <p class="text-sm font-medium text-gray-600">Aktifitas pengguna</p>
+                            </div>
+                        </a>
+                    </div>
+                    @endcanany
+                    @canany(['break-time.view', 'timetable.view', 'shift.view', 'holiday.view'])
+                    <section class="my-dropdown-menu flex items-center justify-between p-2.5 rounded-lg w-full
+                                    @activemenu('shifts') bg-gray-100 active @else hover:bg-gray-50 @endactivemenu"
+                        data-dropdown-toggle="dropdown-menu-shift">
+                        <div class="flex items-center gap-2.5">
+                            <span class="text-gray-600">
+                                <x-icon icon="clock" width=18 height=18 viewBox="20 20" />
+                            </span>
+                            <p class="text-sm font-medium text-gray-600">Pengaturan Waktu</p>
+                        </div>
+                        <span class="text-gray-500 chevron-icon duration-300">
+                            <x-icon icon="chevron-down" width=18 height=18 viewBox="20 20" />
+                        </span>
+                    </section>
+                    <div id="dropdown-menu-shift" class="flex flex-col gap-1 
+                                 @activemenu('shifts') @else hidden @endactivemenu">
+                        @can('break-time.view')
+                        <a href="{{ route('break-time.index') }}"
+                            class="flex items-center justify-between p-2.5 rounded-lg w-full hover:underline hover:decoration-gray-500
+                                            @activemenu('break-time') bg-gray-100 active @else hover:bg-gray-50 @endactivemenu">
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-5"></div>
+                                <p class="text-sm font-medium text-gray-600">Istirahat</p>
+                            </div>
+                        </a>
+                        @endcan
+                        @can('timetable.view')
+                        <a href="{{ route('timetable.index') }}"
+                            class="flex items-center justify-between p-2.5 rounded-lg w-full hover:underline hover:decoration-gray-500 
+                                            @activemenu('timetable') bg-gray-100 active @else hover:bg-gray-50 @endactivemenu">
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-5"></div>
+                                <p class="text-sm font-medium text-gray-600">Jadwal Shift</p>
+                            </div>
+                        </a>
+                        @endcan
+                        @can('shift.view')
+                        <a href="{{ route('shift.index') }}"
+                            class="flex items-center justify-between p-2.5 rounded-lg w-full hover:underline hover:decoration-gray-500 
+                                            @activemenu('shift') bg-gray-100 active @else hover:bg-gray-50 @endactivemenu">
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-5"></div>
+                                <p class="text-sm font-medium text-gray-600">Shift Bagian</p>
+                            </div>
+                        </a>
+                        @endcan
+                        @can('holiday.view')
+                        <a href="{{ route('holiday.index') }}"
+                            class="flex items-center justify-between p-2.5 rounded-lg w-full hover:underline hover:decoration-gray-500 
+                                            @activemenu('holiday') bg-gray-100 active @else hover:bg-gray-50 @endactivemenu">
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-5"></div>
+                                <p class="text-sm font-medium text-gray-600">Libur Nasional</p>
+                            </div>
+                        </a>
+                        @endcan
+                    </div>
+                    @endcanany
+
+                    @canany(['employee.view', 'resign.view', 'kasbon.view', 'transaction.view'])
+                    <section class="my-dropdown-menu flex items-center justify-between p-2.5 rounded-lg w-full 
+                                    @activemenu('employees') bg-gray-100 active @else hover:bg-gray-50 @endactivemenu"
+                        data-dropdown-toggle="dropdown-menu-employee">
+                        <div class="flex items-center gap-2.5">
+                            <span class="text-gray-600">
+                                <x-icon icon="users" width=18 height=18 viewBox="20 20" />
+                            </span>
+                            <p class="text-sm font-medium text-gray-600">Pengaturan Karyawan</p>
+                        </div>
+                        <span class="text-gray-500 chevron-icon duration-300">
+                            <x-icon icon="chevron-down" width=18 height=18 viewBox="20 20" />
+                        </span>
+                    </section>
+                    <div id="dropdown-menu-employee" class="flex flex-col gap-1 
+                                 @activemenu('employees') @else hidden @endactivemenu">
+                        @can('employee.view')
+                        <a href="{{ route('employee.index') }}"
+                            class="flex items-center justify-between p-2.5 rounded-lg w-full hover:underline hover:decoration-gray-500 
+                                            @activemenu('employee') bg-gray-100 active @else hover:bg-gray-50 @endactivemenu">
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-5"></div>
+                                <p class="text-sm font-medium text-gray-600">Karyawan</p>
+                            </div>
+                        </a>
+                        @endcan
+                        @can('kasbon.view')
+                        <a href="{{ route('kasbon.index') }}"
+                            class="flex items-center justify-between p-2.5 rounded-lg w-full hover:underline hover:decoration-gray-500 
+                                            @activemenu('kasbon') bg-gray-100 active @else hover:bg-gray-50 @endactivemenu">
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-5"></div>
+                                <p class="text-sm font-medium text-gray-600">Kasbon</p>
+                            </div>
+                        </a>
+                        @endcan
+                        @can('resign.view')
+                        <a href="{{ route('resign.index') }}"
+                            class="flex items-center justify-between p-2.5 rounded-lg w-full hover:underline hover:decoration-gray-500 
+                                            @activemenu('resign') bg-gray-100 active @else hover:bg-gray-50 @endactivemenu">
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-5"></div>
+                                <p class="text-sm font-medium text-gray-600">Mengundurkan diri</p>
+                            </div>
+                        </a>
+                        @endcan
+                        <a href="{{ route('transaction.index') }}"
+                        class="flex items-center justify-between p-2.5 rounded-lg w-full hover:underline hover:decoration-gray-500 
+                                    @activemenu('transaction') bg-gray-100 active @else hover:bg-gray-50 @endactivemenu">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-5"></div>
+                            <p class="text-sm font-medium text-gray-600">Absensi karyawan</p>
+                        </div>
+                    </a>
+                    </div>
+                    @endcanany
+
+                    @canany(['operational.view', 'request-help.view', 'request-task.view'])
+                    <section
+                        class="my-dropdown-menu flex items-center justify-between p-2.5 rounded-lg w-full
+                                    @activemenu('task-management') bg-gray-100 active @else hover:bg-gray-50 @endactivemenu"
+                        data-dropdown-toggle="dropdown-menu-task-management">
+                        <div class="flex items-center gap-2.5">
+                            <span class="text-gray-600">
+                                <x-icon icon="board" width=18 height=18 viewBox="20 20" />
+                            </span>
+                            <p class="text-sm font-medium text-gray-600">Pengaturan Tugas</p>
+                        </div>
+                        <span class="text-gray-500 chevron-icon duration-300">
+                            <x-icon icon="chevron-down" width=18 height=18 viewBox="20 20" />
+                        </span>
+                    </section>
+                    <div id="dropdown-menu-task-management" class="flex flex-col gap-1
+                                 @activemenu('task-management') @else hidden @endactivemenu">
+                        @can('operational.view')
+                        <a href="{{ route('operational.index') }}"
+                            class="flex items-center justify-between p-2.5 rounded-lg w-full hover:underline hover:decoration-gray-500 
+                                    @activemenu('operational') bg-gray-100 active @else hover:bg-gray-50 @endactivemenu">
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-5"></div>
+                                <p class="text-sm font-medium text-gray-600">Manager Operational</p>
+                            </div>
+                        </a>
+                        @endcan
+                        @can('request-help.view')
+                        <a href="{{ route('request-help.index') }}"
+                            class="flex items-center justify-between p-2.5 rounded-lg w-full hover:underline hover:decoration-gray-500 
+                                    @activemenu('request-help') bg-gray-100 active @else hover:bg-gray-50 @endactivemenu">
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-5"></div>
+                                <p class="text-sm font-medium text-gray-600">Tenaga tambahan</p>
+                            </div>
+                        </a>
+                        @endcan
+                        @can('request-task.view')
+                        <a href="{{ route('request-task.index') }}"
+                            class="flex items-center justify-between p-2.5 rounded-lg w-full hover:underline hover:decoration-gray-500 
+                                    @activemenu('request-task') bg-gray-100 active @else hover:bg-gray-50 @endactivemenu">
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-5"></div>
+                                <p class="text-sm font-medium text-gray-600">Penugasan</p>
+                            </div>
+                        </a>
+                        @endcan
+                    </div>
+                    @endcanany
+                    
                     @canany(['attendance-report.view', 'payroll-report.view', 'overtime-rice-report.view'])
                     <section class="my-dropdown-menu flex items-center justify-between p-2.5 rounded-lg w-full
                                     @activemenu('reports') bg-gray-100 active @else hover:bg-gray-50 @endactivemenu"
@@ -385,55 +435,7 @@
                         </a>
                     </div>
                     @endcanany
-                    @canany(['operational.view', 'request-help.view', 'request-task.view'])
-                    <section
-                        class="my-dropdown-menu flex items-center justify-between p-2.5 rounded-lg w-full
-                                    @activemenu('task-management') bg-gray-100 active @else hover:bg-gray-50 @endactivemenu"
-                        data-dropdown-toggle="dropdown-menu-task-management">
-                        <div class="flex items-center gap-2.5">
-                            <span class="text-gray-600">
-                                <x-icon icon="board" width=18 height=18 viewBox="20 20" />
-                            </span>
-                            <p class="text-sm font-medium text-gray-600">Pengaturan Tugas</p>
-                        </div>
-                        <span class="text-gray-500 chevron-icon duration-300">
-                            <x-icon icon="chevron-down" width=18 height=18 viewBox="20 20" />
-                        </span>
-                    </section>
-                    <div id="dropdown-menu-task-management" class="flex flex-col gap-1
-                                 @activemenu('task-management') @else hidden @endactivemenu">
-                        @can('operational.view')
-                        <a href="{{ route('operational.index') }}"
-                            class="flex items-center justify-between p-2.5 rounded-lg w-full hover:underline hover:decoration-gray-500 
-                                    @activemenu('operational') bg-gray-100 active @else hover:bg-gray-50 @endactivemenu">
-                            <div class="flex items-center gap-2.5">
-                                <div class="w-5"></div>
-                                <p class="text-sm font-medium text-gray-600">Manager Operational</p>
-                            </div>
-                        </a>
-                        @endcan
-                        @can('request-help.view')
-                        <a href="{{ route('request-help.index') }}"
-                            class="flex items-center justify-between p-2.5 rounded-lg w-full hover:underline hover:decoration-gray-500 
-                                    @activemenu('request-help') bg-gray-100 active @else hover:bg-gray-50 @endactivemenu">
-                            <div class="flex items-center gap-2.5">
-                                <div class="w-5"></div>
-                                <p class="text-sm font-medium text-gray-600">Tenaga tambahan</p>
-                            </div>
-                        </a>
-                        @endcan
-                        @can('request-task.view')
-                        <a href="{{ route('request-task.index') }}"
-                            class="flex items-center justify-between p-2.5 rounded-lg w-full hover:underline hover:decoration-gray-500 
-                                    @activemenu('request-task') bg-gray-100 active @else hover:bg-gray-50 @endactivemenu">
-                            <div class="flex items-center gap-2.5">
-                                <div class="w-5"></div>
-                                <p class="text-sm font-medium text-gray-600">Penugasan</p>
-                            </div>
-                        </a>
-                        @endcan
-                    </div>
-                    @endcanany
+                   
 
                     {{-- @canany(['business_settings.access'])
                     <section class="my-dropdown-menu flex items-center justify-between p-2.5 rounded-lg w-full 
