@@ -57,12 +57,12 @@
                         <div class="flex items-center gap-1 flex-col flex-1">
                             <div class="flex flex-col gap-1 w-full">
                                 <label class="text-sm font-normal text-gray-500">Masuk*</label>
-                                {!! FormCustom::input('in_time', '00:00:00', [ "placeholder" => '-', 'type' => 'time'])
+                                {!! FormCustom::input('check_in', '00:00:00', [ "placeholder" => '-', 'type' => 'time'])
                                 !!}
                             </div>
                             <div class="flex flex-col gap-1 w-full">
                                 <label class="text-sm font-normal text-gray-500">Batas ± (60 menit)*</label>
-                                {!! FormCustom::input('in_time_plus_minus', null, [ "placeholder" => '-',
+                                {!! FormCustom::input('check_in_plusmn', null, [ "placeholder" => '-',
                                 'prefixiconname' => 'plus-minus','class' => 'plus-minus' ])
                                 !!}
                             </div>
@@ -70,12 +70,12 @@
                         <div class="flex items-center gap-1 flex-col flex-1">
                             <div class="flex flex-col gap-1 w-full">
                                 <label class="text-sm font-normal text-gray-500">Keluar*</label>
-                                {!! FormCustom::input('out_time', '00:00:00', [ "placeholder" => '-', 'type' => 'time'])
+                                {!! FormCustom::input('check_out', '00:00:00', [ "placeholder" => '-', 'type' => 'time'])
                                 !!}
                             </div>
                             <div class="flex flex-col gap-1 w-full">
                                 <label class="text-sm font-normal text-gray-500">Batas ± (60 menit)*</label>
-                                {!! FormCustom::input('out_time_plus_minus', null, [ "placeholder" => '-',
+                                {!! FormCustom::input('check_out_plusmn', null, [ "placeholder" => '-',
                                 'prefixiconname' => 'plus-minus','class' => 'plus-minus' ])
                                 !!}
                             </div>
@@ -103,14 +103,14 @@
                     </section>
                     <section class="flex flex-col gap-1">
                         <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Jam istirahat</label>
-                        <select class="select2-break-time" name="break_time[]" multiple="multiple">
+                        <select class="select2-break-time" name="break_times[]" multiple="multiple">
                             @foreach ($break_times as $item)
                             <option value="{{ $item->id }}" title="{{ $item }}">
                                 {{ $item->name }}
                             </option>
                             @endforeach
                         </select>
-                        <label class="font-normal text-xs text-red-500 xs/max:text-xs break_time hint-text"></label>
+                        <label class="font-normal text-xs text-red-500 xs/max:text-xs break_times hint-text"></label>
                     </section>
                     <section>
                         <div class="flex items-start gap-2.5">
@@ -126,11 +126,11 @@
                         </div>
                     </section>
                 </div>
-                <div class="flex flex-col gap-4 hidden" id="break-time-settings-content">
+                <div class="flex flex-col gap-2.5 hidden" id="break-time-settings-content">
                     <section>
                         <div class="flex items-start gap-2.5">
                             <span class="pt-0.5">
-                                {!! FormCustom::checkbox('overtime_rounded', -1, ['checked' => true]) !!}
+                                {!! FormCustom::checkbox('is_ot_rounding', true, ['checked' => true]) !!}
                             </span>
                             <div class="flex flex-col gap-px">
                                 <p class="font-medium text-sm text-gray-700">Pembulatan</p>
@@ -145,38 +145,38 @@
                             <div class="flex-1 flex flex-col gap-1">
                                 <label class="text-sm font-normal text-gray-500 flex items-center gap-1">Durasi min
                                     pembulatan 1 jam <span class="text-xs"> (menit)</span>*</label>
-                                {!! FormCustom::input('overtime_one_hour', '40',
+                                {!! FormCustom::input('ot_roundone_hr', '40',
                                 [ "placeholder" => 'Masukkan durasi','class'=> 'plus-minus']) !!}
                             </div>
                             <div class="flex-1 flex flex-col gap-1">
                                 <label class="text-sm font-normal text-gray-500 flex items-center gap-1">Durasi min
                                     pembulatan 1/2 jam <span class="text-xs"> (menit)</span>*</label>
-                                {!! FormCustom::input('overtime_half_hour', '20',
+                                {!! FormCustom::input('ot_roundhalf_hr', '20',
                                 [ "placeholder" => 'Masukkan durasi','class'=> 'plus-minus']) !!}
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="flex flex-col gap-4 hidden" id="overtime-rule-content">
+                <div class="flex flex-col gap-2.5 hidden" id="overtime-rule-content">
                     <section class="flex flex-col gap-1 flex-1">
                         <div class="flex items-center gap-2">
-                            {!! FormCustom::checkbox('is_overtime', -1) !!}
+                            {!! FormCustom::checkbox('is_ot', true) !!}
                             <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Lembur</label>
                         </div>
                         <label class="font-normal text-xs text-red-500 xs/max:text-xs cross_day hint-text"></label>
                     </section>
                     <div id="overtime-content" class="hidden">
-                        <div class="flex flex-col gap-4">
+                        <div class="flex flex-col gap-2.5">
                             <section class="flex items-start gap-3">
                                 <div class="flex-1 flex flex-col gap-1">
                                     <label class="text-sm font-normal text-gray-500">Durasi Menit*</label>
-                                    {!! FormCustom::input('time_period', null, [ "placeholder" => 'Masukkan
+                                    {!! FormCustom::input('ot_period', null, [ "placeholder" => 'Masukkan
                                     durasi','type'=>
                                     'number']) !!}
                                 </div>
                                 <div class="flex-2 flex flex-col gap-1">
                                     <label class="text-sm font-normal text-gray-500">Upah lembur*</label>
-                                    {!! FormCustom::input('overtime_pay', null, ['class' => 'number', "placeholder" =>
+                                    {!! FormCustom::input('ot_pay', null, ['class' => 'number', "placeholder" =>
                                     'Masukkan upah lembur',
                                     'prefixtext' => 'Rp']) !!}
                                 </div>
@@ -184,14 +184,19 @@
                             <section class="flex flex-col gap-1">
                                 <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Durasi jam lembur (upah
                                     akan diconversi menjadi satu shift)*</label>
-                                {!! FormCustom::input('duration_calculate_one_shift', null,
+                                {!! FormCustom::input('duration_count_one_shift', null,
                                 [ "placeholder" => 'Masukkan durasi waktu (jam)', 'type'=> 'number']) !!}
+                            </section>
+                            <section class="flex flex-col gap-1">
+                                <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Batas lembur*</label>
+                                {!! FormCustom::input('duration_ot_limit', null,
+                                [ "placeholder" => 'Masukkan batas durasi lembur', 'type'=> 'number']) !!}
                             </section>
                         </div>
                     </div>
                     <section class="flex flex-col gap-1 flex-1">
                         <div class="flex items-center gap-2">
-                            {!! FormCustom::checkbox('is_overtime_rice', -1) !!}
+                            {!! FormCustom::checkbox('is_ot_rice', true) !!}
                             <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Nasi lembur</label>
                         </div>
                         <label class="font-normal text-xs text-red-500 xs/max:text-xs cross_day hint-text"></label>

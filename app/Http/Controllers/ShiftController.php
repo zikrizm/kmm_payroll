@@ -101,7 +101,7 @@ class ShiftController extends Controller
         try {
             $business_id = Session::get('business_id');
             $timetables = Timetable::where('business_id', $business_id)->with(['timetable_has_break_time'])->get();
-            $onlyParentDept = $this->_get_department_not_used(null);
+            $onlyParentDept = $this->_get_department_not_used();
             $shifts = Shift::where('business_id', $business_id)->get();
 
             $render = view('Shift.shift.create', compact('timetables', 'onlyParentDept'))->render();
@@ -126,7 +126,7 @@ class ShiftController extends Controller
             abort(403, 'Unauthorized action.');
         }
         try {
-            $validator = Validator::make($request->all(), $this->rules());
+            $validator = Validator::make($request->all(), $this->rules(null));
 
             if ($validator->fails()) {
                 return $this->buildRes->RESPONSE_REQ('error', null, $validator->errors());
@@ -201,9 +201,8 @@ class ShiftController extends Controller
 
             $business_id = Session::get('business_id');
             $timetables = Timetable::where('business_id', $business_id)->with(['timetable_has_break_time'])->get();
-            $onlyParentDept = $this->_get_department_not_used($shift->dept_id);
-
-            $render = view('Shift.shift.edit', compact('shift', 'timetables', 'onlyParentDept'))->render();
+            $department = $this->apiService->read_department($shift->dept_id);
+            $render = view('Shift.shift.edit', compact('shift', 'timetables', 'department'))->render();
 
             return $this->buildRes->RESPONSE_REQ('success', $render, null);
         } catch (\Exception $e) {
@@ -227,12 +226,12 @@ class ShiftController extends Controller
         }
 
         try {
-            $validator = Validator::make($request->all(), $this->rules());
+            $validator = Validator::make($request->all(), $this->rules($shift));
 
             if ($validator->fails()) {
                 return $this->buildRes->RESPONSE_REQ('error', null, $validator->errors());
             } else {
-                $shift_data = $request->only(['name', 'dept_id', 'timetables']);
+                $shift_data = $request->only(['name', 'timetables']);
                 $shift_data['business_id'] = Session::get('business_id');
                 $shift->update($shift_data);
 
@@ -301,23 +300,21 @@ class ShiftController extends Controller
     }
 
 
-    public function _get_department_not_used($dept_id)
+    public function _get_department_not_used()
     {
         $business_id = Session::get('business_id');
         $shifts = Shift::where('business_id', $business_id)->get();
         $departments = $this->apiService->get_departments(['page_size' => 999]);
         $onlyParentDept = [];
+
         foreach ($departments['data'] as $department) {
-            if (count($shifts) != 0) {
-                foreach ($shifts as $shift) {
-                    if (is_null($shift->dept_id) ||  $dept_id == $department['id'] || $shift->dept_id != $department['id']) {
-                        if (empty($department['parent_dept'])) {
-                            $onlyParentDept[] = $department;
-                        }
+            if (empty($department['parent_dept'])) {
+                if (count($shifts) != 0) {
+                    $first = $shifts->firstWhere('dept_id', $department['id']);
+                    if (empty($first)) {
+                        $onlyParentDept[] = $department;
                     }
-                }
-            } else {
-                if (empty($department['parent_dept'])) {
+                } else {
                     $onlyParentDept[] = $department;
                 }
             }
@@ -332,11 +329,11 @@ class ShiftController extends Controller
      *
      * @return array
      */
-    public function rules()
+    public function rules($shift)
     {
         return [
             'name' => 'required|string|max:255',
-            'dept_id' => 'required|string|max:255',
+            'dept_id' => empty($shift) ? 'required|string|max:255' : '',
             'timetables.senin' => 'required',
             'timetables.selasa' => 'required',
             'timetables.rabu' => 'required',

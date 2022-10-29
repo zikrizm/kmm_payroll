@@ -58,7 +58,7 @@
                     <div class="flex items-center gap-2">
                         <x-icon icon="clock" width=18 height=18 viewBox="20 20" />
                         <p class="truncate">
-                            {{ date('H:i', strtotime($item->in_time)); }}
+                            {{ date('H:i', strtotime($item->check_in)); }}
                         </p>
                     </div>
                 </td>
@@ -66,7 +66,7 @@
                     <div class="flex items-center gap-2">
                         <x-icon icon="clock" width=18 height=18 viewBox="20 20" />
                         <p class="truncate">
-                            {{ date('H:i', strtotime($item->out_time)); }}
+                            {{ date('H:i', strtotime($item->check_out)); }}
                         </p>
                     </div>
                 </td>

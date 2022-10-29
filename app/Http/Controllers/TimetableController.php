@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Log;
 use App\Models\TimetableHasBreakTime;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rules\RequiredIf;
 
 class TimetableController extends Controller
 {
@@ -117,46 +118,42 @@ class TimetableController extends Controller
             if ($validator->fails()) {
                 return $this->buildRes->RESPONSE_REQ('error', null, $validator->errors());
             } else {
+                $business_id = Session::get('business_id');
                 $timetable_data = $request->only([
-                    'name', 'in_time', 'in_time_plus_minus', 'out_time', 'out_time_plus_minus', 'cross_day', 'work_type', 'overtime_rounded', 'overtime_one_hour', 'overtime_half_hour', 'break_time', 'is_without_break',
-                    'is_overtime', 'time_period', 'overtime_pay', 'duration_calculate_one_shift', 'is_overtime_rice', 'duration_rice_shift'
+                    'name', 'check_in',  'check_out', 'check_in_plusmn', 'check_out_plusmn', 'cross_day', 'work_type', 'is_ot_rounding', 'ot_roundone_hr', 'ot_roundhalf_hr', 'break_times', 'is_without_break',
+                    'is_ot', 'ot_period', 'ot_pay', 'duration_count_one_shift', 'duration_ot_limit', 'is_ot_rice', 'duration_rice_shift'
                 ]);
-                $timetable_data['business_id'] = Session::get('business_id');
+                $timetable_data['business_id'] = $business_id;
+                $check_in = Carbon::parse($timetable_data['check_in']);
+                $check_out = Carbon::parse($timetable_data['check_out']);
+                $timetable_data['work_time'] = $check_in->diffInMinutes($check_out);
 
-                $in_time = Carbon::parse($timetable_data['in_time']);
-                $out_time = Carbon::parse($timetable_data['out_time']);
-                $timetable_data['work_time'] = $in_time->diffInMinutes($out_time);
-
-                if (empty($request->input('overtime_rounded'))) {
-                    $timetable_data['overtime_one_hour'] = null;
-                    $timetable_data['overtime_half_hour'] = null;
+                if (!empty($request->input('is_ot_rounding'))) {
+                    $timetable_data['ot_roundone_hr'] = 40;
+                    $timetable_data['ot_roundhalf_hr'] = 20;
                 } else {
-                    $timetable_data['overtime_one_hour'] = 40;
-                    $timetable_data['overtime_half_hour'] = 20;
+                    $timetable_data['ot_roundone_hr'] = null;
+                    $timetable_data['ot_roundhalf_hr'] = null;
                 }
-
-                if (empty($request->input('is_without_break'))) {
-                    $timetable_data['is_without_break'] = 0;
-                }
-
-                if (!empty($request->input('is_overtime'))) {
-                    $timetable_data['overtime_pay'] = str_replace('.', '', $timetable_data['overtime_pay']);
+                if (!empty($request->input('is_ot'))) {
+                    $timetable_data['ot_pay'] = str_replace('.', '', $timetable_data['ot_pay']);
                 } else {
-                    $timetable_data['time_period'] = null;
-                    $timetable_data['overtime_pay'] = null;
-                    $timetable_data['duration_calculate_one_shift'] = null;
+                    $timetable_data['ot_period'] = null;
+                    $timetable_data['ot_pay'] = null;
+                    $timetable_data['duration_count_one_shift'] = null;
+                    $timetable_data['duration_ot_limit'] = null;
                 }
-
-                if (empty($request->input('is_overtime_rice'))) {
+                if (empty($request->input('is_ot_rice'))) {
                     $timetable_data['duration_rice_shift'] = null;
                 }
-
                 $timetable = new Timetable($timetable_data);
                 $timetable->save();
-                if (!empty($request->input('break_time'))) {
-                    foreach ($timetable_data['break_time']  as $item) {
+                
+                if (!empty($request->input('break_times'))) {
+                    // * Insert timetable has breaktime.
+                    foreach ($timetable_data['break_times']  as $item) {
                         $timetable_has_break_time_data = [
-                            'business_id' => Session::get('business_id'),
+                            'business_id' => $business_id,
                             'timetable_id' => $timetable->id,
                             'break_time_id' => $item,
                         ];
@@ -237,52 +234,45 @@ class TimetableController extends Controller
             if ($validator->fails()) {
                 return $this->buildRes->RESPONSE_REQ('error', null, $validator->errors());
             } else {
+                $business_id = Session::get('business_id');
                 $timetable_data = $request->only([
-                    'name',  'in_time', 'in_time_plus_minus', 'out_time', 'out_time_plus_minus', 'cross_day', 'work_type', 'overtime_rounded', 'overtime_one_hour', 'overtime_half_hour', 'break_time', 'is_without_break',
-                    'is_overtime', 'time_period', 'overtime_pay', 'duration_calculate_one_shift', 'is_overtime_rice', 'duration_rice_shift'
+                    'name', 'check_in',  'check_out', 'check_in_plusmn', 'check_out_plusmn', 'cross_day', 'work_type', 'is_ot_rounding', 'ot_roundone_hr', 'ot_roundhalf_hr', 'break_times', 'is_without_break',
+                    'is_ot', 'ot_period', 'ot_pay', 'duration_count_one_shift', 'duration_ot_limit', 'is_ot_rice', 'duration_rice_shift'
                 ]);
-                $timetable_data['business_id'] = Session::get('business_id');
+                $timetable_data['business_id'] = $business_id;
+                $check_in = Carbon::parse($timetable_data['check_in']);
+                $check_out = Carbon::parse($timetable_data['check_out']);
+                $timetable_data['work_time'] = $check_in->diffInMinutes($check_out);
 
-                $in_time = Carbon::parse($timetable_data['in_time']);
-                $out_time = Carbon::parse($timetable_data['out_time']);
-                $timetable_data['work_time'] = $in_time->diffInMinutes($out_time);
-
-                if (empty($request->input('overtime_rounded'))) {
-                    $timetable_data['overtime_one_hour'] = null;
-                    $timetable_data['overtime_half_hour'] = null;
+                if (!empty($request->input('is_ot_rounding'))) {
+                    $timetable_data['ot_roundone_hr'] = 40;
+                    $timetable_data['ot_roundhalf_hr'] = 20;
                 } else {
-                    $timetable_data['overtime_one_hour'] = 40;
-                    $timetable_data['overtime_half_hour'] = 20;
+                    $timetable_data['ot_roundone_hr'] = null;
+                    $timetable_data['ot_roundhalf_hr'] = null;
                 }
-
-                if (empty($request->input('is_without_break'))) {
-                    $timetable_data['is_without_break'] = 0;
-                }
-
-                if (!empty($request->input('is_overtime'))) {
-                    $timetable_data['overtime_pay'] = str_replace('.', '', $timetable_data['overtime_pay']);
+                if (!empty($request->input('is_ot'))) {
+                    $timetable_data['ot_pay'] = str_replace('.', '', $timetable_data['ot_pay']);
                 } else {
-                    $timetable_data['time_period'] = null;
-                    $timetable_data['overtime_pay'] = null;
-                    $timetable_data['duration_calculate_one_shift'] = null;
+                    $timetable_data['ot_period'] = null;
+                    $timetable_data['ot_pay'] = null;
+                    $timetable_data['duration_count_one_shift'] = null;
+                    $timetable_data['duration_ot_limit'] = null;
                 }
-
-                if (empty($request->input('is_overtime_rice'))) {
+                if (empty($request->input('is_ot_rice'))) {
                     $timetable_data['duration_rice_shift'] = null;
                 }
-
                 $timetable->update($timetable_data);
 
                 // * Remove all timetable has breaktime.
-                $business_id = Session::get('business_id');
                 TimetableHasBreakTime::where('business_id', $business_id)
                     ->where('timetable_id', $timetable->id)->each(function ($item) {
                         $item->delete();
                     });
 
-                if (!empty($request->input('break_time'))) {
+                if (!empty($request->input('break_times'))) {
                     // * Insert timetable has breaktime.
-                    foreach ($request['break_time']  as $item) {
+                    foreach ($request['break_times']  as $item) {
                         $timetable_has_break_time_data = [
                             'business_id' => Session::get('business_id'),
                             'timetable_id' => $timetable->id,
@@ -355,33 +345,18 @@ class TimetableController extends Controller
     {
         return [
             'name' => 'required|string|max:255',
-            'in_time' => 'required',
-            'out_time' => 'required',
-            'in_time_plus_minus' => 'required',
-            'out_time_plus_minus' => 'required',
+            'check_in' => 'required',
+            'check_out' => 'required',
+            'check_in_plusmn' => 'required',
+            'check_out_plusmn' => 'required',
             'work_type' => 'required',
-            'is_overtime' => 'nullable',
-            'time_period' => [
-                Rule::requiredIf(function () {
-                    return request()->get('is_overtime');
-                })
-            ],
-            'overtime_pay' => [
-                Rule::requiredIf(function () {
-                    return request()->get('is_overtime');
-                })
-            ],
-            'duration_calculate_one_shift' => [
-                Rule::requiredIf(function () {
-                    return request()->get('is_overtime');
-                })
-            ],
-            'is_overtime_rice' => 'nullable',
-            'duration_rice_shift' => [
-                Rule::requiredIf(function () {
-                    return request()->get('is_overtime_rice');
-                })
-            ],
+            'is_ot' => 'nullable',
+            'is_ot_rice' => 'nullable',
+            'ot_period' => [new RequiredIf(request()->get('is_ot') == true), 'numeric', 'max:60'],
+            'ot_pay' => [new RequiredIf(request()->get('is_ot') == true)],
+            'duration_count_one_shift' => [new RequiredIf(request()->get('is_ot') == true), 'numeric', 'max:24'],
+            'duration_ot_limit' => [new RequiredIf(request()->get('is_ot') == true), 'numeric', 'max:24'],
+            'duration_rice_shift' => [new RequiredIf(request()->get('is_ot_rice') == true), 'numeric', 'max:24'],
         ];
     }
 }
