@@ -192,7 +192,7 @@ class AttendanceCardController extends Controller
                                                     $timetable['total_overtime_pay_per_day'] = 0;
                                                     $timetable['count_one_shift'] = 0;
                                                     $timetable['total_overtime_pay_per_day'] = 0;
-                                                    $timetable['per_day'] = 1;
+                                                    $timetable['per_day'] = 0;
                                                     $timetable['is_half_day'] = false;
 
                                                     if (!empty($shiftdayHas->timetable->cross_day)) {
@@ -227,7 +227,6 @@ class AttendanceCardController extends Controller
                                                         }
                                                     }
 
-                                                    $plusInTime = 0;
                                                     if ($punchIn->lt($in)) {
                                                         $diff_time_in = $punchIn->diffInSeconds($in);
                                                         $minute = intval(gmdate('i', $diff_time_in));
@@ -244,6 +243,7 @@ class AttendanceCardController extends Controller
                                                     }
 
                                                     if (count($attens_groupings[$date]) != 1) {
+                                                        $timetable['per_day'] += 1;
                                                         if ($punchOut->gt($out)) {
                                                             $diff_time_out = $out->diffInSeconds($punchOut);
                                                             $minute = intval(gmdate('i', $diff_time_out));
