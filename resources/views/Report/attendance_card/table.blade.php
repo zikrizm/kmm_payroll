@@ -179,7 +179,7 @@
                                 </div>
                                 <div class="flex items-center">
                                     <p class="text-gray-500 flex-1 text-center text-[10px]">
-                                        {{ $item['amount_day'] }}
+                                        {{ $item['amount_day'] ?? 0 }}
                                     </p>
                                     <p class="text-gray-500 flex-1 text-center text-[10px]">
                                         {{ ($item['amount_of_ot'] ?? 0) + ($item['early_check_in'] ?? 0)}}</p>
