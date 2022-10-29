@@ -63,7 +63,7 @@
                             </div>
                             <section class="flex flex-col gap-1 flex-1">
                                 <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Jenis kelamin*</label>
-                                <select class="select2" name="gender">
+                                <select class="select2-modal" name="gender">
                                     <option value="" disabled selected>Silahkan Pilih</option>
                                     <option value="M">Laki-Laki</option>
                                     <option value="F">Perempuan</option>
@@ -78,7 +78,7 @@
                                         class="hidden" type="file"
                                         onchange="loadPic('#photo', 'photo_preview', '#remove-img')" />
                                     <span class='cursor-pointer flex w-32 h-32 border border-dashed p-2'>
-                                        <img src='@zkPhoto(files / nophoto . gif)'
+                                        <img src='@zkPhoto(files/nophoto.gif)'
                                             class='object-cover h-full w-full overflow-hidden' id="photo_preview">
                                     </span>
                                 </label>
@@ -138,7 +138,7 @@
                     <div class="flex items-start gap-4">
                         <section class="flex flex-col gap-1 flex-2">
                             <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Bagian karyawan*</label>
-                            <select class="select2" name="department">
+                            <select class="select2-modal" name="department">
                                 <option value="" disabled selected>Silahkan Pilih</option>
                                 @foreach ($departments['data'] as $item)
                                 <option value="{{ $item['id'] }}">{{ $item['dept_name'] }}</option>
@@ -148,7 +148,7 @@
                         </section>
                         <section class="flex flex-col gap-1 flex-1">
                             <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Jenis karyawan*</label>
-                            <select class="select2" name="emp_type">
+                            <select class="select2-modal" name="emp_type">
                                 <option value="" disabled selected>Silahkan Pilih</option>
                                 <option value="1">Tetap</option>
                                 <option value="2">Sementara</option>
@@ -160,7 +160,7 @@
                     <div class="flex items-start gap-4">
                         <section class="flex flex-col gap-1 flex-2">
                             <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Jabatan karyawan</label>
-                            <select class="select2" name="position[]" multiple>
+                            <select class="select2-modal" name="position[]" multiple>
                                 @foreach ($positions['data'] as $item)
                                 <option value="{{ $item['id'] }}">{{ $item['position_name'] }}</option>
                                 @endforeach
@@ -170,7 +170,7 @@
                         </section>
                         <section class="flex flex-col gap-1 flex-1">
                             <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Area karyawan*</label>
-                            <select class="select2" name="area[]" multiple="multiple">
+                            <select class="select2-modal" name="area[]" multiple="multiple">
                                 @foreach ($areas['data'] as $item)
                                 <option value="{{ $item['id'] }}">{{ $item['area_name'] }}</option>
                                 @endforeach
@@ -190,7 +190,7 @@
                         </section>
                         <section class="flex flex-col gap-1 flex-1">
                             <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Periode pembayaran*</label>
-                            <select class="select2" name="payment_period">
+                            <select class="select2-modal" name="payment_period">
                                 <option value="" disabled selected>Silahkan Pilih</option>
                                 <option value="daily">Harian</option>
                                 <option value="weekly">Mingguan</option>

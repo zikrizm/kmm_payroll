@@ -8,6 +8,7 @@ use App\Models\ActivityLog;
 use App\Models\Transaction;
 use App\Utils\ResponseUtil;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use App\Services\Api\ApiServices;
 use App\Imports\TransactionsImport;
 use Illuminate\Support\Facades\Log;
@@ -50,15 +51,13 @@ class TransactionController extends Controller
                 $attenDBs = new Transaction();
                 $search = '';
                 if (!empty($request->input('q'))) {
-                    $search = $request->q;
-                    // $filter['emp_code'] = $search;
-                    // $attenDBs = $attenDBs->where('first_name', 'LIKE', "%" . $search . "%");
+                    $search = strtolower($request->q);
                 }
 
                 if (!empty($request->input('date'))) {
-                    $attenDBs = $attenDBs->whereBetween('punch_time', [$request->date['start_time'], $request->date['end_time']]);
-                    $filter['start_time'] = $request->date['start_time'];
-                    $filter['end_time'] = $request->date['end_time'];
+                    $filter['start_time'] = Carbon::parse($request->date['start_time'])->hour(0)->minute(0)->second(0);
+                    $filter['end_time'] = Carbon::parse($request->date['end_time'])->hour(23)->minute(59)->second(59);
+                    $attenDBs = $attenDBs->whereBetween('punch_time', [$filter['start_time'], $filter['end_time']]);
                 }
 
                 if ($request->has('page_size')) {
@@ -77,25 +76,24 @@ class TransactionController extends Controller
                 }
                 $atten_count = $this->apiService->get_transactions($filter)['count'];
                 $transactions = $this->apiService->get_transactions(array_merge($filter, ['page_size' => $atten_count]))['data'];
-                $attenDBs = $attenDBs->get()->toArray();
-                $transactions = array_merge($transactions, $attenDBs);
 
-                $next = (ceil($atten_count / $page_size) == $page) ?  null : $page + 1;
-                Log::info(response()->json($transactions));
-                $transactions = collect($transactions)->filter(function ($atten) use ($search) {
-                    if ($search == '') return true;
-                    else {
-                        return $atten['emp_code'] === $search || $atten['first_name'] === $search
-                            || $atten['last_name'] === $search || $atten['verify_type_display'] === $search;
-                    }
-                });
+                $attenDBs = $attenDBs->get()->toArray();
+                $transactions = collect(array_merge($transactions, $attenDBs));
+                $next = (ceil($transactions->count() / $page_size) == $page) ?  null : $page + 1;
+                if ($search != '') {
+                    $transactions = $transactions->filter(function ($atten) use ($search) {
+                        return str_contains(strtolower($atten['emp_code']), $search)||str_contains(strtolower($atten['first_name']), $search)||
+                        str_contains(strtolower($atten['last_name']), $search)||str_contains(strtolower($atten['verify_type_display']), $search);
+                    });
+                }
+
                 $transactions = $transactions->skip(($page - 1) * $page_size)->take($page_size);
                 $transactions = collect([
-                    'count' => $atten_count,
+                    'count' => $transactions->count(),
                     'data' => $transactions,
                     'next' => $next,
                     'previous' => $page - 1,
-                    'lastPage' => ceil($atten_count / $page_size),
+                    'lastPage' => ceil($transactions->count() / $page_size),
                     'currentPage' => $page,
                 ]);
 
@@ -258,10 +256,9 @@ class TransactionController extends Controller
         }
 
         try {
+            $res = $this->apiService->delete_transaction($transaction);
             $transaction = Transaction::where('id', $transaction)->first();
-            if (empty($transaction)) {
-                $res = $this->apiService->delete_transaction($transaction);
-            } else {
+            if (!empty($transaction)) {
                 $transaction->delete();
             }
 

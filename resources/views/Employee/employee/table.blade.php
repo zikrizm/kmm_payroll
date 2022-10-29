@@ -118,12 +118,12 @@
         }
         @endphp
         <div class="flex items-center gap-3">
-                <select class="select2-page w-14" name="" id="">
-                    <option value="10" @selected($page_size=="10" )>10</option>
-                    <option value="20" @selected($page_size=="20" )>20</option>
-                    <option value="50" @selected($page_size=="50" )>50</option>
-                    <option value="100" @selected($page_size=="100" )>100</option>
-                </select>
+            <select class="select2-page w-14" name="" id="">
+                <option value="10" @selected($page_size=="10")>10</option>
+                <option value="20" @selected($page_size=="20")>20</option>
+                <option value="50" @selected($page_size=="50")>50</option>
+                <option value="100" @selected($page_size=="100")>100</option>
+            </select>
             <p class='text-gray-700 text-xs'>
                 Page <span> {{ $page}} </span> of <span>{{ $page_of }}</span>
             </p>

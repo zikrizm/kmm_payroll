@@ -508,7 +508,7 @@ class AttendanceReportController extends Controller
                     'reports' => $attendance_emp_report,
                 ];
 
-                Log::info(response()->json($attendance_emp_report));
+                // Log::info(response()->json($attendance_emp_report));
 
                 $render = view('Report.attendance_report.modal.attendance_card_content', compact('attendance_emp_report'))->render();
 

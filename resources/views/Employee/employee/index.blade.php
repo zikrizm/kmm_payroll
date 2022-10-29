@@ -388,7 +388,7 @@
         // *
         var URL = (employee_code) ? '/employee/' + employee_code + '/edit' : '/employee/create';
         var res = await ApiService.get_modal(URL, null);
-        $('.select2').select2();
+        $('.select2-modal').select2();
         var anElementNumber = new AutoNumeric.multiple('.number',{decimalPlaces:0,minimumValue: 0,decimalCharacter: ',', digitGroupSeparator : '.'});
         // var anElementMobile = new AutoNumeric.multiple('.mobile',{decimalPlaces:0,minimumValue: 0, decimalCharacter: ',', digitGroupSeparator : ''});
         $('.date_input').daterangepicker({
