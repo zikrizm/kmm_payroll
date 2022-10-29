@@ -129,15 +129,36 @@
                             @endif
                         </td>
                         <td class=' text-xs border text-gray-500 text-center'>
-                            {{-- @if (!empty($item_report['shift'] && !empty($item_report['shift']['id'])))
-                            ({{ $item_report['shift']['id'] }})
+                            @if (!empty($item_report['timetable']))
+                            <div class="flex justify-center">
+                                <div class="flex items-center gap-1">
+                                    <div class="flex relative w-max">
+                                        <p>{{ $item_report['timetable']['name'] ?? '' }}</p>
+                                        @if (!empty($item_report['timetable']['cross_day']))
+                                        <p class="text-[9px] text-violet-600 mt-[-4px]">+{{
+                                            $item_report['timetable']['cross_day'] ?? '' }}</p>
+                                        @endif
+                                    </div>
+                                    @if ($item_report['timetable']['is_half_day'])
+                                    <p class="text-[9px]">(1/2)</p>
+                                    @else
+                                    <p class="text-[9px]">{{ !empty($item_report['timetable']['per_day']) ?
+                                        '( '.$item_report['timetable']['per_day'].' )' : '' }}</p>
+
+                                    @endif
+                                </div>
+                            </div>
                             @else
-                            -
-                            @endif --}}
-                            {{ $item_report['shift']['name'] ?? '' }} 
+
+                            @endif
+
                         </td>
-                         <td class=' text-xs border text-gray-500 text-center w-14'>
-                           {{ $item_report['overtime'] }}
+                        <td class=' text-xs border text-gray-500 text-center w-14'>
+                            @php
+                            $overtime = ($item_report['timetable']['overtime'] ?? 0) +
+                            ($item_report['timetable']['early_check_in'] ?? 0);
+                            @endphp
+                            {{ !empty($overtime) ? $overtime: '' }}
                         </td>
                     </tr>
                     @endforeach
@@ -160,7 +181,8 @@
                                     <p class="text-gray-500 flex-1 text-center text-[10px]">
                                         {{-- {{ $item['in_count'] }} --}}
                                     </p>
-                                    <p class="text-gray-500 flex-1 text-center text-[10px]">{{ $item['overtime_count'] }}</p>
+                                    <p class="text-gray-500 flex-1 text-center text-[10px]">
+                                        {{ ($item['amount_of_ot'] ?? 0) + ($item['early_check_in'] ?? 0)}}</p>
                                 </div>
                             </div>
                         </td>

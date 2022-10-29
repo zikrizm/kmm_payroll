@@ -84,13 +84,13 @@
                 $('#'+_idContent).removeClass('hidden');
             })
 
-            $('input[name="overtime_rounded"]').on('change', function(e) {
+            $('input[name="is_ot_rounding"]').on('change', function(e) {
                 $('#overtime-rounded-content').toggle('hidden');
             })
-            $('input[name="is_overtime"]').on('change', function(e) {
+            $('input[name="is_ot"]').on('change', function(e) {
                 $('#overtime-content').toggle('hidden');
             })
-            $('input[name="is_overtime_rice"]').on('change', function(e) {
+            $('input[name="is_ot_rice"]').on('change', function(e) {
                 $('#rice-overtime-content').toggle('hidden');
             })
 

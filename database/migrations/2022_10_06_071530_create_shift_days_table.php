@@ -16,8 +16,8 @@ return new class extends Migration
         Schema::create('shift_days', function (Blueprint $table) {
             $table->increments('id');
             $table->integer('shift_id')->unsigned();
-            $table->string('name');
             $table->integer('code_day');
+            $table->string('name');
 
             $table->foreign('shift_id')->references('id')->on('shifts')->onDelete('cascade');
             $table->timestamps();

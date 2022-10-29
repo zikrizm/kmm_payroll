@@ -126,7 +126,7 @@ class ShiftController extends Controller
             abort(403, 'Unauthorized action.');
         }
         try {
-            $validator = Validator::make($request->all(), $this->rules());
+            $validator = Validator::make($request->all(), $this->rules(null));
 
             if ($validator->fails()) {
                 return $this->buildRes->RESPONSE_REQ('error', null, $validator->errors());
@@ -226,7 +226,7 @@ class ShiftController extends Controller
         }
 
         try {
-            $validator = Validator::make($request->all(), $this->rules());
+            $validator = Validator::make($request->all(), $this->rules($shift));
 
             if ($validator->fails()) {
                 return $this->buildRes->RESPONSE_REQ('error', null, $validator->errors());
@@ -329,11 +329,11 @@ class ShiftController extends Controller
      *
      * @return array
      */
-    public function rules()
+    public function rules($shift)
     {
         return [
             'name' => 'required|string|max:255',
-            'dept_id' => 'required|string|max:255',
+            'dept_id' => empty($shift) ? 'required|string|max:255' : '',
             'timetables.senin' => 'required',
             'timetables.selasa' => 'required',
             'timetables.rabu' => 'required',
