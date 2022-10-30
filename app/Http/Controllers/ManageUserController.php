@@ -182,7 +182,9 @@ class ManageUserController extends Controller
             $render = view('User.manage_user.edit', compact('roles', 'user'))->render();
 
             return $this->buildRes->RESPONSE_REQ('success', $render, null);
-        } catch (\Exception $error) {
+        } catch (\Exception $e) {
+            Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
+
             return $this->buildRes->RESPONSE_REQ('error', null, ['error' => 'something wrong']);
         }
     }

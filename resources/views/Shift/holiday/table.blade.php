@@ -37,7 +37,7 @@
                         </div>
                         <div class="flex gap-3 items-center px-6 py-3 hover:underline hover:text-gray-500 cursor-pointer"
                             onclick="get_modal('{{ $item['id'] }}')">
-                            <p class="text-gray-500 text-sm">
+                            <p class="text-violet-600 font-medium text-sm underline decoration-violet-600 cursor-pointer">
                                 {{ $item->name }}
                             </p>
                         </div>

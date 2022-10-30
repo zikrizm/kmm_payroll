@@ -76,8 +76,7 @@
                 <header class="h-32 w-full flex items-center justify-center flex-col gap-1">
                     <div class="text-gray-700 w-10 h-10 rounded-full overflow-hidden">
                         <img src="{{ Auth::user()->business->logo }}" alt="" class="w-full h-full object-cover">
-                        {{--
-                        <x-icon icon="figma" width=30 height=30 viewBox="20 20" /> --}}
+                        {{-- <x-icon icon="figma" width=30 height=30 viewBox="20 20" /> --}}
                     </div>
                     <p class="text-gray-700 font-medium">{{ Auth::user()->business->name }}</p>
                 </header>
@@ -122,7 +121,7 @@
                                             @activemenu('department') bg-gray-100 active @else hover:bg-gray-50 @endactivemenu">
                             <div class="flex items-center gap-2.5">
                                 <div class="w-5"></div>
-                                <p class="text-sm font-medium text-gray-600">Bagian</p>
+                                <p class="text-sm font-medium text-gray-600">Bagian karyawan</p>
                             </div>
                         </a>
                         @endcan
@@ -132,7 +131,7 @@
                                             @activemenu('position') bg-gray-100 active @else hover:bg-gray-50 @endactivemenu">
                             <div class="flex items-center gap-2.5">
                                 <div class="w-5"></div>
-                                <p class="text-sm font-medium text-gray-600">Jabatan</p>
+                                <p class="text-sm font-medium text-gray-600">Jabatan karyawan</p>
                             </div>
                         </a>
                         @endcan
@@ -142,7 +141,7 @@
                                             @activemenu('area') bg-gray-100 active @else hover:bg-gray-50 @endactivemenu">
                             <div class="flex items-center gap-2.5">
                                 <div class="w-5"></div>
-                                <p class="text-sm font-medium text-gray-600">Area</p>
+                                <p class="text-sm font-medium text-gray-600">Area karyawan</p>
                             </div>
                         </a>
                         @endcan
@@ -151,7 +150,7 @@
                                         @activemenu('device') bg-gray-100 active @else hover:bg-gray-50 @endactivemenu">
                             <div class="flex items-center gap-2.5">
                                 <div class="w-5"></div>
-                                <p class="text-sm font-medium text-gray-600">Perangkat</p>
+                                <p class="text-sm font-medium text-gray-600">Perangkat absensi</p>
                             </div>
                         </a>
                     </div>
@@ -298,6 +297,15 @@
                             </div>
                         </a>
                         @endcan
+                        @can('attendance-manual.view')
+                        <a href="{{ route('transaction.index') }}"
+                        class="flex items-center justify-between p-2.5 rounded-lg w-full hover:underline hover:decoration-gray-500 
+                                    @activemenu('transaction') bg-gray-100 active @else hover:bg-gray-50 @endactivemenu">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-5"></div>
+                            <p class="text-sm font-medium text-gray-600">Absensi karyawan</p>
+                        </div>
+                        @endcan
                         @can('resign.view')
                         <a href="{{ route('resign.index') }}"
                             class="flex items-center justify-between p-2.5 rounded-lg w-full hover:underline hover:decoration-gray-500 
@@ -308,13 +316,6 @@
                             </div>
                         </a>
                         @endcan
-                        <a href="{{ route('transaction.index') }}"
-                        class="flex items-center justify-between p-2.5 rounded-lg w-full hover:underline hover:decoration-gray-500 
-                                    @activemenu('transaction') bg-gray-100 active @else hover:bg-gray-50 @endactivemenu">
-                        <div class="flex items-center gap-2.5">
-                            <div class="w-5"></div>
-                            <p class="text-sm font-medium text-gray-600">Absensi karyawan</p>
-                        </div>
                     </a>
                     </div>
                     @endcanany

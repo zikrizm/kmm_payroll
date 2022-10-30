@@ -38,7 +38,7 @@ class TransactionController extends Controller
      */
     public function index(Request $request)
     {
-        if (!auth()->user()->can('transaction.view')) {
+        if (!auth()->user()->can('attendance-manual.view')) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -118,7 +118,7 @@ class TransactionController extends Controller
      */
     public function create(Request $request)
     {
-        if (!auth()->user()->can('transaction.create') || !request()->ajax()) {
+        if (!auth()->user()->can('attendance-manual.create') || !request()->ajax()) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -141,7 +141,7 @@ class TransactionController extends Controller
      */
     public function store(Request $request)
     {
-        if (!auth()->user()->can('transaction.create')  || !$request->ajax()) {
+        if (!auth()->user()->can('attendance-manual.create')  || !$request->ajax()) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -185,7 +185,7 @@ class TransactionController extends Controller
      */
     public function show($transaction)
     {
-        if (!auth()->user()->can('transaction.view')) {
+        if (!auth()->user()->can('attendance-manual.view')) {
             abort(403, 'Unauthorized action.');
         }
     }
@@ -200,7 +200,7 @@ class TransactionController extends Controller
      */
     public function edit($transaction, Request $request)
     {
-        if (!auth()->user()->can('transaction.update') || !$request->ajax()) {
+        if (!auth()->user()->can('attendance-manual.update') || !$request->ajax()) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -222,7 +222,7 @@ class TransactionController extends Controller
      */
     public function update(Transaction $transaction, Request $request)
     {
-        if (!auth()->user()->can('transaction.update') || !$request->ajax()) {
+        if (!auth()->user()->can('attendance-manual.update') || !$request->ajax()) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -250,7 +250,7 @@ class TransactionController extends Controller
      */
     public function destroy($transaction, Request $request)
     {
-        if (!auth()->user()->can('transaction.delete') || !$request->ajax()) {
+        if (!auth()->user()->can('attendance-manual.delete') || !$request->ajax()) {
             abort(403, 'Unauthorized action.');
         }
 

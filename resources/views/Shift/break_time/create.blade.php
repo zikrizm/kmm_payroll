@@ -41,7 +41,7 @@
                     </p>
                 </div>
                 <hr>
-                <div class="flex items-center gap-3">
+                <div class="flex items-start gap-3">
                     <div class="flex-1 flex flex-col gap-1 flex-1">
                         <label class="text-sm font-normal text-gray-500">Start*</label>
                         {!! FormCustom::input('start_time', null, [ "placeholder" => '-', 'type' => 'time']) !!}

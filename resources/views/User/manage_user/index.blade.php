@@ -19,14 +19,7 @@
         </div>
     </header>
     <hr>
-    {{-- <form action="{{ route('user.upload-csv') }}" method="POST" class="tess-upload-csv"
-        enctype="multipart/form-data">
-        @csrf
-        <!-- {{ csrf_field() }} -->
-        <input type="file" name="file" id="">
-        <button>submit csv</button>
-    </form> --}}
-    <x-ui.search-data placeholder="Search for user" url="{{ route('user.index') }}" />
+    <x-ui.search-data placeholder="Cari user" url="{{ route('user.index') }}" />
     <div class="table-content"></div>
     <x-ui.confirm-modal class="submit-delete-user"></x-ui.confirm-modal>
 </div>

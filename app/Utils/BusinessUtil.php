@@ -4,7 +4,6 @@ namespace App\Utils;
 
 use App\Models\User;
 use App\Models\Business;
-use Illuminate\Support\Carbon;
 use App\Models\BusinessLocation;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
@@ -77,17 +76,6 @@ class BusinessUtil extends Util
      */
     public function uf_date($date, $time = false)
     {
-        $date_format = 'm/d/Y';
-        $mysql_format = 'Y-m-d';
-        // if ($time) {
-        //     if (session('business.time_format') == 12) {
-        //         $date_format = $date_format . ' h:i A';
-        //     } else {
-        //         $date_format = $date_format . ' H:i';
-        //     }
-        //     $mysql_format = 'Y-m-d H:i:s';
-        // }
-
-        return !empty($date_format) ? Carbon::createFromFormat($date_format, $date)->format($mysql_format) : null;
+        
     }
 }

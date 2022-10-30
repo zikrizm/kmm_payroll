@@ -35,6 +35,7 @@ class PermissionsTableSeeder extends Seeder
             ['name' => 'role.create'],
             ['name' => 'role.update'],
             ['name' => 'role.delete'],
+
             ['name' => 'employee.view'],
             ['name' => 'employee.create'],
             ['name' => 'employee.update'],
@@ -49,6 +50,10 @@ class PermissionsTableSeeder extends Seeder
             ['name' => 'resign.create'],
             ['name' => 'resign.update'],
             ['name' => 'resign.delete'],
+            ['name' => 'attendance-manual.view'],
+            ['name' => 'attendance-manual.create'],
+            ['name' => 'attendance-manual.delete'],
+
             ['name' => 'shift.view'],
             ['name' => 'shift.create'],
             ['name' => 'shift.update'],
@@ -77,9 +82,7 @@ class PermissionsTableSeeder extends Seeder
             ['name' => 'area.create'],
             ['name' => 'area.update'],
             ['name' => 'area.delete'],
-            ['name' => 'transaction.view'],
-            ['name' => 'transaction.create'],
-            ['name' => 'transaction.delete'],
+           
             ['name' => 'device.view'],
             ['name' => 'device.create'],
             ['name' => 'device.update'],

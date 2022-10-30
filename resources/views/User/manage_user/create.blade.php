@@ -1,4 +1,4 @@
-<form autocomplete="off" action="{{ route('users.store') }}" method="POST" class="submit-user">
+<form autocomplete="off" action="{{ route('user.store') }}" method="POST" class="submit-user">
     @csrf
     <!-- {{ csrf_field() }} -->
     <section
@@ -15,7 +15,7 @@
                         <x-icon icon="user" width=18 height=18 viewBox="20 20" />
                     </div>
                     <div>
-                        <p class="text-xl font-semibold text-gray-900">Tambah user</p>
+                        <p class="text-xl font-semibold text-gray-900">Tambah pengguna</p>
                         <p class="text-sm font-normal text-gray-500 xs/max:text-xs">
                             Harap berikan detail pengguna.
                         </p>
@@ -31,21 +31,18 @@
                     <p class='text-gray-500 text-sm font-normal'>Ini akan ditampilkan di profil Anda.</p>
                 </div>
                 <div class='flex justify-between items-start'>
-                    <div class="relative">
-                        <button type="button" id="remove-img"
-                            class="hidden absolute right-0 bg-red-500 rounded-full text-white p-0.5"
-                            onclick="removePhoto('#photo', '#photo_preview','#contained-button-file', this)">
-                            <x-icon icon="x" width=12 height=12 viewBox="20 20" />
-                        </button>
-                        <img src='' class='object-cover h-16 w-16 bg-gray-50 rounded-full overflow-hidden'
-                            id="photo_preview">
-                    </div>
                     <label for="contained-button-file" class="flex items-center cursor-pointer">
                         <input name="photo" accept="image/*" id="contained-button-file" class="hidden" type="file"
                             onchange="loadPic('#photo', 'photo_preview', '#remove-img')" />
-                        <span class='cursor-pointer text-sm font-medium text-violet-700 hover:bg-gray-100 rounded p-1'>
-                            Unggah
-                        </span>
+                        <div class="relative">
+                            <button type="button" id="remove-img"
+                                class="hidden absolute right-0 bg-red-500 rounded-full text-white p-0.5"
+                                onclick="removePhoto('#photo', '#photo_preview','#contained-button-file', this)">
+                                <x-icon icon="x" width=12 height=12 viewBox="20 20" />
+                            </button>
+                            <img src='' class='object-cover h-16 w-16 bg-gray-50 rounded-full overflow-hidden'
+                                id="photo_preview">
+                        </div>
                     </label>
                     <input type="hidden" name="photo" id="photo">
                 </div>

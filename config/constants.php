@@ -77,4 +77,27 @@ return [
     'enable_convert_draft_to_invoice' => false, //Experimental beta feature.
     'enable_download_pdf' => false,         //Experimental feature
     'invoice_scheme_separator' => '-',
+    'department' => [
+        "count" => 2,
+        "next" => null,
+        "previous" => null,
+        "msg" => "",
+        "code" => 0,
+        "data" => [
+            [
+                "id" => 1,
+                "dept_code" => "1",
+                "dept_name" => "produksi",
+                "parent_dept" => null,
+                "parent_dept_name" => null
+            ],
+            [
+                "id" => 2,
+                "dept_code" => "2",
+                "dept_name" => "bengkel",
+                "parent_dept" => null,
+                "parent_dept_name" => null
+            ]
+        ]
+    ],
 ];

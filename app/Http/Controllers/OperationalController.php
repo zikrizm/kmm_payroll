@@ -2,11 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Utils\Util;
+use App\Models\Shift;
 use App\Models\Operational;
-use App\Models\OperationalHasDept;
 use App\Utils\ResponseUtil;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use App\Services\Api\ApiServices;
+use App\Models\OperationalHasDept;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
@@ -15,11 +18,13 @@ class OperationalController extends Controller
 {
     private $apiService;
     private $buildRes;
+    private $util;
 
-    public function __construct(ApiServices $apiService, ResponseUtil $buildRes)
+    public function __construct(ApiServices $apiService, Util $util, ResponseUtil $buildRes)
     {
         $this->apiService = $apiService;
         $this->buildRes = $buildRes;
+        $this->util = $util;
     }
 
     /**
@@ -110,54 +115,56 @@ class OperationalController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
+        Log::info($request);
+
         try {
             $validator = Validator::make($request->all(), $this->rules());
 
             if ($validator->fails()) {
                 return $this->buildRes->RESPONSE_REQ('error', null, $validator->errors());
             } else {
-                $request_data = $request->only(['date', 'department', 'group']);
-                $department = $this->apiService->read_department($request_data['department']);
-                $start_date = trim(explode(' - ', $request_data['date'])[0]);
-                $end_date = trim(explode(' - ', $request_data['date'])[1]);
-                $business_id = Session::get('business_id');
+                // $request_data = $request->only(['date', 'department', 'group']);
+                // $department = $this->apiService->read_department($request_data['department']);
+                // $start_date = trim(explode(' - ', $request_data['date'])[0]);
+                // $end_date = trim(explode(' - ', $request_data['date'])[1]);
+                // $business_id = Session::get('business_id');
 
-                $operational_exist = Operational::where('dept_id', $request_data['department'])->orWhereBetween('start_date', [$start_date, $end_date])
-                    ->orWhereBetween('end_date', [$start_date, $end_date])->get();
-                if (count($operational_exist) == 0) {
-                    $operational = new Operational([
-                        'business_id' => $business_id,
-                        'dept_id' => $department['id'],
-                        'dept_code' => $department['dept_code'],
-                        'dept_name' => $department['dept_name'],
-                        'start_date' => $start_date,
-                        'end_date' => $end_date,
-                        'created_user' => auth()->user()->id,
-                        'updated_user' => auth()->user()->id,
-                    ]);
-                    $operational->save();
+                // $operational_exist = Operational::where('dept_id', $request_data['department'])->orWhereBetween('start_date', [$start_date, $end_date])
+                //     ->orWhereBetween('end_date', [$start_date, $end_date])->get();
+                // if (count($operational_exist) == 0) {
+                //     $operational = new Operational([
+                //         'business_id' => $business_id,
+                //         'dept_id' => $department['id'],
+                //         'dept_code' => $department['dept_code'],
+                //         'dept_name' => $department['dept_name'],
+                //         'start_date' => $start_date,
+                //         'end_date' => $end_date,
+                //         'created_user' => auth()->user()->id,
+                //         'updated_user' => auth()->user()->id,
+                //     ]);
+                //     $operational->save();
 
-                    foreach ($request_data['group'] as $item) {
-                        $start_date = trim(explode(' - ', $item['date'])[0]);
-                        $end_date = trim(explode(' - ', $item['date'])[1]);
-                        $status = (empty($item['status'])) ? 'inactive' : 'active';
-                        $operational_has_dept = new OperationalHasDept([
-                            'operational_id' => $operational->id,
-                            'dept_id' => $item['dept_id'],
-                            'dept_code' => $item['dept_code'],
-                            'dept_name' => $item['dept_name'],
-                            'start_date' => $start_date,
-                            'end_date' => $end_date,
-                            'status' => $status,
-                            'note' => $item['note'],
-                        ]);
-                        $operational_has_dept->save();
-                    }
+                //     foreach ($request_data['group'] as $item) {
+                //         $start_date = trim(explode(' - ', $item['date'])[0]);
+                //         $end_date = trim(explode(' - ', $item['date'])[1]);
+                //         $status = (empty($item['status'])) ? 'inactive' : 'active';
+                //         $operational_has_dept = new OperationalHasDept([
+                //             'operational_id' => $operational->id,
+                //             'dept_id' => $item['dept_id'],
+                //             'dept_code' => $item['dept_code'],
+                //             'dept_name' => $item['dept_name'],
+                //             'start_date' => $start_date,
+                //             'end_date' => $end_date,
+                //             'status' => $status,
+                //             'note' => $item['note'],
+                //         ]);
+                //         $operational_has_dept->save();
+                //     }
 
-                    return $this->buildRes->RESPONSE_REQ('success', null,  ['success' => ['Add operational succesfully']]);
-                } else {
-                    return $this->buildRes->RESPONSE_REQ('error', null,  ['date' => ['Operational date range already exists']]);
-                }
+                //     return $this->buildRes->RESPONSE_REQ('success', null,  ['success' => ['Add operational succesfully']]);
+                // } else {
+                //     return $this->buildRes->RESPONSE_REQ('error', null,  ['date' => ['Operational date range already exists']]);
+                // }
             }
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
@@ -316,6 +323,47 @@ class OperationalController extends Controller
 
             $render = view('Task.operational.cards.deparment_card', compact('departments'))->render();
             return $this->buildRes->RESPONSE_REQ('success', $render, null);
+        } catch (\Exception $e) {
+            Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
+
+            return $this->buildRes->RESPONSE_REQ('error', null, ['error' => 'something wrong']);
+        }
+    }
+    public function get_operational_timetable_card(Request $request)
+    {
+        if (!request()->ajax()) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        try {
+            $start_time = Carbon::parse($request->date['start_date']);
+            $end_time = Carbon::parse($request->date['end_date']);
+            $dates = $this->util->generateDateRange($start_time, $end_time);
+            $shift = Shift::where('dept_id', $request->dept_id)->with('shiftday.shiftday_has_timetable.timetable')->first();
+
+            $timetable_cards = [];
+            if (!empty($shift)) {
+                foreach ($dates as $key => $date) {
+                    $code_day = Carbon::parse($date)->dayOfWeek;
+                    $timetables = [];
+                    foreach ($shift->shiftday as $key => $value) {
+                        if ($code_day == $value->code_day) {
+                            $timetables = array_column($value->shiftday_has_timetable->toArray(), 'timetable');
+                        }
+                    }
+
+                    $timetable_cards[] = [
+                        'date' => $date,
+                        'dayname' => Carbon::create($date)->locale('id_ID')->dayName,
+                        'timetables' => $timetables
+                    ];
+                }
+
+                $render = view('Task.operational.cards.deparment_card', compact('timetable_cards'))->render();
+                return $this->buildRes->RESPONSE_REQ('success', $render, null);
+            } else {
+                return $this->buildRes->RESPONSE_REQ('error', null, ['error' => ['The shift schedule for this section has not been arranged, please arrange in advance']]);
+            }
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
 

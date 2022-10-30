@@ -30,13 +30,15 @@
                                 {!! FormCustom::checkbox() !!}
                             </div>
                             <div class="flex gap-3 items-center px-6 py-3">
-                                <p class="text-gray-500 text-sm font-medium truncate">
+                                <p class="text-violet-600 text-sm font-medium truncate underline decoration-violet-600 cursor-pointer"
+                                    onclick="get_modal('{{ $item->id }}')">
                                     {{ $item->name }}
                                 </p>
                             </div>
                     </td>
                     <td class='px-3 py text-gray-500 text-sm'>
-                        <div class="flex justify-center items-center relative" style="width: {{ count($item->users) * 22.6 }}px;">
+                        <div class="flex justify-center items-center relative"
+                            style="width: {{ count($item->users) * 22.6 }}px;">
                             @foreach ($item->users as $key => $user)
                                 <div class='rounded-full border-white border-[1.5px] h-6 w-6 absolute overflow-hidden bg-gray-100'
                                     style='z-index: {{ $key + 1 }}; left: {{ 18 * $key }}px'>

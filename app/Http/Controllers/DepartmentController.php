@@ -55,7 +55,6 @@ class DepartmentController extends Controller
                 }
 
                 $departments = $this->apiService->get_departments($filter);
-
                 $depts = Department::all();
                 foreach ($depts as $dept) {
                     foreach ($departments['data'] as $key => $department) {

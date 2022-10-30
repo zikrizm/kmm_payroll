@@ -43,6 +43,7 @@ class TimetableController extends Controller
         }
 
         try {
+            Log::info(config('constants.department'));
             if (request()->ajax()) {
                 $business_id = Session::get('business_id');
                 $timetables = Timetable::where('business_id', $business_id)->with(['timetable_has_break_time']);
@@ -352,11 +353,11 @@ class TimetableController extends Controller
             'work_type' => 'required',
             'is_ot' => 'nullable',
             'is_ot_rice' => 'nullable',
-            'ot_period' => [new RequiredIf(request()->get('is_ot') == true), 'numeric', 'max:60'],
-            'ot_pay' => [new RequiredIf(request()->get('is_ot') == true)],
-            'duration_count_one_shift' => [new RequiredIf(request()->get('is_ot') == true), 'numeric', 'max:24'],
-            'duration_ot_limit' => [new RequiredIf(request()->get('is_ot') == true), 'numeric', 'max:24'],
-            'duration_rice_shift' => [new RequiredIf(request()->get('is_ot_rice') == true), 'numeric', 'max:24'],
+            'ot_period' => ['nullable',new RequiredIf(request()->get('is_ot') == true), 'numeric', 'max:60'],
+            'ot_pay' => ['nullable',new RequiredIf(request()->get('is_ot') == true)],
+            'duration_count_one_shift' => ['nullable',new RequiredIf(request()->get('is_ot') == true), 'numeric', 'max:24'],
+            'duration_ot_limit' => ['nullable',new RequiredIf(request()->get('is_ot') == true), 'numeric', 'max:24'],
+            'duration_rice_shift' => ['nullable',new RequiredIf(request()->get('is_ot_rice') == true), 'numeric', 'max:24'],
         ];
     }
 }

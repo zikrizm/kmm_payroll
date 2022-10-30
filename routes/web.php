@@ -15,73 +15,103 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', 'HomeController@index')->name('home.index');
-
 Auth::routes();
+// * Home
+Route::get('/', 'HomeController@index')->name('home.index');
+// * Businness register
 Route::get('/business/register', 'BusinessController@getBusinessRegister')->name('business.index.register');
 Route::post('/business/register', 'BusinessController@storeBusinessRegister')->name('business.store.register');
+
 Route::middleware(['auth'])->group(function () {
     Route::get('/home', 'HomeController@index')->name('home.index');
     Route::get('/get-token-zkteco', 'HomeController@get_token_zkteco')->name('get_token_zkteco')->middleware('only.ajax');
+    Route::get('/upload_csv', 'HelperController@upload_csv')->name('upload_csv');
 
-    Route::resource('users', 'ManageUserController', ['except' => ['update']]);
-    Route::post('/users/{user}', 'ManageUserController@update')->name('users.update');
+    // * Businness setting
+    Route::get('/business/setting', 'BusinessController@getBusinessSettings')->name('business.index.settings');
+    Route::post('/business/setting/{business}', 'BusinessController@updateBusinessSettings')->name('business.update.settings');
+    // * Businness location
+    Route::resource('/business/location', 'BusinessLocationController', ['except' => ['update']]);
+    Route::post('/business/location/{location}', 'BusinessLocationController@update')->name('locations.update');
 
-    Route::resource('employees', 'EmployeeController', ['except' => ['update']]);
-    Route::post('/employees/{employee}', 'EmployeeController@update')->name('employees.update');
-
-    Route::resource('access-controls', 'AccessControlController', ['except' => ['update']]);
-    Route::post('/access-controls/{access_control}', 'AccessControlController@update')->name('access-controls.update');
-
-    Route::resource('work-sections', 'WorkSectionController', ['except' => ['update']]);
-    Route::post('/work-sections/{work_section}', 'WorkSectionController@update')->name('work-sections.update');
-
-    Route::resource('groups', 'GroupController', ['except' => ['update']]);
-    Route::post('/groups/{group}', 'GroupController@update')->name('groups.update');
-
-    Route::resource('shifts', 'ShiftController', ['except' => ['update']]);
-    Route::resource('break-time', 'ShiftController', ['except' => ['update']]);
-    Route::post('/break-time/{break_time}', 'ShiftController@update')->name('break_time.update');
-
-    Route::resource('holidays', 'HolidayController', ['except' => ['update']]);
-    Route::post('/holidays/{holiday}', 'HolidayController@update')->name('holidays.update');
-
-    Route::get('/business/settings', 'BusinessController@getBusinessSettings')->name('business.index.settings');
-    Route::post('/business/settings/{business}', 'BusinessController@updateBusinessSettings')->name('business.update.settings');
-
-    Route::resource('/business/locations', 'BusinessLocationController', ['except' => ['update']]);
-    Route::post('/business/locations/{location}', 'BusinessLocationController@update')->name('locations.update');
-
-    // Route::get('/page', 'PageController@index')->name('page.index')->middleware('only.ajax');
-    Route::get('/user-management', 'PageController@userManagement')->name('page.userManagement');
-    Route::get('/company-profile', 'PageController@companyProfile')->name('page.companyProfile');
-
-
-
-    // Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
-    // Route::middleware('role:admin')->get('/dashboard', [App\Http\Controllers\HomeController::class, 'index'])->name('dashboard');
-
+    // * user
     Route::resource('user', 'ManageUserController', ['except' => ['update']]);
+    Route::post('/user/{user}', 'ManageUserController@update')->name('user.update');
+    // * role
     Route::resource('role', 'RoleController', ['except' => ['update']]);
+    Route::post('/role/{role}', 'RoleController@update')->name('role.update');
+    // * activity log
+    Route::get('/activity-log', 'ActifityLogController@index')->name('activity-log.index');
+
+    // * department
     Route::resource('department', 'DepartmentController', ['except' => ['update']]);
+    Route::post('/department/{department}', 'DepartmentController@update')->name('department.update');
+    // * position
     Route::resource('position', 'PositionController', ['except' => ['update']]);
+    Route::post('/position/{position}', 'PositionController@update')->name('position.update');
+    // * area
     Route::resource('area', 'AreaController', ['except' => ['update']]);
-    Route::resource('employee', 'EmployeeController', ['except' => ['update']]);
-    Route::resource('kasbon', 'KasbonController', ['except' => ['update']]);
-    Route::resource('resign', 'ResignController', ['except' => ['update']]);
-    Route::resource('break-time', 'BreakTimeController', ['except' => ['update']]);
-    Route::resource('timetable', 'TimetableController', ['except' => ['update']]);
-    Route::resource('shift', 'ShiftController', ['except' => ['update']]);
-    Route::resource('holiday', 'HolidayController', ['except' => ['update']]);
+    Route::post('/area/{area}', 'AreaController@update')->name('area.update');
+    // * device
     Route::resource('device', 'DeviceController', ['except' => ['update']]);
+    Route::post('/device/{device}', 'DeviceController@update')->name('device.update');
+
+    // * employee
+    Route::resource('employee', 'EmployeeController', ['except' => ['update']]);
+    Route::post('/employee/{employee}', 'EmployeeController@update')->name('employee.update');
+    Route::get('/employee-csv', 'EmployeeController@uploadCSV')->name('employee.uploadCSV');
+    Route::post('/employee-csv', 'EmployeeController@uploadCSV_store')->name('employee.uploadCSV-store');
+    // * employee photo
+    Route::get('/employee-photo', 'EmployeePhotoController@index')->name('employee-photo.index');
+    Route::post('/employee-photo', 'EmployeePhotoController@store')->name('employee-photo.store');
+    // * kasbon
+    Route::resource('kasbon', 'KasbonController', ['except' => ['update']]);
+    Route::post('/kasbon/{kasbon}', 'KasbonController@update')->name('kasbon.update');
+    // * transaction
     Route::resource('transaction', 'TransactionController', ['except' => ['update', 'edit']]);
-    Route::resource('attendance-report', 'AttendanceReportController', ['except' => ['update', 'show']]);
-    Route::resource('attendance-card', 'AttendanceCardController', ['except' => ['update', 'show']]);
-    Route::resource('payroll-report', 'PayrollReportController', ['except' => ['update', 'show']]);
-    Route::resource('overtime-rice-report', 'OvertimeRiceReportController', ['except' => ['update', 'show']]);
+    // * resign
+    Route::resource('resign', 'ResignController', ['except' => ['update']]);
+    Route::post('/resign/{resign}', 'ResignController@update')->name('resign.update');
+
+    // * break-time
+    Route::resource('break-time', 'BreakTimeController', ['except' => ['update']]);
+    Route::post('/break-time/{break_time}', 'BreakTimeController@update')->name('break-time.update');
+    // * timetable
+    Route::resource('timetable', 'TimetableController', ['except' => ['update']]);
+    Route::post('/timetable/{timetable}', 'TimetableController@update')->name('timetable.update');
+    // * shift
+    Route::resource('shift', 'ShiftController', ['except' => ['update']]);
+    Route::post('/shift/{shift}', 'ShiftController@update')->name('shift.update');
+    // * holiday
+    Route::resource('holiday', 'HolidayController', ['except' => ['update']]);
+    Route::post('/holiday/{holiday}', 'HolidayController@update')->name('holiday.update');
+
+    // * operational.
     Route::resource('operational', 'OperationalController', ['except' => ['update']]);
-    Route::resource('foreman-management', 'ForemanManagementController', ['except' => ['update']]);
-    Route::resource('employee-call', 'EmployeeCallController', ['except' => ['update']]);
+    Route::post('/operational/{operational}', 'OperationalController@update')->name('operational.update');
+    Route::get('/get-operational-timetable-card', 'OperationalController@get_operational_timetable_card')->name('operasional.get-operational-timetable-card');
+    // * request-help.
+    Route::resource('request-help', 'RequestHelpController', ['except' => ['update']]);
+    Route::post('/request-help/{request_help}', 'RequestHelpController@update')->name('request-help.update');
+    // * request-task.
+    Route::resource('request-task', 'RequestTaskController', ['except' => ['update']]);
+    Route::post('/request-task/{request_task}', 'RequestTaskController@update')->name('request-task.update');
+
+    // * attendance-report
+    Route::resource('attendance-report', 'AttendanceReportController', ['except' => ['update', 'show']]);
+    // * attendance-card
+    Route::resource('attendance-card', 'AttendanceCardController', ['except' => ['update', 'show']]);
+    // * payroll-report
+    Route::resource('payroll-report', 'PayrollReportController', ['except' => ['update', 'show']]);
+    // * overtime-rice-report
+    Route::resource('overtime-rice-report', 'OvertimeRiceReportController', ['except' => ['update', 'show']]);
+
+
+
+
+
+
+    
 
 
     Route::resource('additional-employee', 'AdditionalEmployeeController', ['except' => ['update']]);
@@ -93,29 +123,10 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/attendance-report/attendance-card', 'AttendanceReportController@checkAttendanceCard')->name('check-attendance-card');
     Route::get('/operational/{operational}/add-employees-to-help', 'OperationalController@add_employees_to_help')->name('operasional.add-employees-to-help');
     Route::post('/operational/add-employees-to-help', 'OperationalController@post_employees_to_help')->name('operasional.add-employees-to-help.store');
-    Route::get('/operational-card-sub-dept', 'OperationalController@card_sub_dept')->name('operasional.cardSubDept');
-
-    Route::post('/user/{user}', 'ManageUserController@update')->name('user.update');
-    Route::post('/role/{role}', 'RoleController@update')->name('role.update');
-    Route::post('/department/{department}', 'DepartmentController@update')->name('department.update');
-    Route::post('/position/{position}', 'PositionController@update')->name('position.update');
-    Route::post('/area/{area}', 'AreaController@update')->name('area.update');
-    Route::post('/employee/{employee}', 'EmployeeController@update')->name('employee.update');
-    Route::post('/kasbon/{kasbon}', 'KasbonController@update')->name('kasbon.update');
-    Route::post('/resign/{resign}', 'ResignController@update')->name('resign.update');
-    Route::post('/break-time/{break_time}', 'BreakTimeController@update')->name('break-time.update');
-    Route::post('/timetable/{timetable}', 'TimetableController@update')->name('timetable.update');
-    Route::post('/shift/{shift}', 'ShiftController@update')->name('shift.update');
-    Route::post('/holiday/{holiday}', 'HolidayController@update')->name('holiday.update');
-    Route::post('/device/{device}', 'DeviceController@update')->name('device.update');
-    Route::post('/operational/{operational}', 'OperationalController@update')->name('operational.update');
-    Route::post('/foreman-management/{foreman_management}', 'OperationalController@update')->name('foreman.update');
-    Route::post('/employee-call/{employee_call}', 'EmployeeCallController@update')->name('employee-call.update');
 
 
 
-    Route::get('/employee-photo', 'EmployeePhotoController@index')->name('employee-photo.index');
-    Route::post('/employee-photo', 'EmployeePhotoController@store')->name('employee-photo.store');
+
 
     Route::get('/search-employee-off-in-depts', 'EmployeeController@employee_off_in_depts')->name('employee.search-employee-off-in-depts');
     Route::get('/search-employee-request-position', 'EmployeeController@employee_request_position')->name('employee.search-employee-request-position');
@@ -126,21 +137,9 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/user-csv', 'ManageUserController@uploadUsers')->name('user.upload-csv');
 
 
-    Route::get('/upload_csv', 'HelperController@upload_csv')->name('upload_csv');
-    Route::get('/employee-csv', 'EmployeeController@uploadCSV')->name('employee.uploadCSV');
-    Route::post('/employee-csv', 'EmployeeController@uploadCSV_store')->name('employee.uploadCSV-store');
+   
 
-    // * activity log
-    Route::get('/activity-log', 'ActifityLogController@index')->name('activity-log.index');
-    // * operational.
-    Route::resource('operational', 'OperationalController', ['except' => ['update']]);
-    Route::post('/operational/{operational}', 'OperationalController@update')->name('operational.update');
-    // * request-help.
-    Route::resource('request-help', 'RequestHelpController', ['except' => ['update']]);
-    Route::post('/request-help/{request_help}', 'RequestHelpController@update')->name('request-help.update');
-    // * request-task.
-    Route::resource('request-task', 'RequestTaskController', ['except' => ['update']]);
-    Route::post('/request-task/{request_task}', 'RequestTaskController@update')->name('request-task.update');
+
 
 
 

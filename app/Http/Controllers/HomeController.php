@@ -39,7 +39,7 @@ class HomeController extends Controller
     {
 
         try {
-            return view('page.home.index');
+            return view('home.index');
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
         }

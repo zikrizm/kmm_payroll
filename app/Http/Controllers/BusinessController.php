@@ -4,10 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\Business;
+use App\Models\BusinessLocation;
 use App\Utils\BusinessUtil;
 use App\Utils\ResponseUtil;
 use Illuminate\Http\Request;
-use Illuminate\Support\Carbon;
 use App\Services\Api\ApiServices;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -18,7 +18,6 @@ use Illuminate\Support\Facades\Validator;
 
 class BusinessController extends Controller
 {
-    private $apiService;
     private $buildRes;
     private $businessUtil;
 
@@ -46,7 +45,6 @@ class BusinessController extends Controller
      */
     public function storeBusinessRegister(Request $request)
     {
-        Log::info($request);
         try {
             $validator = Validator::make($request->all(), [
                 'name' => 'required|max:255',
@@ -65,12 +63,17 @@ class BusinessController extends Controller
                 DB::beginTransaction();
 
                 //Create owner.
-                $owner_details = $request->only(['name', 'username', 'email', 'password']);
+                $owner_details = $request->only(['first_name', 'username', 'email', 'password']);
                 $owner_details['is_default'] = 1;
-                $user = User::create_user($owner_details);
+                $user = User::create_user([
+                    "name" => $owner_details["first_name"],
+                    "username" => $owner_details["username"],
+                    "email" => $owner_details["email"],
+                    "password" => $owner_details["password"],
+                    "is_default" => 1,
+                ]);
 
                 $business_details = $request->only(['name', 'start_date']);
-
                 $business_location = $request->only(['name', 'city', 'zip_code', 'full_address', 'website', 'mobile']);
                 //Create the business
                 $business_details['owner_id'] = $user->id;
@@ -117,7 +120,8 @@ class BusinessController extends Controller
         }
         $business_id = Session::get('business_id');
         $business = Business::where('id', $business_id)->first();
-        return view('business.settings', compact('business'));
+        $locations = BusinessLocation::where('business_id', $business_id)->get();
+        return view('business.settings', compact('business', 'locations'));
     }
 
     /**
@@ -127,12 +131,14 @@ class BusinessController extends Controller
      */
     public function updateBusinessSettings(Request $request)
     {
-        // if (!auth()->user()->can('business_settings.access') || !$request->ajax()) {
-        //     abort(403, 'Unauthorized action.');
-        // }
+        if (!auth()->user()->can('business_settings.access') || !$request->ajax()) {
+            abort(403, 'Unauthorized action.');
+        }
+
         try {
             $validator = Validator::make($request->all(), [
                 'name' => 'required|string|max:255',
+                'start_date' => 'required',
             ]);
 
             if ($validator->fails()) {
@@ -140,11 +146,6 @@ class BusinessController extends Controller
             } else {
                 DB::beginTransaction();
                 $business_details = $request->only(['name', 'start_date']);
-
-                // start_date
-                if (!empty($business_details['start_date'])) {
-                    $business_details['start_date'] = $this->businessUtil->uf_date($business_details['start_date']);
-                }
 
                 // upload logo
                 $logo_name = $this->businessUtil->uploadFile($request, 'business_logo', 'uploads/business_logos', 'image');
@@ -166,7 +167,7 @@ class BusinessController extends Controller
                 $business->save();
 
                 DB::commit();
-                return $this->buildRes->RESPONSE_REQ('success', null, ['success' => 'business update succesfully']);
+                return $this->buildRes->RESPONSE_REQ('success', null, ['success' => ['business update succesfully']]);
             }
         } catch (\Exception $e) {
             DB::rollBack();
