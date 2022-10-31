@@ -133,7 +133,7 @@
                             <div class="flex justify-center">
                                 <div class="flex items-center gap-1">
                                     <div class="flex relative w-max">
-                                        <p>{{ $item_report['timetable']['name'] ?? '' }}</p>
+                                        <p>{{ $item_report['timetable']['name'] ?? '-' }}</p>
                                         @if (!empty($item_report['timetable']['cross_day']))
                                         <p class="text-[9px] text-violet-600 mt-[-4px]">+{{
                                             $item_report['timetable']['cross_day'] ?? '' }}</p>
@@ -149,7 +149,7 @@
                                 </div>
                             </div>
                             @else
-
+                                -
                             @endif
 
                         </td>
@@ -158,7 +158,7 @@
                             $overtime = ($item_report['timetable']['overtime'] ?? 0) +
                             ($item_report['timetable']['early_check_in'] ?? 0);
                             @endphp
-                            {{ !empty($overtime) ? $overtime: '' }}
+                            {{ !empty($item_report['timetable'])? $overtime: '' }}
                         </td>
                     </tr>
                     @endforeach
