@@ -178,7 +178,6 @@ class AttendanceCardController extends Controller
                                                 foreach ($shiftday->shiftday_has_timetable as $keyHas => $shiftdayHas) {
                                                     $timetable_check_in = Carbon::createFromTimeString($shiftdayHas->timetable->check_in);
                                                     $timetable_check_out = Carbon::createFromTimeString($shiftdayHas->timetable->check_out);
-                                                    $timetable_check_in_out_dif = $timetable_check_in->diff($timetable_check_out);
                                                     $punch_check_in = Carbon::createFromTimeString($punch_check_in);
                                                     $punch_check_out = Carbon::createFromTimeString($punch_check_out);
                                                     if ($emp['first_name'] == 'karyawan003') {
@@ -203,17 +202,19 @@ class AttendanceCardController extends Controller
                                                             'cross_day' => $shiftdayHas->timetable->cross_day,
                                                         ];
 
-                                                        if ($shiftdayHas->timetable->is_without_break) {
-                                                            foreach ($shiftdayHas->timetable->timetable_has_break_time as $key => $value) {
-                                                                $break_time_start = Carbon::createFromTimeString($value->break_time->start_time);
-                                                                $break_time_end = Carbon::createFromTimeString($value->break_time->end_time);
-                                                                $break_time_dif = $break_time_start->diffInMinutes($break_time_end);
-                                                                $timetable['break_time_total'] += $break_time_dif;
-                                                            }
-
-                                                            $timetable_check_out->subMinutes($timetable['break_time_total']);
-                                                            $timetable_check_in_out_dif = $timetable_check_in->diff($timetable_check_out);
+                                                        foreach ($shiftdayHas->timetable->timetable_has_break_time as $key => $value) {
+                                                            $break_time_start = Carbon::createFromTimeString($value->break_time->start_time);
+                                                            $break_time_end = Carbon::createFromTimeString($value->break_time->end_time);
+                                                            $break_time_dif = $break_time_start->diffInMinutes($break_time_end);
+                                                            $timetable['break_time_total'] += $break_time_dif;
                                                         }
+
+                                                        if ($shiftdayHas->timetable->is_without_break) {
+                                                            $timetable_check_out->subMinutes($timetable['break_time_total']);
+                                                        }
+
+
+
 
                                                         $cross_data_attendances = [];
                                                         $no_cross_data_attendances = [];
@@ -241,8 +242,6 @@ class AttendanceCardController extends Controller
                                                             $check_out = Carbon::parse($atten_last['punch_time'])->format('H:i:s');
                                                             $punch_check_out = Carbon::createFromTimeString($check_out)->addDay();
                                                         }
-
-                                                        // $diff_time_punch
 
                                                         if ($punch_check_out->gte($timetable_check_out)) {
                                                             $timetable['id'] = $shiftdayHas->timetable->id;
@@ -286,6 +285,10 @@ class AttendanceCardController extends Controller
                                                                     $timetable['total_overtime_pay_per_day'] = ((($timetable['overtime'] ?? 0) * 60) / $ot_period) * $ot_pay;
                                                                 }
 
+                                                                
+                                                                $temp_timetable_check_out = Carbon::createFromTimeString($shiftdayHas->timetable->check_out);
+                                                                $temp_timetable_check_out->subMinutes($timetable['break_time_total']);
+                                                                $timetable_check_in_out_dif = $timetable_check_in->diff($temp_timetable_check_out);
                                                                 if (($timetable_check_in_out_dif->format('%h') / 2) > $diff_time_punch->format('%h'))
                                                                     $timetable['is_half_day'] = true;
                                                             }
