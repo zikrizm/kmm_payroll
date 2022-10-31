@@ -52,7 +52,7 @@ class AttendanceCardController extends Controller
                 }
 
                 // * Employee search
-                $search = 'Erwan';
+                $search = '';
                 if (!empty($request->input('q'))) {
                     $search = $request->q;
                 }
