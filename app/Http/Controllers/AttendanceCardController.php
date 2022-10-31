@@ -70,6 +70,8 @@ class AttendanceCardController extends Controller
                 $attenDBs = [];
                 $slug_week = ['sen', 'sel', 'rab', 'kam', 'jum', 'sab', 'mgg'];
                 if (!empty($request->input('date'))) {
+                    // $start_time = Carbon::parse("2022-10-16");
+                    // $end_time = Carbon::parse("2022-10-24");
                     $start_time = Carbon::parse($request->date['start_time']);
                     $end_time = Carbon::parse($request->date['end_time']);
                     $filter['start_time'] = $start_time->hour(0)->minute(0)->second(0)->format('Y-m-d H:i:s');
@@ -148,6 +150,7 @@ class AttendanceCardController extends Controller
                             }
                         }
                     }
+                    // Log::info(response()->json($attens_groupings));
 
 
 
@@ -194,38 +197,37 @@ class AttendanceCardController extends Controller
                                                         $timetable['per_day'] = 0;
                                                         $timetable['is_half_day'] = false;
 
+                                                        $cross_data_attendances = [];
+                                                        $no_cross_data_attendances = [];
+                                                        $next_date_index = $dates[$date_key + 1];
+                                                        if (!empty($attens_groupings[$next_date_index])) {
+                                                            $check_out_add_ot_limit = Carbon::createFromTimeString($shiftdayHas->timetable->check_out)->addHours($shiftdayHas->timetable->duration_ot_limit)->format('H:i:s');
+                                                            $check_out_add_ot_limit = Carbon::createFromTimeString($check_out_add_ot_limit);
+
+                                                            foreach ($attens_groupings[$next_date_index] as $key_next_atten => $item) {
+                                                                $check_in_next = Carbon::parse($item['punch_time'])->format('H:i:s');
+                                                                $punchInNext = Carbon::createFromTimeString($check_in_next);
+                                                                if ($punchInNext->lte($check_out_add_ot_limit)) {
+                                                                    $cross_data_attendances[] = $item;
+                                                                } else {
+                                                                    $no_cross_data_attendances[] = $item;
+                                                                }
+                                                            }
+                                                        } 
+
                                                         if (!empty($shiftdayHas->timetable->cross_day)) {
                                                             $timetable['cross_day'] = $shiftdayHas->timetable->cross_day;
+                                                        }
 
-                                                            $next_date_index = $dates[$date_key + 1];
-                                                            if (!empty($attens_groupings[$next_date_index])) {
-                                                                $check_out_add_ot_limit = Carbon::createFromTimeString($shiftdayHas->timetable->check_out)
-                                                                    ->addHours($shiftdayHas->timetable->duration_ot_limit);
-
-                                                                $cross_data_attendances = [];
-                                                                $no_cross_data_attendances = [];
-                                                                foreach ($attens_groupings[$next_date_index] as $key_next_atten => $item) {
-                                                                    $check_in_next = Carbon::parse($item['punch_time'])->format('H:i:s');
-                                                                    $punchInNext = Carbon::createFromTimeString($check_in_next);
-                                                                    if ($punchInNext->lt($check_out_add_ot_limit)) {
-                                                                        $cross_data_attendances[] = $item;
-                                                                    } else {
-                                                                        $no_cross_data_attendances[] = $item;
-                                                                    }
-                                                                }
-
-                                                                array_push($attens_groupings[$dates[$date_key]], ...$cross_data_attendances);
-                                                                $attens_groupings[$next_date_index] = $no_cross_data_attendances;
-                                                                if (!empty($cross_data_attendances)) {
-                                                                    // dirubah karena timetable nya ad CROSS-nya
-                                                                    // biar perhitungan jam keluarnya berubah
-                                                                    $atten_last = $cross_data_attendances[count($cross_data_attendances) - 1];
-                                                                    $diff_time_punch = Carbon::parse($atten_first['punch_time'])->diff(Carbon::parse($atten_last['punch_time']));
-                                                                    $check_out = Carbon::parse($atten_last['punch_time'])->format('H:i:s');
-                                                                    $punchOut = Carbon::createFromTimeString($check_out);
-                                                                }
-                                                            } else {
-                                                            }
+                                                        array_push($attens_groupings[$dates[$date_key]], ...$cross_data_attendances);
+                                                        $attens_groupings[$next_date_index] = $no_cross_data_attendances;
+                                                        if (!empty($cross_data_attendances)) {
+                                                            // dirubah karena timetable nya ad CROSS-nya
+                                                            // biar perhitungan jam keluarnya berubah
+                                                            $atten_last = $cross_data_attendances[count($cross_data_attendances) - 1];
+                                                            $diff_time_punch = Carbon::parse($atten_first['punch_time'])->diff(Carbon::parse($atten_last['punch_time']));
+                                                            $check_out = Carbon::parse($atten_last['punch_time'])->format('H:i:s');
+                                                            $punchOut = Carbon::createFromTimeString($check_out);
                                                         }
 
                                                         if ($punchIn->lt($in)) {
