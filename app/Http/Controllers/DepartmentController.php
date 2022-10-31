@@ -119,7 +119,7 @@ class DepartmentController extends Controller
             if ($validator->fails()) {
                 return $this->buildRes->RESPONSE_REQ('error', null, $validator->errors());
             } else {
-                $dept_reqdata = $request->only(['dept_code', 'dept_name', 'parent_dept', 'sitting_money_check', 'sitting_money']);
+                $dept_reqdata = $request->only(['dept_code', 'dept_name', 'parent_dept', 'sitting_money_check', 'sitting_money', 'still_paid']);
 
                 $res = $this->apiService->create_department($dept_reqdata);
 
@@ -175,10 +175,12 @@ class DepartmentController extends Controller
             if ($deptDB) {
                 $dept['sitting_money_check'] = (bool)$deptDB->sitting_money;
                 $dept['sitting_money'] = $deptDB->sitting_money;
+                $dept['still_paid'] = $deptDB->still_paid;
                 $dept['updated_by'] = 'Diperbarui: ' . $deptDB->user->first_name . ', ' . $deptDB->updated_at;
             } else {
                 $dept['sitting_money_check'] = false;
                 $dept['sitting_money'] = null;
+                $dept['still_paid'] = false;
                 $dept['updated_by'] = null;
             }
 
@@ -212,7 +214,7 @@ class DepartmentController extends Controller
             if ($validator->fails()) {
                 return $this->buildRes->RESPONSE_REQ('error', null, $validator->errors());
             } else {
-                $dept_data = $request->only(['dept_code', 'dept_name', 'parent_dept', 'sitting_money_check', 'sitting_money']);
+                $dept_data = $request->only(['dept_code', 'dept_name', 'parent_dept', 'sitting_money_check', 'sitting_money', 'still_paid']);
                 $dept_data['id'] = $department;
 
                 $res = $this->apiService->update_department($dept_data);
@@ -280,6 +282,7 @@ class DepartmentController extends Controller
                 'dept_id' => $dept_id,
                 'created_user' => auth()->user()->id,
                 'updated_user' => auth()->user()->id,
+                'still_paid' => $request['still_paid'],
                 'sitting_money' => (!empty($request->input('sitting_money_check'))) ?
                     str_replace('.', '', $request['sitting_money']) : null
             ]);
@@ -298,6 +301,7 @@ class DepartmentController extends Controller
             'dept_code' => 'required|string|max:255',
             'dept_name' => 'required|string|max:255',
             'sitting_money_check' => 'nullable',
+            'still_paid' => 'nullable',
             'sitting_money' => [
                 Rule::requiredIf(function () {
                     return request()->get('sitting_money_check');

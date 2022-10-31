@@ -52,7 +52,7 @@
                 <div class="flex items-start gap-2.5">
                     <span class="pt-0.5">
                         {!! FormCustom::checkbox('still_paid', -1,
-                        ['checked'=>$dept['still_paid']]) !!}
+                        ['checked'=> $dept['still_paid']]) !!}
                     </span>
                     <div class="flex flex-col gap-px">
                         <p class="font-medium text-sm text-gray-700">Uang Minggu atau Libur Nasional</p>

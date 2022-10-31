@@ -37,7 +37,8 @@
                         </div>
                         <div class="flex gap-3 items-center px-6 py-3 hover:underline hover:text-gray-500 cursor-pointer"
                             onclick="get_modal('{{ $item['id'] }}')">
-                            <p class="text-violet-600 font-medium text-sm underline decoration-violet-600 cursor-pointer">
+                            <p
+                                class="text-violet-600 font-medium text-sm underline decoration-violet-600 cursor-pointer">
                                 {{ $item->name }}
                             </p>
                         </div>
@@ -60,8 +61,8 @@
                     </div>
                 </td>
                 <td class='px-3 py text-gray-500 text-sm'>
-                    {{ date_diff(new \DateTime($item->start_date), new \DateTime($item->end_date.' +1
-                    day'))->format("%a"); }} hari
+                    {{ date_diff(new \DateTime($item->start_date),
+                    new \DateTime($item->end_date.' +1 day'))->format("%a"); }} hari
                 </td>
                 @canany(['holiday.update', 'holiday.delete'])
                 <td class='px-3 py'>

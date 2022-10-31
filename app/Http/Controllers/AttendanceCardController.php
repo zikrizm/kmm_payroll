@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Department;
 use App\Models\Employee;
 use App\Models\Shift;
 use App\Utils\ResponseUtil;
 use App\Models\EmployeeDebt;
+use App\Models\Holiday;
 use App\Models\Operational;
 use App\Models\Position;
 use App\Models\Transaction;
@@ -105,13 +107,19 @@ class AttendanceCardController extends Controller
                 $posis = Position::with('employee_has_position')->get();
                 // ** get kasbon data dari database local
                 $debts = EmployeeDebt::where('business_id', $business_id)->whereBetween('date', array($start_time, $end_time))->get();
+                // ** get kasbon data dari database local
+                $holidays = Holiday::where('business_id', $business_id)->whereBetween('start_date', array($start_time, $end_time))
+                    ->orWhereBetween('end_date', array($start_time, $end_time))->get();
+                $holiday_count = 0;
+                foreach ($holidays as $item) {
+                    $holiday_count += Carbon::parse($item['start_date'])->diffInDays(Carbon::parse($item['end_date']));
+                }
                 // ** get shift data dari database local
                 $shifts = Shift::where('business_id', $business_id)->with(['shiftday'])->get();
                 // ** get operational data dari database local
                 $operational = Operational::where('business_id', $business_id)->whereBetween('start_date', [$start_time, $end_time])
                     ->orWhereBetween('end_date', [$start_time, $end_time])->with('operational_has_depts')->first();
                 $attendance_reports = [];
-                Log::info("===================");
                 foreach (($emp_bios ?? []) as $emp) {
                     // ** groupping absen karyawan berdasarkan tanggal
                     $attens_groupings = $this->_group_by_date($atten_bios->filter(function ($atten) use ($emp) {
@@ -142,6 +150,8 @@ class AttendanceCardController extends Controller
                     $group = !empty($operational) ? ($operational->operational_has_depts ?? [])->filter(function ($item) use ($emp) {
                         return $item->dept_id === $emp['department']['id'];
                     }) : [];
+                    // ** searchkaryawan untuk group
+                    $departmentDB = Department::where('dept_id', $dept_id)->first();
                     // ** sum upah tambahan dari jabatan
                     $position_extra_pay = 0;
                     foreach ($posis as $posi) {
@@ -151,9 +161,6 @@ class AttendanceCardController extends Controller
                             }
                         }
                     }
-
-
-
 
                     $report_by_date = [];
                     $daily_salary = ($emp_form_db_index != '') ? $emp_form_databases[$emp_form_db_index]->daily_salary : 0;
@@ -175,6 +182,7 @@ class AttendanceCardController extends Controller
                                     if ($dept_id == $shift->dept_id) {
                                         foreach ($shift->shiftday as $shiftday) {
                                             if ($code_day == $shiftday->code_day) {
+                                                $timetable = ['per_day' => 0];
                                                 foreach ($shiftday->shiftday_has_timetable as $keyHas => $shiftdayHas) {
                                                     $timetable_check_in = Carbon::createFromTimeString($shiftdayHas->timetable->check_in);
                                                     $timetable_check_out = Carbon::createFromTimeString($shiftdayHas->timetable->check_out);
@@ -184,6 +192,10 @@ class AttendanceCardController extends Controller
                                                         // Log::info($punch_check_in);
                                                         // Log::info($punch_check_out);
                                                     }
+
+
+
+
 
                                                     $timetable_check_in_add_plusmn = Carbon::createFromTimeString($shiftdayHas->timetable->check_in)->subMinutes($shiftdayHas->timetable->check_in_plusmn);
                                                     $timetable_check_in_sub_plusmn = Carbon::createFromTimeString($shiftdayHas->timetable->check_in)->addMinutes($shiftdayHas->timetable->check_in_plusmn);
@@ -196,8 +208,8 @@ class AttendanceCardController extends Controller
                                                             'total_overtime_pay_per_day' => 0,
                                                             'count_one_shift' => 0,
                                                             'total_overtime_pay_per_day' => 0,
-                                                            'per_day' => 0,
                                                             'is_half_day' => false,
+                                                            'per_day' => 0,
                                                             'break_time_total' => 0,
                                                             'cross_day' => $shiftdayHas->timetable->cross_day,
                                                         ];
@@ -244,8 +256,6 @@ class AttendanceCardController extends Controller
                                                         $timetable['name'] = $shiftdayHas->timetable->name;
 
                                                         if ($punch_check_in->lt($timetable_check_in)) {
-
-
                                                             $diff_time_in = $punch_check_in->diffInSeconds($timetable_check_in);
                                                             $minute = intval(gmdate('i', $diff_time_in));
                                                             $timetable['early_check_in'] += intval(gmdate('G', $diff_time_in));
@@ -262,7 +272,7 @@ class AttendanceCardController extends Controller
 
                                                         if (count($attens_groupings[$date]) != 1) {
                                                             if ($emp['first_name'] == 'Erwan') {
-                                                                Log::info($punch_check_out);
+                                                                // Log::info($punch_check_out);
                                                                 // Log::info($timetable_check_out);
                                                             }
                                                             if ($punch_check_out->gt($timetable_check_out)) {
@@ -279,9 +289,6 @@ class AttendanceCardController extends Controller
                                                                     $timetable['overtime']++;
                                                                 }
 
-
-
-
                                                                 if ($shiftdayHas->timetable->ot_period) {
                                                                     $ot_period = $shiftdayHas->timetable->ot_period ?? 0;
                                                                     $ot_pay = $shiftdayHas->timetable->ot_pay ?? 0;
@@ -290,10 +297,6 @@ class AttendanceCardController extends Controller
                                                                         $timetable['overtime'] -= ($timetable['per_day']) * $shiftdayHas->timetable->duration_count_one_shift ?? 0;
                                                                     }
                                                                     $timetable['total_overtime_pay_per_day'] = ((($timetable['overtime'] ?? 0) * 60) / $ot_period) * $ot_pay;
-                                                                }
-
-                                                                if ($emp['first_name'] == 'Erwin') {
-                                                                    Log::info($timetable);
                                                                 }
                                                             }
 
@@ -310,10 +313,15 @@ class AttendanceCardController extends Controller
                                                         }
                                                         // }
                                                     }
-
-                                                    $timetable['weekday'] = $shiftday->name;
-                                                    $timetable['slug'] = $slug_week[$code_day];
                                                 }
+
+                                                $timetable['per_day'] += $holiday_count;
+                                                if (!empty($departmentDB) && $departmentDB->still_paid) {
+                                                    $timetable['per_day'] += 1;
+                                                }
+
+                                                $timetable['weekday'] = $shiftday->name;
+                                                $timetable['slug'] = $slug_week[$code_day];
                                             }
                                         }
                                         // foreach ($shift->shiftday as $shiftday) {

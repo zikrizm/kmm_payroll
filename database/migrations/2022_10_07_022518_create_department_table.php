@@ -17,6 +17,7 @@ return new class extends Migration
             $table->increments('id');
             $table->integer('dept_id');
             $table->decimal('sitting_money', 22, 2)->nullable();
+            $table->boolean('still_paid')->default(0);
 
             $table->integer('created_user')->unsigned();
             $table->integer('updated_user')->nullable()->unsigned();
