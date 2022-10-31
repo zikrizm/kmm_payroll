@@ -182,13 +182,12 @@
                                 </div>
                             </section>
                             <section class="flex flex-col gap-1">
-                                <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Durasi jam lembur (upah
-                                    akan diconversi menjadi satu shift)*</label>
+                                <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Durasi jam lembur dikonversikan jadi 1 shift*</label>
                                 {!! FormCustom::input('duration_count_one_shift', null,
                                 [ "placeholder" => 'Masukkan durasi waktu (jam)', 'type'=> 'number']) !!}
                             </section>
                             <section class="flex flex-col gap-1">
-                                <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Batas lembur*</label>
+                                <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Batas maksimal lembur*</label>
                                 {!! FormCustom::input('duration_ot_limit', null,
                                 [ "placeholder" => 'Masukkan batas durasi lembur', 'type'=> 'number']) !!}
                             </section>
