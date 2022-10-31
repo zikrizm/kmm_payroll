@@ -127,6 +127,9 @@ class TimetableController extends Controller
                 $timetable_data['business_id'] = $business_id;
                 $check_in = Carbon::parse($timetable_data['check_in']);
                 $check_out = Carbon::parse($timetable_data['check_out']);
+                if($check_out->lt($check_in)) {
+                    $check_out = $check_out->addDays(1);
+                }
                 $timetable_data['work_time'] = $check_in->diffInMinutes($check_out);
 
                 if (!empty($request->input('is_ot_rounding'))) {
@@ -243,8 +246,11 @@ class TimetableController extends Controller
                 $timetable_data['business_id'] = $business_id;
                 $check_in = Carbon::parse($timetable_data['check_in']);
                 $check_out = Carbon::parse($timetable_data['check_out']);
+                if($check_out->lt($check_in)) {
+                    $check_out = $check_out->addDays(1);
+                }
                 $timetable_data['work_time'] = $check_in->diffInMinutes($check_out);
-
+                
                 if (!empty($request->input('is_ot_rounding'))) {
                     $timetable_data['ot_roundone_hr'] = 40;
                     $timetable_data['ot_roundhalf_hr'] = 20;

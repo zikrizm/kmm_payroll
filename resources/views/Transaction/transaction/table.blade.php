@@ -34,7 +34,7 @@
                     <th class='px-3 py-3 text-center cursor-pointer'>
                         <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Sumber data</p>
                     </th>
-                    @canany(['transaction.delete'])
+                    @canany(['attendance-manual.delete'])
                     <th class='px-3 py-3 text-left text-gray-500 text-xs font-medium'></th>
                     @endcanany
                 </tr>
@@ -90,7 +90,7 @@
                             device
                         </p>
                     </td>
-                    @can('transaction.delete')
+                    @can('attendance-manual.delete')
                     <td class='px-3 py'>
                         <div class='flex gap-1'>
                             <button onclick="open_modal_confirm('{{ $item['id'] }}')"
