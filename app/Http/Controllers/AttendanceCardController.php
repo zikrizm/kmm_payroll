@@ -280,18 +280,20 @@ class AttendanceCardController extends Controller
                                                                 }
 
 
-                                                                // if ($emp['first_name'] == 'Yusep') {
-                                                                //     Log::info($shiftdayHas->timetable);
-                                                                // }
+
 
                                                                 if ($shiftdayHas->timetable->ot_period) {
                                                                     $ot_period = $shiftdayHas->timetable->ot_period ?? 0;
                                                                     $ot_pay = $shiftdayHas->timetable->ot_pay ?? 0;
                                                                     $timetable['per_day'] += floor($hour / ($shiftdayHas->timetable->duration_count_one_shift ?? 0));
-                                                                    if ($timetable['per_day'] > 1) {
-                                                                        $timetable['overtime'] -= ($timetable['per_day'] - 1) * $shiftdayHas->timetable->duration_count_one_shift ?? 0;
+                                                                    if ($timetable['per_day'] >= 1) {
+                                                                        $timetable['overtime'] -= ($timetable['per_day']) * $shiftdayHas->timetable->duration_count_one_shift ?? 0;
                                                                     }
                                                                     $timetable['total_overtime_pay_per_day'] = ((($timetable['overtime'] ?? 0) * 60) / $ot_period) * $ot_pay;
+                                                                }
+
+                                                                if ($emp['first_name'] == 'Erwin') {
+                                                                    Log::info($timetable);
                                                                 }
                                                             }
 

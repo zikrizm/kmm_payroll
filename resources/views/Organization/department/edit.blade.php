@@ -49,6 +49,18 @@
                     </select>
                     <label class="font-normal text-xs text-red-500 xs/max:text-xs parent_dept hint-text"></label>
                 </section>
+                <div class="flex items-start gap-2.5">
+                    <span class="pt-0.5">
+                        {!! FormCustom::checkbox('still_paid', -1,
+                        ['checked'=>$dept['still_paid']]) !!}
+                    </span>
+                    <div class="flex flex-col gap-px">
+                        <p class="font-medium text-sm text-gray-700">Uang Minggu atau Libur Nasional</p>
+                        <p class="font-normal text-sm text-gray-500">Tetap dapat upah harian meskipun hari minggu atau
+                            libur nasional
+                        </p>
+                    </div>
+                </div>
                 <div class="flex flex-col gap-2">
                     <section>
                         <div class="flex items-start gap-2.5">
