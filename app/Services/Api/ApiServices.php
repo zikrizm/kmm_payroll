@@ -350,7 +350,6 @@ class ApiServices extends NetworkUtils
 
     public function get_departments($data)
     {
-        return config('constants.department');
         $data = [
             'page' => $data['page'] ?? null,
             'page_size' => $data['page_size'] ?? null,
