@@ -199,7 +199,7 @@
                                 [ "placeholder" => 'Masukkan durasi waktu (jam)', 'type'=> 'number']) !!}
                             </section>
                             <section class="flex flex-col gap-1">
-                                <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Batas maksimal git lembur*</label>
+                                <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Batas maksimal jam lembur*</label>
                                 {!! FormCustom::input('duration_ot_limit', $timetable->duration_ot_limit,
                                 [ "placeholder" => 'Masukkan batas durasi lembur', 'type'=> 'number']) !!}
                             </section>
