@@ -225,6 +225,7 @@ class DepartmentController extends Controller
                     $this->__createDepartmentIfNotExists($dept_id, $request);
                     Department::where('dept_id', $dept_id)->update(
                         [
+                            'still_paid' => $dept_data['still_paid'] ?? 0,
                             'sitting_money' => (!empty($dept_data['sitting_money_check'])) ?
                                 str_replace('.', '', $dept_data['sitting_money']) : null,
                             'updated_user' => auth()->user()->id,
@@ -283,7 +284,7 @@ class DepartmentController extends Controller
                 'dept_id' => $dept_id,
                 'created_user' => auth()->user()->id,
                 'updated_user' => auth()->user()->id,
-                'still_paid' => $request['still_paid'],
+                'still_paid' => $request['still_paid'] ?? 0,
                 'sitting_money' => (!empty($request->input('sitting_money_check'))) ?
                     str_replace('.', '', $request['sitting_money']) : null
             ]);

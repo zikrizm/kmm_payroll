@@ -111,7 +111,10 @@
                 <tbody>
                     @foreach ($item['reports'] as $key => $item_report)
                     <tr class='hover:bg-gray-50 border '>
-                        <td class='text-xs border text-gray-500 text-center w-8'>
+                        @php
+                            $isSunday = Carbon\Carbon::parse($item_report['date'])->isSunday();
+                        @endphp
+                        <td class="text-xs border text-center w-8 {{ $isSunday || $item_report['is_holiday'] ? 'text-red-500' : 'text-gray-500' }}">
                             {{ date('d', strtotime($item_report['date'])) }}
                         </td>
                         <td class='text-xs border text-gray-500 text-center w-12'>
