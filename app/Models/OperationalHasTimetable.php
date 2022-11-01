@@ -15,4 +15,9 @@ class OperationalHasTimetable extends Model
      * @var array
      */
     protected $guarded = ['id'];
+
+    public function timetable()
+    {
+        return $this->belongsTo(Timetable::class, 'timetable_id');
+    }
 }

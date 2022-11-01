@@ -50,9 +50,6 @@ $status_value = !empty($operational) ? $operational->operational_has_depts[$key]
     <div class="flex flex-col gap-3" id="timetable-day-content">
         <div class="flex flex-col gap-2">
             <div class="flex items-start gap-2">
-                <span class="pt-1">
-                    {!! FormCustom::checkbox('shift[day_status]', -1) !!}
-                </span>
                 <div class="flex flex-col">
                     <p class="text-gray-700 text-sm dayname">{{ $timetable_card['dayname'] }}</p>
                     <dd class="text-gray-500 text-xs">Lorem ipsum dolor sit, amet consectetur</dd>

@@ -23,4 +23,11 @@ class Operational extends Model
     {
         return $this->hasMany(OperationalHasDept::class, 'operational_id');
     }
+    /**
+     * Get the operational_has_depts.
+     */
+    public function operational_has_timetables()
+    {
+        return $this->hasMany(OperationalHasTimetable::class, 'operational_id');
+    }
 }

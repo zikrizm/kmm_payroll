@@ -169,6 +169,7 @@ class DepartmentController extends Controller
         }
 
         try {
+            Log::info($department);
             $dept = $this->apiService->read_department($department);
             $deptDB = Department::where('dept_id', $dept['id'])->with('user')->first();
 

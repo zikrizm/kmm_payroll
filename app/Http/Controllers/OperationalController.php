@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Holiday;
 use App\Utils\Util;
 use App\Models\Shift;
 use App\Models\Operational;
@@ -61,8 +62,11 @@ class OperationalController extends Controller
                         return Carbon::parse($item->date)->format('Y-m-d');
                     });
 
-                    Log::info($operationals['2022-10-26']);
+                    // foreach ($variable as $key => $value) {
+                    //     # code...
+                    // }
 
+Log::info($operationals);
                 // if ($request->has('q') && !empty($request->input('q'))) {
                 //     $search = $request->q;
                 //     $operationals = $operationals->where('dept_name', 'LIKE', "%" . $search . "%")
@@ -109,6 +113,7 @@ class OperationalController extends Controller
 
         try {
             $date = Carbon::parse($request['date'])->format('Y-m-d');
+
             $departments = collect($this->apiService->get_departments([]));
             $departments['data'] = collect($departments['data'])->filter(function ($e) {
                 return empty($e['parent_dept']);
@@ -152,7 +157,6 @@ class OperationalController extends Controller
                     'date' => $date,
                     'dept_id' => $request_data['department'],
                     'day_name' => Carbon::create($date)->locale('id_ID')->dayName,
-                    'status' => (!empty($request_data['shift']['day_status']) && $request_data['shift']['day_status'] == -1) ? 'active' : 'inactive',
                     'created_user' => auth()->user()->id,
                     'updated_user' => auth()->user()->id,
                 ]);
@@ -342,16 +346,17 @@ class OperationalController extends Controller
 
         try {
             $date = Carbon::parse($request->date);
+            $holidays = Holiday::where('start_date', $date)->get();
             $shift = Shift::where('dept_id', $request->dept_id)->with('shiftday.shiftday_has_timetable.timetable')->first();
             $timetable_card = [];
             if (!empty($shift)) {
                 $code_day = $date->dayOfWeek;
                 $timetables = [];
                 foreach ($shift->shiftday as $key => $value) {
-                    if ($code_day == $value->code_day)
+                    if (!empty($holidays) && $holidays->count() ? $value->code_day == 0 : $code_day == $value->code_day) {
                         $timetables = array_column($value->shiftday_has_timetable->toArray(), 'timetable');
+                    }
                 }
-
                 $timetable_card = [
                     'date' => $date,
                     'dayname' => Carbon::create($date)->locale('id_ID')->dayName,
