@@ -69,7 +69,7 @@
             var URL = (holiday_id) ? '/holiday/' + holiday_id + '/edit' : '/holiday/create';
             var res = await ApiService.get_modal(URL, null);
             $('input[name="holiday_date"]').daterangepicker({
-                locale: { format: 'YYYY-MM-DD' },
+                locale: { format: 'DD-MM-YYYY' },
                 showDropdowns: true,
                 minYear: 2000,
                 drops: "auto",

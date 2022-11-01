@@ -26,7 +26,7 @@
         </section>
         <section class="flex flex-col gap-1">
             <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Tanggal mulai*</label>
-            {!! FormCustom::input('start_date', @formatDate($business->start_date), [
+            {!! FormCustom::input('start_date', $business->start_date, [
             'placeholder' => 'Enter new your start date',
             'readonly' => true,
             'prefixiconname' => 'calendar',

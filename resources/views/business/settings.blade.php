@@ -19,7 +19,7 @@
                         </button>
                     </li>
                     <li>
-                        <button data-ref-class-content="business-dash-content"
+                        <button data-ref-class-content="business-location-content"
                             class="business-menu text-gray-500 mr-4 pt px-1 pb-[19px] border-violet-700 text-sm font-medium">
                             Lokasi
                         </button>
@@ -41,7 +41,7 @@
                     </footer>
                 </form>
             </div>
-            <div id="business-location-content">
+            <div id="business-location-content" class="hidden">
                 <main class='border border-gray-200 rounded-lg shadow-sm w-max overflow-hidden'>
                     <div class="w-full overflow-auto overflow-y-hidden">
                         <table class='table border-collapse w-max'>

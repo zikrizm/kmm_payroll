@@ -130,8 +130,8 @@
                         </td>
                         <td class='text-xs border text-gray-500 text-center'>
                             @if (!empty($item_report['timetable']))
-                            <div class="flex justify-center">
-                                <div class="flex items-center gap-1">
+                            <div class="flex items-center justify-between gap-1">
+                                <div class="flex justify-center flex-1">
                                     <div class="flex relative w-max">
                                         <p>{{ $item_report['timetable']['name'] ?? '-' }}</p>
                                         @if (!empty($item_report['timetable']['cross_day']))
@@ -139,6 +139,8 @@
                                             $item_report['timetable']['cross_day'] ?? '' }}</p>
                                         @endif
                                     </div>
+                                </div>
+                                <div class="w-7 pl-0.5 flex justify-center bg-gray-100 text-gray-700">
                                     @if(!empty($item_report['timetable']['is_half_day'])&&$item_report['timetable']['is_half_day'])
                                     <p class="text-[9px]">(1/2)</p>
                                     @else
@@ -149,7 +151,7 @@
                                 </div>
                             </div>
                             @else
-                                -
+                            -
                             @endif
 
                         </td>
@@ -158,7 +160,7 @@
                             $overtime = ($item_report['timetable']['overtime'] ?? 0) +
                             ($item_report['timetable']['early_check_in'] ?? 0);
                             @endphp
-                            {{ !empty($item_report['timetable'])? $overtime: '' }}
+                            {{ !empty($item_report['timetable']['name'])? $overtime: '-' }}
                         </td>
                     </tr>
                     @endforeach
