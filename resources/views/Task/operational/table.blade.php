@@ -1,225 +1,83 @@
-{{-- <main class='border border-gray-200 rounded-lg shadow-sm w-max overflow-hidden'>
-    <div class="w-full overflow-auto overflow-y-hidden">
-        <table class='table border-collapse w-full'>
-            <thead class='border-b border-gray-200 bg-gray-50'>
-                <tr class=''>
-                    <th class='text-left'>
-                        <div class='flex items-center'>
-                            <div class='pl-4 py-2 flex items-center'>
-                                {!! FormCustom::checkbox() !!}
-                            </div>
-                            <div class='px-6 py-3 cursor-pointer flex-1'>
-                                <x-ui.sort-table text="Tanggal operasional" url="{{ route('operational.index') }}"
-                                    field="date" order="{{ $order }}" />
-                            </div>
-                        </div>
-                    </th>
-                    <th class='px-3 py-3 text-left cursor-pointer'>
-                        <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Bagian</p>
-                    </th>
-                    <th class='px-3 py-3 text-left cursor-pointer'>
-                        <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Group</p>
-                    </th>
-                    @canany(['operational.update', 'operational.delete'])
-                    <th class='px-3 py-3 text-left text-gray-500 text-xs font-medium'></th>
-                    @endcanany
-                </tr>
-            </thead>
-            <tbody>
-                @foreach ($operationals as $item)
-                <tr class='hover:bg-gray-50 border-b border-gray-200 cursor-pointer'>
-                    <td class='text-left'>
-                        <div class="flex items-center">
-                            <div class="pl-4 py-2">
-                                {!! FormCustom::checkbox() !!}
-                            </div>
-                            <div class="flex gap-3 items-center px-6 py-3 hover:underline hover:text-gray-500 cursor-pointer text-gray-500 text-sm"
-                                onclick="get_modal('{{ $item->id }}')">
-                                <x-icon icon="calendar" width=18 height=18 viewBox="20 20" />
-                                <p class="truncate ">
-                                    {{ date('d-m-Y', strtotime($item->start_date)) }} -
-                                    {{ date('d-m-Y', strtotime($item->end_date)) }}
-                                </p>
-                            </div>
-                        </div>
-                    </td>
-                    <td class='px-3 py text-gray-500 text-sm'>
-                        <p class="truncate">({{ $item->dept_id }}) {{ $item->dept_name }}</p>
-                    </td>
-                    <td class='px-3 py text-gray-500 text-sm'>
-                        <div class="flex items-center gap-2">
-                            @foreach ($item->operational_has_depts as $dept)
-                            @php
-                            $is_active = $dept->status == 'active';
-                            @endphp
-                            <div
-                                class="flex items-center gap-1 rounded-xl px-2.5 py-0.5 w-max {{ ($is_active) ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700' }}">
-                                <span
-                                    class="w-1.5 h-1.5 rounded-full block {{ ($is_active) ? 'bg-green-700' : 'bg-red-700' }}"></span>
-                                <p
-                                    class="text-xs font-normal flex items-center gap-1 capitalize {{ ($is_active) ? 'text-green-600' : 'text-red-600' }}">
-                                    {{ $dept->dept_name }}
-                                </p>
-                            </div>
-                            @endforeach
-                        </div>
-                    </td>
-                    @canany(['operational.update', 'operational.delete'])
-                    <td class='px-3 py'>
-                        <div class='flex gap-1'>
-                            @can('operational.delete')
-                            <button onclick="open_modal_confirm('{{ $item['id'] }}')"
-                                class='px-2.5 cursor-pointer text-gray-500 delete-btn'>
-                                <x-icon icon="trash-2" width=18 height=18 viewBox="20 20" />
-                            </button>
-                            @endcan
-                            @can('operational.update')
-                            <button class='px-2.5 cursor-pointer text-gray-500 edit-btn'
-                                onclick="get_modal('{{ $item['id'] }}')">
-                                <x-icon icon="edit" width=18 height=18 viewBox="20 20" />
-                            </button>
-                            @endcan
-                        </div>
-                    </td>
-                    @endcanany
-                </tr>
-                @endforeach
-            </tbody>
-        </table>
-    </div>
-    <footer class='flex justify-between items-center px-6 pt-3 pb-4'>
-        <p class="text-gray-700 text-sm">Page <span>{{ $operationals->currentPage() }}</span> of <span>
-                {{ $operationals->lastPage() }}</span></p>
-        <div class='flex gap-3'>
-            @if (!$operationals->onFirstPage())
-            <button data-pagination-url="{{ $operationals->previousPageUrl() }}"
-                class='pagination-button px-3.5 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50'>Previous</button>
-            @endif
-            @if ($operationals->hasMorePages())
-            <button data-pagination-url="{{ $operationals->nextPageUrl() }}"
-                class='pagination-button px-3.5 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50'>Next</button>
-            @endif
-        </div>
-    </footer>
-</main> --}}
-
 <main class='border border-gray-200 rounded-lg shadow-sm overflow-hidden'>
     <div class="w-full overflow-auto overflow-y-hidden">
-        <table class='table border-collapse w-full'>
-            <thead class='border-b border-gray-200 '>
-                <tr class=''>
-                    <th class='text-left bg-gray-100 border-r  min-w-[40px] w-10 max-w-[40px]
-                    '>
-                        <div class="text-center">
-                            <p class="text-gray-500 text-xs truncate font-medium">No.</p>
-                        </div>
-                    </th>
-                    @foreach ($th_dates as $item)
-                    <th class='px-3 py-1.5 cursor-pointer border-x last:border-0 group hover:bg-gray-50'>
-                        <div class="hidden group-hover:flex items-center justify-center">
-                            <button type="button" class="text-gray-500"
-                                onclick="get_modal(null,{date: '{{ $item['date'] }}'})">
-                                <x-icon icon="plus" width=16 height=16 viewBox="20 20" />
-                            </button>
-                        </div>
-                        <div class="flex flex-col items-center group-hover:hidden">
-                            <p class="text-gray-700 font-medium text-xs">
-                                {{ date('d', strtotime($item['date'])) }}
-                            </p>
-                            <p class="text-gray-500 text-[10px] font-normal">{{ $item['slug'] }}</p>
-                        </div>
-                    </th>
-                    @endforeach
-                </tr>
-            </thead>
-            <tbody>
-                <tr class='hover:bg-gray-50 border-b border-gray-200 cursor-pointer'>
-                    <td class='text-left border-r bg-gray-100 min-w-[40px] w-10 max-w-[40px]'>
-                        <div class="text-center py-2">
-                            <p class="text-gray-500 text-sm truncate font-medium">1</p>
-                        </div>
-                    </td>
-                    <td class='text-gray-500 text-sm border-x last:border-0 p-1.5'>
-                        <div class="bg-gray-50 p-2 h-full rounded border border-gray-100 min-w-[120px]">
-                            <p class="text-sm text-gray-700 font-medium">Produksi</p>
-                            <p class="text-xs text-gray-500">Shift bagian 1</p>
-                        </div>
-                    </td>
-                    <td class='text-gray-500 text-sm border-x last:border-0 p-1.5'>
-                        <div class="bg-gray-50 p-2 h-full rounded border border-gray-100 min-w-[120px]">
-                            <p class="text-sm text-gray-700 font-medium">Produksi</p>
-                            <p class="text-xs text-gray-500">Shift bagian 1</p>
-                        </div>
-                    </td>
-                </tr>
-                <tr class='hover:bg-gray-50 border-b border-gray-200 cursor-pointer'>
-                    <td class='text-left border-r bg-gray-100 min-w-[40px] w-10 max-w-[40px]'>
-                        <div class="text-center py-2">
-                            <p class="text-gray-500 text-sm truncate font-medium">1</p>
-                        </div>
-                    </td>
-                    <td class='text-gray-500 text-sm border-x last:border-0 p-1.5'>
-                        <div class="bg-gray-50 p-2 h-full rounded border border-gray-100 min-w-[120px]">
-                            <p class="text-sm text-gray-700 font-medium">Produksi</p>
-                            <p class="text-xs text-gray-500">Shift bagian 1</p>
-                        </div>
-                    </td>
-                    <td class='text-gray-500 text-sm border-x last:border-0 p-1.5'>
-                        <div class="bg-gray-50 p-2 h-full rounded border border-gray-100 min-w-[120px]">
-                            <p class="text-sm text-gray-700 font-medium">Produksi</p>
-                            <p class="text-xs text-gray-500">Shift bagian 1</p>
-                        </div>
-                    </td>
-                </tr>
+        <div class="flex border-b">
+            <div class='flex items-center justify-center bg-gray-100 border-r min-w-[40px] w-10 max-w-[40px]'>
+                <div class="text-center">
+                    <p class="text-gray-500 text-xs truncate font-medium">No.</p>
+                </div>
+            </div>
+            @foreach ($th_dates as $item)
+            <div class='flex-1 px-3 py-1.5 cursor-pointer border-r last:border-0 group hover:bg-gray-50'>
+                <div class="hidden group-hover:flex items-center justify-center">
+                    <button type="button" class="text-gray-500" onclick="get_modal(null,{date: '{{ $item['date'] }}'})">
+                        <x-icon icon="plus" width=16 height=16 viewBox="20 20" />
+                    </button>
+                </div>
+                <div class="flex flex-col items-center group-hover:hidden">
+                    <p class="text-gray-700 font-medium text-xs">
+                        {{ date('d', strtotime($item['date'])) }}
+                    </p>
+                    <p class="text-gray-500 text-[10px] font-normal">{{ $item['slug'] }}</p>
+                </div>
+            </div>
+            @endforeach
+        </div>
+        {{-- @foreach ($th_dates as $item) --}}
+        <div class="flex">
+            <div class='flex items-center justify-center bg-gray-100 border-r min-w-[40px] w-10 max-w-[40px]'>
+                <div class="text-center">
+                    <p class="text-gray-500 text-xs truncate font-medium">1.</p>
+                </div>
+            </div>
+            <div class='flex-1 px-3 py-1.5 cursor-pointer border-r last:border-0 group hover:bg-gray-50'>
+                <div class="hidden group-hover:flex items-center justify-center">
+                    <button type="button" class="text-gray-500" onclick="get_modal(null,{date: '{{ $item['date'] }}'})">
+                        <x-icon icon="plus" width=16 height=16 viewBox="20 20" />
+                    </button>
+                </div>
+                <div class="flex flex-col items-center group-hover:hidden">
+                    <p class="text-gray-700 font-medium text-xs">
+                        {{ date('d', strtotime($item['date'])) }}
+                    </p>
+                    <p class="text-gray-500 text-[10px] font-normal">{{ $item['slug'] }}</p>
+                </div>
+            </div>
+        </div>
+        {{-- @endforeach --}}
+        {{-- @foreach ($operationals as $key => $item)
+        <div class="flex itemsc-center">
+            <div class='flex items-center justify-center bg-gray-100 border-r min-w-[40px] w-10 max-w-[40px]'>
+                <div class="text-center">
+                    <p class="text-gray-500 text-xs truncate font-medium">1</p>
+                </div>
+            </div>
+            @foreach ($th_dates as $item)
+            <div class='flex-1 px-3 py-1.5 cursor-pointer border-r last:border-0 group hover:bg-gray-50'>
+                <div class="hidden group-hover:flex items-center justify-center">
+                    <button type="button" class="text-gray-500" onclick="get_modal(null,{date: '{{ $item['date'] }}'})">
+                        <x-icon icon="plus" width=16 height=16 viewBox="20 20" />
+                    </button>
+                </div>
+                <div class="flex flex-col items-center group-hover:hidden">
+                    <p class="text-gray-700 font-medium text-xs">
+                        {{ date('d', strtotime($item['date'])) }}
+                    </p>
+                    <p class="text-gray-500 text-[10px] font-normal">{{ $item['slug'] }}</p>
+                </div>
+            </div>
+            @endforeach
+        </div> --}}
+        {{-- <div>
+            @foreach ($item as $item_date)
 
-                {{-- @php
-                $index = 0;
-                @endphp
-                @foreach ($th_dates as $key => $date)
-                <tr class='hover:bg-gray-50 border-b border-gray-200 cursor-pointer'>
-                    <td class='text-left border-r bg-gray-100 min-w-[40px] w-10 max-w-[40px]'>
-                        <div class="text-center py-2">
-                            <p class="text-gray-500 text-sm truncate font-medium">{{ $key + 1 }}</p>
-                        </div>
-                    </td>
-                    @foreach ($operationals[$date['date']][$index] ?? [] as $item_date)
-                    <td class='text-gray-500 text-sm border-x last:border-0 p-1.5'>
-                        <div class="bg-gray-50 p-2 h-full rounded border border-gray-100 min-w-[120px]">
-                            <p class="text-sm text-gray-700 font-medium">Produksi</p>
-                            <p class="text-xs text-gray-500">Shift bagian 1</p>
-                        </div>
-                    </td>
-                    @endforeach
-                </tr>
-                @php
-                $index++;
-                @endphp
-                @endforeach --}}
+            <p>{{ $key }}</p>
+
+            @endforeach
+        </div> --}}
+        {{-- @endforeach --}}
 
 
-                @foreach ($operationals as $key => $item)
-                @foreach ($item as $item_date)
 
-                <tr class='hover:bg-gray-50 border-b border-gray-200 cursor-pointer'>
-                    <td class='text-left border-r bg-gray-100 min-w-[40px] w-10 max-w-[40px]'>
-                        <div class="text-center py-2">
-                            <p class="text-gray-500 text-sm truncate font-medium">1</p>
-                        </div>
-                    </td>
-                    {{-- @foreach ($item as $item_date) --}}
-                    <td class='text-gray-500 text-sm border-x last:border-0 p-1.5 '>
-                        <div class="bg-gray-50 p-2 h-full rounded border border-gray-100 min-w-[120px]">
-                            <p class="text-sm text-gray-700 font-medium">Produksi</p>
-                            <p class="text-xs text-gray-500">Shift bagian 1</p>
-                            {{ $key }}
-                        </div>
-                    </td>
-                    {{-- @endforeach --}}
-                </tr>
-                @endforeach
-                @endforeach
-            </tbody>
-        </table>
     </div>
 
 </main>

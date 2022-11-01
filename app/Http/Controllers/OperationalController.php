@@ -66,7 +66,7 @@ class OperationalController extends Controller
                     //     # code...
                     // }
 
-Log::info($operationals);
+// Log::info($operationals);
                 // if ($request->has('q') && !empty($request->input('q'))) {
                 //     $search = $request->q;
                 //     $operationals = $operationals->where('dept_name', 'LIKE', "%" . $search . "%")
