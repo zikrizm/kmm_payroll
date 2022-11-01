@@ -187,7 +187,7 @@ class AttendanceCardController extends Controller
                 }
 
                 // * Employee search
-                $search = '';
+                $search = 'Erwin';
                 if (!empty($request->input('q'))) {
                     $search = $request->q;
                 }
@@ -205,10 +205,10 @@ class AttendanceCardController extends Controller
                 $attenDBs = [];
                 $slug_week = ['mgg', 'sen', 'sel', 'rab', 'kam', 'jum', 'sab'];
                 if (!empty($request->input('date'))) {
-                    // $start_time = Carbon::parse("2022-10-16");
-                    // $end_time = Carbon::parse("2022-10-24");
-                    $start_time = Carbon::parse($request->date['start_time']);
-                    $end_time = Carbon::parse($request->date['end_time']);
+                    $start_time = Carbon::parse("2022-10-23");
+                    $end_time = Carbon::parse("2022-10-29");
+                    // $start_time = Carbon::parse($request->date['start_time']);
+                    // $end_time = Carbon::parse($request->date['end_time']);
                     $filter['start_time'] = $start_time->hour(0)->minute(0)->second(0)->format('Y-m-d H:i:s');
                     $filter['end_time'] = $end_time->addHours(1)->hour(23)->minute(59)->second(59)->format('Y-m-d H:i:s');
                     $attenDBs = Transaction::whereBetween('punch_time', [$filter['start_time'], $filter['end_time']])->get();
@@ -259,6 +259,8 @@ class AttendanceCardController extends Controller
                     $attens_groupings = $this->_group_by_date($atten_bios->filter(function ($atten) use ($emp) {
                         return $atten['emp'] === $emp['id'];
                     }));
+
+                    // Log::info(response()->json($attens_groupings));
 
                     // ** searchDepartment
                     $emp_dept = collect($dept_bios)->search(function ($item) use ($emp) {
@@ -329,13 +331,13 @@ class AttendanceCardController extends Controller
                                 $code_day = Carbon::parse($date)->dayOfWeek;
 
                                 // ** filter operasional berdasarkan tanggal
-                                $operational_atten_by_date = $operationals[$date] ?? [];
-                                $operational_atten = [];
-                                foreach ($operational_atten_by_date as $key => $value) {
-                                    if ($value['dept_id'] == $dept_id && $value['status'] == 'active') {
-                                        $operational_atten = $value;
-                                    }
-                                }
+                                // $operational_atten_by_date = $operationals[$date] ?? [];
+                                // $operational_atten = [];
+                                // foreach ($operational_atten_by_date as $key => $value) {
+                                //     if ($value['dept_id'] == $dept_id && $value['status'] == 'active') {
+                                //         $operational_atten = $value;
+                                //     }
+                                // }
 
                                 // if (!empty($operational_atten)) {
                                 //     foreach ($operational_atten->operational_has_timetables as $key => $value) {
@@ -408,7 +410,8 @@ class AttendanceCardController extends Controller
                                 foreach ($shifts as $shift) {
                                     if ($dept_id == $shift->dept_id) {
                                         foreach ($shift->shiftday as $shiftday) {
-                                            if ($code_day == $shiftday->code_day) {
+                                            // CHECK HARI MINGGU BUKAN
+                                            if ((!empty($is_holiday) && $holidays->count() ? $shiftday->code_day == 6 : $code_day == $shiftday->code_day)) {
                                                 foreach ($shiftday->shiftday_has_timetable as $keyHas => $shiftdayHas) {
                                                     $timetable_check_in = Carbon::createFromTimeString($shiftdayHas->timetable->check_in);
                                                     $timetable_check_out = Carbon::createFromTimeString($shiftdayHas->timetable->check_out);
@@ -457,8 +460,6 @@ class AttendanceCardController extends Controller
                                                             $diff_time_punch = Carbon::parse($atten_first['punch_time'])->diff(Carbon::parse($atten_last['punch_time']));
                                                             $punch_check_out = Carbon::createFromTimeString(Carbon::parse($atten_last['punch_time'])->format('H:i:s'));
                                                         }
-
-
 
                                                         if ($punch_check_in->lt($timetable_check_in)) {
                                                             $diff_time_in = $punch_check_in->diffInSeconds($timetable_check_in);
@@ -521,7 +522,7 @@ class AttendanceCardController extends Controller
                                         }
                                     }
                                 }
-
+                                // Log::info(response()->json($timetable));
                                 $report_by_date[] =  [
                                     "date" => $date,
                                     "first_punch" => $atten_first['punch_time'],
