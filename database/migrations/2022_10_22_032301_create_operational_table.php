@@ -16,11 +16,10 @@ return new class extends Migration
         Schema::create('operationals', function (Blueprint $table) {
             $table->increments('id');
             $table->integer('business_id')->unsigned();
-            $table->dateTime('start_date');
-            $table->dateTime('end_date');
+            $table->dateTime('date');
             $table->integer('dept_id');
-            $table->string('dept_code');
-            $table->string('dept_name');
+            $table->string('day_name');
+            $table->enum('status',['active','inactive'])->default('active');
             $table->integer('created_user')->unsigned();
             $table->integer('updated_user')->nullable()->unsigned();
             

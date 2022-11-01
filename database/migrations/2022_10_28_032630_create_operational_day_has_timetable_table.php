@@ -13,15 +13,15 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('operational_day_has_timetables', function (Blueprint $table) {
+        Schema::create('operational_has_timetables', function (Blueprint $table) {
             $table->increments('id');
-            $table->integer('operational_day_id')->unsigned();
+            $table->integer('operational_id')->unsigned();
             $table->integer('timetable_id')->unsigned();
-            $table->integer('overtime')->default(0);
+            $table->integer('ot_limit')->default(0);
             $table->enum('status',['active','inactive'])->default('active');
 
             $table->foreign('timetable_id')->references('id')->on('timetables')->onDelete('cascade');
-            $table->foreign('operational_day_id')->references('id')->on('operational_days')->onDelete('cascade');
+            $table->foreign('operational_id')->references('id')->on('operationals')->onDelete('cascade');
             $table->timestamps();
         });
     }
@@ -33,6 +33,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('operational_day_has_timetables');
+        Schema::dropIfExists('operational_has_timetables');
     }
 };

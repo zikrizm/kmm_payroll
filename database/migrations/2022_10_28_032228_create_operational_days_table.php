@@ -17,6 +17,7 @@ return new class extends Migration
             $table->increments('id');
             $table->integer('operational_id')->unsigned();
             $table->string('day_name');
+            $table->datetime('date');
             $table->enum('status',['active','inactive'])->default('active');
 
             $table->foreign('operational_id')->references('id')->on('operationals')->onDelete('cascade');

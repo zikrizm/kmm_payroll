@@ -48,6 +48,74 @@ $status_value = !empty($operational) ? $operational->operational_has_depts[$key]
 
 <div class="border rounded p-3 flex flex-col gap-2.5">
     <div class="flex flex-col gap-3" id="timetable-day-content">
+        <div class="flex flex-col gap-2">
+            <div class="flex items-start gap-2">
+                <span class="pt-1">
+                    {!! FormCustom::checkbox('shift[day_status]', -1) !!}
+                </span>
+                <div class="flex flex-col">
+                    <p class="text-gray-700 text-sm dayname">{{ $timetable_card['dayname'] }}</p>
+                    <dd class="text-gray-500 text-xs">Lorem ipsum dolor sit, amet consectetur</dd>
+                </div>
+            </div>
+            <hr>
+            <div class="overflow-auto overflow-y-hidden border border-gray-200 rounded-lg shadow-sm ml-5">
+                <table class='table border-collapse w-full'>
+                    <thead class='border-b border-gray-200 bg-gray-50'>
+                        <tr class=''>
+                            <th class='text-left'>
+                                <div class='flex items-center'>
+                                    <div class='pl-4 py-2 flex items-center'>
+                                        {!! FormCustom::checkbox('select_all_timetable') !!}
+                                        <p class="px-4 text-xs font-medium text-gray-500 truncate">
+                                            Nama jadwal</p>
+                                    </div>
+                                </div>
+                            </th>
+                            <th class="text-xs font-medium text-gray-500 truncate">Waktu</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($timetable_card['timetables'] as $key_timetable => $item_timetable)
+                            <tr class='hover:bg-gray-50 border-b border-gray-200 cursor-pointer'>
+                                <td class='text-left w-[80%]'>
+                                    <div class="flex items-center">
+                                        <input type="hidden" value="{{ $item_timetable['id'] }}"
+                                            name={{ 'shift[timetables][' . $key_timetable . '][timetable_id]' }}>
+                                        <div class="pl-4">
+                                            {!! FormCustom::checkbox('shift[timetables][' . $key_timetable . '][status]', -1, [
+                                                'class' => 'timetable_status',
+                                            ]) !!}
+                                        </div>
+                                        <div class="px-4">
+                                            <p class="text-gray-700 text-sm">{{ $item_timetable['name'] }}</p>
+                                            <dd class="text-gray-400 text-[10px]">
+                                                {{ date('H:i', strtotime($item_timetable['check_out'])) }} -
+                                                {{ date('H:i', strtotime($item_timetable['check_out'])) }}
+                                            </dd>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class='px-3 text-gray-500 text-sm'>
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-12 pt-1">
+                                            {!! FormCustom::input('shift[timetables][' . $key_timetable . '][ot_limit]', 0, [
+                                                'placeholder' => '-',
+                                                'class' => '!h-7 number text-center',
+                                            ]) !!}
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{{-- <div class="border rounded p-3 flex flex-col gap-2.5">
+    <div class="flex flex-col gap-3" id="timetable-day-content">
         @foreach ($timetable_cards as $key => $item)
             <div data-timetable-day="{{ $key }}" class="flex flex-col gap-2 {{ $key != 0 ? 'hidden' : '' }}">
                 <div class="flex items-start gap-2">
@@ -81,6 +149,8 @@ $status_value = !empty($operational) ? $operational->operational_has_depts[$key]
                                 <tr class='hover:bg-gray-50 border-b border-gray-200 cursor-pointer'>
                                     <td class='text-left w-[80%]'>
                                         <div class="flex items-center">
+                                            <input type="hidden" value="{{ $item_timetable['id'] }}"
+                                                name={{ 'shift[' . $key . '][timetables][' . $key_timetable . '][timetable_id]' }}>
                                             <div class="pl-4">
                                                 {!! FormCustom::checkbox('shift[' . $key . '][timetables][' . $key_timetable . '][status]', -1, [
                                                     'class' => 'timetable_status_' . $key,
@@ -130,4 +200,4 @@ $status_value = !empty($operational) ? $operational->operational_has_depts[$key]
             </button>
         </div>
     @endif
-</div>
+</div> --}}

@@ -15,7 +15,7 @@ class Api extends NetworkUtils {
     };
     async get_modal(url, data) {
         try {
-            let _response = await this.emitter('GET', url, data)
+            let _response = await this.emitter('GET', url, data, {})
             if (_response.response < 200 || _response.response >= 300) {
                 handleMessage(_response);
             } else {

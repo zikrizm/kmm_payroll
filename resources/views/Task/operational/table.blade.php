@@ -1,4 +1,4 @@
-<main class='border border-gray-200 rounded-lg shadow-sm w-max overflow-hidden'>
+{{-- <main class='border border-gray-200 rounded-lg shadow-sm w-max overflow-hidden'>
     <div class="w-full overflow-auto overflow-y-hidden">
         <table class='table border-collapse w-full'>
             <thead class='border-b border-gray-200 bg-gray-50'>
@@ -17,9 +17,9 @@
                     <th class='px-3 py-3 text-left cursor-pointer'>
                         <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Bagian</p>
                     </th>
-                    {{-- <th class='px-3 py-3 text-left cursor-pointer'>
+                    <th class='px-3 py-3 text-left cursor-pointer'>
                         <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Group</p>
-                    </th> --}}
+                    </th>
                     @canany(['operational.update', 'operational.delete'])
                     <th class='px-3 py-3 text-left text-gray-500 text-xs font-medium'></th>
                     @endcanany
@@ -46,7 +46,7 @@
                     <td class='px-3 py text-gray-500 text-sm'>
                         <p class="truncate">({{ $item->dept_id }}) {{ $item->dept_name }}</p>
                     </td>
-                    {{-- <td class='px-3 py text-gray-500 text-sm'>
+                    <td class='px-3 py text-gray-500 text-sm'>
                         <div class="flex items-center gap-2">
                             @foreach ($item->operational_has_depts as $dept)
                             @php
@@ -63,7 +63,7 @@
                             </div>
                             @endforeach
                         </div>
-                    </td> --}}
+                    </td>
                     @canany(['operational.update', 'operational.delete'])
                     <td class='px-3 py'>
                         <div class='flex gap-1'>
@@ -101,4 +101,124 @@
             @endif
         </div>
     </footer>
+</main> --}}
+
+<main class='border border-gray-200 rounded-lg shadow-sm overflow-hidden'>
+    <div class="w-full overflow-auto overflow-y-hidden">
+        <table class='table border-collapse w-full'>
+            <thead class='border-b border-gray-200 '>
+                <tr class=''>
+                    <th class='text-left bg-gray-100 border-r  min-w-[40px] w-10 max-w-[40px]
+                    '>
+                        <div class="text-center">
+                            <p class="text-gray-500 text-xs truncate font-medium">No.</p>
+                        </div>
+                    </th>
+                    @foreach ($th_dates as $item)
+                        <th class='px-3 py-1.5 cursor-pointer border-x last:border-0 group hover:bg-gray-50'>
+                            <div class="hidden group-hover:flex items-center justify-center">
+                                <button type="button" class="text-gray-500"
+                                    onclick="get_modal(null,{date: '{{ $item['date'] }}'})">
+                                    <x-icon icon="plus" width=16 height=16 viewBox="20 20" />
+                                </button>
+                            </div>
+                            <div class="flex flex-col items-center group-hover:hidden">
+                                <p class="text-gray-700 font-medium text-xs">
+                                    {{ date('d', strtotime($item['date'])) }}
+                                </p>
+                                <p class="text-gray-500 text-[10px] font-normal">{{ $item['slug'] }}</p>
+                            </div>
+                        </th>
+                    @endforeach
+                </tr>
+            </thead>
+            <tbody>
+                {{-- <tr class='hover:bg-gray-50 border-b border-gray-200 cursor-pointer'>
+                    <td class='text-left border-r bg-gray-100 min-w-[40px] w-10 max-w-[40px]'>
+                        <div class="text-center py-2">
+                            <p class="text-gray-500 text-sm truncate font-medium">1</p>
+                        </div>
+                    </td>
+                    <td class='text-gray-500 text-sm border-x last:border-0 p-1.5'>
+                        <div class="bg-gray-50 p-2 h-full rounded border border-gray-100 min-w-[120px]">
+                            <p class="text-sm text-gray-700 font-medium">Produksi</p>
+                            <p class="text-xs text-gray-500">Shift bagian 1</p>
+                        </div>
+                    </td>
+                    <td class='text-gray-500 text-sm border-x last:border-0 p-1.5'>
+                        <div class="bg-gray-50 p-2 h-full rounded border border-gray-100 min-w-[120px]">
+                            <p class="text-sm text-gray-700 font-medium">Produksi</p>
+                            <p class="text-xs text-gray-500">Shift bagian 1</p>
+                        </div>
+                    </td>
+                </tr>
+                <tr class='hover:bg-gray-50 border-b border-gray-200 cursor-pointer'>
+                    <td class='text-left border-r bg-gray-100 min-w-[40px] w-10 max-w-[40px]'>
+                        <div class="text-center py-2">
+                            <p class="text-gray-500 text-sm truncate font-medium">1</p>
+                        </div>
+                    </td>
+                    <td class='text-gray-500 text-sm border-x last:border-0 p-1.5'>
+                        <div class="bg-gray-50 p-2 h-full rounded border border-gray-100 min-w-[120px]">
+                            <p class="text-sm text-gray-700 font-medium">Produksi</p>
+                            <p class="text-xs text-gray-500">Shift bagian 1</p>
+                        </div>
+                    </td>
+                    <td class='text-gray-500 text-sm border-x last:border-0 p-1.5'>
+                        <div class="bg-gray-50 p-2 h-full rounded border border-gray-100 min-w-[120px]">
+                            <p class="text-sm text-gray-700 font-medium">Produksi</p>
+                            <p class="text-xs text-gray-500">Shift bagian 1</p>
+                        </div>
+                    </td>
+                </tr> --}}
+
+                @php
+                    $index = 0;
+                @endphp
+                @foreach ($th_dates as $key => $date)
+                    <tr class='hover:bg-gray-50 border-b border-gray-200 cursor-pointer'>
+                        <td class='text-left border-r bg-gray-100 min-w-[40px] w-10 max-w-[40px]'>
+                            <div class="text-center py-2">
+                                <p class="text-gray-500 text-sm truncate font-medium">{{ $key + 1 }}</p>
+                            </div>
+                        </td>
+                        @foreach ($operationals[$date['date']][$index] ?? [] as $item_date)
+                            <td class='text-gray-500 text-sm border-x last:border-0 p-1.5'>
+                                <div class="bg-gray-50 p-2 h-full rounded border border-gray-100 min-w-[120px]">
+                                    <p class="text-sm text-gray-700 font-medium">Produksi</p>
+                                    <p class="text-xs text-gray-500">Shift bagian 1</p>
+                                </div>
+                            </td>
+                        @endforeach
+                    </tr>
+                    @php
+                        $index++;
+                    @endphp
+                @endforeach
+
+                {{-- @foreach ($operationals as $key => $item)
+                    <tr class='hover:bg-gray-50 border-b border-gray-200 cursor-pointer'>
+                        <td class='text-left border-r bg-gray-100 min-w-[40px] w-10 max-w-[40px]'>
+                            <div class="text-center py-2">
+                                <p class="text-gray-500 text-sm truncate font-medium">{{ $index + 1 }}</p>
+                            </div>
+                        </td>
+                        @foreach ($item as $item_date)
+                            <td class='text-gray-500 text-sm border-x last:border-0 p-1.5'>
+                                <div class="bg-gray-50 p-2 h-full rounded border border-gray-100 min-w-[120px]">
+                                    <p class="text-sm text-gray-700 font-medium">Produksi</p>
+                                    <p class="text-xs text-gray-500">Shift bagian 1</p>
+                                    {{ $key }}
+                                </div>
+                            </td>
+                        @endforeach
+                    </tr>
+                    @php
+                        $index++;
+                    @endphp
+                @endforeach --}}
+            </tbody>
+        </table>
+    </div>
+
 </main>

@@ -1,97 +1,53 @@
 @extends('layouts.app')
 @section('title', 'Operational')
 @section('css')
-<style></style>
+    <style></style>
 @endsection
 @section('content')
-<div class="flex flex-col gap-6 flex-1 h-full overflow-auto bg-white px-8 pt-8 pb-12">
-    <header class="flex justify-between items-start">
-        <div class="flex flex-col gap-1">
-            <p class="text-3xl font-medium text-gray-900">Operasional</p>
-            <p class="text-base font-normal text-gray-500">Pengaturan operasional karyawan</p>
-        </div>
-        <div class="">
-            <button onclick="get_modal()" class="flex items-center gap-2.5 px-4 py-2 text-gray-500 text-sm font-medium 
-                flex items-center border border-gray-200 shadow-sm rounded-lg">
-                <x-icon icon="plus" width=18 height=18 viewBox="20 20" />
-                Tambah operasional
-            </button>
-        </div>
-    </header>
-    <hr>
-    <div class="flex justify-between">
-        <div class="w-72">
-            {!! FormCustom::input('header-date', null, [
-            'placeholder' => 'Pilih tanggal operasional',
-            'class' => 'date_input',
-            'readonly' => true,
-            'prefixiconname' => 'calendar',
-            ]) !!}
-        </div>
-        <x-ui.search-data placeholder="Cari operasional" url="{{ route('operational.index') }}" />
-    </div>
-    <div>
-        <main class='border border-gray-200 rounded-lg shadow-sm w-max overflow-hidden'>
-            <div class="w-full overflow-auto overflow-y-hidden">
-                <table class='table border-collapse w-full'>
-                    <thead class='border-b border-gray-200 '>
-                        <tr class=''>
-                            <th class='text-left bg-gray-100 border-r'>
-                                <div class="text-center">
-                                    <p class="text-gray-500 text-xs truncate font-medium">No.</p>
-                                </div>
-                            </th>
-                            @foreach ([1,2,3,4,5,6,7,8,9,0] as $item)
-                            <th class='px-3 py-1.5 cursor-pointer border-x last:border-0'>
-                                <div class="flex flex-col items-center">
-                                    <p class="text-gray-700 font-medium text-xs">10</p>
-                                    <p class="text-gray-500 text-[10px] font-normal">Mig</p>
-                                </div>
-                            </th>
-                            @endforeach
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ([1,2,3,4,5,6,7,8,9,0] as $key=> $item)
-                        <tr class='hover:bg-gray-50 border-b border-gray-200 cursor-pointer'>
-                            <td class='text-left border-r w-10'>
-                                <div class="text-center py-2">
-                                    <p class="text-gray-500 text-sm truncate font-medium">{{ $key+1 }}</p>
-                                </div>
-                            </td>
-                            @foreach ([1,2,3,4,5,6,7,8,9,0] as $item)
-                            <td class='text-gray-500 text-sm border-x last:border-0 p-1'>
-                                <div class="bg-violet-100 p-2 h-full rounded border border-violet-300">
-                                    <p>Produksi</p>
-                                    {{-- <p>Produksi</p> --}}
-                                </div>
-                            </td>
-                            @endforeach
-                        </tr>
-                        @endforeach
-                    </tbody>
-                </table>
+    <div class="flex flex-col gap-6 flex-1 h-full overflow-auto bg-white px-8 pt-8 pb-12">
+        <header class="flex justify-between items-start">
+            <div class="flex flex-col gap-1">
+                <p class="text-3xl font-medium text-gray-900">Operasional</p>
+                <p class="text-base font-normal text-gray-500">Pengaturan operasional karyawan</p>
             </div>
-
-        </main>
+            <div class="">
+                <button onclick="get_modal()"
+                    class="flex items-center gap-2.5 px-4 py-2 text-gray-500 text-sm font-medium 
+                flex items-center border border-gray-200 shadow-sm rounded-lg">
+                    <x-icon icon="plus" width=18 height=18 viewBox="20 20" />
+                    Tambah operasional
+                </button>
+            </div>
+        </header>
+        <hr>
+        <div class="flex justify-between">
+            <div class="w-72">
+                {!! FormCustom::input('header-date', null, [
+                    'placeholder' => 'Pilih tanggal operasional',
+                    'class' => 'date_input',
+                    'readonly' => true,
+                    'prefixiconname' => 'calendar',
+                ]) !!}
+            </div>
+            <x-ui.search-data placeholder="Cari operasional" url="{{ route('operational.index') }}" />
+        </div>
+        <div class="table-content"></div>
+        <x-ui.confirm-modal class="submit-delete-operational"></x-ui.confirm-modal>
     </div>
-    <div class="table-content"></div>
-    <x-ui.confirm-modal class="submit-delete-operational"></x-ui.confirm-modal>
-</div>
 
-<script type="application/javascript">
+    <script type="application/javascript">
     let dataParams = {};
 
         window.addEventListener('DOMContentLoaded', (event) => {
             $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
             
-            // onInit( { 
-            //     q: $('.search-data-input').val(),
-            //     date: { 
-            //         start_date:convertLocalTimezone(moment().subtract(6, 'days')), 
-            //         end_date: convertLocalTimezone(moment())
-            //     }
-            // });
+            onInit({ 
+                q: $('.search-data-input').val(),
+                date: { 
+                    start_date:convertLocalTimezone(moment().subtract(6, 'days'),'YYYY-MM-DD'), 
+                    end_date: convertLocalTimezone(moment(),'YYYY-MM-DD')
+                }
+            });
 
             $('input[name="header-date"]').daterangepicker({
                 locale: { format: 'YYYY-MM-DD' },
@@ -137,11 +93,12 @@
             // * Build data params table ----->
             // *
             dataParams = { ...dataParams, ...data };
+            console.log(dataParams);
         
             // **
             // * get table ----->
             // *
-            var res = await ApiService.get_table('/operational', data);
+            var res = await ApiService.get_table('/operational', dataParams);
             $('.table-content').html(res);
 
             // **
@@ -154,61 +111,22 @@
             })
         }
     
-        async function get_modal(id) {
+        async function get_modal(id, data) {
+            console.log(data)
             // **
             // * open modal form ----->
             // *
             var URL = (id) ? '/operational/' + id + '/edit' : '/operational/create';
-            var res = await ApiService.get_modal(URL, null);
+            var res = await ApiService.get_modal(URL, data);
             var anElement = new AutoNumeric.multiple('.number',{decimalPlaces:0,minimumValue: 0,decimalCharacter: ',', digitGroupSeparator : ""});
-            $('.operational_date').daterangepicker({
-                locale: { format: 'YYYY-MM-DD' },
-                startDate: id ? undefined: moment().subtract(6, 'days'),
-                endDate: id ? undefined: moment(),
-                ranges: {
-                    'Today': [moment(), moment()],
-                    'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
-                    'Last 7 Days': [moment().subtract(6, 'days'), moment()],
-                    'Last 30 Days': [moment().subtract(29, 'days'), moment()],
-                    'This Month': [moment().startOf('month'), moment().endOf('month')],
-                    'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
-                },
-                alwaysShowCalendars: true,
-                showCustomRangeLabel: false,
-                showDropdowns: true,
-                minYear: 2000,
-                drops: "auto",
-                maxYear: parseInt(moment().format('YYYY'), 10)
-            }, function(start, end, label) {
-                // var dateFormat = 'YYYY-MM-DD';
-
-                // $('.search-data-input').val('');
-                // delete dataParams.page;
-                // onInit({ 
-                //     date: { 
-                //         start_date: convertLocalTimezone(start, dateFormat), 
-                //         end_date: convertLocalTimezone(end, dateFormat)
-                //     } 
-                // });
-            });
-
+         
             
 
-            // $('.operational_date').on('change', function(){
-            //     if($('.specific_date').length) {
-            //         $('.specific_date').each(function(e) {
-            //             $(this).data('daterangepicker').minDate = moment($('.operational_date').data('daterangepicker').startDate._d);
-            //             $(this).data('daterangepicker').maxDate = moment($('.operational_date').data('daterangepicker').endDate._d);
-            //         })
-            //     }
-            // });π
+         
 
             $('.select2-department').select2();
             $('.select2-department').on('select2:select', async function (e) {
-                var date = {
-                    start_date : moment($('.operational_date').data('daterangepicker').startDate._d).format('YYYY-MM-DD'),
-                    end_date : moment($('.operational_date').data('daterangepicker').endDate._d).format('YYYY-MM-DD'),
-                }
+                var date = moment($('.operational_date').val()).format('YYYY-MM-DD');
                 let _response = await (new NetworkUtils()).emitter('GET', '/get-operational-timetable-card', {dept_id: this.value, date}, {})
                 if (_response.response < 200 || _response.response >= 300) {
                     // * SHOW NOTIFICATION ----->
@@ -227,33 +145,31 @@
 
                     let counter_day = 0;
                     let timetableDayContentChildLen = $('#timetable-day-content').children().length;
-                    $('input[name*="select_all_timetable_"]').on('change', function(e) {
-                        let index_day = $(this).attr('name').split('select_all_timetable_')[1];
-                        $('.timetable_status_'+index_day).prop('checked', $(this).is(':checked'));
-                        // console.log(index_day)
+                    $('input[name="select_all_timetable"]').on('change', function(e) {
+                        $('.timetable_status').prop('checked', $(this).is(':checked'));
                     })
-                    $('#next-day').on('click', function(e) {
-                        counter_day++;
-                        $('#prev-day').removeClass('hidden');
-                        $('*[data-timetable-day]').each(function(e) {
-                            if($(this).data('timetable-day') == counter_day) $(this).removeClass('hidden');
-                            else $(this).addClass('hidden');
-                        });
-                        if(timetableDayContentChildLen-1 == counter_day) $(this).addClass('hidden');
-                        set_pagination_name_timetable(counter_day)
-                    });
-                    $('#prev-day').on('click', function(e) {
-                        counter_day--;
-                        $('#next-day').removeClass('hidden');
-                        $('*[data-timetable-day]').each(function(e) {
-                            if($(this).data('timetable-day') == counter_day) $(this).removeClass('hidden');
-                            else $(this).addClass('hidden');
-                        });
-                        if(counter_day == 0) $(this).addClass('hidden');
-                        set_pagination_name_timetable(counter_day)
-                    });
+                    // $('#next-day').on('click', function(e) {
+                    //     counter_day++;
+                    //     $('#prev-day').removeClass('hidden');
+                    //     $('*[data-timetable-day]').each(function(e) {
+                    //         if($(this).data('timetable-day') == counter_day) $(this).removeClass('hidden');
+                    //         else $(this).addClass('hidden');
+                    //     });
+                    //     if(timetableDayContentChildLen-1 == counter_day) $(this).addClass('hidden');
+                    //     set_pagination_name_timetable(counter_day)
+                    // });
+                    // $('#prev-day').on('click', function(e) {
+                    //     counter_day--;
+                    //     $('#next-day').removeClass('hidden');
+                    //     $('*[data-timetable-day]').each(function(e) {
+                    //         if($(this).data('timetable-day') == counter_day) $(this).removeClass('hidden');
+                    //         else $(this).addClass('hidden');
+                    //     });
+                    //     if(counter_day == 0) $(this).addClass('hidden');
+                    //     set_pagination_name_timetable(counter_day)
+                    // });
 
-                    set_pagination_name_timetable(counter_day)
+                    // set_pagination_name_timetable(counter_day)
 
                     // $('.select2-status').select2();
                     // $('.specific_date').daterangepicker({
@@ -309,6 +225,48 @@
                     
                 }
             });
+
+               // $('.operational_date').daterangepicker({
+            //     locale: { format: 'YYYY-MM-DD' },
+            //     startDate: id ? undefined: moment().subtract(6, 'days'),
+            //     endDate: id ? undefined: moment(),
+            //     ranges: {
+            //         'Today': [moment(), moment()],
+            //         'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+            //         'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+            //         'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+            //         'This Month': [moment().startOf('month'), moment().endOf('month')],
+            //         'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+            //     },
+            //     alwaysShowCalendars: true,
+            //     showCustomRangeLabel: false,
+            //     showDropdowns: true,
+            //     minYear: 2000,
+            //     drops: "auto",
+            //     maxYear: parseInt(moment().format('YYYY'), 10)
+            // }, function(start, end, label) {
+            //     // var dateFormat = 'YYYY-MM-DD';
+
+            //     // $('.search-data-input').val('');
+            //     // delete dataParams.page;
+            //     // onInit({ 
+            //     //     date: { 
+            //     //         start_date: convertLocalTimezone(start, dateFormat), 
+            //     //         end_date: convertLocalTimezone(end, dateFormat)
+            //     //     } 
+            //     // });
+            // });
+
+
+               // $('.operational_date').on('change', function(){
+            //     if($('.specific_date').length) {
+            //         $('.specific_date').each(function(e) {
+            //             $(this).data('daterangepicker').minDate = moment($('.operational_date').data('daterangepicker').startDate._d);
+            //             $(this).data('daterangepicker').maxDate = moment($('.operational_date').data('daterangepicker').endDate._d);
+            //         })
+            //     }
+            // });π
+
             // $('.select2-status').select2();
             // $('.specific_date').daterangepicker({
             //     locale: { format: 'YYYY-MM-DD' },
