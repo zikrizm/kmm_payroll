@@ -51,21 +51,16 @@ class OperationalController extends Controller
                 $start_date = Carbon::parse($request['date']['start_date']);
                 $end_date = Carbon::parse($request['date']['end_date']);
                 $dates = $this->util->generateDateRange($start_date, $end_date);
-                $slug_week = ['mgg', 'sen', 'sel', 'rab', 'kam', 'jum', 'sab'];
-                foreach ($dates as $date) {
-                    $code_day = Carbon::parse($date)->dayOfWeek;
-                    $th_dates[] = ['date' => $date, 'slug' => $slug_week[$code_day], 'date' => $date];
-                }
-
                 $dept_bios = $this->apiService->get_departments(['page_size' => 999])['data'];
                 $operationals = Operational::where('business_id', $business_id)->whereBetween('date', [$start_date, $end_date])
                     ->with('shift')->get()->groupBy(function ($item) {
                         return Carbon::parse($item->date)->format('Y-m-d');
                     });
+
                 $operationals  = $operationals->map(function ($element) use ($dept_bios) {
                     $element = $element->map(function ($e_op) use ($dept_bios, $element) {
                         $is_same = array_search($e_op->dept_id, array_column($dept_bios, 'id'));
-                        // if ($is_same) $e_op['department'] = (object)$dept_bios[0];
+                        if ($is_same != '') $e_op['department'] = (object)$dept_bios[$is_same];
                         return $e_op;
                     });
                     return $element;
@@ -96,7 +91,7 @@ class OperationalController extends Controller
                 //     $operationals->orderBy($sort['name'], $sort['order']);
                 // }
                 // $operationals = $operationals->with('operational_has_depts')->paginate(10);
-                $render =  view('Task.operational.table', compact('th_dates', 'operationals', 'order'))->render();
+                $render =  view('Task.operational.table', compact('dates', 'operationals', 'order'))->render();
 
                 return $this->buildRes->RESPONSE_REQ('success', $render, null);
             }

@@ -36,7 +36,6 @@ class Operational extends Model
      */
     public function shift()
     {
-        Log::info($this);
-        return $this->belongsTo(Shift::class, 'dept_id');
+        return $this->belongsTo(Shift::class, 'dept_id', 'dept_id');
     }
 }
