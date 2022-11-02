@@ -535,8 +535,8 @@ class AttendanceCardController extends Controller
                                                                 $timetable['early_check_in']++;
                                                             }
 
-                                                            $ot_period = $shiftdayHas->timetable->ot_period;
-                                                            $ot_pay = $shiftdayHas->timetable->ot_pay;
+                                                            $ot_period = $shiftdayHas->timetable->ot_period ?? 1;
+                                                            $ot_pay = $shiftdayHas->timetable->ot_pay ?? 1;
                                                             $timetable['total_earlyin_pay_per_day']  = ((($timetable['early_check_in'] ?? 0) * 60) / $ot_period) * $ot_pay;
                                                         }
 
@@ -558,11 +558,11 @@ class AttendanceCardController extends Controller
                                                                 
 
                                                                 if ($shiftdayHas->timetable->ot_period) {
-                                                                    $ot_period = $shiftdayHas->timetable->ot_period ?? 0;
-                                                                    $ot_pay = $shiftdayHas->timetable->ot_pay ?? 0;
+                                                                    $ot_period = $shiftdayHas->timetable->ot_period ?? 1;
+                                                                    $ot_pay = $shiftdayHas->timetable->ot_pay ?? 1;
                                                                     if($shiftdayHas->timetable->duration_count_one_shift < $hour) {
-                                                                        $timetable['per_day'] += floor($hour / ($shiftdayHas->timetable->duration_count_one_shift ?? 0));
-                                                                        $timetable['overtime'] = $hour % ($shiftdayHas->timetable->duration_count_one_shift ?? 0);
+                                                                        $timetable['per_day'] += floor($hour / ($shiftdayHas->timetable->duration_count_one_shift ?? 1));
+                                                                        $timetable['overtime'] = $hour % ($shiftdayHas->timetable->duration_count_one_shift ?? 1);
                                                                     }
                                                                     // Log::info("overtime= {$timetable['overtime']}");
                                                                     // if ($timetable['per_day'] >= 1) {
