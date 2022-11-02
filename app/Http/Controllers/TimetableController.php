@@ -121,13 +121,13 @@ class TimetableController extends Controller
             } else {
                 $business_id = Session::get('business_id');
                 $timetable_data = $request->only([
-                    'name', 'check_in',  'check_out', 'check_in_plusmn', 'check_out_plusmn', 'cross_day', 'work_type', 'is_ot_rounding', 'ot_roundone_hr', 'ot_roundhalf_hr', 'break_times', 'is_without_break',
+                    'name', 'check_in',  'check_out', 'check_in_plusmn', 'check_out_plusmn', 'cross_day', 'is_ot_rounding', 'ot_roundone_hr', 'ot_roundhalf_hr', 'break_times', 'is_without_break',
                     'is_ot', 'ot_period', 'ot_pay', 'duration_count_one_shift', 'duration_ot_limit', 'is_ot_rice', 'duration_rice_shift'
                 ]);
                 $timetable_data['business_id'] = $business_id;
                 $check_in = Carbon::parse($timetable_data['check_in']);
                 $check_out = Carbon::parse($timetable_data['check_out']);
-                if($check_out->lt($check_in)) {
+                if ($check_out->lt($check_in)) {
                     $check_out = $check_out->addDays(1);
                 }
                 $timetable_data['work_time'] = $check_in->diffInMinutes($check_out);
@@ -150,9 +150,12 @@ class TimetableController extends Controller
                 if (empty($request->input('is_ot_rice'))) {
                     $timetable_data['duration_rice_shift'] = null;
                 }
+                if (empty($request->input('break_times'))) {
+                    $timetable_data['is_without_break'] = 0;
+                }
                 $timetable = new Timetable($timetable_data);
                 $timetable->save();
-                
+
                 if (!empty($request->input('break_times'))) {
                     // * Insert timetable has breaktime.
                     foreach ($timetable_data['break_times']  as $item) {
@@ -206,9 +209,9 @@ class TimetableController extends Controller
 
         try {
             $business_id = Session::get('business_id');
+            $break_times = BreakTime::where('business_id', $business_id)->get();
             $timetable_has_break_times = TimetableHasBreakTime::where('business_id', $business_id)
                 ->where('timetable_id', $timetable->id)->get();
-            $break_times = BreakTime::where('business_id', $business_id)->get();
 
             $render = view('Shift.timetable.edit', compact('timetable', 'timetable_has_break_times', 'break_times'))->render();
             return $this->buildRes->RESPONSE_REQ('success', $render, null);
@@ -240,17 +243,17 @@ class TimetableController extends Controller
             } else {
                 $business_id = Session::get('business_id');
                 $timetable_data = $request->only([
-                    'name', 'check_in',  'check_out', 'check_in_plusmn', 'check_out_plusmn', 'cross_day', 'work_type', 'is_ot_rounding', 'ot_roundone_hr', 'ot_roundhalf_hr', 'break_times', 'is_without_break',
+                    'name', 'check_in',  'check_out', 'check_in_plusmn', 'check_out_plusmn', 'cross_day', 'is_ot_rounding', 'ot_roundone_hr', 'ot_roundhalf_hr', 'break_times', 'is_without_break',
                     'is_ot', 'ot_period', 'ot_pay', 'duration_count_one_shift', 'duration_ot_limit', 'is_ot_rice', 'duration_rice_shift'
                 ]);
                 $timetable_data['business_id'] = $business_id;
                 $check_in = Carbon::parse($timetable_data['check_in']);
                 $check_out = Carbon::parse($timetable_data['check_out']);
-                if($check_out->lt($check_in)) {
+                if ($check_out->lt($check_in)) {
                     $check_out = $check_out->addDays(1);
                 }
                 $timetable_data['work_time'] = $check_in->diffInMinutes($check_out);
-                
+
                 if (!empty($request->input('is_ot_rounding'))) {
                     $timetable_data['ot_roundone_hr'] = 40;
                     $timetable_data['ot_roundhalf_hr'] = 20;
@@ -269,6 +272,13 @@ class TimetableController extends Controller
                 if (empty($request->input('is_ot_rice'))) {
                     $timetable_data['duration_rice_shift'] = null;
                 }
+                if (empty($request->input('break_times'))) {
+                    $timetable_data['is_without_break'] = 0;
+                }
+                if(empty($timetable_data['is_without_break'])) {
+                    $timetable_data['is_without_break'] = 0;
+                }
+                Log::info($timetable_data);
                 $timetable->update($timetable_data);
 
                 // * Remove all timetable has breaktime.
@@ -356,14 +366,13 @@ class TimetableController extends Controller
             'check_out' => 'required',
             'check_in_plusmn' => 'required',
             'check_out_plusmn' => 'required',
-            'work_type' => 'required',
             'is_ot' => 'nullable',
             'is_ot_rice' => 'nullable',
-            'ot_period' => ['nullable',new RequiredIf(request()->get('is_ot') == true), 'numeric', 'max:60'],
-            'ot_pay' => ['nullable',new RequiredIf(request()->get('is_ot') == true)],
-            'duration_count_one_shift' => ['nullable',new RequiredIf(request()->get('is_ot') == true), 'numeric', 'max:24'],
-            'duration_ot_limit' => ['nullable',new RequiredIf(request()->get('is_ot') == true), 'numeric', 'max:24'],
-            'duration_rice_shift' => ['nullable',new RequiredIf(request()->get('is_ot_rice') == true), 'numeric', 'max:24'],
+            'ot_period' => ['nullable', new RequiredIf(request()->get('is_ot') == true), 'numeric', 'max:60'],
+            'ot_pay' => ['nullable', new RequiredIf(request()->get('is_ot') == true)],
+            'duration_count_one_shift' => ['nullable', new RequiredIf(request()->get('is_ot') == true), 'numeric', 'max:24'],
+            'duration_ot_limit' => ['nullable', new RequiredIf(request()->get('is_ot') == true), 'numeric', 'max:24'],
+            'duration_rice_shift' => ['nullable', new RequiredIf(request()->get('is_ot_rice') == true), 'numeric', 'max:24'],
         ];
     }
 }

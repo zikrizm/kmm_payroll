@@ -98,7 +98,7 @@
                             <label class="font-normal text-xs text-red-500 xs/max:text-xs cross_day hint-text"></label>
                         </section>
                     </div>
-                    <section class="flex flex-col gap-1">
+                    {{-- <section class="flex flex-col gap-1">
                         <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Jenis Hari*</label>
                         <select class="select2" name="work_type">
                             <option value="0" @selected($timetable->work_type == 0)>Hari kerja</option>
@@ -107,7 +107,7 @@
                         </select>
                         <label
                             class="font-normal text-xs text-red-500 xs/max:text-xs parent_position hint-text"></label>
-                    </section>
+                    </section> --}}
                     <section class="flex flex-col gap-1">
                         <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Jam Istirahat</label>
                         <select class="select2-break-time" name="break_times[]" multiple="multiple">
@@ -131,15 +131,23 @@
                         </select>
                         <label class="font-normal text-xs text-red-500 xs/max:text-xs break_times hint-text"></label>
                     </section>
-                    <section class="flex flex-col gap-1 flex-1">
-                        <div class="flex items-center gap-2">
-                            {!! FormCustom::checkbox('is_without_break', true, ['checked'=>
-                            $timetable->is_without_break])
-                            !!}
-                            <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Bisa tanpa istirahat</label>
-                        </div>
-                        <label class="font-normal text-xs text-red-500 xs/max:text-xs cross_day hint-text"></label>
-                    </section>
+                    <div id="is-without-break-content" class="{{ empty($timetable_has_break_times) || count($timetable_has_break_times) == 0 ? 'hidden': '' }}">
+                        <section>
+                            <div class="flex items-start gap-2.5">
+                                <span class="pt-0.5">
+                                    {!! FormCustom::checkbox('is_without_break', true, ['checked'=>
+                                    $timetable->is_without_break]) !!}
+                                </span>
+                                <div class="flex flex-col gap-px">
+                                    <p class="font-medium text-sm text-gray-700">Bisa tanpa istirahat</p>
+                                    <p class="font-normal text-sm text-gray-500">
+                                        Karyawan di perbolehkan untuk tidak istirahat
+                                    </p>
+                                </div>
+                            </div>
+                        </section>
+                    </div>
+
                 </div>
                 <div class="flex flex-col gap-4 hidden" id="break-time-settings-content">
                     <section class="flex flex-col gap-1 flex-1">
@@ -193,13 +201,15 @@
                                 </div>
                             </section>
                             <section class="flex flex-col gap-1">
-                                <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Durasi jam lembur dikonversikan jadi 1 shift*</label>
+                                <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Durasi jam lembur
+                                    dikonversikan jadi 1 shift*</label>
                                 {!! FormCustom::input('duration_count_one_shift',
                                 $timetable->duration_count_one_shift,
                                 [ "placeholder" => 'Masukkan durasi waktu (jam)', 'type'=> 'number']) !!}
                             </section>
                             <section class="flex flex-col gap-1">
-                                <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Batas maksimal jam lembur*</label>
+                                <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Batas maksimal jam
+                                    lembur*</label>
                                 {!! FormCustom::input('duration_ot_limit', $timetable->duration_ot_limit,
                                 [ "placeholder" => 'Masukkan batas durasi lembur', 'type'=> 'number']) !!}
                             </section>

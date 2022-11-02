@@ -94,6 +94,18 @@
                 $('#rice-overtime-content').toggle('hidden');
             })
 
+            $('.select2-break-time').on('select2:select', function (e) {
+                if ($('#is-without-break-content').is(':hidden')) $('#is-without-break-content').toggle('hidden');
+            });
+            $(".select2-break-time").on("select2:unselect", function (e) {
+                var value_select2 = $(e.currentTarget).val();
+                if(!value_select2.length) {
+                    if (!$('#is-without-break-content').is(':hidden')){
+                        $('#is-without-break-content').toggle('hidden');
+                    }
+                }
+            });
+
             $('#add-info').on('click', function(e) {
                 $('.add-info-icon').toggleClass('rotate-180');
                 $('#add-info-content').toggle('hidden');

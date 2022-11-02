@@ -70,7 +70,8 @@
                         <div class="flex items-center gap-1 flex-col flex-1">
                             <div class="flex flex-col gap-1 w-full">
                                 <label class="text-sm font-normal text-gray-500">Keluar*</label>
-                                {!! FormCustom::input('check_out', '00:00:00', [ "placeholder" => '-', 'type' => 'time'])
+                                {!! FormCustom::input('check_out', '00:00:00', [ "placeholder" => '-', 'type' =>
+                                'time'])
                                 !!}
                             </div>
                             <div class="flex flex-col gap-1 w-full">
@@ -91,7 +92,7 @@
                             <label class="font-normal text-xs text-red-500 xs/max:text-xs cross_day hint-text"></label>
                         </section>
                     </div>
-                    <section class="flex flex-col gap-1">
+                    {{-- <section class="flex flex-col gap-1">
                         <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Jenis Hari*</label>
                         <select class="select2" name="work_type">
                             <option value="0" selected>Hari kerja</option>
@@ -100,7 +101,7 @@
                         </select>
                         <label
                             class="font-normal text-xs text-red-500 xs/max:text-xs parent_position hint-text"></label>
-                    </section>
+                    </section> --}}
                     <section class="flex flex-col gap-1">
                         <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Jam istirahat</label>
                         <select class="select2-break-time" name="break_times[]" multiple="multiple">
@@ -112,19 +113,36 @@
                         </select>
                         <label class="font-normal text-xs text-red-500 xs/max:text-xs break_times hint-text"></label>
                     </section>
-                    <section>
-                        <div class="flex items-start gap-2.5">
-                            <span class="pt-0.5">
-                                {!! FormCustom::checkbox('is_without_break', -1) !!}
-                            </span>
-                            <div class="flex flex-col gap-px">
-                                <p class="font-medium text-sm text-gray-700">Bisa tanpa istirahat</p>
-                                <p class="font-normal text-sm text-gray-500">
-                                    Karyawan di perbolehkan untuk tidak istirahat
-                                </p>
+                    <div id="is-without-break-content" class="{{ empty($timetable_has_break_times) ? 'hidden': '' }}">
+                        <section>
+                            <div class="flex items-start gap-2.5">
+                                <span class="pt-0.5">
+                                    {!! FormCustom::checkbox('is_without_break', true) !!}
+                                </span>
+                                <div class="flex flex-col gap-px">
+                                    <p class="font-medium text-sm text-gray-700">Bisa tanpa istirahat</p>
+                                    <p class="font-normal text-sm text-gray-500">
+                                        Karyawan di perbolehkan untuk tidak istirahat
+                                    </p>
+                                </div>
                             </div>
-                        </div>
-                    </section>
+                        </section>
+                    </div>
+                    <div id="is-without-break-content" class="hidden">
+                        <section>
+                            <div class="flex items-start gap-2.5">
+                                <span class="pt-0.5">
+                                    {!! FormCustom::checkbox('is_without_break', -1) !!}
+                                </span>
+                                <div class="flex flex-col gap-px">
+                                    <p class="font-medium text-sm text-gray-700">Bisa tanpa istirahat</p>
+                                    <p class="font-normal text-sm text-gray-500">
+                                        Karyawan di perbolehkan untuk tidak istirahat
+                                    </p>
+                                </div>
+                            </div>
+                        </section>
+                    </div>
                 </div>
                 <div class="flex flex-col gap-2.5 hidden" id="break-time-settings-content">
                     <section>
@@ -182,12 +200,14 @@
                                 </div>
                             </section>
                             <section class="flex flex-col gap-1">
-                                <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Durasi jam lembur dikonversikan jadi 1 shift*</label>
+                                <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Durasi jam lembur
+                                    dikonversikan jadi 1 shift*</label>
                                 {!! FormCustom::input('duration_count_one_shift', null,
                                 [ "placeholder" => 'Masukkan durasi waktu (jam)', 'type'=> 'number']) !!}
                             </section>
                             <section class="flex flex-col gap-1">
-                                <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Batas maksimal lembur*</label>
+                                <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Batas maksimal
+                                    lembur*</label>
                                 {!! FormCustom::input('duration_ot_limit', null,
                                 [ "placeholder" => 'Masukkan batas durasi lembur', 'type'=> 'number']) !!}
                             </section>

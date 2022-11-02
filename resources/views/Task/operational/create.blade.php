@@ -35,7 +35,7 @@
                         'placeholder' => 'Pilih tanggal operasional',
                         'class' => 'operational_date',
                         'readonly' => true,
-                        'block_input' => true,
+                        'block_input' => !empty($date),
                         'prefixiconname' => 'calendar',
                     ]) !!}
                 </section>
@@ -133,9 +133,8 @@
                                     <x-icon icon="calendar-version-2" width=80 height=80 viewBox="20 20" />
                                 </span>
                                 <div>
-                                    <p class="text-sm font-medium text-orange-700">Warning.</p>
-                                    <p class="text-xs text-orange-600">The shift schedule for this section has not been
-                                        arranged, please arrange in advance.</p>
+                                    <p class="text-sm font-medium text-orange-700">Informasi.</p>
+                                    <p class="text-xs text-orange-600" id="text-error-operation"></p>
                                 </div>
                             </div>
                         </div>

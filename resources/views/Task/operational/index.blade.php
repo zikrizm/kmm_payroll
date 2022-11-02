@@ -92,8 +92,6 @@
             // * Build data params table ----->
             // *
             dataParams = { ...dataParams, ...data };
-            console.log(dataParams);
-        
             // **
             // * get table ----->
             // *
@@ -118,14 +116,9 @@
             var res = await ApiService.get_modal(URL, { date:  date_operational});
             var anElement = new AutoNumeric.multiple('.number',{decimalPlaces:0,minimumValue: 0,decimalCharacter: ',', digitGroupSeparator : ""});
             
-            if(date_operational) {
+            if(!date_operational) {
                 $('.operational_date').daterangepicker({
                     locale: { format: 'YYYY-MM-DD' },
-                    isInvalidDate: function(date) {
-                        return true;
-                    },
-                    startDate: id ? undefined: moment().subtract(6, 'days'),
-                    endDate: id ? undefined: moment(),
                     ranges: {
                         'Today': [moment(), moment()],
                         'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
@@ -135,7 +128,9 @@
                         'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
                     },
                     alwaysShowCalendars: true,
+                    alwaysShowCalendars: true,
                     showCustomRangeLabel: false,
+                    singleDatePicker: true,
                     showDropdowns: true,
                     minYear: 2000,
                     drops: "auto",
@@ -154,6 +149,7 @@
                         if (!$('#timetable-content').is(':hidden')) $('#timetable-content').toggle('hidden');
                         $('#note-warning-content').toggle('hidden');
                     }
+                    $('#text-error-operation').text(_response.msg.error[0])
                 } else {
                     $('#timetable-content').html(_response.data);
                     if ($('#timetable-content').is(':hidden')) {
@@ -314,6 +310,7 @@
             var resSubmit = ApiService.submit_form('.submit-operational', (_response) => { 
                 if (_response.response < 200 || _response.response >= 300) {
                     // * SET NOTIFICATION MESSAGE REQUIRED ----->
+                    console.log(_response)
                 } else {
                     onInit( { q: $('.search-data-input').val() });
                 }

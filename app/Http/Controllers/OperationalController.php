@@ -117,9 +117,7 @@ class OperationalController extends Controller
         }
 
         try {
-            $date = Carbon::parse($request['date'])->format('Y-m-d');
-            Log::info($date);
-
+            $date = (!empty($request['date'])) ? Carbon::parse($request['date'])->format('Y-m-d') : null;
             $departments = collect($this->apiService->get_departments([]));
             $departments['data'] = collect($departments['data'])->filter(function ($e) {
                 return empty($e['parent_dept']);
@@ -156,31 +154,34 @@ class OperationalController extends Controller
                 $request_data = $request->only(['date', 'department', 'shift']);
                 $date = Carbon::parse($request_data['date']);
                 $business_id = Session::get('business_id');
-                // $shift = Shift::where('dept_id',  $request_data['department'])->first();
+                $operational = Operational::where('dept_id', $request_data['department'])->where('date', $date)->first();
+                if (empty($operational)) {
+                    // ** create operational
+                    // $operational = new Operational([
+                    //     'business_id' => $business_id,
+                    //     'date' => $date,
+                    //     'dept_id' => $request_data['department'],
+                    //     'day_name' => Carbon::create($date)->locale('id_ID')->dayName,
+                    //     'created_user' => auth()->user()->id,
+                    //     'updated_user' => auth()->user()->id,
+                    // ]);
+                    // $operational->save();
 
-                // ** create operational
-                $operational = new Operational([
-                    'business_id' => $business_id,
-                    'date' => $date,
-                    'dept_id' => $request_data['department'],
-                    'day_name' => Carbon::create($date)->locale('id_ID')->dayName,
-                    'created_user' => auth()->user()->id,
-                    'updated_user' => auth()->user()->id,
-                ]);
-                $operational->save();
+                    // foreach ($request_data['shift']['timetables'] as $key => $value) {
+                    //     // ** create operational has timetable
+                    //     $operational_has_timetable = new OperationalHasTimetable([
+                    //         'operational_id' => $operational->id,
+                    //         'timetable_id' => $value['timetable_id'],
+                    //         'ot_limit' => $value['ot_limit'],
+                    //         'status' => (!empty($value['status']) && $value['status'] == -1) ? 'active' : 'inactive',
+                    //     ]);
+                    //     $operational_has_timetable->save();
+                    // }
 
-                foreach ($request_data['shift']['timetables'] as $key => $value) {
-                    // ** create operational has timetable
-                    $operational_has_timetable = new OperationalHasTimetable([
-                        'operational_id' => $operational->id,
-                        'timetable_id' => $value['timetable_id'],
-                        'ot_limit' => $value['ot_limit'],
-                        'status' => (!empty($value['status']) && $value['status'] == -1) ? 'active' : 'inactive',
-                    ]);
-                    $operational_has_timetable->save();
+                    return $this->buildRes->RESPONSE_REQ('success', null,  ['success' => ['Add operational succesfully']]);
+                } else {
+                    return $this->buildRes->RESPONSE_REQ('error', null, ['error' => ["Jadwal untuk tanggal {$date->format('d-m-Y')} sudah tersedia"]]);
                 }
-
-                return $this->buildRes->RESPONSE_REQ('success', null,  ['success' => ['Add operational succesfully']]);
             }
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
@@ -355,24 +356,29 @@ class OperationalController extends Controller
             $date = Carbon::parse($request->date);
             $holidays = Holiday::where('start_date', $date)->get();
             $shift = Shift::where('dept_id', $request->dept_id)->with('shiftday.shiftday_has_timetable.timetable')->first();
+            $operational = Operational::where('dept_id', $request->dept_id)->where('date', $date)->first();
             $timetable_card = [];
             if (!empty($shift)) {
-                $code_day = $date->dayOfWeek;
-                $timetables = [];
-                foreach ($shift->shiftday as $key => $value) {
-                    if (!empty($holidays) && $holidays->count() ? $value->code_day == 0 : $code_day == $value->code_day) {
-                        $timetables = array_column($value->shiftday_has_timetable->toArray(), 'timetable');
+                if (empty($operational)) {
+                    $code_day = $date->dayOfWeek;
+                    $timetables = [];
+                    foreach ($shift->shiftday as $key => $value) {
+                        if (!empty($holidays) && $holidays->count() ? $value->code_day == 0 : $code_day == $value->code_day) {
+                            $timetables = array_column($value->shiftday_has_timetable->toArray(), 'timetable');
+                        }
                     }
+                    $timetable_card = [
+                        'date' => $date,
+                        'dayname' => Carbon::create($date)->locale('id_ID')->dayName,
+                        'timetables' => $timetables
+                    ];
+                    $render = view('Task.operational.cards.deparment_card', compact('timetable_card'))->render();
+                    return $this->buildRes->RESPONSE_REQ('success', $render, null);
+                } else {
+                    return $this->buildRes->RESPONSE_REQ('error', null, ['error' => ["Jadwal untuk tanggal {$date->format('d-m-Y')} sudah tersedia"]]);
                 }
-                $timetable_card = [
-                    'date' => $date,
-                    'dayname' => Carbon::create($date)->locale('id_ID')->dayName,
-                    'timetables' => $timetables
-                ];
-                $render = view('Task.operational.cards.deparment_card', compact('timetable_card'))->render();
-                return $this->buildRes->RESPONSE_REQ('success', $render, null);
             } else {
-                return $this->buildRes->RESPONSE_REQ('error', null, ['error' => ['The shift schedule for this section has not been arranged, please arrange in advance']]);
+                return $this->buildRes->RESPONSE_REQ('error', null, ['error' => ['Jadwal shift untuk bagian ini belum diatur, mohon diatur terlebih dahulu']]);
             }
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
