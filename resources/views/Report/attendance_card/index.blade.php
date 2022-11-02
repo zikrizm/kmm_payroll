@@ -58,13 +58,12 @@
                 onInit({dept_id: $(this).val()})
             });
 
-            dataParams = {
+            onInit({
                 date: { 
                     start_time: convertLocalTimezone( moment().subtract(6, 'days'), 'YYYY-MM-DD HH:mm:ss'), 
                     end_time: convertLocalTimezone(moment(), 'YYYY-MM-DD HH:mm:ss')
                 }
-            }
-            onInit(dataParams);
+            });
 
             $('input[name="date"]').daterangepicker({
                 locale: { format: 'YYYY-MM-DD' },
@@ -87,7 +86,6 @@
             },function(start, end, label) {
                 var dateFormat = 'YYYY-MM-DD HH:mm:ss';
 
-                $('.search-data-input').val('');
                 delete dataParams.page;
                 onInit({ 
                     date: { 
