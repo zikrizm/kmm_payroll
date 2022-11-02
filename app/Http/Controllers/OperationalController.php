@@ -118,6 +118,7 @@ class OperationalController extends Controller
 
         try {
             $date = Carbon::parse($request['date'])->format('Y-m-d');
+            Log::info($date);
 
             $departments = collect($this->apiService->get_departments([]));
             $departments['data'] = collect($departments['data'])->filter(function ($e) {
