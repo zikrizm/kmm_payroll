@@ -45,7 +45,11 @@
     let dataParams = {};
 
         window.addEventListener('DOMContentLoaded', (event) => {
-            $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
+            $.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                }
+            });           
             $('.select2-dept').select2();
             $('.select2-dept').show();
             $('.select2-dept').on('select2:select', function (e) {
@@ -55,6 +59,7 @@
             });
 
             dataParams = {
+                '_token': $('input[name="_token"]').val(),
                 date: { 
                     start_time: convertLocalTimezone( moment().subtract(6, 'days'), 'YYYY-MM-DD HH:mm:ss'), 
                     end_time: convertLocalTimezone(moment(), 'YYYY-MM-DD HH:mm:ss')

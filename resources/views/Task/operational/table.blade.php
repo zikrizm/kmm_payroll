@@ -27,7 +27,7 @@
                     @foreach (($operationals[$item] ?? []) as $key => $item_op)
                     <div class="cursor-pointer group hover:bg-gray-50 px-2 py-1">
                         <div class="h-12 border rounded flex justify-center flex-col p-2 relative">
-                            <p class="text-gray-700 font-medium text-sm">{{ $item_op->department->dept_name }}sdsdfsdfsdfsdfs xdfs</p>
+                            <p class="text-gray-700 font-medium text-sm truncate w-32 break-words">{{ $item_op->department->dept_name }}sdsdfsdfsdfsdfs xdfs</p>
                             <p class="text-gray-400 font-normal text-xs">{{ $item_op->shift->name }}</p>
                             <div class="absolute hidden group-hover:flex items-center justify-center gap-1 top-1 right-1">
                                 <button type="button"
