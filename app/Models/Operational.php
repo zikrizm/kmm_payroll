@@ -2,8 +2,9 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Operational extends Model
 {
@@ -29,5 +30,13 @@ class Operational extends Model
     public function operational_has_timetables()
     {
         return $this->hasMany(OperationalHasTimetable::class, 'operational_id');
+    }
+    /**
+     * Get the shift.
+     */
+    public function shift()
+    {
+        Log::info($this);
+        return $this->belongsTo(Shift::class, 'dept_id');
     }
 }
