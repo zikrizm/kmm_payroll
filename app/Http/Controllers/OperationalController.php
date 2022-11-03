@@ -157,26 +157,26 @@ class OperationalController extends Controller
                 $operational = Operational::where('dept_id', $request_data['department'])->where('date', $date)->first();
                 if (empty($operational)) {
                     // ** create operational
-                    // $operational = new Operational([
-                    //     'business_id' => $business_id,
-                    //     'date' => $date,
-                    //     'dept_id' => $request_data['department'],
-                    //     'day_name' => Carbon::create($date)->locale('id_ID')->dayName,
-                    //     'created_user' => auth()->user()->id,
-                    //     'updated_user' => auth()->user()->id,
-                    // ]);
-                    // $operational->save();
+                    $operational = new Operational([
+                        'business_id' => $business_id,
+                        'date' => $date,
+                        'dept_id' => $request_data['department'],
+                        'day_name' => Carbon::create($date)->locale('id_ID')->dayName,
+                        'created_user' => auth()->user()->id,
+                        'updated_user' => auth()->user()->id,
+                    ]);
+                    $operational->save();
 
-                    // foreach ($request_data['shift']['timetables'] as $key => $value) {
-                    //     // ** create operational has timetable
-                    //     $operational_has_timetable = new OperationalHasTimetable([
-                    //         'operational_id' => $operational->id,
-                    //         'timetable_id' => $value['timetable_id'],
-                    //         'ot_limit' => $value['ot_limit'],
-                    //         'status' => (!empty($value['status']) && $value['status'] == -1) ? 'active' : 'inactive',
-                    //     ]);
-                    //     $operational_has_timetable->save();
-                    // }
+                    foreach ($request_data['shift']['timetables'] as $key => $value) {
+                        // ** create operational has timetable
+                        $operational_has_timetable = new OperationalHasTimetable([
+                            'operational_id' => $operational->id,
+                            'timetable_id' => $value['timetable_id'],
+                            'ot_limit' => $value['ot_limit'],
+                            'status' => (!empty($value['status']) && $value['status'] == -1) ? 'active' : 'inactive',
+                        ]);
+                        $operational_has_timetable->save();
+                    }
 
                     return $this->buildRes->RESPONSE_REQ('success', null,  ['success' => ['Add operational succesfully']]);
                 } else {
@@ -219,18 +219,18 @@ class OperationalController extends Controller
 
         try {
             $departments = collect($this->apiService->get_departments([]));
-            $operational = Operational::where('id', $operational)->with('operational_has_depts')->first();
+            $operational = Operational::where('id', $operational)->with('operational_has_timetables')->first();
 
-            $sub_departments = [];
-            foreach ($departments['data'] as $e) {
-                if (!empty($e['parent_dept']) && $e['parent_dept']['id'] == $operational->dept_id)
-                    $sub_departments[] = $e;
-            }
-            $departments['data'] = collect($departments['data'])->filter(function ($e) {
-                return empty($e['parent_dept']);
-            });
+            // $sub_departments = [];
+            // foreach ($departments['data'] as $e) {
+            //     if (!empty($e['parent_dept']) && $e['parent_dept']['id'] == $operational->dept_id)
+            //         $sub_departments[] = $e;
+            // }
+            // $departments['data'] = collect($departments['data'])->filter(function ($e) {
+            //     return empty($e['parent_dept']);
+            // });
 
-            $render = view('Task.operational.edit', compact('operational', 'departments', 'sub_departments'))->render();
+            $render = view('Task.operational.edit', compact('operational'))->render();
             return $this->buildRes->RESPONSE_REQ('success', $render, null);
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());

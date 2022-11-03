@@ -5,7 +5,7 @@
             <div class='border-b flex-1 px-3 py-1.5 cursor-pointer group hover:bg-gray-50 min-w-[150px]'>
                 <button type="button"
                     class="w-full text-gray-500 h-8 hidden group-hover:flex items-center justify-center"
-                    onclick="get_modal(null, '{{ $item }}')">
+                    onclick="get_modal(null, {date: '{{ $item }}'})">
                     <x-icon icon="plus" width=16 height=16 viewBox="20 20" />
                 </button>
                 <div class="h-8 flex flex-col items-center group-hover:hidden">

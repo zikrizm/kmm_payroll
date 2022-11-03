@@ -168,7 +168,7 @@
                             $overtime = ($item_report['timetable']['overtime'] ?? 0) +
                             ($item_report['timetable']['early_check_in'] ?? 0);
                             @endphp
-                            {{ !empty($item_report['timetable']['name'])? $overtime: '-' }}
+                            {{ !empty($item_report['timetable']['per_day'])? $overtime: '-' }}
                         </td>
                     </tr>
                     @endforeach

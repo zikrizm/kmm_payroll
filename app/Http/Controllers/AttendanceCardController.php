@@ -188,7 +188,7 @@ class AttendanceCardController extends Controller
                 }
 
                 // * Employee search
-                $search = '';
+                $search = 'Erwan';
                 if (!empty($request->input('q'))) {
                     $search = $request->q;
                 }
@@ -206,10 +206,10 @@ class AttendanceCardController extends Controller
                 $attenDBs = [];
                 $slug_week = ['mgg', 'sen', 'sel', 'rab', 'kam', 'jum', 'sab'];
                 if (!empty($request->input('date'))) {
-                    // $start_time = Carbon::parse("2022-10-16 23:59:59");
-                    // $end_time = Carbon::parse("2022-10-23 23:59:59");
-                    $start_time = Carbon::parse($request->date['start_time']);
-                    $end_time = Carbon::parse($request->date['end_time']);
+                    $start_time = Carbon::parse("2022-10-16 23:59:59");
+                    $end_time = Carbon::parse("2022-10-25 23:59:59");
+                    // $start_time = Carbon::parse($request->date['start_time']);
+                    // $end_time = Carbon::parse($request->date['end_time']);
                     $filter['start_time'] = $start_time->hour(0)->minute(0)->second(0)->format('Y-m-d H:i:s');
                     $filter['end_time'] = $end_time->addHours(1)->hour(23)->minute(59)->second(59)->format('Y-m-d H:i:s');
                     $attenDBs = Transaction::whereBetween('punch_time', [$filter['start_time'], $filter['end_time']])->get();
@@ -523,7 +523,7 @@ class AttendanceCardController extends Controller
                                                         }
 
                                                         // // Log::info(response()->json($cross_data_attendances));
-                                                        
+
                                                         if (!empty($cross_data_attendances)) {
                                                             array_push($attens_groupings[$dates[$date_key]], ...$cross_data_attendances);
                                                             $attens_groupings[$next_date_index] = $no_cross_data_attendances;
@@ -582,7 +582,7 @@ class AttendanceCardController extends Controller
                                                                     if ($shiftdayHas->timetable->duration_count_one_shift <= $hour) {
                                                                         $timetable['per_day'] += floor($timetable['overtime'] / ($shiftdayHas->timetable->duration_count_one_shift));
                                                                         $timetable['overtime'] = $timetable['overtime'] % ($shiftdayHas->timetable->duration_count_one_shift);
-                                                                        Log::info('overtime onve='. $hour % ($shiftdayHas->timetable->duration_count_one_shift));
+                                                                        Log::info('overtime onve=' . $hour % ($shiftdayHas->timetable->duration_count_one_shift));
                                                                     }
                                                                     // Log::info("overtime= {$timetable['overtime']}");
                                                                     // if ($timetable['per_day'] >= 1) {
@@ -596,7 +596,7 @@ class AttendanceCardController extends Controller
                                                                 //     $timetable['overtime']++;
                                                                 // }
                                                                 // Log::info("overtime sebelum {$timetable['overtime']} minute {$minute}");
-                                                                
+
                                                                 // Log::info("overtime setelah {$timetable['overtime']}");
 
                                                             }
@@ -611,8 +611,19 @@ class AttendanceCardController extends Controller
                                                             }
                                                             if (!$is_lest_punch) {
                                                                 if ($is_half_day) {
-                                                                    $timetable['is_half_day'] = true;
-                                                                    $timetable['per_day'] += 0.5;
+                                                                    if ($shiftdayHas->timetable->is_without_break) {
+                                                                        // $shift_bagian_check_out_break_time = Carbon::parse($date . $shiftdayHas->timetable->check_out)->subMinutes($timetable['break_time_total']);
+                                                                        // Log::info("shift_bagian_check_out_break_time $shift_bagian_check_out_break_time");
+                                                                        // if ($punch_check_out->lt($shift_bagian_check_out_break_time)) {
+                                                                        //     $timetable['is_half_day'] = true;
+                                                                        //     $timetable['per_day'] += 0.5;
+                                                                        // } else {
+                                                                            $timetable['per_day'] += 1;
+                                                                        // }
+                                                                    } else {
+                                                                        $timetable['is_half_day'] = true;
+                                                                        $timetable['per_day'] += 0.5;
+                                                                    }
                                                                 } else {
                                                                     $timetable['per_day'] += 1;
                                                                 }

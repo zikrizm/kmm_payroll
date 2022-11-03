@@ -108,15 +108,15 @@
             })
         }
     
-        async function get_modal(id, date_operational) {
+        async function get_modal(id, data_operasional) {
             // **
             // * open modal form ----->
             // *
             var URL = (id) ? '/operational/' + id + '/edit' : '/operational/create';
-            var res = await ApiService.get_modal(URL, { date:  date_operational});
+            var res = await ApiService.get_modal(URL, { ...data_operasional});
             var anElement = new AutoNumeric.multiple('.number',{decimalPlaces:0,minimumValue: 0,decimalCharacter: ',', digitGroupSeparator : ""});
             
-            if(!date_operational) {
+            if(!data_operasional.date) {
                 $('.operational_date').daterangepicker({
                     locale: { format: 'YYYY-MM-DD' },
                     ranges: {
