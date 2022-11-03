@@ -70,13 +70,13 @@ $status_value = !empty($operational) ? $operational->operational_has_depts[$key]
                                     </div>
                                 </div>
                             </th>
-                            <th class="text-xs font-medium text-gray-500 truncate">Waktu</th>
+                            <th class="text-xs font-medium text-gray-500 truncate">Jam Lembur</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach ($timetable_card['timetables'] as $key_timetable => $item_timetable)
                         <tr class='hover:bg-gray-50 border-b border-gray-200 cursor-pointer'>
-                            <td class='text-left w-[80%]'>
+                            <td class='text-left'>
                                 <div class="flex items-center">
                                     <input type="hidden" value="{{ $item_timetable['id'] }}"
                                         name={{ 'shift[timetables][' . $key_timetable . '][timetable_id]' }}>
@@ -98,11 +98,13 @@ $status_value = !empty($operational) ? $operational->operational_has_depts[$key]
                             </td>
                             <td class='px-3 text-gray-500 text-sm'>
                                 <div class="flex items-center gap-2">
+                                   <div>
                                     <div class="w-12 pt-1">
                                         {!! FormCustom::input('shift[timetables][' . $key_timetable . '][ot_limit]',
                                         $item_timetable['ot_limit'] ?? 0,
                                         ['placeholder' => '-', 'class' => '!h-7 number text-center']) !!}
                                     </div>
+                                   </div>
                                 </div>
                             </td>
                         </tr>

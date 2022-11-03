@@ -39,19 +39,29 @@
 
         window.addEventListener('DOMContentLoaded', (event) => {
             $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
-            
+            var daynow= moment().day();
+            const date = moment("2022-11-02"); // Thursday Feb 2015
+const usingMoment_1 = date.day();
+const usingMoment_2 = date.isoWeekday();
+
+console.log('usingMoment: date.day() ==> ',usingMoment_1);
+console.log('usingMoment: date.isoWeekday() ==> ',usingMoment_2);
+
+
+const usingJS= new Date("2022-11-02").getDay();
+console.log('usingJavaSript: new Date("2022-11-02").getDay() ===> ',usingJS);
             onInit({ 
                 q: $('.search-data-input').val(),
                 date: { 
-                    start_date:convertLocalTimezone(moment().subtract(6, 'days'),'YYYY-MM-DD'), 
-                    end_date: convertLocalTimezone(moment(),'YYYY-MM-DD')
+                    start_date:convertLocalTimezone(moment().subtract(8-daynow, 'days'),'YYYY-MM-DD'), 
+                    end_date: convertLocalTimezone(moment().add(6-daynow,'days'),'YYYY-MM-DD')
                 }
             });
 
             $('input[name="header-date"]').daterangepicker({
                 locale: { format: 'YYYY-MM-DD' },
-                startDate: moment().subtract(6, 'days'),
-                endDate: moment(),
+                startDate: moment().subtract(8-daynow, 'days'),
+                endDate: moment().add(moment().weekday(),'days'),
                 ranges: {
                     'Today': [moment(), moment()],
                     'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
@@ -128,7 +138,6 @@
                         'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
                     },
                     alwaysShowCalendars: true,
-                    alwaysShowCalendars: true,
                     showCustomRangeLabel: false,
                     singleDatePicker: true,
                     showDropdowns: true,
@@ -167,7 +176,7 @@
                         $('#timetable-content').toggle('hidden');
                     }
 
-                    // let counter_day = 0;
+                    // lt counter_day = 0;
                     // let timetableDayContentChildLen = $('#timetable-day-content').children().length;
                     $('input[name="select_all_timetable"]').on('change', function(e) {
                         $('.timetable_status').prop('checked', $(this).is(':checked'));
@@ -326,20 +335,25 @@
             });
         }
 
-        function set_pagination_name_timetable(counter_day) {
-            let textNextDay = $('#timetable-day-content').children().eq(counter_day+1).find('.dayname').text();
-            let textPrevDay =(counter_day > 0) ? $('#timetable-day-content').children().eq(counter_day-1).find('.dayname').text(): '';
-            $('#next-day p').text(textNextDay);
-            $('#prev-day p').text(textPrevDay);
-        }
+        // function set_pagination_name_timetable(counter_day) {
+        //     let textNextDay = $('#timetable-day-content').children().eq(counter_day+1).find('.dayname').text();
+        //     let textPrevDay =(counter_day > 0) ? $('#timetable-day-content').children().eq(counter_day-1).find('.dayname').text(): '';
+        //     $('#next-day p').text(textNextDay);
+        //     $('#prev-day p').text(textPrevDay);
+        // }
 
-        async function open_modal_confirm(id) {
-        // **
-        // * open modal confirm ----->
-        // *
-        await ApiService.get_confirm('.submit-delete-operational', '/operational/' + id, null, () => {
-            onInit();
-        })
-    }
+        async function open_modal_confirm(e, id) {
+            // **
+            // * open modal confirm ----->
+            // *
+            var parent_container_remove_btn = $(e).parent().parent();
+            parent_container_remove_btn.addClass('bg-red-50 border-red-200');
+            $('.modal-close').on('click', function(e){
+                parent_container_remove_btn.removeClass('bg-red-50 border-red-200');
+            });
+            await ApiService.get_confirm('.submit-delete-operational', '/operational/' + id, null, () => {
+                onInit();
+            })
+        }
 </script>
 @endsection

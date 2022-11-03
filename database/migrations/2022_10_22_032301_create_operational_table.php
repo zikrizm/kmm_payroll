@@ -18,6 +18,7 @@ return new class extends Migration
             $table->integer('business_id')->unsigned();
             $table->dateTime('date');
             $table->integer('dept_id');
+            $table->integer('parent_dept_id');
             $table->string('day_name');
             $table->enum('status',['active','inactive'])->default('active');
             $table->integer('created_user')->unsigned();

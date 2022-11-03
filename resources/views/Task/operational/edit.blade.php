@@ -31,8 +31,7 @@
                 <section class="flex flex-col gap-1 flex-1">
                     <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Tanggal
                         operasional*</label>
-                    {!! FormCustom::input('date', date('d-m-Y', strtotime($operational->start_date)).' - '.
-                    date('d-m-Y', strtotime($operational->date)), [
+                    {!! FormCustom::input('date', date('d-m-Y', strtotime($operational->date)), [
                     'placeholder' => 'Pilih tanggal operasional',
                     'class' => 'operational_date',
                     'readonly' => true,

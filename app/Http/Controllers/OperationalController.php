@@ -52,10 +52,29 @@ class OperationalController extends Controller
                 $end_date = Carbon::parse($request['date']['end_date']);
                 $dates = $this->util->generateDateRange($start_date, $end_date);
                 $dept_bios = $this->apiService->get_departments(['page_size' => 999])['data'];
+                $holidays = Holiday::whereBetween('start_date', [$start_date, $end_date])->orWhereBetween('start_date', [$start_date, $end_date])->get();
                 $operationals = Operational::where('business_id', $business_id)->whereBetween('date', [$start_date, $end_date])
                     ->with('shift')->get()->groupBy(function ($item) {
                         return Carbon::parse($item->date)->format('Y-m-d');
                     });
+
+                $th_dates = [];
+                foreach ($dates as $key => $date) {
+                    $is_holiday = false;
+                    foreach ($holidays as $key => $holiday) {
+                        $holy_start = Carbon::parse($holiday->start_date);
+                        $holy_end = Carbon::parse($holiday->end_date);
+                        $date = Carbon::parse($date);
+                        if ($date->between($holy_start, $holy_end)) {
+                            $is_holiday = true;
+                        }
+                    }
+
+                    $th_dates[] = [
+                        "date" => $date,
+                        "is_holiday" => $is_holiday,
+                    ];
+                }
 
                 $operationals  = $operationals->map(function ($element) use ($dept_bios) {
                     $element = $element->map(function ($e_op) use ($dept_bios, $element) {
@@ -66,7 +85,7 @@ class OperationalController extends Controller
                     return $element;
                 });
 
-                // Log::info($operationals);
+                Log::info($operationals);
 
                 // foreach ($variable as $key => $value) {
                 //     # code...
@@ -91,7 +110,7 @@ class OperationalController extends Controller
                 //     $operationals->orderBy($sort['name'], $sort['order']);
                 // }
                 // $operationals = $operationals->with('operational_has_depts')->paginate(10);
-                $render =  view('Task.operational.table', compact('dates', 'operationals', 'order'))->render();
+                $render =  view('Task.operational.table', compact('dates', 'th_dates', 'operationals', 'order'))->render();
 
                 return $this->buildRes->RESPONSE_REQ('success', $render, null);
             }
@@ -119,9 +138,6 @@ class OperationalController extends Controller
         try {
             $date = (!empty($request['date'])) ? Carbon::parse($request['date'])->format('Y-m-d') : null;
             $departments = collect($this->apiService->get_departments([]));
-            $departments['data'] = collect($departments['data'])->filter(function ($e) {
-                return empty($e['parent_dept']);
-            });
             $render = view('Task.operational.create', compact('departments', 'date'))->render();
 
             return $this->buildRes->RESPONSE_REQ('success', $render, null);
@@ -146,7 +162,7 @@ class OperationalController extends Controller
 
 
         try {
-            $validator = Validator::make($request->all(), $this->rules());
+            $validator = Validator::make($request->all(), $this->rules(null));
 
             if ($validator->fails()) {
                 return $this->buildRes->RESPONSE_REQ('error', null, $validator->errors());
@@ -155,12 +171,21 @@ class OperationalController extends Controller
                 $date = Carbon::parse($request_data['date']);
                 $business_id = Session::get('business_id');
                 $operational = Operational::where('dept_id', $request_data['department'])->where('date', $date)->first();
+                $dept_bio = $this->apiService->read_department($request_data['department']);
+                $parent_dept_id = null;
+                if (empty($dept_bio['parent_dept'])) {
+                    $parent_dept_id = $dept_bio['id'];
+                } else {
+                    $parent_dept_id = $dept_bio['parent_dept']['id'];
+                }
+                
                 if (empty($operational)) {
                     // ** create operational
                     $operational = new Operational([
                         'business_id' => $business_id,
                         'date' => $date,
                         'dept_id' => $request_data['department'],
+                        'parent_dept_id' => $parent_dept_id,
                         'day_name' => Carbon::create($date)->locale('id_ID')->dayName,
                         'created_user' => auth()->user()->id,
                         'updated_user' => auth()->user()->id,
@@ -265,15 +290,11 @@ class OperationalController extends Controller
                 return $this->buildRes->RESPONSE_REQ('error', null, $validator->errors());
             } else {
                 $request_data = $request->only(['date', 'shift']);
-                $date = Carbon::parse($request_data['date']);
+                $date = Carbon::createFromFormat('d-m-Y', $request_data['date']);
                 $business_id = Session::get('business_id');
-                if (empty($operational)) {
+                if (!empty($operational)) {
                     // ** create operational
                     $operational_data = [
-                        'business_id' => $business_id,
-                        'date' => $date,
-                        'dept_id' => $request_data['department'],
-                        'day_name' => Carbon::create($date)->locale('id_ID')->dayName,
                         'updated_user' => auth()->user()->id,
                     ];
                     $operational->update($operational_data);
@@ -359,8 +380,16 @@ class OperationalController extends Controller
         try {
             $date = Carbon::parse($request->date);
             $holidays = Holiday::where('start_date', $date)->get();
-            $shift = Shift::where('dept_id', $request->dept_id)->with('shiftday.shiftday_has_timetable.timetable')->first();
-            $operational = Operational::where('dept_id', $request->dept_id)->where('date', $date)->first();
+            $dept_id = null;
+            $dept_bio = $this->apiService->read_department($request->dept_id);
+            if (empty($dept_bio['parent_dept'])) {
+                $dept_id = $dept_bio['id'];
+            } else {
+                $dept_id = $dept_bio['parent_dept']['id'];
+            }
+
+            $shift = Shift::where('dept_id', $dept_id)->with('shiftday.shiftday_has_timetable.timetable')->first();
+            $operational = Operational::where('dept_id', $dept_id)->where('date', $date)->first();
             $timetable_card = [];
             if (!empty($shift)) {
                 if (empty($operational)) {
@@ -399,7 +428,7 @@ class OperationalController extends Controller
     {
         return [
             'date' => 'required',
-            'department' => (empty($operational))? 'required': 'sometimes',
+            'department' => (empty($operational)) ? 'required' : 'sometimes',
             'shift' => 'required',
         ];
     }
