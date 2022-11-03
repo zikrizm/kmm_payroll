@@ -149,13 +149,13 @@
                                     </div>
                                 </div>
                                 <div class="w-7 pl-0.5 flex justify-center bg-gray-100 text-gray-700">
-                                    @if(!empty($item_report['timetable']['is_half_day'])&&$item_report['timetable']['is_half_day'])
+                                    {{-- @if(!empty($item_report['timetable']['is_half_day'])&&$item_report['timetable']['is_half_day'])
                                     <p class="text-[9px]">(1/2)</p>
-                                    @else
+                                    @else --}}
                                     <p class="text-[9px]">{{ !empty($item_report['timetable']['per_day']) ?
                                         '( '.$item_report['timetable']['per_day'].' )' : '' }}</p>
 
-                                    @endif
+                                    {{-- @endif --}}
                                 </div>
                             </div>
                             @else
