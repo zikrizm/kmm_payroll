@@ -100,4 +100,11 @@ return [
             ]
         ]
     ],
+    'department_one' => [
+        "id" => 1,
+        "dept_code" => "1",
+        "dept_name" => "produksi",
+        "parent_dept" => null,
+        "parent_dept_name" => null
+    ],
 ];

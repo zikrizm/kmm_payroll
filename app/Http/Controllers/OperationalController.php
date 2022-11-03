@@ -387,6 +387,7 @@ class OperationalController extends Controller
             $shift = Shift::where('dept_id', $dept_id)->with('shiftday.shiftday_has_timetable.timetable')->first();
             if (!empty($shift)) {
                 $rangedate = explode(' - ', $request['date']);
+                Log::info(count($rangedate));
                 if (count($rangedate) > 1) {
                     $start_date = Carbon::parse(trim($rangedate[0]));
                     $end_date = Carbon::parse(trim($rangedate[1]));
@@ -400,12 +401,19 @@ class OperationalController extends Controller
                             $code_day = $date->dayOfWeek;
                             $timetables = [];
                             foreach ($shift->shiftday as $key => $value) {
-                                if (!empty($holidays) && $holidays->count() ? $value->code_day == 0 : $code_day == $value->code_day) {
+                                $is_holiday = $holidays->search(function ($item, $key) use ($date) {
+                                    $holi_start = Carbon::parse($item->start_date);
+                                    $holi_end = Carbon::parse($item->end_date);
+                                    return $date->between($holi_start, $holi_end);
+                                });
+
+                                if (($is_holiday != '') ? $value->code_day == 0 : $code_day == $value->code_day) {
                                     $timetables = array_column($value->shiftday_has_timetable->toArray(), 'timetable');
                                 }
                             }
                             $timetable_cards[] = [
                                 'date' => $date,
+                                'is_range' => true,
                                 'timetables' => $timetables
                             ];
                         }
@@ -416,9 +424,10 @@ class OperationalController extends Controller
                     }
                 } else {
                     $date = Carbon::parse($request->date);
-                    $holidays = Holiday::where('start_date', $date)->get();
+                    $holidays = Holiday::where('start_date', '<=', $date)
+                        ->where('end_date', '>=', $date)->get();
                     $operational = Operational::where('dept_id', $request->dept_id)->where('date', $date)->first();
-                    $timetable_card = [];
+                    $timetable_cards = [];
                     if (empty($operational)) {
                         $code_day = $date->dayOfWeek;
                         $timetables = [];
@@ -427,11 +436,12 @@ class OperationalController extends Controller
                                 $timetables = array_column($value->shiftday_has_timetable->toArray(), 'timetable');
                             }
                         }
-                        $timetable_card = [
+                        $timetable_cards[] = [
                             'date' => $date,
+                            'is_range' => false,
                             'timetables' => $timetables
                         ];
-                        $render = view('Task.operational.cards.deparment_card', compact('timetable_card'))->render();
+                        $render = view('Task.operational.cards.deparment_card', compact('timetable_cards'))->render();
                         return $this->buildRes->RESPONSE_REQ('success', $render, null);
                     } else {
                         return $this->buildRes->RESPONSE_REQ('error', null, ['error' => ["Jadwal untuk tanggal {$date->format('d-m-Y')} sudah tersedia"]]);

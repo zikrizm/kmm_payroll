@@ -1,40 +1,41 @@
 @extends('layouts.app')
 @section('title', 'Operational')
 @section('css')
-<style></style>
+    <style></style>
 @endsection
 @section('content')
-<div class="flex flex-col gap-6 flex-1 h-full overflow-auto bg-white px-8 pt-8 pb-12">
-    <header class="flex justify-between items-start">
-        <div class="flex flex-col gap-1">
-            <p class="text-3xl font-medium text-gray-900">Operasional</p>
-            <p class="text-base font-normal text-gray-500">Pengaturan operasional karyawan</p>
-        </div>
-        <div class="">
-            <button onclick="get_modal()" class="flex items-center gap-2.5 px-4 py-2 text-gray-500 text-sm font-medium 
+    <div class="flex flex-col gap-6 flex-1 h-full overflow-auto bg-white px-8 pt-8 pb-12">
+        <header class="flex justify-between items-start">
+            <div class="flex flex-col gap-1">
+                <p class="text-3xl font-medium text-gray-900">Operasional</p>
+                <p class="text-base font-normal text-gray-500">Pengaturan operasional karyawan</p>
+            </div>
+            <div class="">
+                <button onclick="get_modal()"
+                    class="flex items-center gap-2.5 px-4 py-2 text-gray-500 text-sm font-medium 
                 flex items-center border border-gray-200 shadow-sm rounded-lg">
-                <x-icon icon="plus" width=18 height=18 viewBox="20 20" />
-                Tambah operasional
-            </button>
+                    <x-icon icon="plus" width=18 height=18 viewBox="20 20" />
+                    Tambah operasional
+                </button>
+            </div>
+        </header>
+        <hr>
+        <div class="flex justify-between">
+            <div class="w-72">
+                {!! FormCustom::input('header-date', null, [
+                    'placeholder' => 'Pilih tanggal operasional',
+                    'class' => 'date_input',
+                    'readonly' => true,
+                    'prefixiconname' => 'calendar',
+                ]) !!}
+            </div>
+            <x-ui.search-data placeholder="Cari operasional" url="{{ route('operational.index') }}" />
         </div>
-    </header>
-    <hr>
-    <div class="flex justify-between">
-        <div class="w-72">
-            {!! FormCustom::input('header-date', null, [
-            'placeholder' => 'Pilih tanggal operasional',
-            'class' => 'date_input',
-            'readonly' => true,
-            'prefixiconname' => 'calendar',
-            ]) !!}
-        </div>
-        <x-ui.search-data placeholder="Cari operasional" url="{{ route('operational.index') }}" />
+        <div class="table-content"></div>
+        <x-ui.confirm-modal class="submit-delete-operational"></x-ui.confirm-modal>
     </div>
-    <div class="table-content"></div>
-    <x-ui.confirm-modal class="submit-delete-operational"></x-ui.confirm-modal>
-</div>
 
-<script type="application/javascript">
+    <script type="application/javascript">
     let dataParams = {};
 
         window.addEventListener('DOMContentLoaded', (event) => {
@@ -119,6 +120,8 @@
             if(!data_operasional) {
                 $('.operational_date').daterangepicker({
                     locale: { format: 'YYYY-MM-DD' },
+                    startDate: moment(),
+                    endDate: moment().add(6, 'days'),
                     ranges: {
                         'Today': [moment(), moment()],
                         'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
@@ -129,7 +132,6 @@
                     },
                     alwaysShowCalendars: true,
                     showCustomRangeLabel: false,
-                    // singleDatePicker: true,
                     showDropdowns: true,
                     minYear: 2000,
                     drops: "auto",
@@ -187,8 +189,8 @@
                     // let timetableDayContentChildLen = $('#timetable-day-content').children().length;
                     $('input[name="select_all_timetable"]').on('change', function(e) {
                         var isChecked = $(this).is(':checked');
-                        $('.timetable_status').prop('checked', isChecked);
-                        $('.ot-limit-content').each(function(e) {
+                        $(this).closest('table').find('.timetable_status').prop('checked', isChecked)
+                        $(this).closest('table').find('.ot-limit-content').each(function(e) {
                             if(isChecked) {
                                 if ($(this).is(':hidden')) $(this).toggle('hidden');
                             } else {

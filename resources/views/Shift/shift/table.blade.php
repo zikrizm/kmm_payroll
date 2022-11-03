@@ -38,7 +38,7 @@
                     </div>
                 </td>
                 <td class='px-3 py text-gray-500 text-sm'>
-                    {{ $item->department['dept_name'] }}
+                    {{ $item->department['dept_name'] ?? '' }}
                 </td>
                 @canany(['shift.update', 'shift.delete'])
                 <td class='px-3 py'>

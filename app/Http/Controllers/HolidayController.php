@@ -114,8 +114,8 @@ class HolidayController extends Controller
 
                 $start_date = trim(explode(' - ', $holiday_data['holiday_date'])[0]);
                 $end_date = trim(explode(' - ', $holiday_data['holiday_date'])[1]);
-                $holiday_data['start_date'] = Carbon::createFromFormat('d-m-Y', $start_date)->format('Y-m-d');
-                $holiday_data['end_date'] = Carbon::createFromFormat('d-m-Y', $end_date)->format('Y-m-d');
+                $holiday_data['start_date'] = Carbon::createFromFormat('d-m-Y', $start_date)->hour(0)->minute(0)->second(0)->format('Y-m-d H:i:s');
+                $holiday_data['end_date'] = Carbon::createFromFormat('d-m-Y', $end_date)->hour(23)->minute(59)->second(59)->format('Y-m-d H:i:s');
                 $holiday_data['created_user'] = auth()->user()->id;
                 $holiday_data['updated_user'] = auth()->user()->id;
 
