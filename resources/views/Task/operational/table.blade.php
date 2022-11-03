@@ -20,16 +20,51 @@
             </div>
             @endforeach
         </div>
-        {{-- @foreach ($dates as $item) --}}
         <div class="flex">
             <div class="w-full flex">
                 @foreach ($dates as $item)
                 <div class="flex-1 flex flex-col border-r last:border-0 py-1 min-w-[150px]">
                     @forelse(($operationals[$item] ?? []) as $key => $item_op)
-                    <div class="cursor-pointer group px-2 py-1">
-                        <div class="border rounded flex justify-center flex-col p-2 relative hover:bg-gray-100 ">
+                    <div class="group px-2 py-1 h-[60px]">
+                        <div class="h-full border rounded flex justify-between flex-col p-2 relative hover:bg-gray-50 ">
                             <p class="text-gray-700 font-medium text-sm">{{ $item_op->department->dept_name }}</p>
-                            <p class="text-gray-400 font-normal text-xs">{{ $item_op->shift->name }}</p>
+                            <div class="flex items-center gap-0.5">
+                                @foreach ($item_op->operational_has_timetables as $item_timetable)
+                                <div
+                                    class="tooltip-custom cursor-pointer flex items-center gap-1 rounded-xl px-1 py w-max {{ !empty($item_timetable->ot_limit) ? 'border':'' }} {{ $item_timetable->status == 'active'? 'border-green-100 text-green-700': 'border-red-100 text-red-700' }}">
+                                    <span
+                                        class="w-[7px] h-[7px] rounded-full {{ $item_timetable->status == 'active'? 'bg-green-600': 'bg-red-600' }} block"></span>
+                                    @if (!empty($item_timetable->ot_limit))
+                                    <p
+                                        class="text-[10px] font-normal flex items-center gap-1 capitalize {{ $item_timetable->status == 'active'? 'text-green-600': 'text-red-600' }}">
+                                        + {{ $item_timetable->ot_limit }}
+                                    </p>
+                                    @endif
+                                    <div
+                                        class="tooltip-custom-text border p-1.5 {{ !empty($item_timetable->ot_limit) ? 'top-[-50px]': 'top-[-55px]'}} rounded bg-white after:!border-t-gray-300 flex flex-col items-center">
+                                        <p class="text-xs text-gray-700">{{ $item_timetable->timetable->name }}</p>
+                                        <div class="flex w-full items-center gap-1.5 text-gray-400 justify-start">
+                                            <x-icon icon="clock" width=12 height=12 viewBox="20 20" />
+                                            <div class="flex items-center gap-1 text-gray-400 text-[10px] mt-0.5">
+                                                <p class="truncate {{ $item_timetable->status != 'active' ? 'line-through':'' }}">
+                                                    {{ date('H:i', strtotime($item_timetable->timetable->check_in)); }}
+                                                </p>
+                                                -
+                                                <p class="truncate {{ $item_timetable->status != 'active' ? 'line-through':'' }}">
+                                                    {{ date('H:i', strtotime($item_timetable->timetable->check_out)); }}
+                                                </p>
+                                                @if (!empty($item_timetable->ot_limit))
+                                                <p
+                                                    class="text-[10px] font-normal flex items-center gap-1 capitalize">
+                                                    + {{ $item_timetable->ot_limit }} (lembur)
+                                                </p>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                @endforeach
+                            </div>
                             <div
                                 class="absolute hidden group-hover:flex flex-col items-center justify-center gap-0.5 top-0.5 right-0.5">
                                 <button type="button" onclick="get_modal('{{ $item_op->id }}', {date: '{{ $item }}'})"
@@ -50,5 +85,4 @@
             </div>
         </div>
     </div>
-
 </main>

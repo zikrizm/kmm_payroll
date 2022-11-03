@@ -54,7 +54,7 @@ class OperationalController extends Controller
                 $dept_bios = $this->apiService->get_departments(['page_size' => 999])['data'];
                 $holidays = Holiday::whereBetween('start_date', [$start_date, $end_date])->orWhereBetween('start_date', [$start_date, $end_date])->get();
                 $operationals = Operational::where('business_id', $business_id)->whereBetween('date', [$start_date, $end_date])
-                    ->with('shift')->get()->groupBy(function ($item) {
+                    ->with('shift', 'operational_has_timetables.timetable')->get()->groupBy(function ($item) {
                         return Carbon::parse($item->date)->format('Y-m-d');
                     });
 
@@ -65,7 +65,7 @@ class OperationalController extends Controller
                         $holy_start = Carbon::parse($holiday->start_date);
                         $holy_end = Carbon::parse($holiday->end_date);
                         $date = Carbon::parse($date);
-                        if ($date->between($holy_start, $holy_end)) {
+                        if ($date->isSunday() || $date->between($holy_start, $holy_end)) {
                             $is_holiday = true;
                         }
                     }
@@ -85,7 +85,6 @@ class OperationalController extends Controller
                     return $element;
                 });
 
-                Log::info($operationals);
 
                 // foreach ($variable as $key => $value) {
                 //     # code...
@@ -137,7 +136,7 @@ class OperationalController extends Controller
 
         try {
             $date = (!empty($request['date'])) ? Carbon::parse($request['date'])->format('Y-m-d') : null;
-            $departments = collect($this->apiService->get_departments([]));
+            $departments = collect($this->apiService->get_departments(['page_size' => 999]));
             $render = view('Task.operational.create', compact('departments', 'date'))->render();
 
             return $this->buildRes->RESPONSE_REQ('success', $render, null);
@@ -178,7 +177,7 @@ class OperationalController extends Controller
                 } else {
                     $parent_dept_id = $dept_bio['parent_dept']['id'];
                 }
-                
+
                 if (empty($operational)) {
                     // ** create operational
                     $operational = new Operational([
@@ -197,7 +196,7 @@ class OperationalController extends Controller
                         $operational_has_timetable = new OperationalHasTimetable([
                             'operational_id' => $operational->id,
                             'timetable_id' => $value['timetable_id'],
-                            'ot_limit' => $value['ot_limit'],
+                            'ot_limit' => (!empty($value['status']) && $value['status'] == -1) ? $value['ot_limit'] : 0,
                             'status' => (!empty($value['status']) && $value['status'] == -1) ? 'active' : 'inactive',
                         ]);
                         $operational_has_timetable->save();
@@ -308,7 +307,7 @@ class OperationalController extends Controller
                         $operational_has_timetable = new OperationalHasTimetable([
                             'operational_id' => $operational->id,
                             'timetable_id' => $value['timetable_id'],
-                            'ot_limit' => $value['ot_limit'],
+                            'ot_limit' => (!empty($value['status']) && $value['status'] == -1) ? $value['ot_limit'] : 0,
                             'status' => (!empty($value['status']) && $value['status'] == -1) ? 'active' : 'inactive',
                         ]);
                         $operational_has_timetable->save();
@@ -378,8 +377,6 @@ class OperationalController extends Controller
         }
 
         try {
-            $date = Carbon::parse($request->date);
-            $holidays = Holiday::where('start_date', $date)->get();
             $dept_id = null;
             $dept_bio = $this->apiService->read_department($request->dept_id);
             if (empty($dept_bio['parent_dept'])) {
@@ -387,27 +384,58 @@ class OperationalController extends Controller
             } else {
                 $dept_id = $dept_bio['parent_dept']['id'];
             }
-
             $shift = Shift::where('dept_id', $dept_id)->with('shiftday.shiftday_has_timetable.timetable')->first();
-            $operational = Operational::where('dept_id', $dept_id)->where('date', $date)->first();
-            $timetable_card = [];
             if (!empty($shift)) {
-                if (empty($operational)) {
-                    $code_day = $date->dayOfWeek;
-                    $timetables = [];
-                    foreach ($shift->shiftday as $key => $value) {
-                        if (!empty($holidays) && $holidays->count() ? $value->code_day == 0 : $code_day == $value->code_day) {
-                            $timetables = array_column($value->shiftday_has_timetable->toArray(), 'timetable');
+                $rangedate = explode(' - ', $request['date']);
+                if (count($rangedate) > 1) {
+                    $start_date = Carbon::parse(trim($rangedate[0]));
+                    $end_date = Carbon::parse(trim($rangedate[1]));
+                    $holidays = Holiday::whereBetween('start_date', [$start_date, $end_date])->orWhereBetween('start_date', [$start_date, $end_date])->get();
+                    $operational = Operational::where('dept_id', $request->dept_id)->whereBetween('date', [$start_date, $end_date])->first();
+                    $dates = $this->util->generateDateRange($start_date, $end_date);
+                    $timetable_cards = [];
+                    if (empty($operational)) {
+                        foreach ($dates as $key => $item_date) {
+                            $date = Carbon::parse($item_date);
+                            $code_day = $date->dayOfWeek;
+                            $timetables = [];
+                            foreach ($shift->shiftday as $key => $value) {
+                                if (!empty($holidays) && $holidays->count() ? $value->code_day == 0 : $code_day == $value->code_day) {
+                                    $timetables = array_column($value->shiftday_has_timetable->toArray(), 'timetable');
+                                }
+                            }
+                            $timetable_cards[] = [
+                                'date' => $date,
+                                'timetables' => $timetables
+                            ];
                         }
+                        $render = view('Task.operational.cards.deparment_card', compact('timetable_cards'))->render();
+                        return $this->buildRes->RESPONSE_REQ('success', $render, null);
+                    } else {
+                        return $this->buildRes->RESPONSE_REQ('error', null, ['error' => ["Salah satu atau beberapa Jadwal dalam range {$start_date->format('d-m-Y')} - {$end_date->format('d-m-Y')} udah tersedia"]]);
                     }
-                    $timetable_card = [
-                        'date' => $date,
-                        'timetables' => $timetables
-                    ];
-                    $render = view('Task.operational.cards.deparment_card', compact('timetable_card'))->render();
-                    return $this->buildRes->RESPONSE_REQ('success', $render, null);
                 } else {
-                    return $this->buildRes->RESPONSE_REQ('error', null, ['error' => ["Jadwal untuk tanggal {$date->format('d-m-Y')} sudah tersedia"]]);
+                    $date = Carbon::parse($request->date);
+                    $holidays = Holiday::where('start_date', $date)->get();
+                    $operational = Operational::where('dept_id', $request->dept_id)->where('date', $date)->first();
+                    $timetable_card = [];
+                    if (empty($operational)) {
+                        $code_day = $date->dayOfWeek;
+                        $timetables = [];
+                        foreach ($shift->shiftday as $key => $value) {
+                            if (!empty($holidays) && $holidays->count() ? $value->code_day == 0 : $code_day == $value->code_day) {
+                                $timetables = array_column($value->shiftday_has_timetable->toArray(), 'timetable');
+                            }
+                        }
+                        $timetable_card = [
+                            'date' => $date,
+                            'timetables' => $timetables
+                        ];
+                        $render = view('Task.operational.cards.deparment_card', compact('timetable_card'))->render();
+                        return $this->buildRes->RESPONSE_REQ('success', $render, null);
+                    } else {
+                        return $this->buildRes->RESPONSE_REQ('error', null, ['error' => ["Jadwal untuk tanggal {$date->format('d-m-Y')} sudah tersedia"]]);
+                    }
                 }
             } else {
                 return $this->buildRes->RESPONSE_REQ('error', null, ['error' => ['Jadwal shift untuk bagian ini belum diatur, mohon diatur terlebih dahulu']]);

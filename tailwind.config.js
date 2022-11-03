@@ -8,6 +8,7 @@ module.exports = {
     './vendor/usernotnull/tall-toasts/resources/views/**/*.blade.php',
   ],
   theme: {
+    // namedGroups: ["tooltip", "bar"],
     screens: {
       '2xl/max': { 'max': '1535px' },
       'xl/max': { 'max': '1279px' },
@@ -51,5 +52,7 @@ module.exports = {
       }
     },
   },
-  plugins: [],
+  plugins: [
+    // require("tailwindcss-named-groups"),
+  ],
 }

@@ -21,7 +21,7 @@ $is_suflix = '';
             </div>
         </span>
 
-        <input name="{{ $name }}" value="{{ $value }}" type="{{ $atr->type }}" placeholder="{{ $atr->placeholder }}"
+        <input  name="{{ $name }}" value="{{ $value }}" type="{{ $atr->type }}" placeholder="{{ $atr->placeholder }}"
             class="{{ $padding_class }}  w-full h-full text-sm rounded-lg shadow-sm border border-gray-300 focus:outline-none focus:ring-0
              {{ $atr->class }} {{ $atr->block_input ? 'cursor-not-allowed text-gray-300': 'focus:shadow-xs/focused(4px-primary) focus:border-violet-300' }}"
             {{ $atr->required ? 'required' : '' }} {{ $atr->disabled ? 'disabled' : '' }} {{

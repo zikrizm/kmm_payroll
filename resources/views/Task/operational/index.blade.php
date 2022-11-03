@@ -116,7 +116,7 @@
             var res = await ApiService.get_modal(URL, { ...data_operasional});
             var anElement = new AutoNumeric.multiple('.number',{decimalPlaces:0,minimumValue: 0,decimalCharacter: ',', digitGroupSeparator : ""});
             
-            if(!data_operasional.date) {
+            if(!data_operasional) {
                 $('.operational_date').daterangepicker({
                     locale: { format: 'YYYY-MM-DD' },
                     ranges: {
@@ -129,7 +129,7 @@
                     },
                     alwaysShowCalendars: true,
                     showCustomRangeLabel: false,
-                    singleDatePicker: true,
+                    // singleDatePicker: true,
                     showDropdowns: true,
                     minYear: 2000,
                     drops: "auto",
@@ -141,12 +141,29 @@
             if(id) {
                 $('.select2-department').select2().attr("disabled", true)
                 $('input[name="select_all_timetable"]').on('change', function(e) {
-                    $('.timetable_status').prop('checked', $(this).is(':checked'));
+                    var isChecked = $(this).is(':checked');
+                    $('.timetable_status').prop('checked', isChecked);
+                    $('.ot-limit-content').each(function(e) {
+                        if(isChecked) {
+                            if ($(this).is(':hidden')) $(this).toggle('hidden');
+                        } else {
+                            if (!$(this).is(':hidden')) $(this).toggle('hidden');
+                        }
+                        
+                    })
+                })
+                $('.timetable_status').on('change', function(e) {
+                    $(this).closest('tr').find('.ot-limit-content').toggle('hidden');
                 })
             };
             
             $('.select2-department').on('select2:select', async function (e) {
-                var date = moment($('.operational_date').val()).format('YYYY-MM-DD');
+                if(!data_operasional) {
+                    var date = $('.operational_date').val();
+                } else{
+                    var date = moment($('.operational_date').val()).format('YYYY-MM-DD');
+                }
+                
                 let _response = await (new NetworkUtils()).emitter('GET', '/get-operational-timetable-card', {dept_id: this.value, date}, {})
                 if (_response.response < 200 || _response.response >= 300) {
                     // * SHOW NOTIFICATION ----->
@@ -169,11 +186,19 @@
                     // lt counter_day = 0;
                     // let timetableDayContentChildLen = $('#timetable-day-content').children().length;
                     $('input[name="select_all_timetable"]').on('change', function(e) {
-                        $('.timetable_status').prop('checked', $(this).is(':checked'));
+                        var isChecked = $(this).is(':checked');
+                        $('.timetable_status').prop('checked', isChecked);
+                        $('.ot-limit-content').each(function(e) {
+                            if(isChecked) {
+                                if ($(this).is(':hidden')) $(this).toggle('hidden');
+                            } else {
+                                if (!$(this).is(':hidden')) $(this).toggle('hidden');
+                            }
+                            
+                        })
                     })
                     $('.timetable_status').on('change', function(e) {
-                        console.log($(this).parent())
-                        // $('.timetable_status').prop('checked', $(this).is(':checked'));
+                        $(this).closest('tr').find('.ot-limit-content').toggle('hidden');
                     })
                     // $('#next-day').on('click', function(e) {
                     //     counter_day++;
