@@ -188,7 +188,7 @@ class AttendanceCardController extends Controller
                 }
 
                 // * Employee search
-                $search = '';
+                $search = 'Erw';
                 if (!empty($request->input('q'))) {
                     $search = $request->q;
                 }
@@ -206,10 +206,10 @@ class AttendanceCardController extends Controller
                 $attenDBs = [];
                 $slug_week = ['mgg', 'sen', 'sel', 'rab', 'kam', 'jum', 'sab'];
                 if (!empty($request->input('date'))) {
-                    // $start_time = Carbon::parse("2022-10-16 23:59:59");
-                    // $end_time = Carbon::parse("2022-10-25 23:59:59");
-                    $start_time = Carbon::parse($request->date['start_time']);
-                    $end_time = Carbon::parse($request->date['end_time']);
+                    $start_time = Carbon::parse("2022-10-16 23:59:59");
+                    $end_time = Carbon::parse("2022-10-25 23:59:59");
+                    // $start_time = Carbon::parse($request->date['start_time']);
+                    // $end_time = Carbon::parse($request->date['end_time']);
                     $filter['start_time'] = $start_time->hour(0)->minute(0)->second(0)->format('Y-m-d H:i:s');
                     $filter['end_time'] = $end_time->addHours(1)->hour(23)->minute(59)->second(59)->format('Y-m-d H:i:s');
                     $attenDBs = Transaction::whereBetween('punch_time', [$filter['start_time'], $filter['end_time']])->get();
@@ -555,12 +555,12 @@ class AttendanceCardController extends Controller
 
 
                                                         if (count($attens_groupings[$date]) != 1) {
-                                                            if ($punch_check_out->gt($shift_bagian_check_out)) {
+                                                            if ($punch_check_out->gte($shift_bagian_check_out_cross)) {
                                                                 // if (empty($shiftdayHas->timetable->cross_day))
                                                                 //     $punch_check_out = Carbon::createFromTimeString($punch_check_out)->addDays($shiftdayHas->timetable->cross_day);
 
-                                                                $diff_time_out = Carbon::parse($date . $shiftdayHas->timetable->check_out)->diffInSeconds($punch_check_out);
-                                                                // $diff_time_out = $shift_bagian_check_out_cross->diffInSeconds($punch_check_out);
+                                                                // $diff_time_out = Carbon::parse($date . $shiftdayHas->timetable->check_out)->diffInSeconds($punch_check_out);
+                                                                $diff_time_out = $shift_bagian_check_out_cross->diffInSeconds($punch_check_out);
                                                                 // $diff_time_out_m = $shift_bagian_check_out_cross->diffInMinutes($punch_check_out);
                                                                 // Log::info("shift_bagian_check_out={$shift_bagian_check_out} shift_bagian_check_out={$shift_bagian_check_out} punch_check_out={$punch_check_out}");
 

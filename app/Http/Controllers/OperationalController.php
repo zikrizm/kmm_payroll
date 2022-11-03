@@ -220,6 +220,7 @@ class OperationalController extends Controller
         try {
             $departments = collect($this->apiService->get_departments([]));
             $operational = Operational::where('id', $operational)->with('operational_has_timetables')->first();
+            $dept_bios = $this->apiService->get_departments(["page_size" => 999]);
 
             // $sub_departments = [];
             // foreach ($departments['data'] as $e) {
@@ -230,7 +231,7 @@ class OperationalController extends Controller
             //     return empty($e['parent_dept']);
             // });
 
-            $render = view('Task.operational.edit', compact('operational'))->render();
+            $render = view('Task.operational.edit', compact('operational', 'dept_bios'))->render();
             return $this->buildRes->RESPONSE_REQ('success', $render, null);
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());

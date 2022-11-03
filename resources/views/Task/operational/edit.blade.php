@@ -3,7 +3,7 @@
     @csrf
     <!-- {{ csrf_field() }} -->
     <section
-        class="flex flex-col gap-8 pt-4 bg-white w-[675px] max-h-[95vh] overflow-y-auto overflow-x-hidden relative rounded-lg no-scrollbar">
+        class="flex flex-col gap-8 pt-4 bg-white w-[400px] max-h-[95vh] overflow-y-auto overflow-x-hidden relative rounded-lg no-scrollbar">
         <header class="px-4 flex flex-col gap-5 pt-4 xs/max:gap-3 relative">
             <button
                 class="absolute top-[-5px] right-3 xs/max:top-[-6px] modal-close hover:bg-gray-100 text-red rounded p-2">
@@ -32,26 +32,26 @@
                     <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Tanggal
                         operasional*</label>
                     {!! FormCustom::input('date', date('d-m-Y', strtotime($operational->start_date)).' - '.
-                    date('d-m-Y', strtotime($operational->end_date)), [
+                    date('d-m-Y', strtotime($operational->date)), [
                     'placeholder' => 'Pilih tanggal operasional',
                     'class' => 'operational_date',
                     'readonly' => true,
+                    'block_input' => true,
                     'prefixiconname' => 'calendar',
                     ]) !!}
                 </section>
                 <section class="flex flex-col gap-1 flex-2">
                     <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Bagian*</label>
-                    <select class="select2-department" name="department">
+                    <select class="select2-department" name="department" readonly="readonly">
                         <option value="" disabled selected>Silahkan Pilih</option>
-                        @foreach ($departments['data'] as $item)
-                        <option value="{{ $item['id'] }}" {{$item['id']==$operational->dept_id? 'selected': '' }}>{{
-                            $item['dept_name']
-                            }}</option>
+                        @foreach ($dept_bios['data'] as $item)
+                        <option value="{{ $item['id'] }}" @selected($item['id']==$operational->dept_id)>
+                            {{ $item['dept_name'] }}</option>
                         @endforeach
                     </select>
                     <label class="font-normal text-xs text-red-500 xs/max:text-xs department hint-text"></label>
                 </section>
-                <div id="sub-department-content" class="grid grid-cols-2 gap-3">
+                <div id="timetable-content">
                     @include('Task.operational.cards.deparment_card', ['departments' => $sub_departments,
                     'operational' => $operational])
                 </div>

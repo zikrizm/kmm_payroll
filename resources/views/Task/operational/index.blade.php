@@ -137,8 +137,9 @@
                     maxYear: parseInt(moment().format('YYYY'), 10)
                 }, function(start, end, label) {});
             }
-            
+
             $('.select2-department').select2();
+            if(id) $('.select2-department').select2().attr("disabled", true);
             $('.select2-department').on('select2:select', async function (e) {
                 var date = moment($('.operational_date').val()).format('YYYY-MM-DD');
                 let _response = await (new NetworkUtils()).emitter('GET', '/get-operational-timetable-card', {dept_id: this.value, date}, {})

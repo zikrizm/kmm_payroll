@@ -31,7 +31,7 @@
                             <p class="text-gray-400 font-normal text-xs">{{ $item_op->shift->name }}</p>
                             <div
                                 class="absolute hidden group-hover:flex flex-col items-center justify-center gap-0.5 top-0.5 right-0.5">
-                                <button type="button" onclick="get_modal(null, {date: '{{ $item }}'})"
+                                <button type="button" onclick="get_modal('{{ $item_op->id }}', {date: '{{ $item }}'})"
                                     class="text-violet-500 border rounded border-violet-100 p-1 hover:bg-violet-100">
                                     <x-icon icon="edit" width=12 height=12 viewBox="20 20" />
                                 </button>
