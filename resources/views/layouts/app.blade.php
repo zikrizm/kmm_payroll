@@ -71,7 +71,7 @@
         @if (request()->segment(2) != 'register' && request()->segment(1) != 'employee-photo')
         @if (Auth::user())
         <aside
-            class="hidden w-[260px] h-full bg-white border-r border-gray-200 flex flex-col justify-between gap-4 px-3 overflow-auto no-scrollbar">
+            class=" w-[260px] h-full bg-white border-r border-gray-200 flex flex-col justify-between gap-4 px-3 overflow-auto no-scrollbar">
             <div class="flex-1">
                 <header class="h-32 w-full flex items-center justify-center flex-col gap-1">
                     <div class="text-gray-700 w-10 h-10 rounded-full overflow-hidden">

@@ -171,8 +171,9 @@
                     $('input[name="select_all_timetable"]').on('change', function(e) {
                         $('.timetable_status').prop('checked', $(this).is(':checked'));
                     })
-                    $('.input-ot-limit').on('change', function(e) {
-                        $('.timetable_status').prop('checked', $(this).is(':checked'));
+                    $('.timetable_status').on('change', function(e) {
+                        console.log($(this).parent())
+                        // $('.timetable_status').prop('checked', $(this).is(':checked'));
                     })
                     // $('#next-day').on('click', function(e) {
                     //     counter_day++;
