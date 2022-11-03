@@ -40,16 +40,6 @@
         window.addEventListener('DOMContentLoaded', (event) => {
             $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
             var daynow= moment().day();
-            const date = moment("2022-11-02"); // Thursday Feb 2015
-const usingMoment_1 = date.day();
-const usingMoment_2 = date.isoWeekday();
-
-console.log('usingMoment: date.day() ==> ',usingMoment_1);
-console.log('usingMoment: date.isoWeekday() ==> ',usingMoment_2);
-
-
-const usingJS= new Date("2022-11-02").getDay();
-console.log('usingJavaSript: new Date("2022-11-02").getDay() ===> ',usingJS);
             onInit({ 
                 q: $('.search-data-input').val(),
                 date: { 
@@ -179,6 +169,9 @@ console.log('usingJavaSript: new Date("2022-11-02").getDay() ===> ',usingJS);
                     // lt counter_day = 0;
                     // let timetableDayContentChildLen = $('#timetable-day-content').children().length;
                     $('input[name="select_all_timetable"]').on('change', function(e) {
+                        $('.timetable_status').prop('checked', $(this).is(':checked'));
+                    })
+                    $('.input-ot-limit').on('change', function(e) {
                         $('.timetable_status').prop('checked', $(this).is(':checked'));
                     })
                     // $('#next-day').on('click', function(e) {

@@ -83,7 +83,8 @@ $status_value = !empty($operational) ? $operational->operational_has_depts[$key]
                                     <div class="pl-4">
                                         {!! FormCustom::checkbox('shift[timetables][' . $key_timetable . '][status]',
                                         -1, [
-                                        'checked' => !empty($item_timetable['status']) && $item_timetable['status'] == 'active',
+                                        'checked' => !empty($item_timetable['status']) && $item_timetable['status'] ==
+                                        'active',
                                         'class' => 'timetable_status',
                                         ]) !!}
                                     </div>
@@ -98,13 +99,14 @@ $status_value = !empty($operational) ? $operational->operational_has_depts[$key]
                             </td>
                             <td class='px-3 text-gray-500 text-sm'>
                                 <div class="flex items-center gap-2">
-                                   <div>
-                                    <div class="w-12 pt-1">
-                                        {!! FormCustom::input('shift[timetables][' . $key_timetable . '][ot_limit]',
-                                        $item_timetable['ot_limit'] ?? 0,
-                                        ['placeholder' => '-', 'class' => '!h-7 number text-center']) !!}
+                                    <div id="ot-limit-content" class="hidden">
+                                        <div class="w-12 pt-1">
+                                            {!! FormCustom::input('shift[timetables][' . $key_timetable . '][ot_limit]',
+                                            $item_timetable['ot_limit'] ?? 0,
+                                            ['placeholder' => '-', 'class' => '!h-7 number text-center'])
+                                            !!}
+                                        </div>
                                     </div>
-                                   </div>
                                 </div>
                             </td>
                         </tr>
