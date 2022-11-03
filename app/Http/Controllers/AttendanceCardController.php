@@ -188,7 +188,7 @@ class AttendanceCardController extends Controller
                 }
 
                 // * Employee search
-                $search = 'Erwan';
+                $search = '';
                 if (!empty($request->input('q'))) {
                     $search = $request->q;
                 }
@@ -206,10 +206,10 @@ class AttendanceCardController extends Controller
                 $attenDBs = [];
                 $slug_week = ['mgg', 'sen', 'sel', 'rab', 'kam', 'jum', 'sab'];
                 if (!empty($request->input('date'))) {
-                    $start_time = Carbon::parse("2022-10-16 23:59:59");
-                    $end_time = Carbon::parse("2022-10-23 23:59:59");
-                    // $start_time = Carbon::parse($request->date['start_time']);
-                    // $end_time = Carbon::parse($request->date['end_time']);
+                    // $start_time = Carbon::parse("2022-10-16 23:59:59");
+                    // $end_time = Carbon::parse("2022-10-23 23:59:59");
+                    $start_time = Carbon::parse($request->date['start_time']);
+                    $end_time = Carbon::parse($request->date['end_time']);
                     $filter['start_time'] = $start_time->hour(0)->minute(0)->second(0)->format('Y-m-d H:i:s');
                     $filter['end_time'] = $end_time->addHours(1)->hour(23)->minute(59)->second(59)->format('Y-m-d H:i:s');
                     $attenDBs = Transaction::whereBetween('punch_time', [$filter['start_time'], $filter['end_time']])->get();
@@ -492,8 +492,8 @@ class AttendanceCardController extends Controller
                                                                 $timetable['break_time_total'] += $break_time_dif;
                                                             }
                                                             if ($shiftdayHas->timetable->is_without_break) {
-                                                                $shift_bagian_check_out->subMinutes($timetable['break_time_total']);
-                                                                $shift_bagian_check_out_cross->subMinutes($timetable['break_time_total']);
+                                                                // $shift_bagian_check_out->subMinutes($timetable['break_time_total']);
+                                                                // $shift_bagian_check_out_cross->subMinutes($timetable['break_time_total']);
                                                             }
                                                         }
 
@@ -559,7 +559,8 @@ class AttendanceCardController extends Controller
                                                                 // if (empty($shiftdayHas->timetable->cross_day))
                                                                 //     $punch_check_out = Carbon::createFromTimeString($punch_check_out)->addDays($shiftdayHas->timetable->cross_day);
 
-                                                                $diff_time_out = $shift_bagian_check_out_cross->diffInSeconds($punch_check_out);
+                                                                $diff_time_out = Carbon::parse($date . $shiftdayHas->timetable->check_out)->diffInSeconds($punch_check_out);
+                                                                // $diff_time_out = $shift_bagian_check_out_cross->diffInSeconds($punch_check_out);
                                                                 // $diff_time_out_m = $shift_bagian_check_out_cross->diffInMinutes($punch_check_out);
                                                                 // Log::info("shift_bagian_check_out={$shift_bagian_check_out} shift_bagian_check_out={$shift_bagian_check_out} punch_check_out={$punch_check_out}");
 
@@ -579,8 +580,8 @@ class AttendanceCardController extends Controller
                                                                     $ot_period = $shiftdayHas->timetable->ot_period;
                                                                     $ot_pay = $shiftdayHas->timetable->ot_pay;
                                                                     if ($shiftdayHas->timetable->duration_count_one_shift <= $hour) {
-                                                                        $timetable['per_day'] += floor($hour / ($shiftdayHas->timetable->duration_count_one_shift));
-                                                                        $timetable['overtime'] = $hour % ($shiftdayHas->timetable->duration_count_one_shift);
+                                                                        $timetable['per_day'] += floor($timetable['overtime'] / ($shiftdayHas->timetable->duration_count_one_shift));
+                                                                        $timetable['overtime'] = $timetable['overtime'] % ($shiftdayHas->timetable->duration_count_one_shift);
                                                                         Log::info('overtime onve='. $hour % ($shiftdayHas->timetable->duration_count_one_shift));
                                                                     }
                                                                     // Log::info("overtime= {$timetable['overtime']}");
@@ -589,6 +590,11 @@ class AttendanceCardController extends Controller
                                                                     // }
                                                                     $timetable['total_overtime_pay_per_day'] = ((($timetable['overtime'] ?? 0) * 60) / $ot_period) * $ot_pay;
                                                                 }
+                                                                // if ($minute >= $shiftdayHas->timetable->ot_roundhalf_hr && $minute < $shiftdayHas->timetable->ot_roundone_hr) {
+                                                                //     $timetable['overtime'] += 0.5;
+                                                                // } else if ($minute >= $shiftdayHas->timetable->ot_roundone_hr) {
+                                                                //     $timetable['overtime']++;
+                                                                // }
                                                                 // Log::info("overtime sebelum {$timetable['overtime']} minute {$minute}");
                                                                 
                                                                 // Log::info("overtime setelah {$timetable['overtime']}");
