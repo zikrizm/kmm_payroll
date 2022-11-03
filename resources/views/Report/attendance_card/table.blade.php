@@ -124,9 +124,14 @@
                             -
                             @endif
                         </td>
-                        <td class='text-xs border text-gray-500 text-center w-12'>
+                        <td class='text-xs border text-gray-500 text-center w-14 {{ $item_report['is_lest_punch']? 'text-red-500' : '' }}'>
                             @if (!empty($item_report['last_punch']))
+                           <div class="relative">
                             {{ date('H:i', strtotime($item_report['last_punch'])) }}
+                            <span class="absolute text-[8px] text-violet-600 top-[-5px]">
+                                {{ $item_report['is_diff_day'] ? '+1' : '' }}
+                            </span>
+                           </div>
                             @else
                             -
                             @endif
@@ -136,7 +141,7 @@
                             <div class="flex items-center justify-between gap-1">
                                 <div class="flex justify-center flex-1">
                                     <div class="flex relative w-max">
-                                        <p>{{ $item_report['timetable']['name'] ?? '-' }}</p>
+                                        <p class="text-[10px]">{{ $item_report['timetable']['name'] ?? '-' }}</p>
                                         @if (!empty($item_report['timetable']['cross_day']))
                                         <p class="text-[9px] text-violet-600 mt-[-4px]">+{{
                                             $item_report['timetable']['cross_day'] ?? '' }}</p>

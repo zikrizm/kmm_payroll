@@ -188,7 +188,7 @@ class AttendanceCardController extends Controller
                 }
 
                 // * Employee search
-                $search = '';
+                $search = 'Erwan';
                 if (!empty($request->input('q'))) {
                     $search = $request->q;
                 }
@@ -206,10 +206,10 @@ class AttendanceCardController extends Controller
                 $attenDBs = [];
                 $slug_week = ['mgg', 'sen', 'sel', 'rab', 'kam', 'jum', 'sab'];
                 if (!empty($request->input('date'))) {
-                    // $start_time = Carbon::parse("2022-10-21 23:59:59");
-                    // $end_time = Carbon::parse("2022-10-23 23:59:59");
-                    $start_time = Carbon::parse($request->date['start_time']);
-                    $end_time = Carbon::parse($request->date['end_time']);
+                    $start_time = Carbon::parse("2022-10-16 23:59:59");
+                    $end_time = Carbon::parse("2022-10-23 23:59:59");
+                    // $start_time = Carbon::parse($request->date['start_time']);
+                    // $end_time = Carbon::parse($request->date['end_time']);
                     $filter['start_time'] = $start_time->hour(0)->minute(0)->second(0)->format('Y-m-d H:i:s');
                     $filter['end_time'] = $end_time->addHours(1)->hour(23)->minute(59)->second(59)->format('Y-m-d H:i:s');
                     $attenDBs = Transaction::whereBetween('punch_time', [$filter['start_time'], $filter['end_time']])->get();
@@ -252,7 +252,7 @@ class AttendanceCardController extends Controller
                     });
 
                 $attendance_reports = [];
-                // Log::info("===========÷=================================");
+                Log::info("===============PEMISAH-PEMISAH-PEMISAH-PEMISAH-PEMISAH================");
                 // Log::info($holidays);
                 // Log::info("============================================");
                 foreach (($emp_bios ?? []) as $emp) {
@@ -310,7 +310,7 @@ class AttendanceCardController extends Controller
                         // Log::info("COUNT ".count($attens_groupings[$date] ?? []));
 
                         if (count($dates) - 1 != $date_key) {
-                            Log::info("=============== date={$date}");
+                            // Log::info("=============== date={$date}");
                             $timetable = [];
                             $timetable['id'] = '';
                             $timetable['name'] = '';
@@ -436,6 +436,8 @@ class AttendanceCardController extends Controller
                                 // Log::info("date={$date} punch_check_out={$punch_check_out} punch_check_in={$punch_check_in}");
 
 
+                                $is_lest_punch = false;
+                                $is_diff_day = false;
                                 foreach ($shifts as $shift) {
                                     if ($dept_id == $shift->dept_id) {
                                         foreach ($shift->shiftday as $shiftday) {
@@ -457,7 +459,7 @@ class AttendanceCardController extends Controller
 
                                                     $shift_check_out_plus_ot = Carbon::parse($date . $shiftdayHas->timetable->check_out)->addDays($shiftdayHas->timetable->cross_day ?? 0)->addHours($shiftdayHas->timetable->duration_ot_limit);
                                                     $shift_bagian_check_out_cross = Carbon::parse($date . $shiftdayHas->timetable->check_out)->addDays($shiftdayHas->timetable->cross_day ?? 0);
-                                                    Log::info("shift_bagian_check_out_cross {$shift_bagian_check_out_cross}");
+                                                    // Log::info("shift_bagian_check_out_cross {$shift_bagian_check_out_cross}");
                                                     // Log::info('cross_ss'.  Carbon::parse($date . $shiftdayHas->timetable->check_out)->addDays($shiftdayHas->timetable->cross_day ?? 0));
 
                                                     // foreach ($attens_groupings as $itess) {
@@ -479,21 +481,25 @@ class AttendanceCardController extends Controller
                                                         // Log::info("timetable_check_in = {$timetable_check_in} timetable_check_out={$timetable_check_out} duration_ot_limit= {$shiftdayHas->timetable->duration_ot_limit} punch_check_out_add_ot_limit = {$punch_check_out_add_ot_limit}");
 
 
-
-
-                                                        foreach ($shiftdayHas->timetable->timetable_has_break_time as $key => $value) {
-                                                            $break_time_start = Carbon::createFromTimeString($value->break_time->start_time);
-                                                            $break_time_end = Carbon::createFromTimeString($value->break_time->end_time);
-                                                            $break_time_dif = $break_time_start->diffInMinutes($break_time_end);
-                                                            $timetable['break_time_total'] += $break_time_dif;
+                                                        $break_times = $shiftdayHas->timetable->timetable_has_break_time;
+                                                        $break_time_first = null;
+                                                        if (!empty($break_times) && count($break_times)) {
+                                                            $break_time_first = $shiftdayHas->timetable->timetable_has_break_time[0];
+                                                            foreach ($shiftdayHas->timetable->timetable_has_break_time as $key => $value) {
+                                                                $break_time_start = Carbon::createFromTimeString($value->break_time->start_time);
+                                                                $break_time_end = Carbon::createFromTimeString($value->break_time->end_time);
+                                                                $break_time_dif = $break_time_start->diffInMinutes($break_time_end);
+                                                                $timetable['break_time_total'] += $break_time_dif;
+                                                            }
+                                                            if ($shiftdayHas->timetable->is_without_break) {
+                                                                $shift_bagian_check_out->subMinutes($timetable['break_time_total']);
+                                                                $shift_bagian_check_out_cross->subMinutes($timetable['break_time_total']);
+                                                            }
                                                         }
 
-                                                        Log::info("sebelum shift_bagian_check_out=$shift_bagian_check_out");
-                                                        if ($shiftdayHas->timetable->is_without_break) {
-                                                            $shift_bagian_check_out->subMinutes($timetable['break_time_total']);
-                                                            $shift_bagian_check_out_cross->subMinutes($timetable['break_time_total']);
-                                                        }
-                                                        Log::info("setelah shift_bagian_check_out=$shift_bagian_check_out");
+                                                        // Log::info("sebelum shift_bagian_check_out=$shift_bagian_check_out");
+
+                                                        // Log::info("setelah shift_bagian_check_out=$shift_bagian_check_out");
 
 
                                                         $cross_data_attendances = [];
@@ -517,7 +523,7 @@ class AttendanceCardController extends Controller
                                                         }
 
                                                         // // Log::info(response()->json($cross_data_attendances));
-
+                                                        
                                                         if (!empty($cross_data_attendances)) {
                                                             array_push($attens_groupings[$dates[$date_key]], ...$cross_data_attendances);
                                                             $attens_groupings[$next_date_index] = $no_cross_data_attendances;
@@ -525,7 +531,8 @@ class AttendanceCardController extends Controller
                                                             // biar perhitungan jam keluarnya berubah
                                                             $atten_last = $cross_data_attendances[count($cross_data_attendances) - 1];
                                                             $diff_time_punch = Carbon::parse($atten_first['punch_time'])->diff(Carbon::parse($atten_last['punch_time']));
-                                                            $punch_check_out = Carbon::createFromTimeString(Carbon::parse($atten_last['punch_time'])->format('H:i:s'));
+                                                            $punch_check_out = Carbon::parse($atten_last['punch_time']);
+                                                            $is_diff_day = $shift_bagian_check_out_cross->diff($punch_check_out)->days < 1;
                                                         }
 
                                                         // Log::info(response()->json($attens_groupings));
@@ -558,10 +565,15 @@ class AttendanceCardController extends Controller
 
                                                                 $minute = intval(gmdate('i', $diff_time_out));
                                                                 $hour = intval(gmdate('G', $diff_time_out));
-                                                                Log::info("hour={$hour} minute=".$minute);
 
                                                                 $timetable['overtime'] += $hour;
+                                                                if ($minute >= $shiftdayHas->timetable->ot_roundhalf_hr && $minute < $shiftdayHas->timetable->ot_roundone_hr) {
+                                                                    $timetable['overtime'] += 0.5;
+                                                                } else if ($minute >= $shiftdayHas->timetable->ot_roundone_hr) {
+                                                                    $timetable['overtime']++;
+                                                                }
 
+                                                                Log::info("punch_check_out $punch_check_out duration_count_one_shift {$shiftdayHas->timetable->duration_count_one_shift} overtime={$timetable['overtime']} date $date hour={$hour} minute=" . $minute);
 
                                                                 if ($shiftdayHas->timetable->ot_period) {
                                                                     $ot_period = $shiftdayHas->timetable->ot_period;
@@ -569,6 +581,7 @@ class AttendanceCardController extends Controller
                                                                     if ($shiftdayHas->timetable->duration_count_one_shift <= $hour) {
                                                                         $timetable['per_day'] += floor($hour / ($shiftdayHas->timetable->duration_count_one_shift));
                                                                         $timetable['overtime'] = $hour % ($shiftdayHas->timetable->duration_count_one_shift);
+                                                                        Log::info('overtime onve='. $hour % ($shiftdayHas->timetable->duration_count_one_shift));
                                                                     }
                                                                     // Log::info("overtime= {$timetable['overtime']}");
                                                                     // if ($timetable['per_day'] >= 1) {
@@ -577,24 +590,28 @@ class AttendanceCardController extends Controller
                                                                     $timetable['total_overtime_pay_per_day'] = ((($timetable['overtime'] ?? 0) * 60) / $ot_period) * $ot_pay;
                                                                 }
                                                                 // Log::info("overtime sebelum {$timetable['overtime']} minute {$minute}");
-                                                                if ($minute >= $shiftdayHas->timetable->ot_roundhalf_hr && $minute < $shiftdayHas->timetable->ot_roundone_hr) {
-                                                                    $timetable['overtime'] += 0.5;
-                                                                } else if ($minute >= $shiftdayHas->timetable->ot_roundone_hr) {
-                                                                    $timetable['overtime']++;
-                                                                }
+                                                                
                                                                 // Log::info("overtime setelah {$timetable['overtime']}");
 
                                                             }
 
 
-                                                            $temp_timetable_check_out = Carbon::createFromTimeString($shiftdayHas->timetable->check_out);
-                                                            $timetable_check_in_out_dif = $shift_bagian_check_in->diff($temp_timetable_check_out);
-                                                            $half_cal = ($timetable_check_in_out_dif->format('%h') / 2) + ($timetable['break_time_total'] / 60);
-                                                            if ($half_cal  > $diff_time_punch->format('%h')) {
-                                                                $timetable['is_half_day'] = true;
-                                                                $timetable['per_day'] += 0.5;
+                                                            $is_half_day = false;
+                                                            if ($break_time_first) {
+                                                                $break_time_start = Carbon::parse($date . $break_time_first->break_time->start_time)->subMinutes($shiftdayHas->timetable->check_out_plusmn);
+                                                                $break_time_end = Carbon::parse($date . $break_time_first->break_time->end_time);
+                                                                $is_half_day = $punch_check_out->between($break_time_start, $break_time_end);
+                                                                $is_lest_punch = $punch_check_out->lt($break_time_start);
+                                                            }
+                                                            if (!$is_lest_punch) {
+                                                                if ($is_half_day) {
+                                                                    $timetable['is_half_day'] = true;
+                                                                    $timetable['per_day'] += 0.5;
+                                                                } else {
+                                                                    $timetable['per_day'] += 1;
+                                                                }
                                                             } else {
-                                                                $timetable['per_day'] += 1;
+                                                                $timetable['is_lest_punch'] = true;
                                                             }
                                                         }
                                                     }
@@ -610,6 +627,8 @@ class AttendanceCardController extends Controller
                                 $report_by_date[] =  [
                                     "date" => $date,
                                     "is_holiday" => $is_holiday,
+                                    "is_lest_punch" => $is_lest_punch,
+                                    "is_diff_day" => $is_diff_day,
                                     "first_punch" => $atten_first['punch_time'],
                                     "last_punch" => (count($attens_groupings[$date]) != 1) ? $atten_last['punch_time'] : null,
                                     "total_time" => $diff_time_punch->format('%H:%I'),
@@ -619,6 +638,8 @@ class AttendanceCardController extends Controller
                                 $report_by_date[] =  [
                                     "date" => $date,
                                     "is_holiday" => $is_holiday,
+                                    "is_lest_punch" => false,
+                                    "is_diff_day" => false,
                                     "first_punch" => null,
                                     "last_punch" => null,
                                     "total_time" => null,
