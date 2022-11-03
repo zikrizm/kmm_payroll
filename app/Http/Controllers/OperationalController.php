@@ -218,21 +218,27 @@ class OperationalController extends Controller
         }
 
         try {
+            $date = Carbon::parse($request->date);
             $departments = collect($this->apiService->get_departments([]));
-            $operational = Operational::where('id', $operational)->with('operational_has_timetables')->first();
+            $operational = Operational::where('id', $operational)->with('operational_has_timetables.timetable')->first();
             $dept_bios = $this->apiService->get_departments(["page_size" => 999]);
-
-            // $sub_departments = [];
-            // foreach ($departments['data'] as $e) {
-            //     if (!empty($e['parent_dept']) && $e['parent_dept']['id'] == $operational->dept_id)
-            //         $sub_departments[] = $e;
-            // }
-            // $departments['data'] = collect($departments['data'])->filter(function ($e) {
-            //     return empty($e['parent_dept']);
-            // });
-
-            $render = view('Task.operational.edit', compact('operational', 'dept_bios'))->render();
-            return $this->buildRes->RESPONSE_REQ('success', $render, null);
+            if (!empty($operational)) {
+                $timetables = [];
+                foreach ($operational->operational_has_timetables as $key => $value) {
+                    $timetable = $value->timetable->toArray();
+                    $timetable['status'] =  $value->status;
+                    $timetable['ot_limit'] =  $value->ot_limit;
+                    $timetables[] = $timetable;
+                }
+                $timetable_card = [
+                    'date' => $date,
+                    'timetables' => $timetables,
+                ];
+                $render = view('Task.operational.edit', compact('operational', 'dept_bios', 'timetable_card'))->render();
+                return $this->buildRes->RESPONSE_REQ('success', $render, null);
+            } else {
+                return $this->buildRes->RESPONSE_REQ('error', null, ['error' => ["Jadwal untuk tanggal {$date->format('d-m-Y')} tidak tersedia"]]);
+            }
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
 
@@ -253,47 +259,44 @@ class OperationalController extends Controller
             abort(403, 'Unauthorized action.');
         }
         try {
-            $validator = Validator::make($request->all(), $this->rules());
+            $validator = Validator::make($request->all(), $this->rules($operational));
 
             if ($validator->fails()) {
                 return $this->buildRes->RESPONSE_REQ('error', null, $validator->errors());
             } else {
-                $request_data = $request->only(['date', 'department', 'group']);
-                $department = $this->apiService->read_department($request_data['department']);
-                $start_date = trim(explode(' - ', $request_data['date'])[0]);
-                $end_date = trim(explode(' - ', $request_data['date'])[1]);
+                $request_data = $request->only(['date', 'shift']);
+                $date = Carbon::parse($request_data['date']);
+                $business_id = Session::get('business_id');
+                if (empty($operational)) {
+                    // ** create operational
+                    $operational_data = [
+                        'business_id' => $business_id,
+                        'date' => $date,
+                        'dept_id' => $request_data['department'],
+                        'day_name' => Carbon::create($date)->locale('id_ID')->dayName,
+                        'updated_user' => auth()->user()->id,
+                    ];
+                    $operational->update($operational_data);
 
-                $operational_data = [
-                    'dept_id' => $department['id'],
-                    'dept_code' => $department['dept_code'],
-                    'dept_name' => $department['dept_name'],
-                    'start_date' => $start_date,
-                    'end_date' => $end_date,
-                    'updated_user' => auth()->user()->id,
-                ];
-                $operational->update($operational_data);
 
-                OperationalHasDept::where('operational_id', $operational->id)->each(function ($item) {
-                    $item->delete();
-                });
+                    OperationalHasTimetable::where('operational_id', $operational->id)->each(function ($item) {
+                        $item->delete();
+                    });
+                    foreach ($request_data['shift']['timetables'] as $key => $value) {
+                        // ** create operational has timetable
+                        $operational_has_timetable = new OperationalHasTimetable([
+                            'operational_id' => $operational->id,
+                            'timetable_id' => $value['timetable_id'],
+                            'ot_limit' => $value['ot_limit'],
+                            'status' => (!empty($value['status']) && $value['status'] == -1) ? 'active' : 'inactive',
+                        ]);
+                        $operational_has_timetable->save();
+                    }
 
-                foreach ($request_data['group'] as $item) {
-                    $start_date = trim(explode(' - ', $item['date'])[0]);
-                    $end_date = trim(explode(' - ', $item['date'])[1]);
-                    $status = (empty($item['status'])) ? 'inactive' : 'active';
-                    $operational_has_employee = new OperationalHasDept([
-                        'operational_id' => $operational->id,
-                        'dept_id' => $item['dept_id'],
-                        'dept_code' => $item['dept_code'],
-                        'dept_name' => $item['dept_name'],
-                        'start_date' => $start_date,
-                        'end_date' => $end_date,
-                        'status' => $status,
-                        'note' => $item['note'],
-                    ]);
-                    $operational_has_employee->save();
+                    return $this->buildRes->RESPONSE_REQ('success', null,  ['success' => ['Update operational succesfully']]);
+                } else {
+                    return $this->buildRes->RESPONSE_REQ('error', null, ['error' => ["Jadwal untuk tanggal {$date->format('d-m-Y')} tidak tersedia"]]);
                 }
-                return $this->buildRes->RESPONSE_REQ('success', null, ['success' => ['Update operational succesfully']]);
             }
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
@@ -370,7 +373,6 @@ class OperationalController extends Controller
                     }
                     $timetable_card = [
                         'date' => $date,
-                        'dayname' => Carbon::create($date)->locale('id_ID')->dayName,
                         'timetables' => $timetables
                     ];
                     $render = view('Task.operational.cards.deparment_card', compact('timetable_card'))->render();
@@ -384,7 +386,7 @@ class OperationalController extends Controller
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
 
-            return $this->buildRes->RESPONSE_REQ('error', null, ['error' => 'something wrong']);
+            return $this->buildRes->RESPONSE_REQ('error', null, ['error' => ['something wrong']]);
         }
     }
 
@@ -393,11 +395,11 @@ class OperationalController extends Controller
      *
      * @return array
      */
-    public function rules()
+    public function rules($operational)
     {
         return [
             'date' => 'required',
-            'department' => 'required',
+            'department' => (empty($operational))? 'required': 'sometimes',
             'shift' => 'required',
         ];
     }

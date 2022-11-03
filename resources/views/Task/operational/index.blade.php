@@ -139,12 +139,19 @@
             }
 
             $('.select2-department').select2();
-            if(id) $('.select2-department').select2().attr("disabled", true);
+            if(id) {
+                $('.select2-department').select2().attr("disabled", true)
+                $('input[name="select_all_timetable"]').on('change', function(e) {
+                    $('.timetable_status').prop('checked', $(this).is(':checked'));
+                })
+            };
+            
             $('.select2-department').on('select2:select', async function (e) {
                 var date = moment($('.operational_date').val()).format('YYYY-MM-DD');
                 let _response = await (new NetworkUtils()).emitter('GET', '/get-operational-timetable-card', {dept_id: this.value, date}, {})
                 if (_response.response < 200 || _response.response >= 300) {
                     // * SHOW NOTIFICATION ----->
+                    console.log(_response);
                     if ($('#note-warning-content').is(':hidden')) {
                         if (!$('#note-content').is(':hidden')) $('#note-content').toggle('hidden');
                         if (!$('#timetable-content').is(':hidden')) $('#timetable-content').toggle('hidden');
@@ -153,14 +160,15 @@
                     $('#text-error-operation').text(_response.msg.error[0])
                 } else {
                     $('#timetable-content').html(_response.data);
+                    var anElement = new AutoNumeric.multiple('.number',{decimalPlaces:0,minimumValue: 0,decimalCharacter: ',', digitGroupSeparator : ""});
                     if ($('#timetable-content').is(':hidden')) {
                         if (!$('#note-warning-content').is(':hidden')) $('#note-warning-content').toggle('hidden');
                         else $('#note-content').toggle('hidden');
                         $('#timetable-content').toggle('hidden');
                     }
 
-                    let counter_day = 0;
-                    let timetableDayContentChildLen = $('#timetable-day-content').children().length;
+                    // let counter_day = 0;
+                    // let timetableDayContentChildLen = $('#timetable-day-content').children().length;
                     $('input[name="select_all_timetable"]').on('change', function(e) {
                         $('.timetable_status').prop('checked', $(this).is(':checked'));
                     })

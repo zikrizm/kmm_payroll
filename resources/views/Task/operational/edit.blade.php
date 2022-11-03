@@ -42,7 +42,7 @@
                 </section>
                 <section class="flex flex-col gap-1 flex-2">
                     <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Bagian*</label>
-                    <select class="select2-department" name="department" readonly="readonly">
+                    <select class="select2-department" name="department">
                         <option value="" disabled selected>Silahkan Pilih</option>
                         @foreach ($dept_bios['data'] as $item)
                         <option value="{{ $item['id'] }}" @selected($item['id']==$operational->dept_id)>
@@ -52,8 +52,7 @@
                     <label class="font-normal text-xs text-red-500 xs/max:text-xs department hint-text"></label>
                 </section>
                 <div id="timetable-content">
-                    @include('Task.operational.cards.deparment_card', ['departments' => $sub_departments,
-                    'operational' => $operational])
+                    @include('Task.operational.cards.deparment_card', ['timetable_card' => $timetable_card])
                 </div>
             </main>
             <hr>
