@@ -53,7 +53,7 @@
                                             <p class="text-gray-700 text-sm">{{ $item_timetable['name'] }}
                                             </p>
                                             <dd class="text-gray-400 text-[10px]">
-                                                {{ date('H:i', strtotime($item_timetable['check_out'])) }} -
+                                                {{ date('H:i', strtotime($item_timetable['check_in'])) }} -
                                                 {{ date('H:i', strtotime($item_timetable['check_out'])) }}
                                             </dd>
                                         </div>

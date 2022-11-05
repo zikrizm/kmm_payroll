@@ -42,15 +42,15 @@
                                     @endif
                                     <div
                                         class="tooltip-custom-text border p-1.5 {{ !empty($item_timetable->ot_limit) ? 'top-[-50px]': 'top-[-55px]'}} rounded bg-white after:!border-t-gray-300 flex flex-col items-center">
-                                        <p class="text-xs text-gray-700">{{ $item_timetable->timetable->name }}</p>
+                                        <p class="text-xs text-gray-700 {{ $item_timetable->status != 'active' ? 'line-through decoration-gray-500':'' }}">{{ $item_timetable->timetable->name }}</p>
                                         <div class="flex w-full items-center gap-1.5 text-gray-400 justify-start">
                                             <x-icon icon="clock" width=12 height=12 viewBox="20 20" />
                                             <div class="flex items-center gap-1 text-gray-400 text-[10px] mt-0.5">
-                                                <p class="truncate {{ $item_timetable->status != 'active' ? 'line-through':'' }}">
+                                                <p class="truncate">
                                                     {{ date('H:i', strtotime($item_timetable->timetable->check_in)); }}
                                                 </p>
                                                 -
-                                                <p class="truncate {{ $item_timetable->status != 'active' ? 'line-through':'' }}">
+                                                <p class="truncate">
                                                     {{ date('H:i', strtotime($item_timetable->timetable->check_out)); }}
                                                 </p>
                                                 @if (!empty($item_timetable->ot_limit))
