@@ -51,7 +51,7 @@
                     <label class="font-normal text-xs text-red-500 xs/max:text-xs department hint-text"></label>
                 </section>
                 <div id="timetable-content">
-                    @include('Task.operational.cards.deparment_card', ['timetable_card' => $timetable_card])
+                    @include('Task.operational.cards.deparment_card', ['timetable_cards' => $timetable_cards])
                 </div>
             </main>
             <hr>

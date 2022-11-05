@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
 
-class AttendanceReportController extends Controller
+class AttendanceCardController extends Controller
 {
     private $apiService;
     private $buildRes;

@@ -353,7 +353,7 @@
                                     @activemenu('request-help') bg-gray-100 active @else hover:bg-gray-50 @endactivemenu">
                             <div class="flex items-center gap-2.5">
                                 <div class="w-5"></div>
-                                <p class="text-sm font-medium text-gray-600">Tenaga tambahan</p>
+                                <p class="text-sm font-medium text-gray-600">Karyawan LTH</p>
                             </div>
                         </a>
                         @endcan
@@ -403,6 +403,16 @@
                             <div class="flex items-center gap-2.5">
                                 <div class="w-5"></div>
                                 <p class="text-sm font-medium text-gray-600">Kartu absensi</p>
+                            </div>
+                        </a>
+                        @endcan
+                        @can('attendance-card.view')
+                        <a href="{{ route('attendance-card.index') }}"
+                            class="flex items-center justify-between p-2.5 rounded-lg w-full hover:underline hover:decoration-gray-500 
+                                    @activemenu('attendance-card') bg-gray-100 active @else hover:bg-gray-50 @endactivemenu">
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-5"></div>
+                                <p class="text-sm font-medium text-gray-600">Kartu absensi operasional</p>
                             </div>
                         </a>
                         @endcan

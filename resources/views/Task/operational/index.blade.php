@@ -44,15 +44,15 @@
             onInit({ 
                 q: $('.search-data-input').val(),
                 date: { 
-                    start_date:convertLocalTimezone(moment().subtract(8-daynow, 'days'),'YYYY-MM-DD'), 
-                    end_date: convertLocalTimezone(moment().add(6-daynow,'days'),'YYYY-MM-DD')
+                    start_date:convertLocalTimezone(moment().subtract(6, 'days'),'YYYY-MM-DD'), 
+                    end_date: convertLocalTimezone(moment(),'YYYY-MM-DD')
                 }
             });
 
             $('input[name="header-date"]').daterangepicker({
                 locale: { format: 'YYYY-MM-DD' },
-                startDate: moment().subtract(8-daynow, 'days'),
-                endDate: moment().add(moment().weekday(),'days'),
+                startDate: moment().subtract(6, 'days'),
+                endDate: moment(),
                 ranges: {
                     'Today': [moment(), moment()],
                     'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
@@ -167,6 +167,7 @@
                 }
                 
                 let _response = await (new NetworkUtils()).emitter('GET', '/get-operational-timetable-card', {dept_id: this.value, date}, {})
+                hideAllHintText();
                 if (_response.response < 200 || _response.response >= 300) {
                     // * SHOW NOTIFICATION ----->
                     console.log(_response);

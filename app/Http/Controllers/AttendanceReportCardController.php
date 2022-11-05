@@ -19,7 +19,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
 
-class AttendanceCardController extends Controller
+class AttendanceReportCardController extends Controller
 {
     private $apiService;
     private $buildRes;
@@ -701,7 +701,6 @@ class AttendanceCardController extends Controller
                     ];
                 }
 
-                // Log::info(response()->json($attendance_reports));
                 $order = null;
                 $render =  view('Report.attendance_card.table', compact('attendance_reports', 'order'))->render();
 

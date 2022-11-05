@@ -1,4 +1,4 @@
-<main class='border border-gray-200 rounded-lg shadow-sm overflow-hidden'>
+<main class='border border-gray-200 rounded-lg shadow-sm '>
     <div class="w-full overflow-auto overflow-y-hidden">
         <div class="flex ">
             @foreach ($th_dates as $item)
