@@ -20,4 +20,8 @@ class OperationalHasTimetable extends Model
     {
         return $this->belongsTo(Timetable::class, 'timetable_id');
     }
+    public function operational()
+    {
+        return $this->belongsTo(Operational::class, 'operational_id');
+    }
 }

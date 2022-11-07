@@ -12,6 +12,7 @@ use Illuminate\Support\Carbon;
 use App\Services\Api\ApiServices;
 use Illuminate\Support\Facades\Log;
 use App\Models\OperationalHasTimetable;
+use App\Models\RequestTask;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
 
@@ -48,9 +49,14 @@ class OperationalController extends Controller
                 $end_date = Carbon::parse($request['date']['end_date']);
                 $dates = $this->util->generateDateRange($start_date, $end_date);
                 $dept_bios = $this->apiService->get_departments(['page_size' => 999])['data'];
+                $position_bios = $this->apiService->get_positions(['page_size' => 999])['data'];
                 $holidays = Holiday::whereBetween('start_date', [$start_date, $end_date])->orWhereBetween('start_date', [$start_date, $end_date])->get();
                 $operationals = Operational::where('business_id', $business_id)->whereBetween('date', [$start_date, $end_date])
                     ->with('shift', 'operational_has_timetables.timetable')->get()->groupBy(function ($item) {
+                        return Carbon::parse($item->date)->format('Y-m-d');
+                    });
+                $request_tasks = RequestTask::where('business_id', $business_id)->whereBetween('start_date', [$start_date, $end_date])->orWhereBetween('end_date', [$start_date, $end_date])
+                    ->with('request_task_has_emps')->get()->groupBy(function ($item) {
                         return Carbon::parse($item->date)->format('Y-m-d');
                     });
 
@@ -81,33 +87,22 @@ class OperationalController extends Controller
                     return $element;
                 });
 
-                Log::info($operationals);
-
-
-                // foreach ($variable as $key => $value) {
-                //     # code...
-                // }
-
-                // if ($request->has('q') && !empty($request->input('q'))) {
-                //     $search = $request->q;
-                //     $operationals = $operationals->where('dept_name', 'LIKE', "%" . $search . "%")
-                //         ->orWhere('dept_id', 'LIKE', "%" . $search . "%")
-                //         ->orWhere('dept_code', 'LIKE', "%" . $search . "%");
-                // }
-
-                // if ($request->has('date') && !empty($request->input('date'))) {
-                //     $operationals = $operationals->whereBetween('start_date', [$request['date']['start_date'], $request['date']['end_date']])
-                //         ->orWhereBetween('end_date', [$request['date']['start_date'], $request['date']['end_date']]);
-                // }
+                $request_tasks = $request_tasks->map(function ($element) use ($position_bios) {
+                    $element = $element->map(function ($e_op) use ($position_bios, $element) {
+                        $e_op->request_task_has_emps = $e_op->request_task_has_emps->map(function ($task_emp) {
+                            $employee_bios = $this->apiService->get_employees(['emp_code' => $task_emp->emp_code])['data'][0];
+                            if (!empty($employee_bios)) $task_emp['employee'] = (object)$employee_bios;
+                            return $task_emp;
+                        });
+                        $is_same = array_search($e_op['position_id'], array_column($position_bios, 'id'));
+                        if ($is_same != '') $e_op['position'] = (object)$position_bios[$is_same];
+                        return $e_op;
+                    });
+                    return $element;
+                });
 
                 $order = null;
-                // if ($request->has('sort')) {
-                //     $sort = $request->sort;
-                //     $order = $sort['order'];
-                //     $operationals->orderBy($sort['name'], $sort['order']);
-                // }
-                // $operationals = $operationals->with('operational_has_depts')->paginate(10);
-                $render =  view('Task.operational.table', compact('dates', 'th_dates', 'operationals', 'order'))->render();
+                $render =  view('Task.operational.table', compact('dates', 'th_dates', 'operationals', 'request_tasks', 'order'))->render();
 
                 return $this->buildRes->RESPONSE_REQ('success', $render, null);
             }
@@ -222,74 +217,6 @@ class OperationalController extends Controller
                         return $this->buildRes->RESPONSE_REQ('error', null, ['error' => ["Jadwal untuk tanggal {$date->format('d-m-Y')} sudah tersedia"]]);
                     }
                 }
-                // if (count($rangedate) > 1) {
-                //     $start_date = Carbon::parse(trim($rangedate[0]));
-                //     $end_date = Carbon::parse(trim($rangedate[1]));
-                //     $operational = Operational::where('dept_id', $request->dept_id)->whereBetween('date', [$start_date, $end_date])->first();
-                //     $dates = $this->util->generateDateRange($start_date, $end_date);
-
-                //     if (empty($operational) && !empty($request_data['shift'])) {
-                //         foreach ($request_data['shift'] as $key => $shift) {
-                //             $date = Carbon::parse($dates[$key]);
-                //             $operational = new Operational([
-                //                 'business_id' => $business_id,
-                //                 'date' => $date,
-                //                 'dept_id' => $request_data['department'],
-                //                 'parent_dept_id' => $parent_dept_id,
-                //                 'day_name' => Carbon::create($date)->locale('id_ID')->dayName,
-                //                 'created_user' => auth()->user()->id,
-                //                 'updated_user' => auth()->user()->id,
-                //             ]);
-                //             $operational->save();
-
-                //             foreach ($shift['timetables'] as $key => $value) {
-                //                 // ** create operational has timetable
-                //                 $operational_has_timetable = new OperationalHasTimetable([
-                //                     'operational_id' => $operational->id,
-                //                     'timetable_id' => $value['timetable_id'],
-                //                     'ot_limit' => (!empty($value['status']) && $value['status'] == -1) ? $value['ot_limit'] : 0,
-                //                     'status' => (!empty($value['status']) && $value['status'] == -1) ? 'active' : 'inactive',
-                //                 ]);
-                //                 $operational_has_timetable->save();
-                //             }
-
-                //             return $this->buildRes->RESPONSE_REQ('success', null,  ['success' => ['Add operational succesfully']]);
-                //         }
-                //     } else {
-                //         return $this->buildRes->RESPONSE_REQ('error', null, ['error' => ["Salah satu atau beberapa Jadwal dalam range {$start_date->format('d-m-Y')} - {$end_date->format('d-m-Y')} udah tersedia"]]);
-                //     }
-                // } else {
-                //     $date = Carbon::parse($request_data['date']);
-                //     $operational = Operational::where('dept_id', $request_data['department'])->where('date', $date)->first();
-                //     if (empty($operational)) {
-                //         // ** create operational
-                //         $operational = new Operational([
-                //             'business_id' => $business_id,
-                //             'date' => $date,
-                //             'dept_id' => $request_data['department'],
-                //             'parent_dept_id' => $parent_dept_id,
-                //             'day_name' => Carbon::create($date)->locale('id_ID')->dayName,
-                //             'created_user' => auth()->user()->id,
-                //             'updated_user' => auth()->user()->id,
-                //         ]);
-                //         $operational->save();
-
-                //         foreach ($request_data['shift']['timetables'] as $key => $value) {
-                //             // ** create operational has timetable
-                //             $operational_has_timetable = new OperationalHasTimetable([
-                //                 'operational_id' => $operational->id,
-                //                 'timetable_id' => $value['timetable_id'],
-                //                 'ot_limit' => (!empty($value['status']) && $value['status'] == -1) ? $value['ot_limit'] : 0,
-                //                 'status' => (!empty($value['status']) && $value['status'] == -1) ? 'active' : 'inactive',
-                //             ]);
-                //             $operational_has_timetable->save();
-                //         }
-
-                //         return $this->buildRes->RESPONSE_REQ('success', null,  ['success' => ['Add operational succesfully']]);
-                //     } else {
-                //         return $this->buildRes->RESPONSE_REQ('error', null, ['error' => ["Jadwal untuk tanggal {$date->format('d-m-Y')} sudah tersedia"]]);
-                //     }
-                // }
             }
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());

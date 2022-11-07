@@ -24,10 +24,45 @@
             <div class="w-full flex">
                 @foreach ($dates as $item)
                 <div class="flex-1 flex flex-col border-r last:border-0 py-1 min-w-[150px]">
+                    @forelse(($request_tasks[$item] ?? []) as $key => $item_task)
+                    <div class="group px-2 py-1 h-[60px]">
+                        <div class="h-full border rounded flex justify-between flex-col p-2 relative hover:bg-gray-50 ">
+                            <p class="text-gray-700 font-medium text-xs">Tugas - {{ (!empty($item_task['position']))?
+                                $item_task->position->position_name??'' : '-' }}</p>
+                            <div class="flex justify-center items-center relative h-4"
+                                style="width: {{ count($item_task->request_task_has_emps) * 14 }}px;">
+                                @foreach ($item_task->request_task_has_emps as $key => $emp)
+                                <div class='rounded-full border-white bg-white border-[1.5px] h-4 w-4 absolute overflow-hidden'
+                                    style='z-index: {{ $key + 1 }}; left: {{ 10 * $key }}px'>
+                                    @if (!empty($emp->employee->photo))
+                                    <img src="@zkPhoto({{ $emp->employee->photo }})" alt="" class="w-full h-full object-cover">
+                                    @else
+                                    <img src="@zkPhoto(files/nophoto.gif)" alt=""
+                                        class="w-full h-full object-cover">
+                                    @endif
+                                </div>
+                                @endforeach
+                            </div>
+                            <div
+                                class="absolute hidden group-hover:flex flex-col items-center justify-center gap-0.5 top-0.5 right-0.5">
+                                <button type="button" onclick="get_modal_task('{{ $item_task->id }}', {date: '{{ $item }}'})"
+                                    class="bg-white text-violet-500 border rounded border-violet-100 p-1 hover:bg-violet-100">
+                                    <x-icon icon="edit" width=12 height=12 viewBox="20 20" />
+                                </button>
+                                <button type="button" onclick="open_modal_confirm(this,'{{ $item_task->id }}')"
+                                    class="bg-white text-red-500 border rounded border-red-100 p-1 hover:bg-red-100">
+                                    <x-icon icon="trash-2" width=12 height=12 viewBox="20 20" />
+                                </button>
+                            </div>
+                        </div>
+
+                    </div>
+                    @empty
+                    @endforelse
                     @forelse(($operationals[$item] ?? []) as $key => $item_op)
                     <div class="group px-2 py-1 h-[60px]">
                         <div class="h-full border rounded flex justify-between flex-col p-2 relative hover:bg-gray-50 ">
-                            <p class="text-gray-700 font-medium text-sm">{{ $item_op->department->dept_name }}</p>
+                            <p class="text-gray-700 font-medium text-xs">{{ $item_op->department->dept_name }}</p>
                             <div class="flex items-center gap-0.5">
                                 @foreach ($item_op->operational_has_timetables as $item_timetable)
                                 <div
@@ -42,7 +77,9 @@
                                     @endif
                                     <div
                                         class="tooltip-custom-text border p-1.5 {{ !empty($item_timetable->ot_limit) ? 'top-[-50px]': 'top-[-55px]'}} rounded bg-white after:!border-t-gray-300 flex flex-col items-center">
-                                        <p class="text-xs text-gray-700 {{ $item_timetable->status != 'active' ? 'line-through decoration-gray-500':'' }}">{{ $item_timetable->timetable->name??'' }}</p>
+                                        <p
+                                            class="text-xs text-gray-700 {{ $item_timetable->status != 'active' ? 'line-through decoration-gray-500':'' }}">
+                                            {{ $item_timetable->timetable->name??'' }}</p>
                                         <div class="flex w-full items-center gap-1.5 text-gray-400 justify-start">
                                             <x-icon icon="clock" width=12 height=12 viewBox="20 20" />
                                             <div class="flex items-center gap-1 text-gray-400 text-[10px] mt-0.5">
@@ -54,8 +91,7 @@
                                                     {{ date('H:i', strtotime($item_timetable->timetable->check_out)); }}
                                                 </p>
                                                 @if (!empty($item_timetable->ot_limit))
-                                                <p
-                                                    class="text-[10px] font-normal flex items-center gap-1 capitalize">
+                                                <p class="text-[10px] font-normal flex items-center gap-1 capitalize">
                                                     + {{ $item_timetable->ot_limit }} (lembur)
                                                 </p>
                                                 @endif
@@ -80,6 +116,7 @@
                     </div>
                     @empty
                     @endforelse
+                    
                 </div>
                 @endforeach
             </div>

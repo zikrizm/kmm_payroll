@@ -48,6 +48,19 @@
                     </select>
                     <label class="font-normal text-xs text-red-500 xs/max:text-xs department hint-text"></label>
                 </section>
+                {{-- <section>
+                    <div class="flex items-start gap-2.5">
+                        <span class="pt-0.5">
+                            {!! FormCustom::checkbox('is_without_break', true) !!}
+                        </span>
+                        <div class="flex flex-col gap-px">
+                            <p class="font-medium text-sm text-gray-700">Tambah penugasan</p>
+                            <p class="font-normal text-sm text-gray-500">
+                                Karyawan di perbolehkan untuk tidak istirahat
+                            </p>
+                        </div>
+                    </div>
+                </section> --}}
                 <div id="timetable-content" class="hidden"></div>
                 <div id="note-content" class="">
                     <div class="flex justify-center w-full">

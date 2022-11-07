@@ -59,6 +59,7 @@
             });
 
             onInit({
+                q: $(".search-data-input").val(),
                 date: { 
                     start_time: convertLocalTimezone( moment().subtract(6, 'days'), 'YYYY-MM-DD HH:mm:ss'), 
                     end_time: convertLocalTimezone(moment(), 'YYYY-MM-DD HH:mm:ss')
@@ -88,6 +89,7 @@
 
                 delete dataParams.page;
                 onInit({ 
+                    q: $(".search-data-input").val(),
                     date: { 
                         start_time: convertLocalTimezone(start, dateFormat), 
                         end_time: convertLocalTimezone(end, dateFormat)

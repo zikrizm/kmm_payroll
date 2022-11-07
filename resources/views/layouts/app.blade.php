@@ -61,19 +61,7 @@
 </head>
 
 <body class="overflow-hidden">
-    @php
-    if(isset($_COOKIE['side_menu_is_mini']))
-    $is_mini = $_COOKIE['side_menu_is_mini'] == 'true';
-    else
-    $is_mini = false;
 
-    @endphp
-    <div id="switch-size-menu"
-        class="cursor-pointer w-max absolute top-[20px] {{ $is_mini ? 'left-[70px]' : 'left-[248px]' }}  rounded-full p-0.5 text-gray-500 border shadow backdrop-blur-[3px] ">
-        <x-icon icon="chevron-left"
-            class="chevron-left-switch-size-menu duration-500 {{ $is_mini ? 'rotate-180' : '' }}" width=16 height=16
-            viewBox="20 20" />
-    </div>
     <div id="dropdown-menu"
         class="hidden absolute border border-gray-200 backdrop-blur-[3px] rounded-xl shadow-sm p-1.5 bg-transparent z-[999]">
     </div>
@@ -89,6 +77,19 @@
     <div class="w-full h-screen flex overflow-hidden">
         @if (request()->segment(2) != 'register' && request()->segment(1) != 'employee-photo')
         @if (Auth::user())
+        @php
+        if(isset($_COOKIE['side_menu_is_mini']))
+        $is_mini = $_COOKIE['side_menu_is_mini'] == 'true';
+        else
+        $is_mini = false;
+
+        @endphp
+        <div id="switch-size-menu"
+            class="cursor-pointer w-max absolute top-[20px] {{ $is_mini ? 'left-[70px]' : 'left-[248px]' }}  rounded-full p-0.5 text-gray-500 border shadow backdrop-blur-[3px] ">
+            <x-icon icon="chevron-left"
+                class="chevron-left-switch-size-menu duration-500 {{ $is_mini ? 'rotate-180' : '' }}" width=16 height=16
+                viewBox="20 20" />
+        </div>
         <aside id="aside-navigation"
             class="{{ $is_mini ? 'w-[82px]' : 'is-full-size w-[260px]' }} h-full bg-white border-r border-gray-200 flex flex-col justify-between gap-4 px-3 overflow-auto no-scrollbar">
             <div class="flex-1">
@@ -631,6 +632,28 @@ hover:bg-gray-50
                         <img src="@zkPhoto(files / nophoto . gif)" alt="" class="w-full h-full object-cover">
                         @endif
                     </div>
+                    {{-- <div class="flex flex-col justify-center text-sm">
+                        <p class="text-gray-900 font-medium text-sm truncate w-28">
+                            {{ Auth::user()->username }}</p>
+                        <p class="text-gray-500 runcate w-28 text-sm">{{ Auth::user()->email }}</p>
+                    </div> --}}
+                </div>
+                {{-- <form action="{{ route('logout') }}">
+                    {{ csrf_field() }}
+                    <button class="text-gray-500 mt-2.5 cursor-pointer">
+                        <x-icon icon="log-out" width=16 height=16 viewBox="20 20" />
+                    </button>
+                </form> --}}
+            </footer>
+            {{-- <footer class="flex items-center justify-between pb-8 w-full">
+                <div class="flex items-center gap-2 ">
+                    <div class="w-10 h-10 rounded-full bg-gray-100 overflow-hidden">
+                        @if (!empty(Auth::user()->photo))
+                        <img src="{{ Auth::user()->photo }}" alt="" class="w-full h-full object-cover">
+                        @else
+                        <img src="@zkPhoto(files / nophoto . gif)" alt="" class="w-full h-full object-cover">
+                        @endif
+                    </div>
                     <div class="flex flex-col justify-center text-sm">
                         <p class="text-gray-900 font-medium text-sm truncate w-28">
                             {{ Auth::user()->username }}</p>
@@ -643,7 +666,7 @@ hover:bg-gray-50
                         <x-icon icon="log-out" width=16 height=16 viewBox="20 20" />
                     </button>
                 </form>
-            </footer>
+            </footer> --}}
         </aside>
         @endif
         @endif

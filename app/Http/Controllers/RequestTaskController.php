@@ -2,14 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Position;
+use App\Models\Operational;
+use App\Models\RequestTask;
 use App\Utils\ResponseUtil;
 use Illuminate\Http\Request;
-use App\Services\Api\ApiServices;
-use App\Models\Operational;
-use App\Models\Position;
-use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Carbon;
 use App\Models\RequestTaskHasEmp;
-use App\Models\RequestTask;
+use App\Services\Api\ApiServices;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
 
@@ -125,31 +126,102 @@ class RequestTaskController extends Controller
                 return $this->buildRes->RESPONSE_REQ('error', null, $validator->errors());
             } else {
                 $request_data = $request->only(['date', 'emps', 'position']);
-                $start_date = trim(explode(' - ', $request_data['date'])[0]);
-                $end_date = trim(explode(' - ', $request_data['date'])[1]);
+                $rangedate = explode(' - ', $request['date']);
                 $business_id = Session::get('business_id');
-
-                $request_task = new RequestTask([
-                    'business_id' => $business_id,
-                    'position_id' => $request_data['position'],
-                    'start_date' => $start_date,
-                    'end_date' => $end_date,
-                    'created_user' => auth()->user()->id,
-                    'updated_user' => auth()->user()->id,
-                ]);
-                $request_task->save();
-
-                foreach ($request_data['emps'] as $item) {
-                    $employee = $this->apiService->read_employee($item);
-                    $request_task_has_emp = new RequestTaskHasEmp([
-                        'request_task_id' => $request_task->id,
-                        'emp_id' => $employee['id'],
-                        'emp_code' => $employee['emp_code'],
-                        'emp_first_name' => $employee['first_name'],
-                        'emp_last_name' => $employee['last_name'],
-                    ]);
-                    $request_task_has_emp->save();
+                $dates = [];
+                if (count($rangedate) > 1) {
+                    $start_date = Carbon::parse(trim($rangedate[0]));
+                    $end_date = Carbon::parse(trim($rangedate[1]));
+                    $dates = $this->util->generateDateRange($start_date, $end_date);
+                    $request_task = Operational::where('position_id', $request_data['position'])->whereBetween('date', [$start_date, $end_date])->first();
+                } else {
+                    $date = Carbon::parse($request_data['date']);
+                    $dates[] = $date->format('Y-m-d');
+                    $request_task = Operational::where('position_id', $request_data['position'])->where('date', $date)->first();
                 }
+
+
+                if (empty($request_task)) {
+                    if (count($rangedate) > 1) {
+                        foreach ($dates as $key => $date) {
+                            $date = Carbon::parse($dates[$key]);
+                            $request_task = new RequestTask([
+                                'business_id' => $business_id,
+                                'position_id' => $request_data['position'],
+                                'date' => $date,
+                                'created_user' => auth()->user()->id,
+                                'updated_user' => auth()->user()->id,
+                            ]);
+                            $request_task->save();
+
+                            foreach ($request_data['emps'] as $item) {
+                                $employee = $this->apiService->read_employee($item);
+                                $request_task_has_emp = new RequestTaskHasEmp([
+                                    'request_task_id' => $request_task->id,
+                                    'emp_id' => $employee['id'],
+                                    'emp_code' => $employee['emp_code'],
+                                    'emp_first_name' => $employee['first_name'],
+                                    'emp_last_name' => $employee['last_name'],
+                                ]);
+                                $request_task_has_emp->save();
+                            }
+                        }
+                    } else {
+                        $request_task = new RequestTask([
+                            'business_id' => $business_id,
+                            'position_id' => $request_data['position'],
+                            'date' => $date,
+                            'created_user' => auth()->user()->id,
+                            'updated_user' => auth()->user()->id,
+                        ]);
+                        $request_task->save();
+
+                        foreach ($request_data['emps'] as $item) {
+                            $employee = $this->apiService->read_employee($item);
+                            $request_task_has_emp = new RequestTaskHasEmp([
+                                'request_task_id' => $request_task->id,
+                                'emp_id' => $employee['id'],
+                                'emp_code' => $employee['emp_code'],
+                                'emp_first_name' => $employee['first_name'],
+                                'emp_last_name' => $employee['last_name'],
+                            ]);
+                            $request_task_has_emp->save();
+                        }
+                    }
+
+                    return $this->buildRes->RESPONSE_REQ('success', null,  ['success' => ['Add request task succesfully']]);
+                } else {
+                    if (count($rangedate) > 1) {
+                        return $this->buildRes->RESPONSE_REQ('error', null, ['error' => ["Salah satu atau beberapa penugasan dalam range {$start_date->format('d-m-Y')} - {$end_date->format('d-m-Y')} udah tersedia"]]);
+                    } else {
+                        return $this->buildRes->RESPONSE_REQ('error', null, ['error' => ["penugasan untuk tanggal {$date->format('d-m-Y')} sudah tersedia"]]);
+                    }
+                }
+                // $start_date = trim(explode(' - ', $request_data['date'])[0]);
+                // $end_date = trim(explode(' - ', $request_data['date'])[1]);
+                // $business_id = Session::get('business_id');
+
+                // $request_task = new RequestTask([
+                //     'business_id' => $business_id,
+                //     'position_id' => $request_data['position'],
+                //     'start_date' => $start_date,
+                //     'end_date' => $end_date,
+                //     'created_user' => auth()->user()->id,
+                //     'updated_user' => auth()->user()->id,
+                // ]);
+                // $request_task->save();
+
+                // foreach ($request_data['emps'] as $item) {
+                //     $employee = $this->apiService->read_employee($item);
+                //     $request_task_has_emp = new RequestTaskHasEmp([
+                //         'request_task_id' => $request_task->id,
+                //         'emp_id' => $employee['id'],
+                //         'emp_code' => $employee['emp_code'],
+                //         'emp_first_name' => $employee['first_name'],
+                //         'emp_last_name' => $employee['last_name'],
+                //     ]);
+                //     $request_task_has_emp->save();
+                // }
 
                 return $this->buildRes->RESPONSE_REQ('success', null,  ['success' => ['Add request task succesfully']]);
             }
@@ -183,9 +255,9 @@ class RequestTaskController extends Controller
      */
     public function edit(RequestTask $request_task, Request $request)
     {
-        if (!auth()->user()->can('request-task.update') || !$request->ajax()) {
-            abort(403, 'Unauthorized action.');
-        }
+        // if (!auth()->user()->can('request-task.update') || !$request->ajax()) {
+        //     abort(403, 'Unauthorized action.');
+        // }
 
         try {
             $business_id = Session::get('business_id');

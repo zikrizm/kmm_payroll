@@ -31,16 +31,16 @@
                 <section class="flex flex-col gap-1 flex-1">
                     <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Tanggal
                         penugasan*</label>
-                    {!! FormCustom::input('date', date('d-m-Y', strtotime($request_task->start_date)).' - '.
-                    date('d-m-Y', strtotime($request_task->end_date)), [
+                    {!! FormCustom::input('date', date('d-m-Y', strtotime($request_task->date)), [
                     'placeholder' => 'Pilih tanggal penugasan',
                     'class' => 'request-task-date',
                     'readonly' => true,
+                    'block_input' => true,
                     'prefixiconname' => 'calendar',
                     ]) !!}
                 </section>
                 <section class="flex flex-col gap-1">
-                    <select class="select2-position" name="position">
+                    <select class="select2-position" name="position" disabled>
                         <option value="" disabled selected>Silahkan Pilih posisi</option>
                         @foreach ($position ?? [] as $item)
                             <option value="{{ $item['position_id'] }}" @selected($request_task->position_id == $item['position_id'])>{{ $item['position_name'] }}</option>

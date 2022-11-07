@@ -42,7 +42,6 @@ class TimetableController extends Controller
         }
 
         try {
-            Log::info(config('constants.department'));
             if (request()->ajax()) {
                 $business_id = Session::get('business_id');
                 $timetables = Timetable::where('business_id', $business_id)->with(['timetable_has_break_time']);
@@ -277,7 +276,6 @@ class TimetableController extends Controller
                 if(empty($timetable_data['is_without_break'])) {
                     $timetable_data['is_without_break'] = 0;
                 }
-                Log::info($timetable_data);
                 $timetable->update($timetable_data);
 
                 // * Remove all timetable has breaktime.

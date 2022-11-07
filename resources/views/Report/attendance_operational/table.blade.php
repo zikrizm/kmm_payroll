@@ -1,7 +1,7 @@
 <div class="w-full overflow-auto overflow-y-hidden flex-1">
-    <div class="grid gap-5 grid-cols-3 xl/max:grid-cols-2 lg/max:grid-cols-1 w-max items-start">
+    <div class="grid gap-5 grid-cols-1 items-start">
         @foreach ($attendance_reports as $item)
-        <div class="flex flex-col gap-2.5 border rounded p-4 w-[375px]" style="min-width: 375px;">
+        <div class="flex flex-col gap-2.5 border rounded p-4 w-max">
             <header class="relative">
                 <div>
                     <p class="font-bold text-gray-700 text-xl">KARTU ABSEN</p>
@@ -104,10 +104,22 @@
                             <p class="text-xs font-medium text-gray-500 text-center truncate">Shift</p>
                         </th>
                         <th class='text-left border '>
+                            <p class="text-xs font-medium text-gray-500 text-center truncate">Status</p>
+                        </th>
+                        <th class='text-left border '>
                             <p class="text-xs font-medium text-gray-500 text-center truncate">Lembur</p>
                         </th>
                         <th class='text-left border '>
-                            <p class="text-xs font-medium text-gray-500 text-center truncate">Status</p>
+                            <p class="text-xs px-1.5 font-medium text-gray-500 text-center truncate">Gaji</p>
+                        </th>
+                        <th class='text-left border '>
+                            <p class="text-xs px-1.5 font-medium text-gray-500 text-center truncate">Lembur</p>
+                        </th>
+                        <th class='text-left border '>
+                            <p class="text-xs px-1.5 font-medium text-gray-500 text-center truncate">Tbhn+U.Libur</p>
+                        </th>
+                        <th class='text-left border '>
+                            <p class="text-xs px-1.5 font-medium text-gray-500 text-center truncate">Jabatan</p>
                         </th>
                     </tr>
                 </thead>
@@ -118,7 +130,7 @@
                         $isSunday = Carbon\Carbon::parse($item_report['date'])->isSunday();
                         @endphp
                         <td
-                            class="text-xs border text-center w-8 {{ $isSunday || !empty($item_report['holiday']) ? 'text-red-500' : 'text-gray-500' }}">
+                            class="text-xs border text-center w-8 {{ $isSunday || !empty($item_report['holidays_by_date']) ? 'text-red-500' : 'text-gray-500' }}">
                             {{ date('d', strtotime($item_report['date'])) }}
                         </td>
                         <td class='text-xs border text-gray-500 text-center w-14'>
@@ -129,7 +141,7 @@
                             @endif
                         </td>
                         <td class='text-xs border text-gray-500 text-center w-14 
-                            {{ $item_report["is_lessthan_punch"]? ' text-red-500' : '' }}'>
+                            {{ $item_report["is_less_than_time"]? ' text-red-500' : '' }}'>
                             @if (!empty($item_report['last_punch']))
                             <div class="relative">
                                 {{ date('H:i', strtotime($item_report['last_punch'])) }}
@@ -141,40 +153,43 @@
                             -
                             @endif
                         </td>
-                        <td class='text-xs border text-gray-500 text-center'>
-                            <div class="w-full flex justify-center">
-                                @if (!empty($item_report['timetable']))
-                                <div class="w-10 pl-0.5 flex justify-center text-gray-700">
+                        <td class='text-xs border text-gray-500 text-center w-[150px]'>
+                            @if (!empty($item_report['timetable']))
+                            <div class="flex items-center justify-between gap-1">
+                                <div class="flex justify-center flex-1">
+                                    <div class="flex relative w-max">
+                                        <p class="text-[10px]">{{ $item_report['timetable']['name'] ?? '-' }}</p>
+                                        @if (!empty($item_report['timetable']['cross_day']))
+                                        <p class="text-[9px] text-violet-600 mt-[-4px]">+{{
+                                            $item_report['timetable']['cross_day'] ?? '' }}</p>
+                                        @endif
+                                    </div>
+                                </div>
+                                <div class="w-7 pl-0.5 flex justify-center bg-gray-100 text-gray-700">
                                     <p class="text-[9px]">{{ !empty($item_report['timetable']['per_day']) ?
                                         '( '.$item_report['timetable']['per_day'].' )' : '' }}</p>
-                                    @if (!empty($item_report['timetable']['cross_day']))
-                                    <p class="text-[9px] text-violet-600 mt-[-4px]">+{{
-                                        $item_report['timetable']['cross_day'] ?? '' }}</p>
-                                    @endif
                                 </div>
-                                @else
-                                -
-                                @endif
                             </div>
+                            @else
+                            -
+                            @endif
+
                         </td>
-                        <td class='text-xs border text-gray-500 text-center w-14'>
-                            @php
-                            $overtime = ($item_report['timetable']['overtime'] ?? 0) +
-                            ($item_report['timetable']['early_check_in'] ?? 0);
-                            @endphp
-                            {{ !empty($item_report['timetable']['per_day'])? $overtime: '-' }}
-                        </td>
+
                         <td class='text-xs border text-center w-12'>
                             @if (!empty($item_report['timetable']['status']))
                             <div class="flex items-center justify-center gap-1">
                                 @if ($item_report['timetable']['status']['slug'] == 'LB')
                                 <p class="text-gray-500">LB</p>
                                 @endif
+                                @if ($item_report['timetable']['status']['slug'] == 'not-setting')
+                                <p class="text-blue-500">!</p>
+                                @endif
                                 @if ($item_report['timetable']['status']['slug'] == 'not-allowed')
-                                <x-icon icon="x-circle" class="text-red-500" width=12 height=12 viewBox="20 20" />
+                                <x-icon icon="x" class="text-red-500" width=12 height=12 viewBox="20 20" />
                                 @endif
                                 @if ($item_report['timetable']['status']['slug'] == 'check')
-                                <x-icon icon="check-circle" class="text-green-600" width=12 height=12 viewBox="20 20" />
+                                <x-icon icon="check" class="text-green-600" width=12 height=12 viewBox="20 20" />
                                 @endif
                                 @if ($item_report['timetable']['status']['slug'] == 'plusmn')
                                 <p class="text-gray-500">{{ $item_report['timetable']['status']['value'] }}</p>
@@ -184,31 +199,75 @@
                             @endif
 
                         </td>
+                        <td class='text-xs border text-gray-500 text-center w-14'>
+                            @php
+                            $overtime = ($item_report['timetable']['overtime'] ?? 0) +
+                            ($item_report['timetable']['early_check_in'] ?? 0);
+                            @endphp
+                            {{ !empty($item_report['timetable']['per_day'])? $overtime: '-' }}
+                        </td>
+                        <td class='text-[10px] border text-gray-500 text-center'>
+                            <div class="flex justify-end">
+                                <div class="w-max px-1.5">@if ($item_report['timetable']['daily_salary_per_day'])
+                                    @convertnorp($item_report['timetable']['daily_salary_per_day'])
+                                    @else
+                                    -
+                                    @endif
+                                </div>
+                            </div>
+                        </td>
+                        <td class='text-[10px] border text-gray-500 text-center'>
+                            <div class="flex justify-end">
+                                <div class="w-max px-1.5">@if ($item_report['timetable']['total_overtime_pay_per_day'])
+                                    @convertnorp($item_report['timetable']['total_overtime_pay_per_day'])
+                                    @else
+                                    -
+                                    @endif
+                                </div>
+                            </div>
+                        </td>
+                        <td class='text-[10px] border text-gray-500 text-center'>
+                            <div class="flex justify-end">
+                                <div class="w-max px-1.5">@if ($item_report['timetable']['daily_salary_per_day'])
+                                    @convertnorp($item_report['timetable']['daily_salary_per_day'])
+                                    @else
+                                    -
+                                    @endif
+                                </div>
+                            </div>
+                        </td>
                     </tr>
                     @endforeach
                     <tr class='hover:bg-gray-50'>
-                        <td class='text-xs text-center'>
+                        <td class='bg-gray-100 border' colspan="3">
+                            <p class="text-gray-700 text-center text-[10px]">
+                                TOTAL
+                            </p>
                         </td>
-                        <td class='text-xs text-center'>
-                        </td>
-                        <td class='text-xs text-center'>
+                        <td class=''>
+                            <div class="flex justify-end">
+                                <div class="w-7 pl-0.5 flex justify-center bg-gray-100 text-gray-700">
+                                    <p class="text-[9px]">( {{ $item['amount_day'] ?? 0 }} )</p>
+                                </div>
+                            </div>
                         </td>
                         <td class='text-xs text-center'>
                         </td>
                         <td class='text-center'>
-                            <div>
-                                <div class="flex items-center">
-                                    <p class="text-gray-500 flex-1 text-center text-[10px] border">HK</p>
-                                    <p class="text-gray-500 flex-1 text-center text-[10px] border">JL</p>
-                                </div>
-                                <div class="flex items-center">
-                                    <p class="text-gray-500 flex-1 text-center text-[10px]">
-                                        {{ $item['amount_day'] ?? 0 }}
-                                    </p>
-                                    <p class="text-gray-500 flex-1 text-center text-[10px]">
-                                        {{ ($item['amount_of_ot'] ?? 0) + ($item['early_check_in'] ?? 0)}}</p>
-                                </div>
-                            </div>
+                            <p class="text-gray-500 flex-1 text-center text-[10px]">
+                                {{ $item['amount_of_ot'] ?? 0 }}</p>
+                        </td>
+                        <td>
+                            <p class="text-gray-500 flex-1 text-right px-1.5 text-[10px]">
+                                @convertnorp($item['daily_salary_total'] ?? 0)</p>
+                        </td>
+                        <td>
+                            <p class="text-gray-500 flex-1 text-right px-1.5 text-[10px]">
+                                @convertnorp($item['amout_of_ot_pay'] ?? 0)</p>
+                        </td>
+                        <td>
+                            <p class="text-gray-500 flex-1 text-right px-1.5 text-[10px]">
+                                {{ ($item['amount_of_ot'] ?? 0) + ($item['early_check_in'] ?? 0)}}</p>
                         </td>
                     </tr>
                 </tbody>
