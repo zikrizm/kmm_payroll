@@ -24,7 +24,7 @@ return new class extends Migration
             $table->integer('check_out_plusmn')->default(0);
             $table->integer('cross_day')->nullable();
             $table->integer('work_time')->default(0);
-            $table->integer('work_type')->default(0);
+            // $table->integer('work_type')->default(0);
             $table->boolean('is_without_break')->default(0);
             $table->integer('ot_roundone_hr')->nullable();
             $table->integer('ot_roundhalf_hr')->nullable();

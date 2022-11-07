@@ -6,6 +6,7 @@ use App\Utils\ResponseUtil;
 use Illuminate\Http\Request;
 use App\Services\Api\ApiServices;
 use App\Models\Operational;
+use App\Models\Position;
 use Illuminate\Support\Facades\Log;
 use App\Models\RequestTaskHasEmp;
 use App\Models\RequestTask;
@@ -58,7 +59,6 @@ class RequestTaskController extends Controller
                 }
 
                 $request_tasks = $request_tasks->with(['request_task_has_emps'])->paginate(10);
-                Log::info($request_tasks);
                 $render =  view('Task.request_task.table', compact('request_tasks', 'order'))->render();
                 return $this->buildRes->RESPONSE_REQ('success', $render, null);
             }
@@ -84,7 +84,17 @@ class RequestTaskController extends Controller
         }
 
         try {
-            $render = view('Task.request_task.create')->render();
+            $position_bios = $this->apiService->get_positions(["page_size" => 999])['data'];
+            $position = Position::where('permanently', 0)->get();
+            foreach ($position as $key => $value) {
+                $is_same = array_search($value->position_id, array_column($position_bios, 'id'));
+                if ($is_same != '') {
+                    $position['position_name'] = $position_bios[$is_same]['position_name'];
+                    $position['position_code'] = $position_bios[$is_same]['position_code'];
+                }
+            }
+
+            $render = view('Task.request_task.create', compact('position'))->render();
             return $this->buildRes->RESPONSE_REQ('success', $render, null);
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
@@ -111,13 +121,14 @@ class RequestTaskController extends Controller
             if ($validator->fails()) {
                 return $this->buildRes->RESPONSE_REQ('error', null, $validator->errors());
             } else {
-                $request_data = $request->only(['date', 'emps']);
+                $request_data = $request->only(['date', 'emps', 'position']);
                 $start_date = trim(explode(' - ', $request_data['date'])[0]);
                 $end_date = trim(explode(' - ', $request_data['date'])[1]);
                 $business_id = Session::get('business_id');
 
                 $request_task = new RequestTask([
                     'business_id' => $business_id,
+                    'position_id' => $request_data['position'],
                     'start_date' => $start_date,
                     'end_date' => $end_date,
                     'created_user' => auth()->user()->id,
@@ -205,13 +216,14 @@ class RequestTaskController extends Controller
             if ($validator->fails()) {
                 return $this->buildRes->RESPONSE_REQ('error', null, $validator->errors());
             } else {
-                $request_data = $request->only(['date', 'emps']);
+                $request_data = $request->only(['date', 'emps', 'position']);
                 $start_date = trim(explode(' - ', $request_data['date'])[0]);
                 $end_date = trim(explode(' - ', $request_data['date'])[1]);
 
                 $request_task_data = [
                     'start_date' => $start_date,
                     'end_date' => $end_date,
+                    'position_id' => $request_data['position'],
                     'updated_user' => auth()->user()->id,
                 ];
                 $request_task->update($request_task_data);
@@ -272,6 +284,7 @@ class RequestTaskController extends Controller
         return [
             'date' => 'required',
             'emps' => 'required',
+            'position' => 'required',
         ];
     }
 }

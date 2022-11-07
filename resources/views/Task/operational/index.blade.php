@@ -136,7 +136,12 @@
                     minYear: 2000,
                     drops: "auto",
                     maxYear: parseInt(moment().format('YYYY'), 10)
-                }, function(start, end, label) {});
+                }, function(start, end, label) {
+                    if($('.select2-department').val()) {
+                        var date = start.format('YYYY-MM-DD')+' - '+ end.format('YYYY-MM-DD');
+                        get_card_operational(true, date, $('.select2-department').val());
+                    }
+                });
             }
 
             $('.select2-department').select2();
@@ -160,125 +165,85 @@
             };
             
             $('.select2-department').on('select2:select', async function (e) {
-                if(!data_operasional) {
-                    var date = $('.operational_date').val();
-                } else{
-                    var date = moment($('.operational_date').val()).format('YYYY-MM-DD');
-                }
+                var date = null;
+                if(!data_operasional) date = $('.operational_date').val();
+                else date = moment($('.operational_date').val()).format('YYYY-MM-DD');
+                get_card_operational((!data_operasional), date, this.value);
+
+                // $('#next-day').on('click', function(e) {
+                //     counter_day++;
+                //     $('#prev-day').removeClass('hidden');
+                //     $('*[data-timetable-day]').each(function(e) {
+                //         if($(this).data('timetable-day') == counter_day) $(this).removeClass('hidden');
+                //         else $(this).addClass('hidden');
+                //     });
+                //     if(timetableDayContentChildLen-1 == counter_day) $(this).addClass('hidden');
+                //     set_pagination_name_timetable(counter_day)
+                // });
+                // $('#prev-day').on('click', function(e) {
+                //     counter_day--;
+                //     $('#next-day').removeClass('hidden');
+                //     $('*[data-timetable-day]').each(function(e) {
+                //         if($(this).data('timetable-day') == counter_day) $(this).removeClass('hidden');
+                //         else $(this).addClass('hidden');
+                //     });
+                //     if(counter_day == 0) $(this).addClass('hidden');
+                //     set_pagination_name_timetable(counter_day)
+                // });
+
+                // set_pagination_name_timetable(counter_day)
+
+                // $('.select2-status').select2();
+                // $('.specific_date').daterangepicker({
+                //     locale: { format: 'YYYY-MM-DD' },
+                //     startDate: $('.operational_date').data('daterangepicker').startDate._d,
+                //     endDate: $('.operational_date').data('daterangepicker').endDate._d ,
+                //     minDate: $('.operational_date').data('daterangepicker').startDate._d,
+                //     maxDate: $('.operational_date').data('daterangepicker').endDate._d,
+                //     ranges: {
+                //         'Today': [moment(), moment()],
+                //         'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+                //         'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+                //         'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+                //         'This Month': [moment().startOf('month'), moment().endOf('month')],
+                //         'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+                //     },
+                //     alwaysShowCalendars: true,
+                //     showCustomRangeLabel: false,
+                //     showDropdowns: true,
+                //     minYear: 2000,
+                //     drops: "auto",
+                //     maxYear: parseInt(moment().format('YYYY'), 10)
+                // });
                 
-                let _response = await (new NetworkUtils()).emitter('GET', '/get-operational-timetable-card', {dept_id: this.value, date}, {})
-                hideAllHintText();
-                if (_response.response < 200 || _response.response >= 300) {
-                    // * SHOW NOTIFICATION ----->
-                    console.log(_response);
-                    if ($('#note-warning-content').is(':hidden')) {
-                        if (!$('#note-content').is(':hidden')) $('#note-content').toggle('hidden');
-                        if (!$('#timetable-content').is(':hidden')) $('#timetable-content').toggle('hidden');
-                        $('#note-warning-content').toggle('hidden');
-                    }
-                    $('#text-error-operation').text(_response.msg.error[0])
-                } else {
-                    $('#timetable-content').html(_response.data);
-                    var anElement = new AutoNumeric.multiple('.number',{decimalPlaces:0,minimumValue: 0,decimalCharacter: ',', digitGroupSeparator : ""});
-                    if ($('#timetable-content').is(':hidden')) {
-                        if (!$('#note-warning-content').is(':hidden')) $('#note-warning-content').toggle('hidden');
-                        else $('#note-content').toggle('hidden');
-                        $('#timetable-content').toggle('hidden');
-                    }
+                // $("input[name*='group']").each(function(e) {
+                //     var subname= this.name.split('[').pop().split(']').shift();
+                //     if(subname == 'date') {
+                //         var a = moment($('.operational_date').data('daterangepicker').startDate._d);
+                //         var b = moment($('.operational_date').data('daterangepicker').endDate._d).add(1, 'd');
+                //         $(this).parent().parent().children('.hint-text').removeClass('text-red-500');
+                //         $(this).parent().parent().children('.hint-text').addClass('text-gray-300');
+                //         $(this).parent().parent().children('.hint-text').html(`Range tanggal oprasional-nya: <span class="font-bold">${b.diff(a, 'days')}</span>`);
+                //         $(this).on('apply.daterangepicker', function(ev, picker) {
+                //             var a = moment(picker.startDate);
+                //             var b = moment(picker.endDate).add(1, 'd');
+                //             $(this).parent().parent().children('.hint-text').removeClass('text-red-500');
+                //             $(this).parent().parent().children('.hint-text').addClass('text-gray-300');
+                //             $(this).parent().parent().children('.hint-text').html(`Range tanggal oprasional-nya: <span class="font-bold">${b.diff(a, 'days')}</span>`);
+                //         });
 
-                    // lt counter_day = 0;
-                    // let timetableDayContentChildLen = $('#timetable-day-content').children().length;
-                    $('input[name="select_all_timetable"]').on('change', function(e) {
-                        var isChecked = $(this).is(':checked');
-                        $(this).closest('table').find('.timetable_status').prop('checked', isChecked)
-                        $(this).closest('table').find('.ot-limit-content').each(function(e) {
-                            if(isChecked) {
-                                if ($(this).is(':hidden')) $(this).toggle('hidden');
-                            } else {
-                                if (!$(this).is(':hidden')) $(this).toggle('hidden');
-                            }
-                            
-                        })
-                    })
-                    $('.timetable_status').on('change', function(e) {
-                        $(this).closest('tr').find('.ot-limit-content').toggle('hidden');
-                    })
-                    // $('#next-day').on('click', function(e) {
-                    //     counter_day++;
-                    //     $('#prev-day').removeClass('hidden');
-                    //     $('*[data-timetable-day]').each(function(e) {
-                    //         if($(this).data('timetable-day') == counter_day) $(this).removeClass('hidden');
-                    //         else $(this).addClass('hidden');
-                    //     });
-                    //     if(timetableDayContentChildLen-1 == counter_day) $(this).addClass('hidden');
-                    //     set_pagination_name_timetable(counter_day)
-                    // });
-                    // $('#prev-day').on('click', function(e) {
-                    //     counter_day--;
-                    //     $('#next-day').removeClass('hidden');
-                    //     $('*[data-timetable-day]').each(function(e) {
-                    //         if($(this).data('timetable-day') == counter_day) $(this).removeClass('hidden');
-                    //         else $(this).addClass('hidden');
-                    //     });
-                    //     if(counter_day == 0) $(this).addClass('hidden');
-                    //     set_pagination_name_timetable(counter_day)
-                    // });
-
-                    // set_pagination_name_timetable(counter_day)
-
-                    // $('.select2-status').select2();
-                    // $('.specific_date').daterangepicker({
-                    //     locale: { format: 'YYYY-MM-DD' },
-                    //     startDate: $('.operational_date').data('daterangepicker').startDate._d,
-                    //     endDate: $('.operational_date').data('daterangepicker').endDate._d ,
-                    //     minDate: $('.operational_date').data('daterangepicker').startDate._d,
-                    //     maxDate: $('.operational_date').data('daterangepicker').endDate._d,
-                    //     ranges: {
-                    //         'Today': [moment(), moment()],
-                    //         'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
-                    //         'Last 7 Days': [moment().subtract(6, 'days'), moment()],
-                    //         'Last 30 Days': [moment().subtract(29, 'days'), moment()],
-                    //         'This Month': [moment().startOf('month'), moment().endOf('month')],
-                    //         'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
-                    //     },
-                    //     alwaysShowCalendars: true,
-                    //     showCustomRangeLabel: false,
-                    //     showDropdowns: true,
-                    //     minYear: 2000,
-                    //     drops: "auto",
-                    //     maxYear: parseInt(moment().format('YYYY'), 10)
-                    // });
-                    
-                    // $("input[name*='group']").each(function(e) {
-                    //     var subname= this.name.split('[').pop().split(']').shift();
-                    //     if(subname == 'date') {
-                    //         var a = moment($('.operational_date').data('daterangepicker').startDate._d);
-                    //         var b = moment($('.operational_date').data('daterangepicker').endDate._d).add(1, 'd');
-                    //         $(this).parent().parent().children('.hint-text').removeClass('text-red-500');
-                    //         $(this).parent().parent().children('.hint-text').addClass('text-gray-300');
-                    //         $(this).parent().parent().children('.hint-text').html(`Range tanggal oprasional-nya: <span class="font-bold">${b.diff(a, 'days')}</span>`);
-                    //         $(this).on('apply.daterangepicker', function(ev, picker) {
-                    //             var a = moment(picker.startDate);
-                    //             var b = moment(picker.endDate).add(1, 'd');
-                    //             $(this).parent().parent().children('.hint-text').removeClass('text-red-500');
-                    //             $(this).parent().parent().children('.hint-text').addClass('text-gray-300');
-                    //             $(this).parent().parent().children('.hint-text').html(`Range tanggal oprasional-nya: <span class="font-bold">${b.diff(a, 'days')}</span>`);
-                    //         });
-
-                    //         $(this).on('cancel.daterangepicker', function(ev, picker) {
-                    //             $(this).val('');
-                    //         });
-                    //     } else if(subname == 'status') {
-                    //         $(this).on('change', function(e) {
-                    //             $(this).parent().parent().parent().parent().toggle('hidden');
-                    //             setTimeout(() => {
-                    //                 $(this).parent().parent().parent().parent().parent().toggle('hidden');
-                    //             }, 200);
-                    //         })
-                    //     }
-                    // })
-                    
-                }
+                //         $(this).on('cancel.daterangepicker', function(ev, picker) {
+                //             $(this).val('');
+                //         });
+                //     } else if(subname == 'status') {
+                //         $(this).on('change', function(e) {
+                //             $(this).parent().parent().parent().parent().toggle('hidden');
+                //             setTimeout(() => {
+                //                 $(this).parent().parent().parent().parent().parent().toggle('hidden');
+                //             }, 200);
+                //         })
+                //     }
+                // })
             });
 
             
@@ -376,6 +341,45 @@
             await ApiService.get_confirm('.submit-delete-operational', '/operational/' + id, null, () => {
                 onInit();
             })
+        }
+
+        async function get_card_operational(isRange,date, dept_id) {
+            console.log("is running")
+            let _response = await (new NetworkUtils()).emitter('GET', '/get-operational-timetable-card', {isRange, dept_id, date}, {})
+            hideAllHintText();
+            if (_response.response < 200 || _response.response >= 300) {
+                // * SHOW NOTIFICATION ----->
+                if ($('#note-warning-content').is(':hidden')) {
+                    if (!$('#note-content').is(':hidden')) $('#note-content').toggle('hidden');
+                    if (!$('#timetable-content').is(':hidden')) $('#timetable-content').toggle('hidden');
+                    $('#note-warning-content').toggle('hidden');
+                }
+                $('#text-error-operation').text(_response.msg.error[0])
+            } else {
+                $('#timetable-content').html(_response.data);
+                var anElement = new AutoNumeric.multiple('.number',{decimalPlaces:0,minimumValue: 0,decimalCharacter: ',', digitGroupSeparator : ""});
+                if ($('#timetable-content').is(':hidden')) {
+                    if (!$('#note-warning-content').is(':hidden')) $('#note-warning-content').toggle('hidden');
+                    else $('#note-content').toggle('hidden');
+                    $('#timetable-content').toggle('hidden');
+                }
+
+                $('input[name="select_all_timetable"]').on('change', function(e) {
+                    var isChecked = $(this).is(':checked');
+                    $(this).closest('table').find('.timetable_status').prop('checked', isChecked)
+                    $(this).closest('table').find('.ot-limit-content').each(function(e) {
+                        if(isChecked) {
+                            if ($(this).is(':hidden')) $(this).toggle('hidden');
+                        } else {
+                            if (!$(this).is(':hidden')) $(this).toggle('hidden');
+                        }
+                        
+                    })
+                })
+                $('.timetable_status').on('change', function(e) {
+                    $(this).closest('tr').find('.ot-limit-content').toggle('hidden');
+                })
+            }
         }
 </script>
 @endsection

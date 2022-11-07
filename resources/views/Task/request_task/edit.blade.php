@@ -40,6 +40,15 @@
                     ]) !!}
                 </section>
                 <section class="flex flex-col gap-1">
+                    <select class="select2-position" name="position">
+                        <option value="" disabled selected>Silahkan Pilih posisi</option>
+                        @foreach ($position ?? [] as $item)
+                            <option value="{{ $item['position_id'] }}" @selected($request_task->position_id == $item['position_id'])>{{ $item['position_name'] }}</option>
+                        @endforeach
+                    </select>
+                    <label class="font-normal text-xs text-red-500 xs/max:text-xs department hint-text"></label>
+                </section>
+                <section class="flex flex-col gap-1">
                     <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Karyawan*</label>
                     <select data-ajax--url="{{ route('employee.search-employee-request-position') }}"
                         data-ajax--cache="true" class="select2-employee" name="emps[]" multiple="multiple">

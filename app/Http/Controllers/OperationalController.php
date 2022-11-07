@@ -8,16 +8,12 @@ use App\Models\Shift;
 use App\Models\Operational;
 use App\Utils\ResponseUtil;
 use Illuminate\Http\Request;
-use App\Models\OperationalDay;
 use Illuminate\Support\Carbon;
 use App\Services\Api\ApiServices;
-use App\Models\OperationalHasDept;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Models\OperationalHasTimetable;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
-use App\Models\OperationalDayHasTimetable;
 
 class OperationalController extends Controller
 {
@@ -468,6 +464,7 @@ class OperationalController extends Controller
         }
 
         try {
+            Log::info($request);
             $dept_id = null;
             $dept_bio = $this->apiService->read_department($request->dept_id);
             if (empty($dept_bio['parent_dept'])) {

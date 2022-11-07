@@ -32,19 +32,30 @@
                     <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Tanggal
                         penugasan*</label>
                     {!! FormCustom::input('date', null, [
-                    'placeholder' => 'Pilih tanggal penugasan',
-                    'class' => 'request-task-date',
-                    'readonly' => true,
-                    'prefixiconname' => 'calendar',
+                        'placeholder' => 'Pilih tanggal penugasan',
+                        'class' => 'request-task-date',
+                        'readonly' => true,
+                        'prefixiconname' => 'calendar',
                     ]) !!}
                 </section>
                 <section class="flex flex-col gap-1">
-                    <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Karyawan*</label>
-                    <select data-ajax--url="{{ route('employee.search-employee-request-position') }}"
-                        data-ajax--cache="true" class="select2-employee" name="emps[]" multiple="multiple">
+                    <select class="select2-position" name="position">
+                        <option value="" disabled selected>Silahkan Pilih posisi</option>
+                        @foreach ($position ?? [] as $item)
+                            <option value="{{ $item['position_id'] }}">{{ $item['position_name'] }}</option>
+                        @endforeach
                     </select>
-                    <label class="font-normal text-xs text-red-500 xs/max:text-xs emps hint-text"></label>
+                    <label class="font-normal text-xs text-red-500 xs/max:text-xs department hint-text"></label>
                 </section>
+                <div id="selected-employee-content" class="hidden">
+                    <section class="flex flex-col gap-1">
+                        <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Karyawan*</label>
+                        <select data-ajax--url="{{ route('employee.search-employee-request-position') }}"
+                            data-ajax--cache="true" class="select2-employee" name="emps[]" multiple="multiple">
+                        </select>
+                        <label class="font-normal text-xs text-red-500 xs/max:text-xs emps hint-text"></label>
+                    </section>
+                </div>
             </main>
             <hr>
             <footer class="flex justify-end items-center gap-3 p-4  pb-6">

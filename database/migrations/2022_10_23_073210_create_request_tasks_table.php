@@ -16,6 +16,7 @@ return new class extends Migration
         Schema::create('request_tasks', function (Blueprint $table) {
             $table->increments('id');
             $table->integer('business_id')->unsigned();
+            $table->integer('position_id');
             $table->dateTime('start_date');
             $table->dateTime('end_date');
             $table->integer('created_user')->unsigned();

@@ -92,6 +92,13 @@ return [
                 "parent_dept_name" => null
             ],
             [
+                "id" => 3,
+                "dept_code" => "3",
+                "dept_name" => "stick",
+                "parent_dept" => null,
+                "parent_dept_name" => null
+            ],
+            [
                 "id" => 2,
                 "dept_code" => "2",
                 "dept_name" => "bengkel",
