@@ -7,7 +7,7 @@
 <div class="flex flex-col gap-6 flex-1 h-full overflow-auto bg-white px-8 pt-8 pb-12">
     <header class="flex justify-between items-start">
         <div class="flex flex-col gap-1">
-            <p class="text-3xl font-medium text-gray-900">Kartu absensi</p>
+            <p class="text-3xl font-medium text-gray-900">Kartu absensi Operational</p>
             <p class="text-base font-normal text-gray-500">Daftar kartu absensi karyawan.</p>
         </div>
         <div class="">

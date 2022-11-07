@@ -350,7 +350,7 @@ class ApiServices extends NetworkUtils
 
     public function get_departments($data)
     {
-        return config('constants.department');
+        // return config('constants.department');
         $data = [
             'page' => $data['page'] ?? null,
             'page_size' => $data['page_size'] ?? null,
@@ -371,7 +371,7 @@ class ApiServices extends NetworkUtils
 
     public function read_department($id)
     {
-        return config('constants.department_one');
+        // return config('constants.department_one');
 
         $res = $this->emitter('GET', "/personnel/api/departments/" . $id . "/", null);
         if ($res['response'] < 200 || $res['response'] >= 300) {

@@ -14,9 +14,9 @@
                             </div>
                         </div>
                     </th>
-                    {{-- <th class='px-3 py-3 text-left cursor-pointer'>
+                    <th class='px-3 py-3 text-left cursor-pointer'>
                         <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Jabatan</p>
-                    </th> --}}
+                    </th>
                     <th class='px-3 py-3 text-left cursor-pointer'>
                         <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Karyawan</p>
                     </th>
@@ -43,9 +43,16 @@
                             </div>
                         </div>
                     </td>
-                    {{-- <td class='px-3 py text-gray-500 text-sm'>
-                        {{ implode(', ', array_column($item->call_employee_helps->toArray(), 'emp_first_name')) }}
-                    </td> --}}
+                    <td class='px-3 py text-gray-500 text-sm'>
+                        @php
+                        $is_same = array_search($item->position_id, array_column($position_bios, 'id'));
+                        if ($is_same != '') {
+                        $item['position_name'] = $position_bios[$is_same]['position_name'];
+                        $item['position_code'] = $position_bios[$is_same]['position_code'];
+                        }
+                        @endphp
+                        {{ $item['position_name']??'' }}
+                    </td>
                     <td class='px-3 py text-gray-500 text-sm'>
                         {{ implode(', ', array_column($item->request_task_has_emps->toArray(), 'emp_first_name')) }}
                     </td>

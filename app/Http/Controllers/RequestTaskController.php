@@ -40,11 +40,14 @@ class RequestTaskController extends Controller
             if (request()->ajax()) {
                 $business_id = Session::get('business_id');
                 $request_tasks = RequestTask::where('business_id', $business_id);
+                $position_bios = $this->apiService->get_positions(["page_size" => 999])['data'];
                 if ($request->has('q') && !empty($request->input('q'))) {
                     $search = $request->q;
-                    $request_tasks = $request_tasks->where('dept_name', 'LIKE', "%" . $search . "%")
-                        ->orWhere('position_id', 'LIKE', "%" . $search . "%")
-                        ->orWhere('position_name', 'LIKE', "%" . $search . "%");
+                    $request_tasks = $request_tasks->whereHas('request_task_has_emps', function ($e) use ($search) {
+                        $e->where('emp_code', 'LIKE', "%" . $search . "%")
+                            ->orWhere('emp_first_name', 'LIKE', "%" . $search . "%")
+                            ->orWhere('emp_last_name', 'LIKE', "%" . $search . "%");
+                    })->orWhere('position_id', 'LIKE', "%" . $search . "%");
                 }
                 if ($request->has('date') && !empty($request->input('date'))) {
                     $request_tasks = $request_tasks->whereBetween('start_date', [$request['date']['start_date'], $request['date']['end_date']])
@@ -59,7 +62,7 @@ class RequestTaskController extends Controller
                 }
 
                 $request_tasks = $request_tasks->with(['request_task_has_emps'])->paginate(10);
-                $render =  view('Task.request_task.table', compact('request_tasks', 'order'))->render();
+                $render =  view('Task.request_task.table', compact('request_tasks', 'position_bios', 'order'))->render();
                 return $this->buildRes->RESPONSE_REQ('success', $render, null);
             }
 
@@ -89,8 +92,8 @@ class RequestTaskController extends Controller
             foreach ($position as $key => $value) {
                 $is_same = array_search($value->position_id, array_column($position_bios, 'id'));
                 if ($is_same != '') {
-                    $position['position_name'] = $position_bios[$is_same]['position_name'];
-                    $position['position_code'] = $position_bios[$is_same]['position_code'];
+                    $value['position_name'] = $position_bios[$is_same]['position_name'];
+                    $value['position_code'] = $position_bios[$is_same]['position_code'];
                 }
             }
 
@@ -187,8 +190,17 @@ class RequestTaskController extends Controller
         try {
             $business_id = Session::get('business_id');
             $request_task = $request_task->with(['request_task_has_emps'])->first();
+            $position_bios = $this->apiService->get_positions(["page_size" => 999])['data'];
+            $position = Position::where('permanently', 0)->get();
+            foreach ($position as $key => $value) {
+                $is_same = array_search($value->position_id, array_column($position_bios, 'id'));
+                if ($is_same != '') {
+                    $value['position_name'] = $position_bios[$is_same]['position_name'];
+                    $value['position_code'] = $position_bios[$is_same]['position_code'];
+                }
+            }
 
-            $render = view('Task.request_task.edit', compact('request_task'))->render();
+            $render = view('Task.request_task.edit', compact('request_task', 'position'))->render();
             return $this->buildRes->RESPONSE_REQ('success', $render, null);
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());

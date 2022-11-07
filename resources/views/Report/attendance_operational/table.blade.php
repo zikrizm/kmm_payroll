@@ -133,8 +133,8 @@
                             @if (!empty($item_report['last_punch']))
                             <div class="relative">
                                 {{ date('H:i', strtotime($item_report['last_punch'])) }}
-                                <span class="absolute text-[8px] text-violet-600 top-[-5px]">
-                                    {{ $item_report['is_diff_day'] ? '+1' : '' }}
+                                <span class="absolute text-[10px] text-violet-600 top-[-5px]">
+                                    {!! $item_report['is_diff_day'] ? '&#8800;' : '' !!}
                                 </span>
                             </div>
                             @else

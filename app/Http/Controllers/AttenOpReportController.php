@@ -60,6 +60,7 @@ class AttenOpReportController extends Controller
         $p_check_out = $req_data['p_check_out'];
         $ot_op_limit = $timetable->ot_op_limit;
         $is_exist_operational = $timetable->is_exist_operational;
+        $status = $timetable->status;
 
         if ($date == '2022-10-20') {
             Log::info(response()->json($timetable));
@@ -152,7 +153,7 @@ class AttenOpReportController extends Controller
                 $atten_last = $atten_cross_datas[count($atten_cross_datas) - 1];
                 $diff_time_punch = Carbon::parse($p_check_in)->diff(Carbon::parse($atten_last['punch_time']));
                 $punch_check_out = Carbon::parse($atten_last['punch_time']);
-                $is_diff_day = $shift_check_out_cross->diff($punch_check_out)->days < 1;
+                $calculate['is_diff_day'] = $shift_check_out_cross->diff($punch_check_out)->days < 1;
             }
 
             // Log::info(response()->json($attens_groupings));
@@ -181,12 +182,17 @@ class AttenOpReportController extends Controller
 
             if (count($atten_grouping_by_date) != 1) {
                 if ($is_exist_operational) {
-                    $diff_check_out_hrs = $shift_check_out_cross_plus_ot_limit_op->diffInHours($punch_check_out, false);
-                    if ($diff_check_out_hrs == 0) {
-                        $calculate['status']['slug'] = 'check';
+                    if ($status == 'active') {
+                        $diff_check_out_hrs = $shift_check_out_cross_plus_ot_limit_op->diffInHours($punch_check_out, false);
+                        if ($diff_check_out_hrs == 0) {
+                            $calculate['status']['slug'] = 'check';
+                        } else {
+                            $calculate['status']['slug'] = 'plusmn';
+                            $calculate['status']['value'] = ($diff_check_out_hrs < 0) ?  $diff_check_out_hrs : '+' . $diff_check_out_hrs;
+                        }
                     } else {
-                        $calculate['status']['slug'] = 'plusmn';
-                        $calculate['status']['value'] = ($diff_check_out_hrs < 0) ?  $diff_check_out_hrs : '+' . $diff_check_out_hrs;
+                        $calculate['status']['slug'] = 'LB';
+                        $calculate['status']['value'] = 'LB';
                     }
                 } else {
                     $calculate['status']['slug'] = 'not-allowed';
@@ -271,7 +277,6 @@ class AttenOpReportController extends Controller
                     $calculate['is_lessthan_punch'] = true;
                 }
             } else {
-                Log::info("LINE 257");
                 if (!$is_exist_operational) {
                     $calculate['status']['slug'] = 'LB';
                     $calculate['status']['value'] = 'LB';
@@ -309,7 +314,7 @@ class AttenOpReportController extends Controller
                 }
 
                 // * Employee search
-                $search = '';
+                $search = 'Erwan';
                 if (!empty($request->input('q'))) {
                     $search = $request->q;
                 }
@@ -327,10 +332,10 @@ class AttenOpReportController extends Controller
                 $attenDBs = [];
                 $slug_week = ['mgg', 'sen', 'sel', 'rab', 'kam', 'jum', 'sab'];
                 if (!empty($request->input('date'))) {
-                    // $start_time = Carbon::parse("2022-10-16 23:59:59");
-                    // $end_time = Carbon::parse("2022-10-22 23:59:59");
-                    $start_time = Carbon::parse($request->date['start_time']);
-                    $end_time = Carbon::parse($request->date['end_time']);
+                    $start_time = Carbon::parse("2022-10-16 23:59:59");
+                    $end_time = Carbon::parse("2022-10-22 23:59:59");
+                    // $start_time = Carbon::parse($request->date['start_time']);
+                    // $end_time = Carbon::parse($request->date['end_time']);
                     $filter['start_time'] = $start_time->hour(0)->minute(0)->second(0)->format('Y-m-d H:i:s');
                     $filter['end_time'] = $end_time->addHours(1)->hour(23)->minute(59)->second(59)->format('Y-m-d H:i:s');
                     $attenDBs = Transaction::whereBetween('punch_time', [$filter['start_time'], $filter['end_time']])->get();
@@ -504,6 +509,7 @@ class AttenOpReportController extends Controller
                                     foreach ($operational_has_timetables as $key => $op_timetable) {
                                         $timetabletess = $op_timetable->timetable;
                                         $timetabletess->ot_op_limit = $op_timetable->ot_limit;
+                                        $timetabletess->status = $op_timetable->status;
                                         $timetabletess->is_exist_operational = true;
 
 
@@ -535,7 +541,7 @@ class AttenOpReportController extends Controller
                                         // Log::info("shift_bagian_check_in = {$shift_bagian_check_in} shift_bagian_check_out={$shift_bagian_check_out} ");
                                         // Log::info("timetable_check_in = {$timetable_check_in} timetable_check_out={$timetable_check_out} duration_ot_limit= {$shiftdayHas->timetable->duration_ot_limit}");
 
-                                        if ($punch_check_in->between($shift_check_in_add_plusmn, $shift_check_in_sub_plusmn) && $op_timetable->status == 'active') {
+                                        if ($punch_check_in->between($shift_check_in_add_plusmn, $shift_check_in_sub_plusmn)) {
                                             $is_invalid = false;
                                             $calculate_result = $this->calculate_timetable($timetabletess, [
                                                 'date' => $date,
@@ -560,8 +566,8 @@ class AttenOpReportController extends Controller
                                                 $timetable['break_time_total'] += $_data['break_time_total'];
                                                 $timetable['is_half_day'] = $_data['is_half_day'];
                                                 $timetable['is_lessthan_punch'] = $_data['is_lessthan_punch'];
-                                                $is_lessthan_punch = $_data['is_half_day'];
-                                                $is_diff_day = $_data['is_lessthan_punch'];
+                                                $is_lessthan_punch = $_data['is_lessthan_punch'];
+                                                $is_diff_day = $_data['is_diff_day'] ?? false;
                                             }
                                             Log::info(response()->json($calculate_result));
                                             if (!empty($calculate_result['atten_cross_datas'])) {
@@ -777,6 +783,7 @@ class AttenOpReportController extends Controller
                                                             $timetabletess = $shiftdayHas->timetable;
                                                             $timetabletess->ot_op_limit = 0;
                                                             $timetabletess->is_exist_operational = false;
+                                                            $timetabletess->status = 'active';
                                                             $calculate_result = $this->calculate_timetable($timetabletess, [
                                                                 'date' => $date,
                                                                 'next_date' => $dates[$date_key + 1],
@@ -802,8 +809,8 @@ class AttenOpReportController extends Controller
                                                                 $timetable['break_time_total'] += $_data['break_time_total'];
                                                                 $timetable['is_half_day'] = $_data['is_half_day'];
                                                                 $timetable['is_lessthan_punch'] = $_data['is_lessthan_punch'];
-                                                                $is_lessthan_punch = $_data['is_half_day'];
-                                                                $is_diff_day = $_data['is_lessthan_punch'];
+                                                                $is_lessthan_punch = $_data['is_lessthan_punch'];
+                                                                $is_diff_day = $_data['is_diff_day'] ?? false;
                                                             }
                                                             if (!empty($calculate_result['atten_cross_datas'])) {
                                                                 array_push($attens_groupings[$dates[$date_key]], ...$calculate_result['atten_cross_datas']);

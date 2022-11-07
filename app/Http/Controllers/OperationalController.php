@@ -72,7 +72,7 @@ class OperationalController extends Controller
                     ];
                 }
 
-                $operationals  = $operationals->map(function ($element) use ($dept_bios) {
+                $operationals = $operationals->map(function ($element) use ($dept_bios) {
                     $element = $element->map(function ($e_op) use ($dept_bios, $element) {
                         $is_same = array_search($e_op->dept_id, array_column($dept_bios, 'id'));
                         if ($is_same != '') $e_op['department'] = (object)$dept_bios[$is_same];
@@ -80,6 +80,8 @@ class OperationalController extends Controller
                     });
                     return $element;
                 });
+
+                Log::info($operationals);
 
 
                 // foreach ($variable as $key => $value) {
