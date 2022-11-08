@@ -39,8 +39,9 @@
                     'prefixiconname' => 'calendar',
                     ]) !!}
                 </section>
+                <input type="hidden" value="{{ $request_task->position_id }}" name="position">
                 <section class="flex flex-col gap-1">
-                    <select class="select2-position" name="position" disabled>
+                    <select class="select2-position" disabled>
                         <option value="" disabled selected>Silahkan Pilih posisi</option>
                         @foreach ($position ?? [] as $item)
                             <option value="{{ $item['position_id'] }}" @selected($request_task->position_id == $item['position_id'])>{{ $item['position_name'] }}</option>

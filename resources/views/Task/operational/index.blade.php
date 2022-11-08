@@ -29,12 +29,12 @@
                 <button onclick="get_modal()" class="flex items-center gap-2.5 px-4 py-2 text-gray-500 text-sm font-medium 
                 flex items-center border border-gray-300 shadow-sm rounded-lg">
                     <x-icon icon="plus" width=18 height=18 viewBox="20 20" />
-                    Operasional
+                    Tambah operasional
                 </button>
                 <button onclick="get_modal_task()" class="flex items-center gap-2.5 px-4 py-2 text-gray-500 text-sm font-medium 
                 flex items-center border border-gray-300 shadow-sm rounded-lg">
                     <x-icon icon="plus" width=18 height=18 viewBox="20 20" />
-                    Penugasan
+                    Tambah penugasan
                 </button>
             </div>
 
@@ -337,7 +337,7 @@
             // * open modal form ----->
             // *
             var URL = (id) ? '/request-task/' + id + '/edit' : '/request-task/create';
-            var res = await ApiService.get_modal(URL, null);
+            var res = await ApiService.get_modal(URL, { ...date_task});
             $(".select2-position").select2();
             if(!id) {
                 $('.select2-position').on('select2:select', async function (e) {

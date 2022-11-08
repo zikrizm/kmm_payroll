@@ -118,6 +118,7 @@ class KasbonController extends Controller
                 $kasbon_data['updated_user'] = auth()->user()->id;
                 $kasbon_data['debt'] = str_replace('.', '', $kasbon_data['debt']);
                 $kasbon_data['instalment'] = str_replace('.', '', $kasbon_data['instalment']);
+                $kasbon_data['remainder_debt'] = str_replace('.', '', $kasbon_data['instalment']);
 
                 $kasbon = new EmployeeDebt($kasbon_data);
                 $kasbon->save();

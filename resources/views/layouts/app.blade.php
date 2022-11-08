@@ -623,8 +623,8 @@ hover:bg-gray-50
                 </main>
             </div>
             <hr>
-            <footer class="flex items-center justify-between pb-8 w-full">
-                <div class="flex items-center gap-2 ">
+            <footer class="{{ !$is_mini ? 'hidden' : 'flex' }} items-center justify-center pb-4 w-full footer-mini">
+                <div class="flex items-center gap-2 flex-col">
                     <div class="w-10 h-10 rounded-full bg-gray-100 overflow-hidden">
                         @if (!empty(Auth::user()->photo))
                         <img src="{{ Auth::user()->photo }}" alt="" class="w-full h-full object-cover">
@@ -632,20 +632,20 @@ hover:bg-gray-50
                         <img src="@zkPhoto(files / nophoto . gif)" alt="" class="w-full h-full object-cover">
                         @endif
                     </div>
-                    {{-- <div class="flex flex-col justify-center text-sm">
-                        <p class="text-gray-900 font-medium text-sm truncate w-28">
+                    <div class="flex flex-col items-center justify-center">
+                        <p class="text-center text-gray-900 font-medium text-xs w-12 truncate break-words">
                             {{ Auth::user()->username }}</p>
-                        <p class="text-gray-500 runcate w-28 text-sm">{{ Auth::user()->email }}</p>
-                    </div> --}}
+                        <form action="{{ route('logout') }}">
+                            {{ csrf_field() }}
+                            <button class="text-gray-500 cursor-pointer">
+                                <p class="text-gray-500 runcate text-xs">Logout</p>
+                            </button>
+                        </form>
+                    </div>
                 </div>
-                {{-- <form action="{{ route('logout') }}">
-                    {{ csrf_field() }}
-                    <button class="text-gray-500 mt-2.5 cursor-pointer">
-                        <x-icon icon="log-out" width=16 height=16 viewBox="20 20" />
-                    </button>
-                </form> --}}
             </footer>
-            {{-- <footer class="flex items-center justify-between pb-8 w-full">
+            <footer
+                class="{{ $is_mini ? 'hidden' : 'flex' }} items-center justify-between pb-8 w-full footer-full-size">
                 <div class="flex items-center gap-2 ">
                     <div class="w-10 h-10 rounded-full bg-gray-100 overflow-hidden">
                         @if (!empty(Auth::user()->photo))
@@ -666,7 +666,7 @@ hover:bg-gray-50
                         <x-icon icon="log-out" width=16 height=16 viewBox="20 20" />
                     </button>
                 </form>
-            </footer> --}}
+            </footer>
         </aside>
         @endif
         @endif
@@ -688,6 +688,8 @@ hover:bg-gray-50
     window.addEventListener('DOMContentLoaded', (event) => {
         $('#switch-size-menu').on('click',function(e) {
             if($('#aside-navigation').hasClass('is-full-size')) {
+                $('.footer-full-size').toggle('flex');
+                $('.footer-mini').toggle('flex');
                 $.cookie('side_menu_is_mini', true);
                 $('.sub-menu-content').each(function(e) {
                     if (!$(this).is(':hidden')) $(this).toggle();
@@ -705,6 +707,7 @@ hover:bg-gray-50
                 $('.my-dropdown-menu').off("mouseenter mouseleave click");
                 dropdown_menu_click_mini();
             } else {
+                $('.footer-mini').toggle('flex');
                 $.cookie('side_menu_is_mini',false)
                 $(this).animate({left: 248}, 300 );
                 $('.my-dropdown-menu').removeClass('justify-center');
@@ -715,8 +718,8 @@ hover:bg-gray-50
                     {
                         duration: 500,
                         complete: function(){
-                           
-                            $('.name-business').toggle()
+                            $('.footer-full-size').toggle('flex');
+                            $('.name-business').toggle('flex')
                             $('.name-menu').toggle()
                             $('.chevron-icon-menu').toggle()
                             $('.sub-menu-content').each(function(e) {

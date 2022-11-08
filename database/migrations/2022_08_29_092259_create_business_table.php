@@ -19,6 +19,7 @@ return new class extends Migration
             $table->increments('id');
             $table->string('name');
             $table->date('start_date')->nullable();
+            $table->integer('pending_day')->nullable();
             $table->string('logo')->nullable();
             $table->boolean('is_active')->default(true);
             $table->integer('owner_id')->unsigned();

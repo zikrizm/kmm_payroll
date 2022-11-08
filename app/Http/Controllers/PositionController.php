@@ -278,6 +278,7 @@ class PositionController extends Controller
         if (empty($position)) {
             $position = new Position([
                 'position_id' => $position_id,
+                'position_name' => $request['position_name'],
                 'created_user' => auth()->user()->id,
                 'updated_user' => auth()->user()->id,
                 'must_attend' => $request['must_attend'] ?? 0,
@@ -289,6 +290,7 @@ class PositionController extends Controller
         } else {
             $position->update([
                 'position_id' => $position_id,
+                'position_name' => $request['position_name'],
                 'extra_pay' => (!empty($request['extra_pay_check'])) ?
                     str_replace('.', '', $request['extra_pay']) : null,
                 'updated_user' => auth()->user()->id,

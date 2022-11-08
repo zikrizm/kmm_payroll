@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Position;
-use App\Models\Operational;
+use App\Utils\Util;
 use App\Models\RequestTask;
 use App\Utils\ResponseUtil;
 use Illuminate\Http\Request;
@@ -18,11 +18,13 @@ class RequestTaskController extends Controller
 {
     private $apiService;
     private $buildRes;
+    private $util;
 
-    public function __construct(ApiServices $apiService, ResponseUtil $buildRes)
+    public function __construct(ApiServices $apiService, Util $util, ResponseUtil $buildRes)
     {
         $this->apiService = $apiService;
         $this->buildRes = $buildRes;
+        $this->util = $util;
     }
 
     /**
@@ -88,6 +90,7 @@ class RequestTaskController extends Controller
         }
 
         try {
+            $date = (!empty($request['date'])) ? Carbon::parse($request['date'])->format('Y-m-d') : null;
             $position_bios = $this->apiService->get_positions(["page_size" => 999])['data'];
             $position = Position::where('permanently', 0)->get();
             foreach ($position as $key => $value) {
@@ -98,7 +101,7 @@ class RequestTaskController extends Controller
                 }
             }
 
-            $render = view('Task.request_task.create', compact('position'))->render();
+            $render = view('Task.request_task.create', compact('position', 'date'))->render();
             return $this->buildRes->RESPONSE_REQ('success', $render, null);
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
@@ -133,11 +136,11 @@ class RequestTaskController extends Controller
                     $start_date = Carbon::parse(trim($rangedate[0]));
                     $end_date = Carbon::parse(trim($rangedate[1]));
                     $dates = $this->util->generateDateRange($start_date, $end_date);
-                    $request_task = Operational::where('position_id', $request_data['position'])->whereBetween('date', [$start_date, $end_date])->first();
+                    $request_task = RequestTask::where('position_id', $request_data['position'])->whereBetween('date', [$start_date, $end_date])->first();
                 } else {
                     $date = Carbon::parse($request_data['date']);
                     $dates[] = $date->format('Y-m-d');
-                    $request_task = Operational::where('position_id', $request_data['position'])->where('date', $date)->first();
+                    $request_task = RequestTask::where('position_id', $request_data['position'])->where('date', $date)->first();
                 }
 
 
@@ -197,32 +200,6 @@ class RequestTaskController extends Controller
                         return $this->buildRes->RESPONSE_REQ('error', null, ['error' => ["penugasan untuk tanggal {$date->format('d-m-Y')} sudah tersedia"]]);
                     }
                 }
-                // $start_date = trim(explode(' - ', $request_data['date'])[0]);
-                // $end_date = trim(explode(' - ', $request_data['date'])[1]);
-                // $business_id = Session::get('business_id');
-
-                // $request_task = new RequestTask([
-                //     'business_id' => $business_id,
-                //     'position_id' => $request_data['position'],
-                //     'start_date' => $start_date,
-                //     'end_date' => $end_date,
-                //     'created_user' => auth()->user()->id,
-                //     'updated_user' => auth()->user()->id,
-                // ]);
-                // $request_task->save();
-
-                // foreach ($request_data['emps'] as $item) {
-                //     $employee = $this->apiService->read_employee($item);
-                //     $request_task_has_emp = new RequestTaskHasEmp([
-                //         'request_task_id' => $request_task->id,
-                //         'emp_id' => $employee['id'],
-                //         'emp_code' => $employee['emp_code'],
-                //         'emp_first_name' => $employee['first_name'],
-                //         'emp_last_name' => $employee['last_name'],
-                //     ]);
-                //     $request_task_has_emp->save();
-                // }
-
                 return $this->buildRes->RESPONSE_REQ('success', null,  ['success' => ['Add request task succesfully']]);
             }
         } catch (\Exception $e) {
@@ -249,19 +226,18 @@ class RequestTaskController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  RequestTask $request_task
+     * @param  $request_task
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function edit(RequestTask $request_task, Request $request)
+    public function edit($request_task, Request $request)
     {
-        // if (!auth()->user()->can('request-task.update') || !$request->ajax()) {
-        //     abort(403, 'Unauthorized action.');
-        // }
+        if (!auth()->user()->can('request-task.update') || !$request->ajax()) {
+            abort(403, 'Unauthorized action.');
+        }
 
         try {
-            $business_id = Session::get('business_id');
-            $request_task = $request_task->with(['request_task_has_emps'])->first();
+            $request_task = RequestTask::where('id', $request_task)->with(['request_task_has_emps'])->first();
             $position_bios = $this->apiService->get_positions(["page_size" => 999])['data'];
             $position = Position::where('permanently', 0)->get();
             foreach ($position as $key => $value) {
@@ -301,33 +277,30 @@ class RequestTaskController extends Controller
                 return $this->buildRes->RESPONSE_REQ('error', null, $validator->errors());
             } else {
                 $request_data = $request->only(['date', 'emps', 'position']);
-                $start_date = trim(explode(' - ', $request_data['date'])[0]);
-                $end_date = trim(explode(' - ', $request_data['date'])[1]);
+                $date = Carbon::createFromFormat('d-m-Y', $request_data['date']);
+                if (!empty($request_task)) {
+                    $request_task_data = ['updated_user' => auth()->user()->id];
+                    $request_task->update($request_task_data);
 
-                $request_task_data = [
-                    'start_date' => $start_date,
-                    'end_date' => $end_date,
-                    'position_id' => $request_data['position'],
-                    'updated_user' => auth()->user()->id,
-                ];
-                $request_task->update($request_task_data);
+                    RequestTaskHasEmp::where('request_task_id', $request_task->id)->each(function ($item) {
+                        $item->delete();
+                    });
+                    foreach ($request_data['emps'] as $item) {
+                        $employee = $this->apiService->read_employee($item);
+                        $request_task_has_emp = new RequestTaskHasEmp([
+                            'request_task_id' => $request_task->id,
+                            'emp_id' => $employee['id'],
+                            'emp_code' => $employee['emp_code'],
+                            'emp_first_name' => $employee['first_name'],
+                            'emp_last_name' => $employee['last_name'],
+                        ]);
+                        $request_task_has_emp->save();
+                    }
 
-                RequestTaskHasEmp::where('request_task_id', $request_task->id)->each(function ($item) {
-                    $item->delete();
-                });
-                foreach ($request_data['emps'] as $item) {
-                    $employee = $this->apiService->read_employee($item);
-                    $request_task_has_emp = new RequestTaskHasEmp([
-                        'request_task_id' => $request_task->id,
-                        'emp_id' => $employee['id'],
-                        'emp_code' => $employee['emp_code'],
-                        'emp_first_name' => $employee['first_name'],
-                        'emp_last_name' => $employee['last_name'],
-                    ]);
-                    $request_task_has_emp->save();
+                    return $this->buildRes->RESPONSE_REQ('success', null, ['success' => ['Update request task succesfully']]);
+                } else {
+                    return $this->buildRes->RESPONSE_REQ('error', null, ['error' => ["Jadwal untuk tanggal {$date->format('d-m-Y')} tidak tersedia"]]);
                 }
-
-                return $this->buildRes->RESPONSE_REQ('success', null, ['success' => ['Update request task succesfully']]);
             }
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());

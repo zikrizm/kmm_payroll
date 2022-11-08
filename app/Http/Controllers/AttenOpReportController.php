@@ -10,6 +10,7 @@ use App\Models\EmployeeDebt;
 use App\Models\Holiday;
 use App\Models\Operational;
 use App\Models\Position;
+use App\Models\RequestTask;
 use App\Models\Transaction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -54,7 +55,7 @@ class AttenOpReportController extends Controller
                 }
 
                 // * Employee search
-                $search = '';
+                $search = 'Yusep';
                 if (!empty($request->input('q'))) {
                     $search = $request->q;
                 }
@@ -72,10 +73,10 @@ class AttenOpReportController extends Controller
                 $attenDBs = [];
                 $slug_week = ['mgg', 'sen', 'sel', 'rab', 'kam', 'jum', 'sab'];
                 if (!empty($request->input('date'))) {
-                    // $start_time = Carbon::parse("2022-10-16 23:59:59");
-                    // $end_time = Carbon::parse("2022-10-30 23:59:59");
-                    $start_time = Carbon::parse($request->date['start_time']);
-                    $end_time = Carbon::parse($request->date['end_time']);
+                    $start_time = Carbon::parse("2022-10-01 23:59:59");
+                    $end_time = Carbon::parse("2022-10-30 23:59:59");
+                    // $start_time = Carbon::parse($request->date['start_time']);
+                    // $end_time = Carbon::parse($request->date['end_time']);
                     $filter['start_time'] = $start_time->hour(0)->minute(0)->second(0)->format('Y-m-d H:i:s');
                     $filter['end_time'] = $end_time->addHours(1)->hour(23)->minute(59)->second(59)->format('Y-m-d H:i:s');
                     $attenDBs = Transaction::whereBetween('punch_time', [$filter['start_time'], $filter['end_time']])->get();
@@ -89,6 +90,8 @@ class AttenOpReportController extends Controller
 
                 // ** get department data dari biotime
                 $dept_bios = $this->apiService->get_departments(["page_size" => 999])['data'];
+                // ** get department data dari biotime
+                $position_bios = $this->apiService->get_positions(["page_size" => 999])['data'];
                 // ** get employee data dari biotime
                 // $emp_bio_count = $this->apiService->get_employees([])["count"];
                 $emp_bios = $this->apiService->get_employees(array_merge(["employee_icontains" => $search, "page_size" => 12], (!is_null($dept_id) ? ["departments" => $dept_id] : [])))['data'];
@@ -122,19 +125,10 @@ class AttenOpReportController extends Controller
                 // Log::info($holidays);
                 // Log::info("============================================");
                 foreach (($emp_bios ?? []) as $emp) {
-                    // ** groupping absen karyawan berdasarkan tanggal
+                    $report_by_dates = [];
                     $attens_groupings = $this->_group_by_date($atten_bios->filter(function ($atten) use ($emp) {
                         return $atten['emp'] === $emp['id'];
                     }));
-                    // foreach ($attens_groupings as $itess) {
-                    //     foreach ($itess as $key => $value) {
-                    //         Log::info("tanggal={$value['punch_time']} count " . count($itess));
-                    //     }
-                    // }
-                    // Log::info($dates);
-
-                    // Log::info(response()->json($attens_groupings));
-
                     // ** searchDepartment
                     $emp_dept = collect($dept_bios)->search(function ($item) use ($emp) {
                         return $item['id'] === $emp['department']['id'];
@@ -144,37 +138,57 @@ class AttenOpReportController extends Controller
                         ? $emp['department']['parent_dept']['id']
                         : $emp['department']['id'];
 
-                    // ** searchkaryawan untuk group
-                    $departmentDB = Department::where('dept_id', $emp['department']['id'])->first();
                     // ** filterkasbon
+
                     $emp_debts = $debts->filter(function ($item) use ($emp) {
                         return $item->emp_id === $emp['id'];
                     });
-                    // ** searchkaryawan yang dari data local
-                    $emp_form_db_index = $emp_form_databases->search(function ($item) use ($emp) {
-                        return $item->emp_id === $emp['id'];
-                    });
-                    // ** searchkaryawan untuk group
                     $group = !empty($operational) ? ($operational->operational_has_depts ?? [])->filter(function ($item) use ($emp) {
                         return $item->dept_id === $emp['department']['id'];
                     }) : [];
-                    // ** sum upah tambahan dari jabatan
-                    $position_extra_pay = 0;
-                    foreach ($position as $posi) {
-                        foreach ($posi->employee_has_position as $posiHas) {
-                            if ($posiHas['emp_id'] === $emp['id']) {
-                                $position_extra_pay += $posi->extra_pay;
-                            }
+
+
+                    $departmentDB = Department::where('dept_id', $emp['department']['id'])->first();
+                    
+                    $empDB = Employee::where('business_id', $business_id)->where('emp_id', $emp['id'])->first();
+                    $diff_date = 0;
+                    if (!empty($empDB)) {
+                        switch ($empDB->payment_period) {
+                            case 'mounthly':
+                                $diff_date = $start_time->diffInMonths($end_time);
+                                break;
+                            case 'weekly':
+                                $diff_date = $start_time->diffInWeeks($end_time);
+                                break;
+                            case 'daily':
+                                $diff_date = $start_time->diffInDays($end_time);
+                                break;
                         }
                     }
-
-                    $report_by_dates = [];
-                    $daily_salary = ($emp_form_db_index != '') ? $emp_form_databases[$emp_form_db_index]->daily_salary : 0;
+                    $kasbons = EmployeeDebt::where('business_id', $business_id)->where('emp_id', $emp['id'])->whereBetween('date', array($start_time, $end_time))->get();
+                    Log::info($kasbons);
+                    // $instalment_debt_total = array;
+                    // if(!empty($kasbons)) {
+                    //     foreach ($kasbons as $kasbon) {
+                    //         $instalment_debt_total += $kasbon->instalment;
+                    //         // $instalment = $kasbon->dept - $instalment_debt;
+                    //         // if($instalment > 0) {
+                    //         //     $calculate_kasbon = $instalment
+                    //         // }
+                    //     }
+                    // }
+                    $positiontess = Position::whereHas('employee_has_position.employee', function ($e) use ($emp) {
+                        $e->where('emp_id', $emp['id']);
+                    })->get();
+                    $request_tasks = RequestTask::whereIn('position_id', array_column($positiontess->toArray(), 'id'))->with('position')->get()->groupBy(function ($item) {
+                        return Carbon::parse($item->date)->format('Y-m-d');
+                    });
+                    $instalment_debt_total = array_sum(array_column($kasbons->toArray(), 'instalment')) * $diff_date;
+                    $position_extra_pay = array_sum(array_column($positiontess->toArray(), 'extra_pay')) * $diff_date;
+                    $emp['position'] = (!empty($positiontess)) ? $positiontess->toArray() : [];
+                    $daily_salary = $empDB->daily_salary ?? 0;
 
                     foreach ($dates as $date_key => $date) {
-
-                        // Log::info("COUNT ".count($attens_groupings[$date] ?? []));
-
                         if (count($dates) - 1 != $date_key) {
                             // Log::info("=============== date={$date}");
                             $timetable = [];
@@ -188,6 +202,7 @@ class AttenOpReportController extends Controller
                             $timetable['break_time_total'] = 0;
                             $timetable['cross_day'] = 0;
                             $timetable['daily_salary_per_day'] = 0;
+                            $timetable['tbhn_u_libur'] = 0;
                             $timetable['is_holiday'] = false;
                             $timetable['is_half_day'] = false;
                             $timetable['is_less_than_time'] = false;
@@ -428,8 +443,6 @@ class AttenOpReportController extends Controller
                                                                     $timetable['per_day'] += 1;
                                                                 }
                                                             }
-
-                                                            $timetable['daily_salary_per_day'] += $timetable['per_day']  * $daily_salary;
                                                         }
                                                     }
                                                 }
@@ -466,14 +479,18 @@ class AttenOpReportController extends Controller
                                 ];
                             }
 
+                            $report_by_date['timetable']['daily_salary_per_day'] += $timetable['per_day']  * $daily_salary;
+
                             $operational_atten_by_date = $operationals[$date] ?? [];
                             $i_operational = empty($operational_atten_by_date) ? '' : array_search($emp['department']['id'], array_column($operational_atten_by_date->toArray(), 'dept_id'));
                             if ($i_operational != '') {
+                                $is_inactive = true;
                                 $operational_has_timetables = $operational_atten_by_date[$i_operational]->operational_has_timetables ?? [];
                                 foreach ($operational_has_timetables as $key => $op_timetable) {
                                     if ($op_timetable->operational->dept_id == $emp['department']['id']) {
                                         if (!empty($report_by_date['timetable']['id'])) {
                                             if ($op_timetable->status == 'active') {
+                                                $is_inactive = false;
                                                 $_punch_check_out = Carbon::parse($report_by_date['timetable']['last_punch']);
                                                 $_shift_check_out_cross_plus_ot_limit_op = Carbon::parse($date . $report_by_date['timetable']['check_out'])->addDays($report_by_date['timetable']['cross_day'] ?? 0)->addHours($op_timetable->ot_limit ?? 0);
                                                 $diff_check_out_mnt = $_shift_check_out_cross_plus_ot_limit_op->diffInMinutes($_punch_check_out, false);
@@ -491,12 +508,23 @@ class AttenOpReportController extends Controller
                                             }
                                         } else {
                                             if ($op_timetable->status == 'active') {
+                                                $is_inactive = false;
                                                 $report_by_date['timetable']['status']['slug'] = 'not-allowed';
                                             } else {
                                                 $report_by_date['timetable']['status']['slug'] = 'check';
                                             }
                                         }
                                     }
+                                }
+
+                                if (!empty($attens_groupings[$date]) && count($attens_groupings[$date]) > 1 && !empty($request_tasks[$date])) {
+                                    foreach ($request_tasks[$date] as $key => $task) {
+                                        $report_by_date['timetable']['tbhn_u_libur'] += $task->position->extra_pay;
+                                    }
+                                }
+
+                                if ($is_inactive && empty($attens_groupings[$date]) && !$report_by_date['timetable']['is_holiday']) {
+                                    if (!empty($departmentDB)) $report_by_date['timetable']['tbhn_u_libur'] += $departmentDB->sitting_money ?? 0;
                                 }
                                 // $timetable_is_exist = false;
                                 // if (!empty($attens_groupings[$date]) && count($attens_groupings[$date]) > 1) {
@@ -536,6 +564,7 @@ class AttenOpReportController extends Controller
                     $early_check_in = 0;
                     $early_check_in_pay = 0;
                     $amount_day = 0;
+                    $tbhn_u_libur_total = 0;
                     $daily_salary_total = 0;
                     $total = 0;
 
@@ -546,6 +575,7 @@ class AttenOpReportController extends Controller
                             $early_check_in += $value['timetable']['early_check_in'] ?? 0;
                             $early_check_in_pay += $value['timetable']['total_earlyin_pay_per_day'] ?? 0;
                             $amount_day += $value['timetable']['per_day'] ?? 0;
+                            $tbhn_u_libur_total += $value['timetable']['tbhn_u_libur'] ?? 0;
                             $daily_salary_total += $value['timetable']['daily_salary_per_day'] ?? 0;
                         }
                     }
@@ -556,12 +586,13 @@ class AttenOpReportController extends Controller
                         'range_date' => $request->input('date'),
                         'daily_salary' => $daily_salary,
                         'position_extra_pay' => $position_extra_pay,
-                        'dept' => array_sum(array_column($emp_debts->toArray(), 'remainder_debt')),
+                        'instalment_debt_total' => $instalment_debt_total,
                         'amount_of_ot' => $amout_of_ot,
                         'amout_of_ot_pay' => $amout_of_ot_pay,
                         'early_check_in' => $early_check_in,
                         'early_check_in_pay' => $early_check_in_pay,
                         'amount_day' => $amount_day,
+                        'tbhn_u_libur_total' => $tbhn_u_libur_total,
                         'daily_salary_total' => $daily_salary_total,
                         'total' => $total,
                         'reports' => $report_by_dates,
@@ -570,7 +601,7 @@ class AttenOpReportController extends Controller
 
                 // Log::info(response()->json($attendance_reports));
                 $order = null;
-                $render =  view('Report.attendance_operational.table', compact('attendance_reports', 'order'))->render();
+                $render =  view('Report.attendance_operational.table', compact('attendance_reports', 'position_bios', 'order'))->render();
 
                 return $this->buildRes->RESPONSE_REQ('success', $render, null);
             }

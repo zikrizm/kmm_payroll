@@ -55,7 +55,7 @@ class OperationalController extends Controller
                     ->with('shift', 'operational_has_timetables.timetable')->get()->groupBy(function ($item) {
                         return Carbon::parse($item->date)->format('Y-m-d');
                     });
-                $request_tasks = RequestTask::where('business_id', $business_id)->whereBetween('start_date', [$start_date, $end_date])->orWhereBetween('end_date', [$start_date, $end_date])
+                $request_tasks = RequestTask::where('business_id', $business_id)->whereBetween('date', [$start_date, $end_date])
                     ->with('request_task_has_emps')->get()->groupBy(function ($item) {
                         return Carbon::parse($item->date)->format('Y-m-d');
                     });
@@ -303,12 +303,9 @@ class OperationalController extends Controller
             } else {
                 $request_data = $request->only(['date', 'shift']);
                 $date = Carbon::createFromFormat('d-m-Y', $request_data['date']);
-                $business_id = Session::get('business_id');
                 if (!empty($operational)) {
-                    // ** create operational
-                    $operational_data = [
-                        'updated_user' => auth()->user()->id,
-                    ];
+                    // ** uddate operational
+                    $operational_data = ['updated_user' => auth()->user()->id];
                     $operational->update($operational_data);
 
 
@@ -317,7 +314,7 @@ class OperationalController extends Controller
                     });
                     foreach ($request_data['shift'] as $key => $shift) {
                         foreach ($shift['timetables'] as $key => $value) {
-                            // ** create operational has timetable
+                            // ** uddate operational has timetable
                             $operational_has_timetable = new OperationalHasTimetable([
                                 'operational_id' => $operational->id,
                                 'timetable_id' => $value['timetable_id'],

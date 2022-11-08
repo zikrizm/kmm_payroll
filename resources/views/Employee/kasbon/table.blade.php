@@ -65,10 +65,10 @@
                         @convert($item->instalment)
                     </td>
                     <td class='px-3 py text-gray-500 text-sm'>
-                        {{-- @convert($item->debt-$item->instalment) --}}
+                        @convert($item->instalment_debt ?? 0)
                     </td>
                     <td class='px-3 py text-gray-500 text-sm'>
-                        {{-- @convert($item->debt-$item->instalment) --}}
+                        @convert($item->remainder_debt??0)
                     </td>
                     @canany(['kasbon.update', 'kasbon.delete'])
                     <td class='px-3 py'>

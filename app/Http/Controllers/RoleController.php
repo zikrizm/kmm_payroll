@@ -233,26 +233,26 @@ class RoleController extends Controller
                 ->where('business_id', $business_id)->count();
             if ($count == 0) {
                 $role = Role::findOrFail($role);
-                if (!$role->is_default || $role->name == 'Cashier#' . $business_id) {
-                    if ($role->name == 'Cashier#' . $business_id) {
-                        $role->is_default = 0;
-                    }
-
-                    $role->name = $role_data['name'];
-                    $role->save();
-
-                    $this->__createPermissionIfNotExists($role_data['roles']);
-
-                    if (!empty($role_data['roles'])) {
-                        $role->syncPermissions($role_data['roles']);
-                    }
-
-                    // ** create activity log user
-                    ActivityLog::created_activity('CRUD role', 'User ' . auth()->user()->username . ' edit data role');
-                    return $this->buildRes->RESPONSE_REQ('success', null, ['error' => ['Role update succesfully']]);
-                } else {
-                    return $this->buildRes->RESPONSE_REQ('error', null, ['error' => ['Default role cannot be edited']]);
+                // if (!$role->is_default || $role->name == 'Cashier#' . $business_id) {
+                if ($role->name == 'Cashier#' . $business_id) {
+                    $role->is_default = 0;
                 }
+
+                $role->name = $role_data['name'];
+                $role->save();
+
+                $this->__createPermissionIfNotExists($role_data['roles']);
+
+                if (!empty($role_data['roles'])) {
+                    $role->syncPermissions($role_data['roles']);
+                }
+
+                // ** create activity log user
+                ActivityLog::created_activity('CRUD role', 'User ' . auth()->user()->username . ' edit data role');
+                return $this->buildRes->RESPONSE_REQ('success', null, ['error' => ['Role update succesfully']]);
+                // } else {
+                //     return $this->buildRes->RESPONSE_REQ('error', null, ['error' => ['Default role cannot be edited']]);
+                // }
             } else {
                 return $this->buildRes->RESPONSE_REQ('error', null, ['name' => ['Role name already exists']]);
             }

@@ -87,6 +87,32 @@
                         </td>
                     </tr>
                 </table>
+                <table class='table border-collapse w-full '>
+                    <tr class="align-middle">
+                        <td class="w-14 text-gray-500">
+                            <table class='table border-collapse w-full '>
+                                <tr class="align-middle">
+                                    <td class="w-6 text-gray-500">
+                                        <x-icon icon="employee-position" width=14 height=14 viewBox="20 20" />
+                                    </td>
+                                    <td class="align-middle">
+                                        <p class="text-gray-500 text-xs text-middle mt-0.5 pl-0.5">
+                                            Jabatan&nbsp;&nbsp;:</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                        <td class="align-middle">
+                            <p class="text-gray-500 text-xs text-middle mt-0.5">
+                                @if (!empty($item['employee']))
+                                {{ implode(', ', array_column($item['employee']['position'], 'position_name')) }}
+                                @else
+                                -
+                                @endif
+                            </p>
+                        </td>
+                    </tr>
+                </table>
             </div>
             <table class='table border-collapse w-full border '>
                 <thead class=''>
@@ -104,7 +130,8 @@
                             <p class="text-xs font-medium text-gray-500 text-center truncate">Shift</p>
                         </th>
                         <th class='text-left border '>
-                            <p class="text-xs font-medium text-gray-500 text-center truncate">Status</p>
+                            <p class="text-xs font-medium text-gray-500 text-center truncate px-1.5">Status Operasional
+                            </p>
                         </th>
                         <th class='text-left border '>
                             <p class="text-xs font-medium text-gray-500 text-center truncate">Lembur</p>
@@ -117,9 +144,6 @@
                         </th>
                         <th class='text-left border '>
                             <p class="text-xs px-1.5 font-medium text-gray-500 text-center truncate">Tbhn+U.Libur</p>
-                        </th>
-                        <th class='text-left border '>
-                            <p class="text-xs px-1.5 font-medium text-gray-500 text-center truncate">Jabatan</p>
                         </th>
                     </tr>
                 </thead>
@@ -176,7 +200,7 @@
 
                         </td>
 
-                        <td class='text-xs border text-center w-12'>
+                        <td class='text-xs border text-center '>
                             @if (!empty($item_report['timetable']['status']))
                             <div class="flex items-center justify-center gap-1">
                                 @if ($item_report['timetable']['status']['slug'] == 'LB')
@@ -228,8 +252,8 @@
                         </td>
                         <td class='text-[10px] border text-gray-500 text-center'>
                             <div class="flex justify-end">
-                                <div class="w-max px-1.5">@if ($item_report['timetable']['daily_salary_per_day'])
-                                    @convertnorp($item_report['timetable']['daily_salary_per_day'])
+                                <div class="w-max px-1.5">@if ($item_report['timetable']['tbhn_u_libur'])
+                                    @convertnorp($item_report['timetable']['tbhn_u_libur'])
                                     @else
                                     -
                                     @endif
@@ -267,11 +291,22 @@
                         </td>
                         <td>
                             <p class="text-gray-500 flex-1 text-right px-1.5 text-[10px]">
-                                {{ ($item['amount_of_ot'] ?? 0) + ($item['early_check_in'] ?? 0)}}</p>
+                                @convertnorp($item['tbhn_u_libur_total'] ?? 0)</p>
                         </td>
                     </tr>
                 </tbody>
             </table>
+            <div>
+                <div class="flex items-center gap-1">
+                    <p class="text-xs text-gray-500 font-medium flex items-center">Cicilan kasbon&nbsp;&nbsp;: </p>
+                    <p class="text-gray-700 text-xs">@convertnorp($item['instalment_debt_total'])</p>
+                </div>
+                <div class="flex items-center gap-1">
+                    <p class="text-xs text-gray-500 font-medium flex items-center">Upah jabatan&nbsp;&nbsp;&nbsp;&nbsp;:
+                    </p>
+                    <p class="text-gray-700 text-xs">@convertnorp($item['position_extra_pay'])</p>
+                </div>
+            </div>
         </div>
         @endforeach
     </div>

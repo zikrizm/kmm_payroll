@@ -76,6 +76,7 @@ class BusinessController extends Controller
                 $business_details = $request->only(['name', 'start_date']);
                 $business_location = $request->only(['name', 'city', 'zip_code', 'full_address', 'website', 'mobile']);
                 //Create the business
+                $business_details['pending_day'] = 2;
                 $business_details['owner_id'] = $user->id;
 
                 //upload logo
@@ -145,7 +146,7 @@ class BusinessController extends Controller
                 return $this->buildRes->RESPONSE_REQ('error', null, $validator->errors());
             } else {
                 DB::beginTransaction();
-                $business_details = $request->only(['name', 'start_date']);
+                $business_details = $request->only(['name', 'start_date', 'pending_day']);
 
                 // upload logo
                 $logo_name = $this->businessUtil->uploadFile($request, 'business_logo', 'uploads/business_logos', 'image');

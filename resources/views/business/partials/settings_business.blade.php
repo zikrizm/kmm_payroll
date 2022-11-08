@@ -32,6 +32,10 @@
             'prefixiconname' => 'calendar',
             ]) !!}
         </section>
+        <section class="flex flex-col gap-1">
+            <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Jumlah hari gantungan</label>
+            {!! FormCustom::input('pending_day', $business->pending_day, [ "placeholder" => 'Masukkan jumlah hari untuk upah gantungan','class' => 'number']) !!}
+        </section>
     </main>
 
 </div>

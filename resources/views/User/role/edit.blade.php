@@ -45,14 +45,13 @@
                             <div class="flex flex-col flex-1 gap-1">
                                 <label
                                     class="text-sm xs/max:text-xs text-gray-500 flex items-center gap-2 bg-gray-50 rounded-md px-2 py-1 cursor-pointer hover:bg-gray-100 mb-3 {{ $role->is_default ? 'cursor-not-allowed': '' }}">
-                                    <input type="checkbox" class="accent-violet-500" {{ $role->is_default ? 'disabled':
-                                    '' }}
+                                    <input type="checkbox" class="accent-violet-500"
                                     onchange="onSelectAllCheckbox(this,'.{{ $item['name'] }}-check')"> Select all
                                 </label>
                                 @foreach ($item['roles'] as $item_role)
                                 <label
                                     class="text-sm xs/max:text-xs text-gray-500 flex items-center gap-2 bg-gray-50 rounded-md px-2 py-1 cursor-pointer hover:bg-gray-100 {{ $role->is_default ? 'cursor-not-allowed': '' }}">
-                                    <input {{ $role->is_default ? 'disabled': '' }} {{ in_array($item_role['name'],
+                                    <input {{ in_array($item_role['name'],
                                     $role_permissions ) ? 'checked' : '' }} type="checkbox" class="accent-violet-500 {{
                                     $item['name'] }}-check "
                                     name="roles[]" value="{{ $item_role['name'] }}">

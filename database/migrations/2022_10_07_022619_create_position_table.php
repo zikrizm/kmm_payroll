@@ -16,6 +16,7 @@ return new class extends Migration
         Schema::create('positions', function (Blueprint $table) {
             $table->increments('id');
             $table->integer('position_id');
+            $table->string('position_name');
             $table->boolean('must_attend')->default(0);
             $table->boolean('permanently')->default(0);
             $table->decimal('extra_pay', 22, 2)->nullable();
