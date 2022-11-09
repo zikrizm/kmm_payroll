@@ -47,7 +47,7 @@
             // **
             // * get table ----->
             // *
-            var res = await ApiService.get_table('/department', data);
+            var res = await ApiService.get_table('/department', dataParams);
             $('.table-content').html(res);
 
             // **

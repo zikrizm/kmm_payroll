@@ -43,7 +43,7 @@
             
             dataParams = {
                 date: { 
-                    start_time: convertLocalTimezone(moment().subtract(6, 'days'), 'YYYY-MM-DD'), 
+                    start_time: convertLocalTimezone(moment().subtract(7, 'days'), 'YYYY-MM-DD'), 
                     end_time: convertLocalTimezone(moment(), 'YYYY-MM-DD')
                 }
             }
@@ -51,7 +51,7 @@
 
             $('input[name="date"]').daterangepicker({
                 locale: { format: 'YYYY-MM-DD' },
-                startDate: moment().subtract(6, 'days'),
+                startDate: moment().subtract(7, 'days'),
                 endDate: moment(),
                 ranges: {
                     'Today': [moment(), moment()],
@@ -114,7 +114,6 @@
             // **
             // * open modal form ----->
             // *
-            console.log(payroll_report_id)
             var URL = (payroll_report_id) ? '/payroll-report/' + payroll_report_id + '/edit' : '/payroll-report/create';
             var res = await ApiService.get_modal(URL, null);
             $('input[name="holiday_date"]').daterangepicker({

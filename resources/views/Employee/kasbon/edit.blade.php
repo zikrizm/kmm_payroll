@@ -30,16 +30,16 @@
             <main class="px-4 flex flex-col gap-2.5 xs/max:gap-3 mb-8">
                 <section class="flex flex-col gap-1">
                     <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Karyawan*</label>
-                    <select class="select2-employee" name="emp_id" data-ajax--url="{{ route('employee.search-employee-for-dropdown') }}"
-                        data-ajax--cache="true">
+                    <select class="select2-employee" name="emp_id" @disabled(count($kasbon->instalments))
+                        data-ajax--url="{{ route('employee.search-employee-for-dropdown') }}" data-ajax--cache="true">
                         <option value="{{ $employee['id'] }}">
                             <div class="flex items-center">
                                 <div class="flex gap-3 items-center py">
                                     @if (empty($employee["photo"]))
-                                    <img src="@zkPhoto({{ $employee[" photo"] }})" alt=""
+                                    <img src="@zkPhoto({{ $employee['photo'] }})" alt=""
                                         class="w-8 object-cover h-8 min-w-[32px] min-h-[32px] rounded-full">
                                     @else
-                                    <img src="@zkPhoto(files / nophoto . gif)" alt=""
+                                    <img src="@zkPhoto(files/nophoto.gif)" alt=""
                                         class="w-8 object-cover h-8 min-w-[32px] min-h-[32px] rounded-full">
                                     @endif
                                     <div>
@@ -62,6 +62,8 @@
                     'placeholder' => 'Pilih tanggal kasbon',
                     'readonly' => true,
                     'prefixiconname' => 'calendar',
+                    'disabled' => count($kasbon->instalments),
+                    'block_input' => count($kasbon->instalments),
                     ]) !!}
                 </section>
                 <section class="flex flex-col gap-1">
@@ -70,7 +72,13 @@
                     'prefixtext' => 'Rp',
                     'placeholder' => 'Masukkan kasbon karyawan',
                     'class' => 'number',
+                    'disabled' => count($kasbon->instalments),
+                    'block_input' => count($kasbon->instalments),
                     ]) !!}
+                    @if (count($kasbon->instalments))
+                    <input type="hidden" name="debt" value="{{number_format($kasbon->debt,0, '', '.')}}">
+                    <p class="text-gray-400 text-xs">Tidak bisa di ubah dikarenakan kasbon sudah tercicil</p>
+                    @endif
                 </section>
                 <section class="flex flex-col gap-1">
                     <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Jumlah cicilan (yang akan dipotong

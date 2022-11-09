@@ -104,7 +104,7 @@
                         </td>
                         <td class="align-middle">
                             <p class="text-gray-500 text-xs text-middle mt-0.5">
-                                @if (!empty($item['employee']))
+                                @if (!empty($item['employee'])&&!empty($item['employee']['position']))
                                 {{ implode(', ', array_column($item['employee']['position'], 'position_name')) }}
                                 @else
                                 -
@@ -189,7 +189,7 @@
                                         @endif
                                     </div>
                                 </div>
-                                <div class="w-7 pl-0.5 flex justify-center bg-gray-100 text-gray-700">
+                                <div class="w-8 pl-0.5 flex justify-center bg-gray-100 text-gray-700">
                                     <p class="text-[9px]">{{ !empty($item_report['timetable']['per_day']) ?
                                         '( '.$item_report['timetable']['per_day'].' )' : '' }}</p>
                                 </div>
@@ -268,28 +268,28 @@
                                 TOTAL
                             </p>
                         </td>
-                        <td class=''>
+                        <td class='border'>
                             <div class="flex justify-end">
-                                <div class="w-7 pl-0.5 flex justify-center bg-gray-100 text-gray-700">
+                                <div class="w-8 pl-0.5 flex justify-center bg-gray-100 text-gray-700">
                                     <p class="text-[9px]">( {{ $item['amount_day'] ?? 0 }} )</p>
                                 </div>
                             </div>
                         </td>
                         <td class='text-xs text-center'>
                         </td>
-                        <td class='text-center'>
+                        <td class='border text-center'>
                             <p class="text-gray-500 flex-1 text-center text-[10px]">
                                 {{ $item['amount_of_ot'] ?? 0 }}</p>
                         </td>
-                        <td>
+                        <td class="border">
                             <p class="text-gray-500 flex-1 text-right px-1.5 text-[10px]">
                                 @convertnorp($item['daily_salary_total'] ?? 0)</p>
                         </td>
-                        <td>
+                        <td class="border">
                             <p class="text-gray-500 flex-1 text-right px-1.5 text-[10px]">
                                 @convertnorp($item['amout_of_ot_pay'] ?? 0)</p>
                         </td>
-                        <td>
+                        <td class="border">
                             <p class="text-gray-500 flex-1 text-right px-1.5 text-[10px]">
                                 @convertnorp($item['tbhn_u_libur_total'] ?? 0)</p>
                         </td>

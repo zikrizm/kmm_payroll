@@ -117,7 +117,7 @@ hover:bg-gray-50
                     </a>
                     @canany(['department.view', 'position.view', 'area.view', 'device.view'])
                     <section class="my-dropdown-menu hover:bg-gray-50 flex items-center {{ $is_mini ? 'justify-center' : 'justify-between' }} p-2.5 rounded-lg w-full
-                                    @activemenu('organizations')
+                                    @activemenu('organization')
 bg-gray-100 active
 @else
 hover:bg-gray-50
@@ -134,7 +134,7 @@ hover:bg-gray-50
                         </span>
                     </section>
                     <div id="dropdown-menu-organization" class="sub-menu-content {{ $is_mini ? 'hidden' : 'flex' }} flex-col gap-1
-                                 @activemenu('organizations')
+                                 @activemenu('organization')
 sub-menu-active
 @else
 hidden

@@ -2,8 +2,17 @@
     @csrf
     <!-- {{ csrf_field() }} -->
     <section
-        class="flex flex-col gap-8  pt-4 w-[375px] bg-white max-h-[95vh] overflow-y-auto overflow-x-hidden relative rounded-lg">
-        <header class="px-4 flex flex-col gap-5 pt-4 xs/max:gap-3 relative">
+        class="flex flex-col gap-8 py-4 w-[375px] bg-white max-h-[95vh] overflow-y-auto overflow-x-hidden relative rounded-lg">
+        <div class="flex">
+            {{-- <div>
+                <x-icon icon="bullhorn" width=100 height=100 viewBox="20 20" />
+            </div> --}}
+            <div class="flex flex-col gap-1">
+                <p class="text-gray-700 font-bold text-xl">Hei tunggu</p>
+                <p class="text-gray-700 font-bold text-xl">Apakah anda yakin, ingin menkalkulasi penggajian ini?, karena data akan tersimpan</p>
+            </div>
+        </div>
+        {{-- <header class="px-4 flex flex-col gap-5 pt-4 xs/max:gap-3 relative">
             <button
                 class="absolute top-[-5px] right-3 xs/max:top-[-6px] modal-close hover:bg-gray-100 text-red rounded p-2">
                 <x-icon icon="x" width=16 height=16 viewBox="20 20" />
@@ -45,6 +54,6 @@
                 <button type="submit"
                     class="text-white shadow bg-violet-600 hover:bg-violet-700 focus:ring-2 focus:ring-violet-700 font-medium rounded-lg xs/max:rounded-md text-sm xs/max:text-xs inline-flex items-center xs/max:px-4 px-6 xs/max:py-1.5 py-2 text-center">Done</button>
             </footer>
-        </div>
+        </div> --}}
     </section>
 </form>

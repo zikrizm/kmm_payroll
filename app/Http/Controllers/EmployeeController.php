@@ -492,6 +492,7 @@ class EmployeeController extends Controller
     {
         if (!$request->ajax()) abort(403, 'Unauthorized action.');
         if ($request->has('q') && !empty($request->input('q'))) {
+            Log::info($request);
             $emp_filter = [];
             $employeeDBs = EmployeeHasPosition::with(['position' => function ($query) {
                 $query->where('permanently', '!=', 0);

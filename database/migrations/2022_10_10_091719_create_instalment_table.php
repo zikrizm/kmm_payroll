@@ -13,11 +13,12 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('instalment', function (Blueprint $table) {
+        Schema::create('instalments', function (Blueprint $table) {
             $table->increments('id');
             $table->integer('employee_debt_id')->unsigned();
 
             $table->dateTime('date');
+            $table->decimal('instalment_debt', 22, 2)->nullable();
             $table->foreign('employee_debt_id')->references('id')->on('employee_debts')->onDelete('cascade');
             $table->integer('created_user')->unsigned();
             $table->integer('updated_user')->nullable()->unsigned();
@@ -34,6 +35,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('instalment');
+        Schema::dropIfExists('instalments');
     }
 };

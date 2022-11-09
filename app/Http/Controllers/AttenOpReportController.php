@@ -55,7 +55,7 @@ class AttenOpReportController extends Controller
                 }
 
                 // * Employee search
-                $search = 'Yusep';
+                $search = '';
                 if (!empty($request->input('q'))) {
                     $search = $request->q;
                 }
@@ -73,10 +73,10 @@ class AttenOpReportController extends Controller
                 $attenDBs = [];
                 $slug_week = ['mgg', 'sen', 'sel', 'rab', 'kam', 'jum', 'sab'];
                 if (!empty($request->input('date'))) {
-                    $start_time = Carbon::parse("2022-10-01 23:59:59");
-                    $end_time = Carbon::parse("2022-10-30 23:59:59");
-                    // $start_time = Carbon::parse($request->date['start_time']);
-                    // $end_time = Carbon::parse($request->date['end_time']);
+                    // $start_time = Carbon::parse("2022-10-01 23:59:59");
+                    // $end_time = Carbon::parse("2022-10-30 23:59:59");
+                    $start_time = Carbon::parse($request->date['start_time']);
+                    $end_time = Carbon::parse($request->date['end_time']);
                     $filter['start_time'] = $start_time->hour(0)->minute(0)->second(0)->format('Y-m-d H:i:s');
                     $filter['end_time'] = $end_time->addHours(1)->hour(23)->minute(59)->second(59)->format('Y-m-d H:i:s');
                     $attenDBs = Transaction::whereBetween('punch_time', [$filter['start_time'], $filter['end_time']])->get();
@@ -90,8 +90,6 @@ class AttenOpReportController extends Controller
 
                 // ** get department data dari biotime
                 $dept_bios = $this->apiService->get_departments(["page_size" => 999])['data'];
-                // ** get department data dari biotime
-                $position_bios = $this->apiService->get_positions(["page_size" => 999])['data'];
                 // ** get employee data dari biotime
                 // $emp_bio_count = $this->apiService->get_employees([])["count"];
                 $emp_bios = $this->apiService->get_employees(array_merge(["employee_icontains" => $search, "page_size" => 12], (!is_null($dept_id) ? ["departments" => $dept_id] : [])))['data'];
@@ -105,10 +103,6 @@ class AttenOpReportController extends Controller
 
                 // ** get employee data dari database local
                 $emp_form_databases = Employee::where('business_id', $business_id)->get();
-                // ** get posisi data dari database local
-                $position = Position::with('employee_has_position')->get();
-                // ** get kasbon data dari database local
-                $debts = EmployeeDebt::where('business_id', $business_id)->whereBetween('date', array($start_time, $end_time))->get();
                 // ** get libur data dari database local
                 $holidays = Holiday::where('business_id', $business_id)->whereBetween('start_date', array($start_time, $end_time))
                     ->orWhereBetween('end_date', array($start_time, $end_time))->get();
@@ -139,17 +133,15 @@ class AttenOpReportController extends Controller
                         : $emp['department']['id'];
 
                     // ** filterkasbon
-
-                    $emp_debts = $debts->filter(function ($item) use ($emp) {
-                        return $item->emp_id === $emp['id'];
-                    });
+                    // $emp_debts = $debts->filter(function ($item) use ($emp) {
+                    //     return $item->emp_id === $emp['id'];
+                    // });
                     $group = !empty($operational) ? ($operational->operational_has_depts ?? [])->filter(function ($item) use ($emp) {
                         return $item->dept_id === $emp['department']['id'];
                     }) : [];
 
 
                     $departmentDB = Department::where('dept_id', $emp['department']['id'])->first();
-                    
                     $empDB = Employee::where('business_id', $business_id)->where('emp_id', $emp['id'])->first();
                     $diff_date = 0;
                     if (!empty($empDB)) {
@@ -165,8 +157,9 @@ class AttenOpReportController extends Controller
                                 break;
                         }
                     }
-                    $kasbons = EmployeeDebt::where('business_id', $business_id)->where('emp_id', $emp['id'])->whereBetween('date', array($start_time, $end_time))->get();
-                    Log::info($kasbons);
+                    $kasbons = EmployeeDebt::where('business_id', $business_id)->where('status', 'payment')->where('emp_id', $emp['id'])->whereDate('date','<=',$end_time)->get();
+                    // $kasbons = EmployeeDebt::where('business_id', $business_id)->where('status', 'payment')->where('emp_id', $emp['id'])->get();
+                    // Log::info($kasbons);
                     // $instalment_debt_total = array;
                     // if(!empty($kasbons)) {
                     //     foreach ($kasbons as $kasbon) {
@@ -177,15 +170,17 @@ class AttenOpReportController extends Controller
                     //         // }
                     //     }
                     // }
-                    $positiontess = Position::whereHas('employee_has_position.employee', function ($e) use ($emp) {
+                    $position = Position::whereHas('employee_has_position.employee', function ($e) use ($emp) {
                         $e->where('emp_id', $emp['id']);
                     })->get();
-                    $request_tasks = RequestTask::whereIn('position_id', array_column($positiontess->toArray(), 'id'))->with('position')->get()->groupBy(function ($item) {
+                    $position_no_permanen = $position->where('permanently', 0);
+                    $position_permanen = $position->where('permanently', '!=', 0);
+                    $request_tasks = RequestTask::whereIn('position_id', array_column($position_no_permanen->toArray(), 'id'))->with('position')->get()->groupBy(function ($item) {
                         return Carbon::parse($item->date)->format('Y-m-d');
                     });
                     $instalment_debt_total = array_sum(array_column($kasbons->toArray(), 'instalment')) * $diff_date;
-                    $position_extra_pay = array_sum(array_column($positiontess->toArray(), 'extra_pay')) * $diff_date;
-                    $emp['position'] = (!empty($positiontess)) ? $positiontess->toArray() : [];
+                    $position_extra_pay = array_sum(array_column($position_permanen->toArray(), 'extra_pay')) * $diff_date;
+                    $emp['position'] = (!empty($position_permanen)) ? $position_permanen->toArray() : [];
                     $daily_salary = $empDB->daily_salary ?? 0;
 
                     foreach ($dates as $date_key => $date) {
@@ -579,7 +574,7 @@ class AttenOpReportController extends Controller
                             $daily_salary_total += $value['timetable']['daily_salary_per_day'] ?? 0;
                         }
                     }
-                    $total = ($amout_of_ot_pay + $early_check_in_pay) + ($amount_day * $daily_salary);
+                    $total = (($amout_of_ot_pay + $early_check_in_pay + $tbhn_u_libur_total + $position_extra_pay) - $instalment_debt_total) + ($amount_day * $daily_salary);
 
                     $attendance_reports[] = [
                         'employee' => $emp,
@@ -601,7 +596,7 @@ class AttenOpReportController extends Controller
 
                 // Log::info(response()->json($attendance_reports));
                 $order = null;
-                $render =  view('Report.attendance_operational.table', compact('attendance_reports', 'position_bios', 'order'))->render();
+                $render =  view('Report.attendance_operational.table', compact('attendance_reports', 'order'))->render();
 
                 return $this->buildRes->RESPONSE_REQ('success', $render, null);
             }

@@ -323,7 +323,7 @@ class AttenOpReportControllerCopy extends Controller
                 }
 
                 // * Employee search
-                $search = 'Yusep';
+                $search = '';
                 if (!empty($request->input('q'))) {
                     $search = $request->q;
                 }

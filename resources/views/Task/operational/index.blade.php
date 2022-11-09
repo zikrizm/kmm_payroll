@@ -43,6 +43,7 @@
     </div>
     <div class="table-content"></div>
     <x-ui.confirm-modal class="submit-delete-operational"></x-ui.confirm-modal>
+    <x-ui.confirm-modal class="submit-delete-request-task"></x-ui.confirm-modal>
 </div>
 
 <script type="application/javascript">
@@ -339,14 +340,23 @@
             var URL = (id) ? '/request-task/' + id + '/edit' : '/request-task/create';
             var res = await ApiService.get_modal(URL, { ...date_task});
             $(".select2-position").select2();
+            console.log(id);
             if(!id) {
                 $('.select2-position').on('select2:select', async function (e) {
-                    if ($('#selected-employee-content').is(':hidden')) {
-                        $('#selected-employee-content').toggle('hidden');
+                    let _response = await (new NetworkUtils()).emitter('GET', '/get-employee-position', {position: this.value}, {})
+                    console.log(_response);
+                    hideAllHintText();
+                    if (_response.response < 200 || _response.response >= 300) {
+                        // * SHOW NOTIFICATION ----->
+                    } else {
+                        $('#selected-employee-content').html(_response.data);
+                        $(".select-employee").select2();
+                        if ($('#selected-employee-content').is(':hidden')) {
+                            $('#selected-employee-content').toggle('hidden');
+                        }
                     }
                 });
             }
-            select2_employee();
             if(!date_task) {
                 $('.request-task-date').daterangepicker({
                     locale: { format: 'YYYY-MM-DD' },
@@ -398,6 +408,19 @@
                 parent_container_remove_btn.removeClass('bg-red-50 border-red-200');
             });
             await ApiService.get_confirm('.submit-delete-operational', '/operational/' + id, null, () => {
+                onInit();
+            })
+        }
+        async function open_modal_confirm_task(e, id) {
+            // **
+            // * open modal confirm ----->
+            // *
+            var parent_container_remove_btn = $(e).parent().parent();
+            parent_container_remove_btn.addClass('bg-red-50 border-red-200');
+            $('.modal-close').on('click', function(e){
+                parent_container_remove_btn.removeClass('bg-red-50 border-red-200');
+            });
+            await ApiService.get_confirm('.submit-delete-request-task', '/request-task/' + id, null, () => {
                 onInit();
             })
         }

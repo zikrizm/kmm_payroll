@@ -96,7 +96,7 @@
             // **
             // * get table ----->
             // *
-            var res = await ApiService.get_table('/kasbon', data);
+            var res = await ApiService.get_table('/kasbon', dataParams);
             $('.table-content').html(res);
 
             // **
@@ -113,6 +113,7 @@
             // **
             // * open modal form ----->
             // *
+            console.log('kasbon_id',kasbon_id)
             var URL = (kasbon_id) ? '/kasbon/' + kasbon_id + '/edit' : '/kasbon/create';
             var res = await ApiService.get_modal(URL, null);
             select2_employee();

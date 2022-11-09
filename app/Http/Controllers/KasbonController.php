@@ -53,7 +53,7 @@ class KasbonController extends Controller
                     $order = $sort['order'];
                     $kasbons->orderBy($sort['name'], $sort['order']);
                 }
-                $kasbons = $kasbons->paginate(10);
+                $kasbons = $kasbons->with('instalments')->paginate(10);
                 $render =  view('Employee.kasbon.table', compact('kasbons', 'order'))->render();
 
                 return $this->buildRes->RESPONSE_REQ('success', $render, null);
@@ -103,7 +103,9 @@ class KasbonController extends Controller
         }
 
         try {
-            $validator = Validator::make($request->all(), $this->rules());
+            $validator = Validator::make($request->all(), $this->rules(null));
+            if ($request->debt)  $request['debt'] = str_replace('.', '', $request['debt']);
+            if ($request->instalment) $request['instalment'] = str_replace('.', '', $request['instalment']);
 
             if ($validator->fails()) {
                 return $this->buildRes->RESPONSE_REQ('error', null, $validator->errors());
@@ -118,7 +120,6 @@ class KasbonController extends Controller
                 $kasbon_data['updated_user'] = auth()->user()->id;
                 $kasbon_data['debt'] = str_replace('.', '', $kasbon_data['debt']);
                 $kasbon_data['instalment'] = str_replace('.', '', $kasbon_data['instalment']);
-                $kasbon_data['remainder_debt'] = str_replace('.', '', $kasbon_data['instalment']);
 
                 $kasbon = new EmployeeDebt($kasbon_data);
                 $kasbon->save();
@@ -151,20 +152,21 @@ class KasbonController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  EmployeeDebt $kasbon
+     * @param  int $kasbon
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function edit(EmployeeDebt $kasbon, Request $request)
+    public function edit(int $kasbon, Request $request)
     {
         if (!auth()->user()->can('kasbon.update') || !$request->ajax()) {
             abort(403, 'Unauthorized action.');
         }
 
         try {
+            $kasbon = EmployeeDebt::where('id', $kasbon)->with('instalments')->first();
             $employee = $this->apiService->get_employees(['emp_code' => $kasbon->emp_code]);
             $employee = $employee['data'][0];
-            Log::info($employee);
+
             $render = view('Employee.kasbon.edit', compact('kasbon', 'employee'))->render();
 
             return $this->buildRes->RESPONSE_REQ('success', $render, null);
@@ -189,21 +191,34 @@ class KasbonController extends Controller
         }
 
         try {
-            $validator = Validator::make($request->all(), $this->rules());
+            if ($request->debt) $request['debt'] = str_replace('.', '', $request['debt']);
+            if ($request->instalment) $request['instalment'] = str_replace('.', '', $request['instalment']);
+            $kasbon = $kasbon->with('instalments')->first();
+            if (count($kasbon->instalments)) {
+
+                $validator = Validator::make($request->all(), $this->rules($kasbon));
+            } else {
+                $validator = Validator::make($request->all(), $this->rules(null));
+            }
+
 
             if ($validator->fails()) {
                 return $this->buildRes->RESPONSE_REQ('error', null, $validator->errors());
             } else {
-                $kasbon_data = $request->only(['emp_id', 'date', 'debt', 'instalment']);
-                $employee = $this->apiService->read_employee($kasbon_data['emp_id']);
-                $kasbon_data['business_id'] = Session::get('business_id');
-                $kasbon_data['first_name'] = $employee['first_name'];
-                $kasbon_data['emp_code'] = $employee['emp_code'];
-                $kasbon_data['updated_user'] = auth()->user()->id;
-                $kasbon_data['debt'] = str_replace('.', '', $kasbon_data['debt']);
-                $kasbon_data['instalment'] = str_replace('.', '', $kasbon_data['instalment']);
-
-                $kasbon->update($kasbon_data);
+                if (count($kasbon->instalments)) {
+                    $kasbon_data['updated_user'] = auth()->user()->id;
+                    $kasbon_data['instalment'] = str_replace('.', '', $request['instalment']);
+                    $kasbon->update($kasbon_data);
+                } else {
+                    $kasbon_data = $request->only(['emp_id', 'date', 'debt', 'instalment']);
+                    $employee = $this->apiService->read_employee($kasbon_data['emp_id']);
+                    $kasbon_data['first_name'] = $employee['first_name'];
+                    $kasbon_data['emp_code'] = $employee['emp_code'];
+                    $kasbon_data['updated_user'] = auth()->user()->id;
+                    $kasbon_data['debt'] = str_replace('.', '', $kasbon_data['debt']);
+                    $kasbon_data['instalment'] = str_replace('.', '', $kasbon_data['instalment']);
+                    $kasbon->update($kasbon_data);
+                }
 
                 // ** create activity log user
                 ActivityLog::created_activity('CRUD debt', 'User ' . auth()->user()->username . ' edit data debt');
@@ -245,13 +260,13 @@ class KasbonController extends Controller
      *
      * @return array
      */
-    public function rules()
+    public function rules($kasbon)
     {
         return [
-            'emp_id' => 'required|string|max:255',
-            'date' => 'required',
+            'emp_id' => (empty($kasbon)) ? 'required|string|max:255' : '',
+            'date' => (empty($kasbon)) ? 'required' : '',
             'debt' => 'required',
-            'instalment' => 'required',
+            'instalment' => 'required|lte:debt',
         ];
     }
 }

@@ -31,4 +31,11 @@ class EmployeeDebt extends Model
     {
         return $this->belongsTo(Employee::class);
     }
+    /**
+     * Get the instalment.
+     */
+    public function instalments()
+    {
+        return $this->hasMany(Instalment::class, 'employee_debt_id');
+    }
 }

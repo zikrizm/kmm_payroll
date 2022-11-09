@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class RequestTaskHasEmp extends Model
+class Instalment extends Model
 {
     use HasFactory;
 
@@ -15,12 +15,4 @@ class RequestTaskHasEmp extends Model
      * @var array
      */
     protected $guarded = ['id'];
-
-    /**
-     * Get the employee.
-     */
-    public function employee()
-    {
-        return $this->belongsTo(Employee::class, 'emp_id', 'emp_id');
-    }
 }

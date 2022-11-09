@@ -17,12 +17,13 @@ return new class extends Migration
             $table->increments('id');
             $table->integer('business_id')->unsigned();
             $table->integer('emp_id');
-            $table->integer('emp_code');
+            $table->string('emp_code');
             $table->dateTime('date');
             $table->decimal('debt', 22, 2)->nullable();
             $table->decimal('instalment', 22, 2)->nullable();
-            $table->decimal('remainder_debt', 22, 2)->nullable();
-            $table->decimal('instalment_debt', 22, 2)->nullable();
+            $table->enum('status', ['paid_off', 'payment'])->nullable();
+            // $table->decimal('remainder_debt', 22, 2)->nullable();
+            // $table->decimal('instalment_debt', 22, 2)->nullable();
             $table->string('first_name');
 
             $table->integer('created_user')->unsigned();

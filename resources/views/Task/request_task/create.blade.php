@@ -48,7 +48,8 @@
                     </select>
                     <label class="font-normal text-xs text-red-500 xs/max:text-xs department hint-text"></label>
                 </section>
-                <div id="selected-employee-content" class="hidden">
+                <div id="selected-employee-content" class="hidden"></div>
+                {{-- <div id="selected-employee-content" class="hidden">
                     <section class="flex flex-col gap-1">
                         <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Karyawan*</label>
                         <select data-ajax--url="{{ route('employee.search-employee-request-position') }}"
@@ -56,7 +57,7 @@
                         </select>
                         <label class="font-normal text-xs text-red-500 xs/max:text-xs emps hint-text"></label>
                     </section>
-                </div>
+                </div> --}}
             </main>
             <hr>
             <footer class="flex justify-end items-center gap-3 p-4  pb-6">

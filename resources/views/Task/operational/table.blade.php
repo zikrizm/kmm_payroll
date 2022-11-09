@@ -38,11 +38,9 @@
                         <div class="h-full border rounded flex justify-between flex-col p-2 relative hover:bg-gray-50 ">
                             <p class="text-gray-700 font-medium text-xs">Tugas - {{ (!empty($item_task['position']))?
                                 $item_task->position->position_name??'' : '-' }}</p>
-                            <div class="flex justify-center items-center relative h-4"
-                                style="width: {{ count($item_task->request_task_has_emps) * 14 }}px;">
+                            <div class="flex justify-start items-center relative h-4 gap-0.5">
                                 @foreach ($item_task->request_task_has_emps as $key => $emp)
-                                <div class='rounded-full border-white bg-white border-[1.5px] h-4 w-4 absolute overflow-hidden'
-                                    style='z-index: {{ $key + 1 }}; left: {{ 10 * $key }}px'>
+                                <div class='rounded-full border-white bg-white border-[1.5px] h-4 w-4 overflow-hidden'>
                                     @if (!empty($emp->employee->photo))
                                     <img src="@zkPhoto({{ $emp->employee->photo }})" alt=""
                                         class="w-full h-full object-cover">
@@ -59,7 +57,7 @@
                                     class="bg-white text-violet-500 border rounded border-violet-100 p-1 hover:bg-violet-100">
                                     <x-icon icon="edit" width=12 height=12 viewBox="20 20" />
                                 </button>
-                                <button type="button" onclick="open_modal_confirm(this,'{{ $item_task->id }}')"
+                                <button type="button" onclick="open_modal_confirm_task(this,'{{ $item_task->id }}')"
                                     class="bg-white text-red-500 border rounded border-red-100 p-1 hover:bg-red-100">
                                     <x-icon icon="trash-2" width=12 height=12 viewBox="20 20" />
                                 </button>
