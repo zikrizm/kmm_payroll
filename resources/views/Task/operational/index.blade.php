@@ -126,7 +126,8 @@
             // *
             var URL = (id) ? '/operational/' + id + '/edit' : '/operational/create';
             var res = await ApiService.get_modal(URL, { ...data_operasional});
-            var anElement = new AutoNumeric.multiple('.number',{decimalPlaces:0,minimumValue: 0,decimalCharacter: ',', digitGroupSeparator : ""});
+            // var anElement = new AutoNumeric.multiple('.number',{decimalPlaces:0,minimumValue: 0,decimalCharacter: ',', digitGroupSeparator : ""});
+            var anElement = new AutoNumeric.multiple('.number',{decimalCharacterAlternative:'.',modifyValueOnWheel: false, minimumValue: 0,decimalCharacter: ',', digitGroupSeparator : ""});
             
             if(!data_operasional) {
                 $('.operational_date').daterangepicker({

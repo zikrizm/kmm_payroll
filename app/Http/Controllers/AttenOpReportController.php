@@ -55,7 +55,7 @@ class AttenOpReportController extends Controller
                 }
 
                 // * Employee search
-                $search = '';
+                $search = 'Erwan';
                 if (!empty($request->input('q'))) {
                     $search = $request->q;
                 }
@@ -73,10 +73,10 @@ class AttenOpReportController extends Controller
                 $attenDBs = [];
                 $slug_week = ['mgg', 'sen', 'sel', 'rab', 'kam', 'jum', 'sab'];
                 if (!empty($request->input('date'))) {
-                    // $start_time = Carbon::parse("2022-10-01 23:59:59");
-                    // $end_time = Carbon::parse("2022-10-30 23:59:59");
-                    $start_time = Carbon::parse($request->date['start_time']);
-                    $end_time = Carbon::parse($request->date['end_time']);
+                    $start_time = Carbon::parse("2022-10-16 23:59:59");
+                    $end_time = Carbon::parse("2022-10-29 23:59:59");
+                    // $start_time = Carbon::parse($request->date['start_time']);
+                    // $end_time = Carbon::parse($request->date['end_time']);
                     $filter['start_time'] = $start_time->hour(0)->minute(0)->second(0)->format('Y-m-d H:i:s');
                     $filter['end_time'] = $end_time->addHours(1)->hour(23)->minute(59)->second(59)->format('Y-m-d H:i:s');
                     $attenDBs = Transaction::whereBetween('punch_time', [$filter['start_time'], $filter['end_time']])->get();
@@ -492,12 +492,14 @@ class AttenOpReportController extends Controller
                                                 $diff_check_out_hrs = $_shift_check_out_cross_plus_ot_limit_op->diffInHours($_punch_check_out, false);
                                                 $hours = $diff_check_out_mnt / 60;
                                                 $status_plusm = $report_by_date['timetable']['real_overtime'] - ($op_timetable->ot_limit ?? 0);
+                                                Log::info("hours=$hours date=$date status_plusm=$status_plusm (ot_limit=$op_timetable->ot_limit overtime={$report_by_date['timetable']['real_overtime']})");
                                                 if (ceil($hours) == 0) {
                                                     $report_by_date['timetable']['status']['slug'] = 'check';
                                                 } else {
                                                     $report_by_date['timetable']['status']['slug'] = 'plusmn';
-                                                    $report_by_date['timetable']['status']['value'] = $status_plusm < 0 ? $status_plusm : '+' . $status_plusm;
+                                                    $report_by_date['timetable']['status']['value'] = $hours < 0 ? $hours : '+' . $status_plusm;
                                                 }
+                                                break;
                                             } else {
                                                 $report_by_date['timetable']['status']['slug'] = 'not-allowed';
                                             }
@@ -505,6 +507,7 @@ class AttenOpReportController extends Controller
                                             if ($op_timetable->status == 'active') {
                                                 $is_inactive = false;
                                                 $report_by_date['timetable']['status']['slug'] = 'not-allowed';
+                                                break;
                                             } else {
                                                 $report_by_date['timetable']['status']['slug'] = 'check';
                                             }

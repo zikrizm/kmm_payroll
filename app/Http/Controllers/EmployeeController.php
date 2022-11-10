@@ -220,14 +220,14 @@ class EmployeeController extends Controller
                     }
 
                     // Delete all EmployeeHasPosition IF emp_id == $employee->id
-                    EmployeeHasPosition::where('emp_id', $employeeDB->id)->each(function ($item) {
+                    EmployeeHasPosition::where('employee_id', $employeeDB->id)->each(function ($item) {
                         $item->delete();
                     });
 
                     if (!empty($request->input('position'))) {
                         foreach ($emp_data['position'] as $item) {
                             $position = new EmployeeHasPosition([
-                                'emp_id' => $employeeDB->id,
+                                'employee_id' => $employeeDB->id,
                                 'position_id' => $item,
                             ]);
 
@@ -391,14 +391,14 @@ class EmployeeController extends Controller
                     }
 
                     // Delete all EmployeeHasPosition IF emp_id == $employee->id
-                    EmployeeHasPosition::where('emp_id', $employeeDB->id)->each(function ($item) {
+                    EmployeeHasPosition::where('employee_id', $employeeDB->id)->each(function ($item) {
                         $item->delete();
                     });
 
                     if (!empty($request->input('position'))) {
                         foreach ($emp_data['position'] as $item) {
                             $position = new EmployeeHasPosition([
-                                'emp_id' => $employeeDB->id,
+                                'employee_id' => $employeeDB->id,
                                 'position_id' => $item,
                             ]);
                             $position->save();
