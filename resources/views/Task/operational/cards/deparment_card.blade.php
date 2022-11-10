@@ -63,11 +63,12 @@
                                     <div class="flex items-center justify-center gap-2">
                                         <div
                                             class="{{ !empty($item_timetable['status']) && $item_timetable['status'] == 'active' ? '' : 'hidden' }} ot-limit-content">
-                                            <div class="w-12 pt-1">
+                                            <div class="w-14 pt-1">
                                                 {!! FormCustom::input('shift['.$key.'][timetables][' . $key_timetable .
-                                                '][ot_limit]', 0, [
+                                                '][ot_limit]', $item_timetable['ot_limit'] ?? 0, [
                                                 'placeholder' => '-',
-                                                'class' => '!h-7 number text-center',
+                                                'type' => 'number',
+                                                'class' => '!h-7  text-center',
                                                 ]) !!}
                                             </div>
                                         </div>

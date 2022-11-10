@@ -157,7 +157,7 @@ class AttenOpReportController extends Controller
                                 break;
                         }
                     }
-                    $kasbons = EmployeeDebt::where('business_id', $business_id)->where('status', 'payment')->where('emp_id', $emp['id'])->whereDate('date','<=',$end_time)->get();
+                    $kasbons = EmployeeDebt::where('business_id', $business_id)->where('status', 'payment')->where('emp_id', $emp['id'])->whereDate('date', '<=', $end_time)->get();
                     // $kasbons = EmployeeDebt::where('business_id', $business_id)->where('status', 'payment')->where('emp_id', $emp['id'])->get();
                     // Log::info($kasbons);
                     // $instalment_debt_total = array;
@@ -257,6 +257,8 @@ class AttenOpReportController extends Controller
                                                     $shift_bagian_check_out = Carbon::parse($date . $shiftdayHas->timetable->check_out);
                                                     $shift_bagian_check_in_add_plusmn = Carbon::parse($date . $shiftdayHas->timetable->check_in)->subMinutes($shiftdayHas->timetable->check_in_plusmn);
                                                     $shift_bagian_check_in_sub_plusmn = Carbon::parse($date . $shiftdayHas->timetable->check_in)->addMinutes($shiftdayHas->timetable->check_in_plusmn);
+                                                    $timetable['check_in_plusmn'] = $shiftdayHas->timetable->check_in_plusmn;
+                                                    $timetable['check_out_plusmn'] = $shiftdayHas->timetable->check_out_plusmn;
 
                                                     $shift_check_out_plus_ot = Carbon::parse($date . $shiftdayHas->timetable->check_out)->addDays($shiftdayHas->timetable->cross_day ?? 0)->addHours($shiftdayHas->timetable->duration_ot_limit);
                                                     $shift_bagian_check_out_cross = Carbon::parse($date . $shiftdayHas->timetable->check_out)->addDays($shiftdayHas->timetable->cross_day ?? 0);
@@ -488,17 +490,36 @@ class AttenOpReportController extends Controller
                                                 $is_inactive = false;
                                                 $_punch_check_out = Carbon::parse($report_by_date['timetable']['last_punch']);
                                                 $_shift_check_out_cross_plus_ot_limit_op = Carbon::parse($date . $report_by_date['timetable']['check_out'])->addDays($report_by_date['timetable']['cross_day'] ?? 0)->addHours($op_timetable->ot_limit ?? 0);
+                                                $shift_bagian_check_out_add_plusmn = Carbon::parse($date . $report_by_date['timetable']['check_out'])->subMinutes($report_by_date['timetable']['check_out_plusmn']);
                                                 $diff_check_out_mnt = $_shift_check_out_cross_plus_ot_limit_op->diffInMinutes($_punch_check_out, false);
                                                 $diff_check_out_hrs = $_shift_check_out_cross_plus_ot_limit_op->diffInHours($_punch_check_out, false);
                                                 $hours = $diff_check_out_mnt / 60;
                                                 $status_plusm = $report_by_date['timetable']['real_overtime'] - ($op_timetable->ot_limit ?? 0);
-                                                Log::info("hours=$hours date=$date status_plusm=$status_plusm (ot_limit=$op_timetable->ot_limit overtime={$report_by_date['timetable']['real_overtime']})");
-                                                if (ceil($hours) == 0) {
+                                                Log::info("_punch_check_out=$_punch_check_out date=$date shift_bagian_check_out_add_plusmn=$shift_bagian_check_out_add_plusmn");
+
+                                                if ($_punch_check_out->gte($shift_bagian_check_out_add_plusmn) && $report_by_date['timetable']['real_overtime'] == ($op_timetable->ot_limit ?? 0)) {
                                                     $report_by_date['timetable']['status']['slug'] = 'check';
-                                                } else {
+                                                } else if ($_punch_check_out->gte($shift_bagian_check_out_add_plusmn) &&$report_by_date['timetable']['real_overtime'] < $op_timetable->ot_limit || $report_by_date['timetable']['real_overtime'] > $op_timetable->ot_limit) {
                                                     $report_by_date['timetable']['status']['slug'] = 'plusmn';
-                                                    $report_by_date['timetable']['status']['value'] = $hours < 0 ? $hours : '+' . $status_plusm;
+                                                    $report_by_date['timetable']['status']['value'] = ($report_by_date['timetable']['real_overtime'] > $op_timetable->ot_limit) ?  '+' . $report_by_date['timetable']['real_overtime'] - $op_timetable->ot_limit
+                                                        : $report_by_date['timetable']['real_overtime'] - $op_timetable->ot_limit;
+                                                } else if ($_punch_check_out->gte($shift_bagian_check_out_add_plusmn) &&$_shift_check_out_cross_plus_ot_limit_op->lt($_punch_check_out)) {
+                                                    $report_by_date['timetable']['status']['slug'] = 'not-allowed';
+                                                }else {
+                                                    $report_by_date['timetable']['status']['slug'] = 'plusmn';
+                                                    $report_by_date['timetable']['status']['value'] = $diff_check_out_hrs;
                                                 }
+                                                // if ($_shift_check_out_cross_plus_ot_limit_op->lte($_punch_check_out)) {
+                                                //     $diff_check_out_hrs = $_shift_check_out_cross_plus_ot_limit_op->diffInHours($_punch_check_out, false);
+                                                //     $report_by_date['timetable']['status']['slug'] = 'plusmn';
+                                                //     $report_by_date['timetable']['status']['value'] = $diff_check_out_hrs;
+                                                // }else if($_shift_check_out_cross_plus_ot_limit_op->lte($_punch_check_out))
+                                                // if (ceil($hours) == 0) {
+                                                //     $report_by_date['timetable']['status']['slug'] = 'check';
+                                                // } else {
+                                                //     $report_by_date['timetable']['status']['slug'] = 'plusmn';
+                                                //     $report_by_date['timetable']['status']['value'] = $hours < 0 ? $hours : '+' . $status_plusm;
+                                                // }
                                                 break;
                                             } else {
                                                 $report_by_date['timetable']['status']['slug'] = 'not-allowed';
