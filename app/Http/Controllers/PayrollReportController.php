@@ -49,6 +49,8 @@ class PayrollReportController extends Controller
         try {
             $business_id = Session::get('business_id');
             if (request()->ajax()) {
+
+                return '';
                 // * Pagination page
                 $page = 1;
                 if (!empty($request->input('page'))) {
@@ -598,7 +600,6 @@ class PayrollReportController extends Controller
                         'reports' => $report_by_dates,
                     ];
                 }
-// 
                 // Log::info(response()->json($attendance_reports));
 
                 $order = null;
