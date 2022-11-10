@@ -30,4 +30,11 @@ class EmployeeHasPosition extends Model
     {
         return $this->belongsTo(Employee::class, 'emp_id');
     }
+    /**
+     * Get the request_tasks.
+     */
+    public function request_tasks()
+    {
+        return $this->hasMany(RequestTask::class, 'position_id', 'position_id');
+    }
 }

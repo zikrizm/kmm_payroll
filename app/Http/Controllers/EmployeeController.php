@@ -2,14 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use App\Rules\NIK;
+use App\Utils\Util;
 use App\Rules\Mobile;
 use App\Models\Employee;
-use App\Models\Position;
 use App\Models\ActivityLog;
 use App\Models\Operational;
+use App\Models\RequestTask;
 use App\Utils\ResponseUtil;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use App\Imports\EmployeesImport;
 use App\Services\Api\ApiServices;
 use Illuminate\Support\Facades\DB;
@@ -17,12 +18,8 @@ use App\Models\EmployeeHasPosition;
 use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exceptions\ResponseExeception;
-use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Session;
-use Maatwebsite\Excel\HeadingRowImport;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Validator;
-use App\Http\Controllers\EmployeePhotoController;
 use Maatwebsite\Excel\Validators\ValidationException;
 use Maatwebsite\Excel\Exceptions\NoTypeDetectedException;
 
@@ -31,11 +28,13 @@ class EmployeeController extends Controller
 {
     private $apiService;
     private $buildRes;
+    private $util;
 
-    public function __construct(ApiServices $apiService, ResponseUtil $buildRes)
+    public function __construct(ApiServices $apiService, Util $util, ResponseUtil $buildRes)
     {
         $this->apiService = $apiService;
         $this->buildRes = $buildRes;
+        $this->util = $util;
     }
 
     /**
@@ -302,9 +301,9 @@ class EmployeeController extends Controller
                 $employee['payment_period'] = $employeeDB->payment_period ?? null;
                 $employee['position'] = $employeeDB->employee_has_position ?? [];
 
-                $departments = $this->apiService->get_departments([ "page_size" => 999]);
-                $areas = $this->apiService->get_areas([ "page_size" => 999]);
-                $positions = $this->apiService->get_positions([ "page_size" => 999]);
+                $departments = $this->apiService->get_departments(["page_size" => 999]);
+                $areas = $this->apiService->get_areas(["page_size" => 999]);
+                $positions = $this->apiService->get_positions(["page_size" => 999]);
                 $render = view('Employee.employee.edit', compact('employee', 'departments', 'areas', 'positions'))->render();
 
                 return $this->buildRes->RESPONSE_REQ('success', $render, null);
@@ -492,17 +491,48 @@ class EmployeeController extends Controller
     {
         if (!$request->ajax()) abort(403, 'Unauthorized action.');
         if ($request->has('q') && !empty($request->input('q'))) {
-            Log::info($request);
             $emp_filter = [];
-            $employeeDBs = EmployeeHasPosition::with(['position' => function ($query) {
-                $query->where('permanently', '!=', 0);
-            }, 'employee'])->get();
 
-            $employees = $this->apiService->get_employees(['employee_icontains' => $request->q])['data'];
-            foreach ($employeeDBs as $value) {
-                $key = array_search($value->employee->emp_code, array_column($employees, 'emp_code'));
-                if ($key != '') {
-                    $emp_filter[] = $employees[$key];
+            if ($request->has('date') && !empty($request->input('date'))) {
+                $rangedate = explode(' - ', $request['date']);
+                $position = $request->position;
+                $search = strtolower(trim($request->q));
+                $employee_with_position = Employee::where('first_name', 'LIKE', "%$search%")->whereHas('employee_has_position', function ($query) use ($position) {
+                    $query->where('position_id', $position);
+                })->get();
+                if (count($rangedate) > 1) {
+                    $start_date = Carbon::parse(trim($rangedate[0]));
+                    $end_date = Carbon::parse(trim($rangedate[1]));
+                    $request_task = RequestTask::where('position_id', $position)->whereBetween('date', [$start_date, $end_date])->with('request_task_has_emps')->get();
+                    foreach ($employee_with_position as $item) {
+                        $employee_bios = $this->apiService->get_employees(['emp_code' => $item->emp_code])['data'];
+                        $employee_bios[0]['is_exist_in_operational'] = false;
+                        $employee_bios[0]['disabled'] = false;
+                        if (!empty($employee_bios))  $emp_filter[] = $employee_bios[0];
+                    }
+                } else {
+                    $date = Carbon::parse($request['date']);
+                    $request_task = RequestTask::where('position_id', $position)->where('date', $date)->with('request_task_has_emps')->first();
+                    foreach ($employee_with_position as $item) {
+                        if (!empty($request_task) && !empty($request_task->request_task_has_emps)) {
+                            $is_exist = $request_task->request_task_has_emps->where('emp_id', $item->emp_id);
+                            $employee_bios = $this->apiService->get_employees(['emp_code' => $item->emp_code])['data'];
+                            if (count($is_exist) == 0) {
+                                $employee_bios[0]['is_exist_in_operational'] = false;
+                                $employee_bios[0]['disabled'] = false;
+                                if (!empty($employee_bios))  $emp_filter[] = $employee_bios[0];
+                            } else {
+                                $employee_bios[0]['is_exist_in_operational'] = true;
+                                $employee_bios[0]['disabled'] = true;
+                                if (!empty($employee_bios))  $emp_filter[] = $employee_bios[0];
+                            }
+                        } else {
+                            $employee_bios = $this->apiService->get_employees(['emp_code' => $item->emp_code])['data'];
+                            $employee_bios[0]['is_exist_in_operational'] = false;
+                            $employee_bios[0]['disabled'] = false;
+                            if (!empty($employee_bios))  $emp_filter[] = $employee_bios[0];
+                        }
+                    }
                 }
             }
 

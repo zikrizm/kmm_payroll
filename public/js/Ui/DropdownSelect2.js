@@ -16,7 +16,6 @@ function select2_employee(data, primary_field = 'id') {
     });
 
     function templateResultEmp(opt) {
-        console.log(opt)
         opt.photo = (opt.photo) ? opt.photo : 'files/nophoto.gif';
         var $opt = $(
             `<div class="flex items-center">
@@ -45,6 +44,66 @@ function select2_employee(data, primary_field = 'id') {
 
         var $opt = $(
             `<div class="flex items-center">
+                <div class="flex gap-2 items-center py-1 px-1">
+                    ${(!isDefault) ? `<img src="${API + opt.photo}" alt="" class="w-5 object-cover h-5 min-w-[20px] min-h-[20px] rounded-full">` : ''}
+                    <div>
+                        <p class="${!isDefault ? 'text-gray-900' : 'text-gray-500'} text-sm font-medium truncate">
+                            ${opt.first_name ?? opt.text ?? ''} ${opt.last_name ?? ''}
+                        </p>
+                    </div>
+                </div>
+            </div> `
+        );
+        return $opt;
+    };
+}
+function select2_employee_with_position(data, primary_field = 'id') {
+    $(".select2-employee-with-position").select2({
+        ajax: {
+            data: (params) => { return { q: params.term, ...data }; },
+            processResults: (data) => {
+                return {
+                    results: data.map(e => {
+                        e.id = e[primary_field];
+                        return e;
+                    })
+                };
+            }
+        },
+        templateResult: templateResultEmp,
+        templateSelection: templateSelectionEmp,
+    });
+
+    function templateResultEmp(opt) {
+        opt.photo = (opt.photo) ? opt.photo : 'files/nophoto.gif';
+        var $opt = $(
+            `<div class="flex items-center justify-between" style="opacity: ${opt.disabled? '0.4': '1'};">
+                <div class="flex gap-3 items-center py">
+                    <img src="${API + opt.photo}" alt="" class="w-6 object-cover h-6 min-w-[24px] min-h-[24px] rounded-full">
+                    <div>
+                        <p class="text-gray-900 text-xs font-medium truncate sm/max:w-12">
+                            ${opt?.emp_code ? opt?.emp_code + ' - ' : ''}${opt.first_name ?? opt.text ?? '-'} ${opt.last_name ?? ''}
+                        </p>
+                        <p class="text-gray-500 text-xs font-normal truncate sm/max:w-12">
+                            ${!opt.loading ? opt.disabled ? 'Sudah ada di penugasan tanggal ini': opt?.department?.dept_name ?? '-': ''}
+                        </p>
+                    </div>
+                </div>
+            </div> `
+        );
+        return $opt;
+    };
+
+    function templateSelectionEmp(opt) {
+        var isDefault = false;
+        var attr = $(opt.element).attr('default');
+        isDefault = (typeof attr !== 'undefined' && attr !== false);
+
+        opt.photo = (opt.photo) ? opt.photo : 'files/nophoto.gif';
+        console.log("opt.disabled",opt.disabled)
+
+        var $opt = $(
+            `<div class="flex items-center  ">
                 <div class="flex gap-2 items-center py-1 px-1">
                     ${(!isDefault) ? `<img src="${API + opt.photo}" alt="" class="w-5 object-cover h-5 min-w-[20px] min-h-[20px] rounded-full">` : ''}
                     <div>

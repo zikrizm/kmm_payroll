@@ -430,10 +430,11 @@
 
 .select2-container--default .select2-results__option--disabled {
   color: #999;
+  cursor: not-allowed;
 }
 
 .select2-container--default .select2-results__option--selected {
-  background-color: rgb(250 245 255);
+  /* background-color: rgb(239, 223, 255); */
 }
 
 .select2-container--default .select2-results__option--highlighted.select2-results__option--selectable {

@@ -340,22 +340,15 @@
             var URL = (id) ? '/request-task/' + id + '/edit' : '/request-task/create';
             var res = await ApiService.get_modal(URL, { ...date_task});
             $(".select2-position").select2();
-            console.log(id);
             if(!id) {
                 $('.select2-position').on('select2:select', async function (e) {
-                    let _response = await (new NetworkUtils()).emitter('GET', '/get-employee-position', {position: this.value}, {})
-                    console.log(_response);
-                    hideAllHintText();
-                    if (_response.response < 200 || _response.response >= 300) {
-                        // * SHOW NOTIFICATION ----->
-                    } else {
-                        $('#selected-employee-content').html(_response.data);
-                        $(".select-employee").select2();
-                        if ($('#selected-employee-content').is(':hidden')) {
-                            $('#selected-employee-content').toggle('hidden');
-                        }
+                    select2_employee_with_position({position: this.value, date:$('.request-task-date').val() })
+                    if ($('#selected-employee-content').is(':hidden')) {
+                        $('#selected-employee-content').toggle('hidden');
                     }
                 });
+            }else {
+                select2_employee_with_position({position: $("input[name=position]").val(), date:$('.request-task-date').val() })
             }
             if(!date_task) {
                 $('.request-task-date').daterangepicker({

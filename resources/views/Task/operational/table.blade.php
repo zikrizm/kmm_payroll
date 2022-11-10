@@ -2,7 +2,7 @@
     <div class="w-full overflow-auto overflow-y-hidden">
         <div class="flex ">
             @foreach ($th_dates as $item)
-            <div class='border-b flex-1 px-3 py-1.5 group min-w-[150px] hover:bg-gray-50'>
+            <div class='border-b flex-1 px-3 py-1.5 group min-w-[170px] hover:bg-gray-50'>
                 <div class="hidden group-hover:flex justify-around">
                     <button type="button"
                         class="text-gray-500 h-8 w-max flex px-2 items-center rounded justify-center flex-col border"
@@ -32,15 +32,15 @@
         <div class="flex">
             <div class="w-full flex">
                 @foreach ($dates as $item)
-                <div class="flex-1 flex flex-col border-r last:border-0 py-1 min-w-[150px]">
+                <div class="flex-1 flex flex-col border-r last:border-0 py-1 min-w-[170px]">
                     @forelse(($request_tasks[$item] ?? []) as $key => $item_task)
-                    <div class="group px-2 py-1 h-[60px]">
+                    <div class="group px-2 py-1 h-[65px]">
                         <div class="h-full border rounded flex justify-between flex-col p-2 relative hover:bg-gray-50 ">
-                            <p class="text-gray-700 font-medium text-xs">Tugas - {{ (!empty($item_task['position']))?
+                            <p class="text-gray-700 font-medium text-sm truncate w-[135px] break-words">Tugas - {{ (!empty($item_task['position']))?
                                 $item_task->position->position_name??'' : '-' }}</p>
-                            <div class="flex justify-start items-center relative h-4 gap-0.5">
+                            <div class="flex justify-start items-center relative h-[18px] gap-0.5">
                                 @foreach ($item_task->request_task_has_emps as $key => $emp)
-                                <div class='rounded-full border-white bg-white border-[1.5px] h-4 w-4 overflow-hidden'>
+                                <div class='rounded-full border-white bg-white border-[1.5px] h-[18px] w-[18px] overflow-hidden'>
                                     @if (!empty($emp->employee->photo))
                                     <img src="@zkPhoto({{ $emp->employee->photo }})" alt=""
                                         class="w-full h-full object-cover">
@@ -68,15 +68,15 @@
                     @empty
                     @endforelse
                     @forelse(($operationals[$item] ?? []) as $key => $item_op)
-                    <div class="group px-2 py-1 h-[60px]">
+                    <div class="group px-2 py-1 h-[65px]">
                         <div class="h-full border rounded flex justify-between flex-col p-2 relative hover:bg-gray-50 ">
-                            <p class="text-gray-700 font-medium text-xs">{{ $item_op->department->dept_name }}</p>
-                            <div class="flex items-center gap-0.5">
+                            <p class="text-gray-700 font-medium text-sm truncate w-[135px] break-words">{{ $item_op->department->dept_name }}</p>
+                            <div class="flex items-center gap-0.5 flex-1 ">
                                 @foreach ($item_op->operational_has_timetables as $item_timetable)
                                 <div
                                     class="tooltip-custom cursor-pointer flex items-center gap-1 rounded-xl px-1 py w-max {{ !empty($item_timetable->ot_limit) ? 'border':'' }} {{ $item_timetable->status == 'active'? 'border-green-100 text-green-700': 'border-red-100 text-red-700' }}">
                                     <span
-                                        class="w-[7px] h-[7px] rounded-full {{ $item_timetable->status == 'active'? 'bg-green-600': 'bg-red-600' }} block"></span>
+                                        class="w-[8px] h-[8px] rounded-full {{ $item_timetable->status == 'active'? 'bg-green-600': 'bg-red-600' }} block"></span>
                                     @if (!empty($item_timetable->ot_limit))
                                     <p
                                         class="text-[10px] font-normal flex items-center gap-1 capitalize {{ $item_timetable->status == 'active'? 'text-green-600': 'text-red-600' }}">

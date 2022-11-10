@@ -52,7 +52,7 @@
                 <section class="flex flex-col gap-1">
                     <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Karyawan*</label>
                     <select data-ajax--url="{{ route('employee.search-employee-request-position') }}"
-                        data-ajax--cache="true" class="select2-employee" name="emps[]" multiple="multiple">
+                        data-ajax--cache="true" class="select2-employee-with-position" name="emps[]" multiple="multiple">
                         @foreach ($request_task->request_task_has_emps as $item)
                         <option value="{{ $item->emp_id }}" selected>
                             {{ $item->emp_first_name }} {{ $item->emp_last_name ?? '' }}
