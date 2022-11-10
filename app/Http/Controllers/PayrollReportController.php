@@ -50,7 +50,6 @@ class PayrollReportController extends Controller
             $business_id = Session::get('business_id');
             if (request()->ajax()) {
 
-                return '';
                 // * Pagination page
                 $page = 1;
                 if (!empty($request->input('page'))) {
