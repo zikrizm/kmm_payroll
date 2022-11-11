@@ -55,7 +55,7 @@ class AttenOpReportController extends Controller
                 }
 
                 // * Employee search
-                $search = '';
+                $search = 'Erwan';
                 if (!empty($request->input('q'))) {
                     $search = $request->q;
                 }
@@ -73,10 +73,10 @@ class AttenOpReportController extends Controller
                 $attenDBs = [];
                 $slug_week = ['mgg', 'sen', 'sel', 'rab', 'kam', 'jum', 'sab'];
                 if (!empty($request->input('date'))) {
-                    // $start_time = Carbon::parse("2022-10-16 23:59:59");
-                    // $end_time = Carbon::parse("2022-10-29 23:59:59");
-                    $start_time = Carbon::parse($request->date['start_time']);
-                    $end_time = Carbon::parse($request->date['end_time']);
+                    $start_time = Carbon::parse("2022-10-16 23:59:59");
+                    $end_time = Carbon::parse("2022-10-29 23:59:59");
+                    // $start_time = Carbon::parse($request->date['start_time']);
+                    // $end_time = Carbon::parse($request->date['end_time']);
                     $filter['start_time'] = $start_time->hour(0)->minute(0)->second(0)->format('Y-m-d H:i:s');
                     $filter['end_time'] = $end_time->addHours(1)->hour(23)->minute(59)->second(59)->format('Y-m-d H:i:s');
                     $attenDBs = Transaction::whereBetween('punch_time', [$filter['start_time'], $filter['end_time']])->get();
@@ -101,8 +101,6 @@ class AttenOpReportController extends Controller
                     $atten_bios[] = $value->toArray();
                 }
 
-                // ** get employee data dari database local
-                $emp_form_databases = Employee::where('business_id', $business_id)->get();
                 // ** get libur data dari database local
                 $holidays = Holiday::where('business_id', $business_id)->whereBetween('start_date', array($start_time, $end_time))
                     ->orWhereBetween('end_date', array($start_time, $end_time))->get();
@@ -136,9 +134,9 @@ class AttenOpReportController extends Controller
                     // $emp_debts = $debts->filter(function ($item) use ($emp) {
                     //     return $item->emp_id === $emp['id'];
                     // });
-                    $group = !empty($operational) ? ($operational->operational_has_depts ?? [])->filter(function ($item) use ($emp) {
-                        return $item->dept_id === $emp['department']['id'];
-                    }) : [];
+                    // $group = !empty($operational) ? ($operational->operational_has_depts ?? [])->filter(function ($item) use ($emp) {
+                    //     return $item->dept_id === $emp['department']['id'];
+                    // }) : [];
 
 
                     $departmentDB = Department::where('dept_id', $emp['department']['id'])->first();
@@ -166,7 +164,7 @@ class AttenOpReportController extends Controller
                         return Carbon::parse($item->date)->format('Y-m-d');
                     });
                     $position_extra_pay = array_sum(array_column($position_permanen->toArray(), 'extra_pay')) * $diff_date;
-                    $emp['position'] = (!empty($position_permanen)) ? $position_permanen->toArray() : [];
+                    $emp['position'] = $position->toArray();
 
                     $kasbons = EmployeeDebt::where('business_id', $business_id)->where('paid', 0)->where('emp_id', $emp['id'])->whereDate('date', '<=', $end_time)->with('instalments')->get();
                     $cicilan_kasbon_total = 0;

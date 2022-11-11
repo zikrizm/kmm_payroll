@@ -90,6 +90,8 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('operational', 'OperationalController', ['except' => ['update']]);
     Route::post('/operational/{operational}', 'OperationalController@update')->name('operational.update');
     Route::get('/get-operational-timetable-card', 'OperationalController@get_operational_timetable_card')->name('operasional.get-operational-timetable-card');
+    // * TSO.
+    Route::resource('TSO', 'TSOController', ['except' => ['update','edit','show']]);
     // * request-help.
     Route::resource('request-help', 'RequestHelpController', ['except' => ['update']]);
     Route::post('/request-help/{request_help}', 'RequestHelpController@update')->name('request-help.update');
@@ -117,15 +119,15 @@ Route::middleware(['auth'])->group(function () {
     
 
 
-    Route::resource('additional-employee', 'AdditionalEmployeeController', ['except' => ['update']]);
-    Route::post('/additional-employee/{additional_employee}', 'AdditionalEmployeeController@update')->name('additional-employee.update');
-    Route::resource('rendaman', 'RendamanController', ['except' => ['update']]);
-    Route::post('/rendaman/{rendaman}', 'RendamanController@update')->name('rendaman.update');
+    // Route::resource('additional-employee', 'AdditionalEmployeeController', ['except' => ['update']]);
+    // Route::post('/additional-employee/{additional_employee}', 'AdditionalEmployeeController@update')->name('additional-employee.update');
+    // Route::resource('rendaman', 'RendamanController', ['except' => ['update']]);
+    // Route::post('/rendaman/{rendaman}', 'RendamanController@update')->name('rendaman.update');
 
-    Route::get('/attendance-report/attendance-card', 'AttendanceReportController@showAttendanceCard')->name('show-attendance-card');
-    Route::post('/attendance-report/attendance-card', 'AttendanceReportController@checkAttendanceCard')->name('check-attendance-card');
-    Route::get('/operational/{operational}/add-employees-to-help', 'OperationalController@add_employees_to_help')->name('operasional.add-employees-to-help');
-    Route::post('/operational/add-employees-to-help', 'OperationalController@post_employees_to_help')->name('operasional.add-employees-to-help.store');
+    // Route::get('/attendance-report/attendance-card', 'AttendanceReportController@showAttendanceCard')->name('show-attendance-card');
+    // Route::post('/attendance-report/attendance-card', 'AttendanceReportController@checkAttendanceCard')->name('check-attendance-card');
+    // Route::get('/operational/{operational}/add-employees-to-help', 'OperationalController@add_employees_to_help')->name('operasional.add-employees-to-help');
+    // Route::post('/operational/add-employees-to-help', 'OperationalController@post_employees_to_help')->name('operasional.add-employees-to-help.store');
 
 
 

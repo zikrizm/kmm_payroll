@@ -494,9 +494,9 @@ hover:bg-gray-50
                             </div>
                         </a>
                         @endcan
-                        @can('request-help.view')
-                        <a href="{{ route('request-help.index') }}" class="flex items-center justify-between p-2.5 rounded-lg w-full hover:underline hover:decoration-gray-500 
-                                    @activemenu('request-help')
+                        @can('TSO.view')
+                        <a href="{{ route('TSO.index') }}" class="flex items-center justify-between p-2.5 rounded-lg w-full hover:underline hover:decoration-gray-500 
+                                    @activemenu('TSO')
 bg-gray-100 active
 @else
 hover:bg-gray-50

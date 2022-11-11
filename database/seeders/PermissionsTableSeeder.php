@@ -114,6 +114,8 @@ class PermissionsTableSeeder extends Seeder
             ['name' => 'request-help.create'],
             ['name' => 'request-help.update'],
             ['name' => 'request-help.delete'],
+            ['name' => 'TSO.view'],
+            ['name' => 'TSO.approved'],
             ['name' => 'request-task.view'],
             ['name' => 'request-task.create'],
             ['name' => 'request-task.update'],
