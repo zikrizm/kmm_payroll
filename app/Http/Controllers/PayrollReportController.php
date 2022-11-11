@@ -599,7 +599,7 @@ class PayrollReportController extends Controller
                         'reports' => $report_by_dates,
                     ];
                 }
-                // Log::info(response()->json($attendance_reports));
+                Log::info(response()->json($attendance_reports));
 
                 $order = null;
                 $render =  view('Report.payroll_report.table', compact('attendance_reports', 'th_dates', 'order'))->render();

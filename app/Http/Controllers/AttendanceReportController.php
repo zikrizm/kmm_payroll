@@ -54,7 +54,6 @@ class AttendanceReportController extends Controller
                     $search = $request->q;
                 }
 
-                Log::info($request);
                 if (!empty($request->input('attendance_report_date'))) {
                     $start_time = Carbon::parse($request->attendance_report_date['start_time']);
                     $end_time = Carbon::parse($request->attendance_report_date['end_time']);
@@ -64,19 +63,25 @@ class AttendanceReportController extends Controller
 
                 }
 
-                $atten_count = $this->apiService->get_transactions($filter)['count'];
-                $filter['page_size'] = $atten_count;
-                $attens = collect($this->apiService->get_transactions($filter)['data']);
-                $shifts = Shift::where('business_id', $business_id)->with(
-                    ['shiftday' => function ($query) {
-                        $query->with(['shiftday_has_timetable' => function ($query) {
-                            $query->with(['timetable']);
-                        }]);
-                    }]
-                )->get();
+                // $atten_count = $this->apiService->get_transactions($filter)['count'];
+                // $filter['page_size'] = $atten_count;
+                // $attens = collect($this->apiService->get_transactions($filter)['data']);
+                $atten_bio_count = $this->apiService->get_transactions($filter)['count'];
+                $atten_bios = collect($this->apiService->get_transactions(array_merge(['page_size' => $atten_bio_count], $filter))['data']);
+                foreach ($attenDBs as $key => $value) {
+                    $value['id'] = $value['emp'];
+                    $atten_bios[] = $value->toArray();
+                }
+                // $shifts = Shift::where('business_id', $business_id)->with(
+                //     ['shiftday' => function ($query) {
+                //         $query->with(['shiftday_has_timetable' => function ($query) {
+                //             $query->with(['timetable']);
+                //         }]);
+                //     }]
+                // )->get();
 
                 $attendance_reports = [];
-                $attens_groupings = $this->_group_by_date_and_emp($attens);
+                $attens_groupings = $this->_group_by_date_and_emp($atten_bios);
                 foreach ($attens_groupings as $items) {
                     $item_first = $items[0];
                     $item_last = $items[count($items) - 1];
@@ -122,38 +127,38 @@ class AttendanceReportController extends Controller
                     'currentPage' => $page,
                 ]);
 
-                $attendance_reports['data'] = $attendance_reports['data']->map(function ($element) use ($shifts) {
-                    $check_in = Carbon::parse($element['first_punch'])->format('H:i:s');
-                    $check_out = Carbon::parse($element['last_punch'])->format('H:i:s');
-                    $code_day = Carbon::parse($element['att_date'])->dayOfWeek;
+                // $attendance_reports['data'] = $attendance_reports['data']->map(function ($element) use ($shifts) {
+                //     $check_in = Carbon::parse($element['first_punch'])->format('H:i:s');
+                //     $check_out = Carbon::parse($element['last_punch'])->format('H:i:s');
+                //     $code_day = Carbon::parse($element['att_date'])->dayOfWeek;
 
-                    foreach ($shifts as $shift) {
-                        foreach ($shift->shiftday as $shiftday) {
-                            foreach ($shiftday->shiftday_has_timetable as $keyHas => $shiftdayHas) {
-                                $in = Carbon::createFromTimeString($shiftdayHas->timetable->in_time);
-                                $out = Carbon::createFromTimeString($shiftdayHas->timetable->out_time);
-                                $punchIn = Carbon::createFromTimeString($check_in);
-                                $punchOut = Carbon::createFromTimeString($check_out);
+                //     foreach ($shifts as $shift) {
+                //         foreach ($shift->shiftday as $shiftday) {
+                //             foreach ($shiftday->shiftday_has_timetable as $keyHas => $shiftdayHas) {
+                //                 $in = Carbon::createFromTimeString($shiftdayHas->timetable->in_time);
+                //                 $out = Carbon::createFromTimeString($shiftdayHas->timetable->out_time);
+                //                 $punchIn = Carbon::createFromTimeString($check_in);
+                //                 $punchOut = Carbon::createFromTimeString($check_out);
 
-                                // // check apakah out lebih kecil dari in, klo ya tambah 1 hari
-                                // if ($out->lessThan($in)) {
-                                //     $punch->addDay();
-                                //     $out->addDay();
-                                // }
+                //                 // // check apakah out lebih kecil dari in, klo ya tambah 1 hari
+                //                 // if ($out->lessThan($in)) {
+                //                 //     $punch->addDay();
+                //                 //     $out->addDay();
+                //                 // }
 
-                                if ($code_day == $shiftday->code_day) {
-                                    if ($punchIn->lt($in->addHour())) {
-                                        $element['shift']['id'] = $shift->id;
-                                        $element['shift']['name'] = $shift->name;
-                                    }
-                                    $element['shift']['weekday'] = $shiftday->name;
-                                }
-                            }
-                        }
-                    }
+                //                 if ($code_day == $shiftday->code_day) {
+                //                     if ($punchIn->lt($in->addHour())) {
+                //                         $element['shift']['id'] = $shift->id;
+                //                         $element['shift']['name'] = $shift->name;
+                //                     }
+                //                     $element['shift']['weekday'] = $shiftday->name;
+                //                 }
+                //             }
+                //         }
+                //     }
 
-                    return $element;
-                });
+                //     return $element;
+                // });
 
                 $order = null;
                 $render =  view('Report.attendance_report.table', compact('attendance_reports', 'order'))->render();

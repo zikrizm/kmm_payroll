@@ -21,22 +21,22 @@
                     <th class='px-3 py-3 text-left cursor-pointer'>
                         <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Bagian</p>
                     </th>
-                    <th class='px-3 py-3 text-left cursor-pointer'>
+                    {{-- <th class='px-3 py-3 text-left cursor-pointer'>
                         <p class="text-xs font-medium text-gray-500 truncate cursor-pointer text-center">Hari kerja</p>
-                    </th>
+                    </th> --}}
                     <th class='px-3 py-3 text-left cursor-pointer'>
                         <p class="text-xs font-medium text-gray-500 truncate cursor-pointer text-center">Masuk</p>
                     </th>
                     <th class='px-3 py-3 text-left cursor-pointer'>
                         <p class="text-xs font-medium text-gray-500 truncate cursor-pointer text-center">Keluar</p>
                     </th>
-                    <th class='px-3 py-3 text-left cursor-pointer'>
+                    {{-- <th class='px-3 py-3 text-left cursor-pointer'>
                         <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Shift</p>
-                    </th>
+                    </th> --}}
                 </tr>
             </thead>
             <tbody>
-                @foreach ($attendance_reports['data'] as $item)
+                @foreach (($attendance_reports['data']??[]) as $item)
                 <tr class='hover:bg-gray-50 border-b border-gray-200 cursor-pointer'>
                     <td class='text-left'>
                         <div class="flex items-center">
@@ -59,9 +59,9 @@
                     <td class='px-3 py text-gray-500 text-sm'>
                         {{ $item['department'] ?? '-' }}
                     </td>
-                    <td class='px-3 py text-gray-500 text-sm text-center'>
+                    {{-- <td class='px-3 py text-gray-500 text-sm text-center'>
                         <p class="capitalize">{{ $item['shift']['weekday'] ?? '' }}</p>
-                    </td>
+                    </td> --}}
                     <td class='px-3 py text-gray-500 text-sm'>
                         <div class="flex items-center gap-2">
                             <x-icon icon="clock" width=18 height=18 viewBox="20 20" />
@@ -78,13 +78,13 @@
                             </p>
                         </div>
                     </td>
-                    <td class='px-3 py text-gray-500 text-sm'>
+                    {{-- <td class='px-3 py text-gray-500 text-sm'>
                         @if (!empty($item['shift']) && !empty($item['shift']['id']))
                         ({{ $item['shift']['id'] ?? '' }})
                         @else
                         -
                         @endif {{ $item['shift']['name'] ?? '' }}
-                    </td>
+                    </td> --}}
                 </tr>
                 @endforeach
             </tbody>
