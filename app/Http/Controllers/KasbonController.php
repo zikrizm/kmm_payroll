@@ -103,9 +103,10 @@ class KasbonController extends Controller
         }
 
         try {
-            $validator = Validator::make($request->all(), $this->rules(null));
             if ($request->debt)  $request['debt'] = str_replace('.', '', $request['debt']);
             if ($request->instalment) $request['instalment'] = str_replace('.', '', $request['instalment']);
+            
+            $validator = Validator::make($request->all(), $this->rules(null));
 
             if ($validator->fails()) {
                 return $this->buildRes->RESPONSE_REQ('error', null, $validator->errors());
@@ -195,7 +196,6 @@ class KasbonController extends Controller
             if ($request->instalment) $request['instalment'] = str_replace('.', '', $request['instalment']);
             $kasbon = $kasbon->with('instalments')->first();
             if (count($kasbon->instalments)) {
-
                 $validator = Validator::make($request->all(), $this->rules($kasbon));
             } else {
                 $validator = Validator::make($request->all(), $this->rules(null));

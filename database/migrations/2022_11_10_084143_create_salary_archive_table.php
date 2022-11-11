@@ -13,11 +13,21 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('arsip', function (Blueprint $table) {
+        Schema::create('salary_archives', function (Blueprint $table) {
             $table->increments('id');
             $table->integer('business_id')->unsigned();
             $table->dateTime('start_date');
             $table->dateTime('end_date');
+            $table->integer('emp_id');
+            $table->string('emp_code');
+            $table->string('emp_first_name');
+            $table->string('emp_last_name')->nullable();
+            $table->decimal('daily_salary', 22, 2)->nullable();
+            $table->decimal('position_total', 22, 2)->nullable();
+            $table->decimal('instalment_dept_total', 22, 2)->nullable();
+            $table->decimal('tbhn_u_libur_total', 22, 2)->nullable();
+            $table->decimal('daily_salary_total', 22, 2)->nullable();
+            $table->decimal('total', 22, 2)->nullable();
             $table->integer('created_user')->unsigned();
             $table->integer('updated_user')->nullable()->unsigned();
 
@@ -35,6 +45,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('arsip');
+        Schema::dropIfExists('salary_archives');
     }
 };
