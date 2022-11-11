@@ -298,6 +298,10 @@
             </table>
             <div>
                 <div class="flex items-center gap-1">
+                    <p class="text-xs text-gray-500 font-medium flex items-center">Sisa kasbon&nbsp;&nbsp;: </p>
+                    <p class="text-gray-700 text-xs">@convertnorp($item['sisa_kasbon'])</p>
+                </div>
+                <div class="flex items-center gap-1">
                     <p class="text-xs text-gray-500 font-medium flex items-center">Cicilan kasbon&nbsp;&nbsp;: </p>
                     <p class="text-gray-700 text-xs">@convertnorp($item['instalment_debt_total'])</p>
                 </div>
@@ -305,6 +309,11 @@
                     <p class="text-xs text-gray-500 font-medium flex items-center">Upah jabatan&nbsp;&nbsp;&nbsp;&nbsp;:
                     </p>
                     <p class="text-gray-700 text-xs">@convertnorp($item['position_extra_pay'])</p>
+                </div>
+                <div class="flex items-center gap-1">
+                    <p class="text-xs text-gray-500 font-medium flex items-center">Sisa gaji&nbsp;&nbsp;&nbsp;&nbsp;:
+                    </p>
+                    <p class="text-gray-700 text-xs">@convertnorp($item['total'])</p>
                 </div>
             </div>
         </div>

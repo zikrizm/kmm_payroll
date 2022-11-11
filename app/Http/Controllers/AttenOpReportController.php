@@ -55,7 +55,7 @@ class AttenOpReportController extends Controller
                 }
 
                 // * Employee search
-                $search = '';
+                $search = 'Erwan';
                 if (!empty($request->input('q'))) {
                     $search = $request->q;
                 }
@@ -73,10 +73,10 @@ class AttenOpReportController extends Controller
                 $attenDBs = [];
                 $slug_week = ['mgg', 'sen', 'sel', 'rab', 'kam', 'jum', 'sab'];
                 if (!empty($request->input('date'))) {
-                    // $start_time = Carbon::parse("2022-10-16 23:59:59");
-                    // $end_time = Carbon::parse("2022-10-29 23:59:59");
-                    $start_time = Carbon::parse($request->date['start_time']);
-                    $end_time = Carbon::parse($request->date['end_time']);
+                    $start_time = Carbon::parse("2022-10-16 23:59:59");
+                    $end_time = Carbon::parse("2022-10-29 23:59:59");
+                    // $start_time = Carbon::parse($request->date['start_time']);
+                    // $end_time = Carbon::parse($request->date['end_time']);
                     $filter['start_time'] = $start_time->hour(0)->minute(0)->second(0)->format('Y-m-d H:i:s');
                     $filter['end_time'] = $end_time->addHours(1)->hour(23)->minute(59)->second(59)->format('Y-m-d H:i:s');
                     $attenDBs = Transaction::whereBetween('punch_time', [$filter['start_time'], $filter['end_time']])->get();
@@ -157,19 +157,6 @@ class AttenOpReportController extends Controller
                                 break;
                         }
                     }
-                    $kasbons = EmployeeDebt::where('business_id', $business_id)->where('status', 'payment')->where('emp_id', $emp['id'])->whereDate('date', '<=', $end_time)->get();
-                    // $kasbons = EmployeeDebt::where('business_id', $business_id)->where('status', 'payment')->where('emp_id', $emp['id'])->get();
-                    // Log::info($kasbons);
-                    // $instalment_debt_total = array;
-                    // if(!empty($kasbons)) {
-                    //     foreach ($kasbons as $kasbon) {
-                    //         $instalment_debt_total += $kasbon->instalment;
-                    //         // $instalment = $kasbon->dept - $instalment_debt;
-                    //         // if($instalment > 0) {
-                    //         //     $calculate_kasbon = $instalment
-                    //         // }
-                    //     }
-                    // }
                     $position = Position::whereHas('employee_has_position.employee', function ($e) use ($emp) {
                         $e->where('emp_id', $emp['id']);
                     })->get();
@@ -178,9 +165,23 @@ class AttenOpReportController extends Controller
                     $request_tasks = RequestTask::whereIn('position_id', array_column($position_no_permanen->toArray(), 'id'))->with('position')->get()->groupBy(function ($item) {
                         return Carbon::parse($item->date)->format('Y-m-d');
                     });
-                    $instalment_debt_total = array_sum(array_column($kasbons->toArray(), 'instalment')) * $diff_date;
                     $position_extra_pay = array_sum(array_column($position_permanen->toArray(), 'extra_pay')) * $diff_date;
                     $emp['position'] = (!empty($position_permanen)) ? $position_permanen->toArray() : [];
+
+                    $kasbons = EmployeeDebt::where('business_id', $business_id)->where('paid', 0)->where('emp_id', $emp['id'])->whereDate('date', '<=', $end_time)->with('instalments')->get();
+                    $cicilan_kasbon_total = 0;
+                    $instalment_total = 0;
+                    $debt_total = 0;
+
+                    foreach ($kasbons as $key => $kasbon_item) {
+                        $cicilan_kasbon_total += (!empty($kasbon_item->instalments)) ? array_sum(array_column($kasbon_item->instalments->toArray(), 'instalment_debt')) : 0;
+                        $instalment_total += $kasbon_item->instalment;
+                        $debt_total += $kasbon_item->debt;
+                    }
+
+                    $sisa_kasbon  = $debt_total - ($cicilan_kasbon_total * $diff_date);
+                    $instalment_debt_total = $cicilan_kasbon_total * $diff_date;
+                    $instalment_debt_total = ($instalment_debt_total > $debt_total) ? $sisa_kasbon: $instalment_debt_total;
                     $daily_salary = $empDB->daily_salary ?? 0;
 
                     foreach ($dates as $date_key => $date) {
@@ -499,13 +500,13 @@ class AttenOpReportController extends Controller
 
                                                 if ($_punch_check_out->gte($shift_bagian_check_out_add_plusmn) && $report_by_date['timetable']['real_overtime'] == ($op_timetable->ot_limit ?? 0)) {
                                                     $report_by_date['timetable']['status']['slug'] = 'check';
-                                                } else if ($_punch_check_out->gte($shift_bagian_check_out_add_plusmn) &&$report_by_date['timetable']['real_overtime'] < $op_timetable->ot_limit || $report_by_date['timetable']['real_overtime'] > $op_timetable->ot_limit) {
+                                                } else if ($_punch_check_out->gte($shift_bagian_check_out_add_plusmn) && $report_by_date['timetable']['real_overtime'] < $op_timetable->ot_limit || $report_by_date['timetable']['real_overtime'] > $op_timetable->ot_limit) {
                                                     $report_by_date['timetable']['status']['slug'] = 'plusmn';
                                                     $report_by_date['timetable']['status']['value'] = ($report_by_date['timetable']['real_overtime'] > $op_timetable->ot_limit) ?  '+' . $report_by_date['timetable']['real_overtime'] - $op_timetable->ot_limit
                                                         : $report_by_date['timetable']['real_overtime'] - $op_timetable->ot_limit;
-                                                } else if ($_punch_check_out->gte($shift_bagian_check_out_add_plusmn) &&$_shift_check_out_cross_plus_ot_limit_op->lt($_punch_check_out)) {
+                                                } else if ($_punch_check_out->gte($shift_bagian_check_out_add_plusmn) && $_shift_check_out_cross_plus_ot_limit_op->lt($_punch_check_out)) {
                                                     $report_by_date['timetable']['status']['slug'] = 'not-allowed';
-                                                }else {
+                                                } else {
                                                     $report_by_date['timetable']['status']['slug'] = 'plusmn';
                                                     $report_by_date['timetable']['status']['value'] = $diff_check_out_hrs;
                                                 }
@@ -606,6 +607,7 @@ class AttenOpReportController extends Controller
                         'daily_salary' => $daily_salary,
                         'position_extra_pay' => $position_extra_pay,
                         'instalment_debt_total' => $instalment_debt_total,
+                        'sisa_kasbon' => $sisa_kasbon,
                         'amount_of_ot' => $amout_of_ot,
                         'amout_of_ot_pay' => $amout_of_ot_pay,
                         'early_check_in' => $early_check_in,

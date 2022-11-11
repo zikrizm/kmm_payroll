@@ -21,7 +21,7 @@ return new class extends Migration
             $table->dateTime('date');
             $table->decimal('debt', 22, 2)->nullable();
             $table->decimal('instalment', 22, 2)->nullable();
-            $table->enum('status', ['paid_off', 'payment'])->nullable();
+            $table->integer('paid')->default(0);
             // $table->decimal('remainder_debt', 22, 2)->nullable();
             // $table->decimal('instalment_debt', 22, 2)->nullable();
             $table->string('first_name');

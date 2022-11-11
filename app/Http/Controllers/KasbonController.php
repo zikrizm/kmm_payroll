@@ -105,7 +105,7 @@ class KasbonController extends Controller
         try {
             if ($request->debt)  $request['debt'] = str_replace('.', '', $request['debt']);
             if ($request->instalment) $request['instalment'] = str_replace('.', '', $request['instalment']);
-            
+
             $validator = Validator::make($request->all(), $this->rules(null));
 
             if ($validator->fails()) {
@@ -182,10 +182,10 @@ class KasbonController extends Controller
      * Update the specified resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  EmployeeDebt $kasbon
+     * @param  $kasbon
      * @return \Illuminate\Http\Response
      */
-    public function update(EmployeeDebt $kasbon, Request $request)
+    public function update($kasbon, Request $request)
     {
         if (!auth()->user()->can('kasbon.update') || !$request->ajax()) {
             abort(403, 'Unauthorized action.');
@@ -194,7 +194,7 @@ class KasbonController extends Controller
         try {
             if ($request->debt) $request['debt'] = str_replace('.', '', $request['debt']);
             if ($request->instalment) $request['instalment'] = str_replace('.', '', $request['instalment']);
-            $kasbon = $kasbon->with('instalments')->first();
+            $kasbon = EmployeeDebt::where('id', $kasbon)->with('instalments')->first();
             if (count($kasbon->instalments)) {
                 $validator = Validator::make($request->all(), $this->rules($kasbon));
             } else {
