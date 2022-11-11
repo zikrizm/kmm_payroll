@@ -22,6 +22,10 @@ return new class extends Migration
             $table->string('emp_code');
             $table->string('emp_first_name');
             $table->string('emp_last_name')->nullable();
+            $table->string('photo')->nullable();
+            $table->integer('dept_id');
+            $table->string('dept_code');
+            $table->string('dept_name');
             $table->decimal('daily_salary', 22, 2)->nullable();
             $table->decimal('position_total', 22, 2)->nullable();
             $table->decimal('instalment_dept_total', 22, 2)->nullable();

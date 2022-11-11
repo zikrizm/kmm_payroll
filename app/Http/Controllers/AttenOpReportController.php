@@ -55,7 +55,7 @@ class AttenOpReportController extends Controller
                 }
 
                 // * Employee search
-                $search = '';
+                $search = 'Erwan';
                 if (!empty($request->input('q'))) {
                     $search = $request->q;
                 }
@@ -73,10 +73,10 @@ class AttenOpReportController extends Controller
                 $attenDBs = [];
                 $slug_week = ['mgg', 'sen', 'sel', 'rab', 'kam', 'jum', 'sab'];
                 if (!empty($request->input('date'))) {
-                    // $start_time = Carbon::parse("2022-10-16 23:59:59");
-                    // $end_time = Carbon::parse("2022-10-29 23:59:59");
-                    $start_time = Carbon::parse($request->date['start_time']);
-                    $end_time = Carbon::parse($request->date['end_time']);
+                    $start_time = Carbon::parse("2022-10-16 23:59:59");
+                    $end_time = Carbon::parse("2022-10-29 23:59:59");
+                    // $start_time = Carbon::parse($request->date['start_time']);
+                    // $end_time = Carbon::parse($request->date['end_time']);
                     $filter['start_time'] = $start_time->hour(0)->minute(0)->second(0)->format('Y-m-d H:i:s');
                     $filter['end_time'] = $end_time->addHours(1)->hour(23)->minute(59)->second(59)->format('Y-m-d H:i:s');
                     $attenDBs = Transaction::whereBetween('punch_time', [$filter['start_time'], $filter['end_time']])->get();
@@ -179,10 +179,12 @@ class AttenOpReportController extends Controller
                         $debt_total += $kasbon_item->debt;
                     }
 
-                    $sisa_kasbon  = $debt_total - ($cicilan_kasbon_total * $diff_date);
-                    $instalment_debt_total = $cicilan_kasbon_total * $diff_date;
-                    $instalment_debt_total = ($instalment_debt_total > $debt_total) ? $sisa_kasbon: $instalment_debt_total;
+                    $sisa_kasbon  = $debt_total - $cicilan_kasbon_total;
+                    $instalment_debt_total = $instalment_total * $diff_date;
+                    $instalment_debt_total = ($instalment_debt_total > $debt_total) ? $sisa_kasbon : $instalment_debt_total;
                     $daily_salary = $empDB->daily_salary ?? 0;
+
+                    Log::info("sisa_kasbon $sisa_kasbon ");
 
                     foreach ($dates as $date_key => $date) {
                         if (count($dates) - 1 != $date_key) {
@@ -599,8 +601,9 @@ class AttenOpReportController extends Controller
                             $daily_salary_total += $value['timetable']['daily_salary_per_day'] ?? 0;
                         }
                     }
-                    $total = (($amout_of_ot_pay + $early_check_in_pay + $tbhn_u_libur_total + $position_extra_pay) - $instalment_debt_total) + ($amount_day * $daily_salary);
-
+                    // $total = (($amout_of_ot_pay + $early_check_in_pay + $tbhn_u_libur_total + $position_extra_pay) - $instalment_debt_total) + ($amount_day * $daily_salary);
+                    $total = (($amout_of_ot_pay + $tbhn_u_libur_total + $position_extra_pay) - $instalment_debt_total) + ($amount_day * $daily_salary);
+                    Log::info("amout_of_ot_pay $amout_of_ot_pay early_check_in_pay $early_check_in_pay tbhn_u_libur_total $tbhn_u_libur_total position_extra_pay $position_extra_pay instalment_debt_total $instalment_debt_total");
                     $attendance_reports[] = [
                         'employee' => $emp,
                         'range_date' => $request->input('date'),
