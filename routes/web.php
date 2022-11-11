@@ -118,7 +118,7 @@ Route::middleware(['auth'])->group(function () {
 
 
     Route::resource('additional-employee', 'AdditionalEmployeeController', ['except' => ['update']]);
-Route::post('/additional-employee/{additional_employee}', 'AdditionalEmployeeController@update')->name('additional-employee.update');
+    Route::post('/additional-employee/{additional_employee}', 'AdditionalEmployeeController@update')->name('additional-employee.update');
     Route::resource('rendaman', 'RendamanController', ['except' => ['update']]);
     Route::post('/rendaman/{rendaman}', 'RendamanController@update')->name('rendaman.update');
 
