@@ -169,7 +169,7 @@ class PayrollReportController extends Controller
                                 break;
                         }
                     }
-                    $kasbons = EmployeeDebt::where('business_id', $business_id)->where('status', 'payment')->where('emp_id', $emp['id'])->whereDate('date','<=',$end_time)->get();
+                    $kasbons = EmployeeDebt::where('business_id', $business_id)->where('paid', 0)->where('emp_id', $emp['id'])->whereDate('date','<=',$end_time)->get();
                     // $kasbons = EmployeeDebt::where('business_id', $business_id)->where('emp_id', $emp['id'])->whereBetween('date', array($start_time, $end_time))->get();
                     // Log::info($kasbons);
                     // $instalment_debt_total = array;
@@ -204,7 +204,6 @@ class PayrollReportController extends Controller
                             $timetable['early_check_in'] = 0;
                             $timetable['total_overtime_pay_per_day'] = 0;
                             $timetable['count_one_shift'] = 0;
-                            $timetable['total_overtime_pay_per_day'] = 0;
                             $timetable['per_day'] = 0;
                             $timetable['break_time_total'] = 0;
                             $timetable['cross_day'] = 0;

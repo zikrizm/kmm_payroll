@@ -33,11 +33,11 @@
         window.addEventListener('DOMContentLoaded', (event) => {
             $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
             
-            onInit( { 
+            onInit({ 
                 q: $('.search-data-input').val(),
                 date: { 
-                    start_date:convertLocalTimezone(moment().subtract(6, 'days')), 
-                    end_date: convertLocalTimezone(moment())
+                    start_time:convertLocalTimezone(moment().subtract(6, 'days'),'YYYY-MM-DD'), 
+                    end_time: convertLocalTimezone(moment(),'YYYY-MM-DD')
                 }
             });
 
@@ -65,8 +65,8 @@
                 delete dataParams.page;
                 onInit({ 
                     date: { 
-                        start_date: convertLocalTimezone(start, dateFormat), 
-                        end_date: convertLocalTimezone(end, dateFormat)
+                        start_time: convertLocalTimezone(start, dateFormat), 
+                        end_time: convertLocalTimezone(end, dateFormat)
                     } 
                 });
             });
@@ -80,6 +80,7 @@
         });
     
         async function onInit(data) {
+            console.log(data)
             // **
             // * Build data params table ----->
             // *

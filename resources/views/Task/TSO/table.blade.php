@@ -15,70 +15,113 @@
                         </div>
                     </th>
                     <th class='px-3 py-3 text-left cursor-pointer'>
+                        <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Karyawan</p>
+                    </th>
+                    <th class='px-3 py-3 text-center cursor-pointer'>
                         <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Masuk</p>
                     </th>
-                    <th class='px-3 py-3 text-left cursor-pointer'>
+                    <th class='px-3 py-3 text-center cursor-pointer'>
                         <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Keluar</p>
                     </th>
-                    <th class='px-3 py-3 text-left cursor-pointer'>
+                    <th class='px-3 py-3 text-center cursor-pointer'>
                         <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Shift</p>
                     </th>
-                    @canany(['request-task.update'])
+                    <th class='px-3 py-3 text-left cursor-pointer'>
+                        <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Status</p>
+                    </th>
+                    {{-- @canany(['TSO.approved']) --}}
                     <th class='px-3 py-3 text-left text-gray-500 text-xs font-medium'></th>
-                    @endcanany
+                    {{-- @endcanany --}}
                 </tr>
             </thead>
             <tbody>
-                {{-- @foreach ($request_tasks as $item)
+                @foreach ($employee_tsos as $item)
                 <tr class='hover:bg-gray-50 border-b border-gray-200 cursor-pointer'>
                     <td class='text-left'>
                         <div class="flex items-center">
                             <div class="pl-4 py-2">
                                 {!! FormCustom::checkbox() !!}
                             </div>
-                            <div class="flex gap-3 items-center px-6 py-3 hover:underline hover:text-gray-500 cursor-pointer text-gray-500 text-sm"
-                                onclick="get_modal('{{ $item['id'] }}')">
+                            <div class="flex gap-3 items-center px-6 py-3 text-gray-500 text-sm">
                                 <x-icon icon="calendar" width=18 height=18 viewBox="20 20" />
-                                <p class="truncate text-sm">
-                                    {{ date('d-m-Y', strtotime($item->start_date)) }} -
-                                    {{ date('d-m-Y', strtotime($item->end_date)) }}
+                                <p class="flex truncate items-center text-sm">
+                                    {{ date('d-m-Y', strtotime($item['date'])) }}
                                 </p>
                             </div>
                         </div>
                     </td>
-                    <td class='px-3 py text-gray-500 text-sm'>
-                        @php
-                        $is_same = array_search($item->position_id, array_column($position_bios, 'id'));
-                        if ($is_same != '') {
-                        $item['position_name'] = $position_bios[$is_same]['position_name'];
-                        $item['position_code'] = $position_bios[$is_same]['position_code'];
-                        }
-                        @endphp
-                        {{ $item['position_name']??'' }}
+                       <td class='px-3 py text-gray-500 text-sm'>
+                        <p class="text-gray-500 text-sm truncate cursor-pointer">
+                            {{ $item['employee']['first_name'] ??'' }}
+                            {{ $item['employee']['last_name'] ??'' }}
+                        </p>
                     </td>
                     <td class='px-3 py text-gray-500 text-sm'>
-                        {{ implode(', ', array_column($item->request_task_has_emps->toArray(), 'emp_first_name')) }}
-                    </td>
-                    @canany(['request-task.update', 'request-task.delete'])
-                    <td class='px-3 py'>
-                        <div class='flex gap-1'>
-                            @can('request-task.delete')
-                            <button onclick="open_modal_confirm('{{ $item['id'] }}')"
-                                class='px-2.5 cursor-pointer text-gray-500 delete-btn'>
-                                <x-icon icon="trash-2" width=18 height=18 viewBox="20 20" />
-                            </button>
-                            @endcan
-                            @can('request-task.update')
-                            <button class='px-2.5 cursor-pointer text-gray-500 edit-btn'
-                                onclick="get_modal('{{ $item['id'] }}')">
-                                <x-icon icon="edit" width=18 height=18 viewBox="20 20" />
-                            </button>
-                            @endcan
+                        <div class="flex items-center justify-center gap-2">
+                            @if (!empty($item['first_punch']))
+                            <x-icon icon="clock" width=18 height=18 viewBox="20 20" />
+                            <p class="truncate">
+                                {{ date('H:i', strtotime($item['first_punch'])); }}
+                            </p>
+                            @else
+                            x
+                            @endif
                         </div>
                     </td>
-                    @endcanany
+                    <td class='px-3 py text-gray-500 text-sm'>
+                        <div class="flex items-center justify-center gap-2">
+                            @if (!empty($item['last_punch']))
+                            <x-icon icon="clock" width=18 height=18 viewBox="20 20" />
+                            <p class="truncate">
+                                {{ date('H:i', strtotime($item['last_punch'])) }}
+                            </p>
+                            @else
+                            x
+                            @endif
+                        </div>
+                    </td>
+                    <td class='px-3 py text-gray-500 text-sm'>
+                        @if (!empty($item['timetable']['name']))
+                        {{ $item['timetable']['name'] }}
+                        @else
+                        <p class="text-center">x</p>
+                        @endif
+                    </td>
+                 
+                    <td class='px-3 py text-gray-500 text-sm'>
+                        @if (!empty($item['timetable']['status']))
+                        <div class="flex items-center justify-center gap-1">
+                            @if ($item['timetable']['status']['slug'] == 'LB')
+                            <p class="text-gray-500">LB</p>
+                            @endif
+                            @if ($item['timetable']['status']['slug'] == 'not-setting')
+                            <p class="text-blue-500">!</p>
+                            @endif
+                            @if ($item['timetable']['status']['slug'] == 'not-allowed')
+                            <x-icon icon="x" class="text-red-500" width=12 height=12 viewBox="20 20" />
+                            @endif
+                            @if ($item['timetable']['status']['slug'] == 'check')
+                            <x-icon icon="check" class="text-green-600" width=12 height=12 viewBox="20 20" />
+                            @endif
+                            @if ($item['timetable']['status']['slug'] == 'plusmn')
+                            <p class="text-gray-500">{{ $item['timetable']['status']['value'] }}</p>
+                            @endif
+                        </div>
+                        @else
+                        @endif
+                    </td>
+
+                    {{-- @canany(['TSO.approved']) --}}
+                    <td class='px-3 py'>
+                        <button onclick="get_modal({'emp_id': {{ $item['employee']['id'] }}, 'date': {{ $item['date'] }}})"
+                            class="flex items-center gap-2.5 px-2 py-1 text-gray-500 text-sm font-medium flex items-center border border-gray-200 shadow-sm rounded-lg">
+                            <x-icon icon="check" width=18 height=18 viewBox="20 20" />
+                            Setujui
+                        </button>
+                    </td>
+                    {{-- @endcanany --}}
                 </tr>
-                @endforeach --}}
+                @endforeach
             </tbody>
         </table>
     </div>

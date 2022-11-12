@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Utils\BusinessUtil;
 use App\Utils\ResponseUtil;
+use App\Utils\ZktecoConfig;
 use Illuminate\Http\Request;
 use App\Services\Api\ApiServices;
 use Illuminate\Support\Facades\Log;
@@ -39,6 +40,7 @@ class HomeController extends Controller
     {
 
         try {
+            // $tess = (new ZktecoConfig());
             return view('home.index');
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
