@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Holiday;
 use App\Models\ActivityLog;
+use App\Models\Operational;
 use App\Utils\ResponseUtil;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -109,22 +110,31 @@ class HolidayController extends Controller
             if ($validator->fails()) {
                 return $this->buildRes->RESPONSE_REQ('error', null, $validator->errors());
             } else {
+                $business_id = Session::get('business_id');
                 $holiday_data = $request->only(['name', 'holiday_date']);
                 $holiday_data['business_id'] = Session::get('business_id');
 
-                $start_date = trim(explode(' - ', $holiday_data['holiday_date'])[0]);
-                $end_date = trim(explode(' - ', $holiday_data['holiday_date'])[1]);
-                $holiday_data['start_date'] = Carbon::createFromFormat('d-m-Y', $start_date)->hour(0)->minute(0)->second(0)->format('Y-m-d H:i:s');
-                $holiday_data['end_date'] = Carbon::createFromFormat('d-m-Y', $end_date)->hour(23)->minute(59)->second(59)->format('Y-m-d H:i:s');
-                $holiday_data['created_user'] = auth()->user()->id;
-                $holiday_data['updated_user'] = auth()->user()->id;
+                $start_date = Carbon::createFromFormat('d-m-Y', trim(explode(' - ', $holiday_data['holiday_date'])[0]));
+                $end_date = Carbon::createFromFormat('d-m-Y', trim(explode(' - ', $holiday_data['holiday_date'])[1]));
+                $operational_count = Operational::where('business_id', $business_id)->whereBetween('date', [$start_date->format('Y-m-d'), $end_date->format('Y-m-d')])->count();
+                if (empty($operational_count)) {
+                    $holiday_data['start_date'] = $start_date;
+                    $holiday_data['end_date'] = $end_date;
+                    $holiday_data['created_user'] = auth()->user()->id;
+                    $holiday_data['updated_user'] = auth()->user()->id;
 
-                $holiday = new Holiday($holiday_data);
-                $holiday->save();
-
-                // ** create activity log user
-                ActivityLog::created_activity('CRUD holiday', 'User ' . auth()->user()->username . ' create new holiday');
-                return $this->buildRes->RESPONSE_REQ('success', null,  ['success' => ['Add holiday succesfully']]);
+                    $holiday = new Holiday($holiday_data);
+                    $holiday->save();
+                    // ** create activity log user
+                    ActivityLog::created_activity('CRUD holiday', 'User ' . auth()->user()->username . ' create new holiday');
+                    return $this->buildRes->RESPONSE_REQ('success', null,  ['success' => ['Add holiday succesfully']]);
+                } else {
+                    if ($start_date->isSameDay($end_date)) {
+                        return $this->buildRes->RESPONSE_REQ('error', null,  ['error' => ["Pada tanggal {$start_date->format('d-m-Y')} jadwal operasional telah ditentukan, Anda tidak dapat mengubah status tanggal ini."]]);
+                    } else {
+                        return $this->buildRes->RESPONSE_REQ('error', null,  ['error' => ["Pada tanggal {$start_date->format('d-m-Y')} - {$end_date->format('d-m-Y')} jadwal operasional telah ada yang ditentukan, Anda tidak dapat mengubah status tanggal ini."]]);
+                    }
+                }
             }
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
@@ -190,20 +200,27 @@ class HolidayController extends Controller
             if ($validator->fails()) {
                 return $this->buildRes->RESPONSE_REQ('error', null, $validator->errors());
             } else {
-
+                $business_id = Session::get('business_id');
                 $holiday_data = $request->only(['name', 'holiday_date']);
-                $holiday_data['business_id'] = Session::get('business_id');
+                $start_date = Carbon::createFromFormat('d-m-Y', trim(explode(' - ', $holiday_data['holiday_date'])[0]));
+                $end_date = Carbon::createFromFormat('d-m-Y', trim(explode(' - ', $holiday_data['holiday_date'])[1]));
+                $operational_count = Operational::where('business_id', $business_id)->whereBetween('date', [$start_date->format('Y-m-d'), $end_date->format('Y-m-d')])->count();
+                if (empty($operational_count)) {
+                    $holiday_data['start_date'] = $start_date;
+                    $holiday_data['end_date'] = $end_date;
+                    $holiday_data['updated_user'] = auth()->user()->id;
+                    $holiday->update($holiday_data);
 
-                $start_date = trim(explode(' - ', $holiday_data['holiday_date'])[0]);
-                $end_date = trim(explode(' - ', $holiday_data['holiday_date'])[1]);
-                $holiday_data['start_date'] = Carbon::createFromFormat('d-m-Y', $start_date)->format('Y-m-d');
-                $holiday_data['end_date'] = Carbon::createFromFormat('d-m-Y', $end_date)->format('Y-m-d');
-                $holiday_data['updated_user'] = auth()->user()->id;
-                $holiday->update($holiday_data);
-
-                // ** create activity log user
-                ActivityLog::created_activity('CRUD holiday', 'User ' . auth()->user()->username . ' edit data holiday');
-                return $this->buildRes->RESPONSE_REQ('success', null, ['success' => ['Update holiday succesfully']]);
+                    // ** create activity log user
+                    ActivityLog::created_activity('CRUD holiday', 'User ' . auth()->user()->username . ' edit data holiday');
+                    return $this->buildRes->RESPONSE_REQ('success', null,  ['success' => ['Add holiday succesfully']]);
+                } else {
+                    if ($start_date->isSameDay($end_date)) {
+                        return $this->buildRes->RESPONSE_REQ('error', null,  ['error' => ["Pada tanggal {$start_date->format('d-m-Y')} jadwal operasional telah ditentukan, Anda tidak dapat mengubah status tanggal ini."]]);
+                    } else {
+                        return $this->buildRes->RESPONSE_REQ('error', null,  ['error' => ["Pada tanggal {$start_date->format('d-m-Y')} - {$end_date->format('d-m-Y')} jadwal operasional telah ada yang ditentukan, Anda tidak dapat mengubah status tanggal ini."]]);
+                    }
+                }
             }
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
@@ -226,11 +243,23 @@ class HolidayController extends Controller
         }
 
         try {
-            $holiday->delete();
+            $business_id = Session::get('business_id');
+            $start_date = Carbon::parse($holiday->start_date);
+            $end_date = Carbon::parse($holiday->end_date);
+            $operational_count = Operational::where('business_id', $business_id)->whereBetween('date', [$start_date->format('Y-m-d'), $end_date->format('Y-m-d')])->count();
+            if (empty($operational_count)) {
+                $holiday->delete();
 
-            // ** create activity log user
-            ActivityLog::created_activity('CRUD holiday', 'User ' . auth()->user()->username . ' delete data holiday');
-            return $this->buildRes->RESPONSE_REQ('success', null, ['success' => ['Delete holiday succesfully']]);
+                // ** create activity log user
+                ActivityLog::created_activity('CRUD holiday', 'User ' . auth()->user()->username . ' delete data holiday');
+                return $this->buildRes->RESPONSE_REQ('success', null, ['success' => ['Delete holiday succesfully']]);
+            } else {
+                if ($start_date->isSameDay($end_date)) {
+                    return $this->buildRes->RESPONSE_REQ('error', null,  ['error' => ["Pada tanggal {$start_date->format('d-m-Y')} jadwal operasional telah ditentukan, Anda tidak dapat mengubah status tanggal ini."]]);
+                } else {
+                    return $this->buildRes->RESPONSE_REQ('error', null,  ['error' => ["Pada tanggal {$start_date->format('d-m-Y')} - {$end_date->format('d-m-Y')} jadwal operasional telah ada yang ditentukan, Anda tidak dapat mengubah status tanggal ini."]]);
+                }
+            }
         } catch (\Exception $e) {
             return $this->buildRes->RESPONSE_REQ('error', null, ['error' => 'something wrong']);
         }

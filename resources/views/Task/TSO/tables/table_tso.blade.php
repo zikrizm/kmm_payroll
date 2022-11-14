@@ -29,20 +29,21 @@
                     <th class='px-3 py-3 text-left cursor-pointer'>
                         <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Status</p>
                     </th>
-                    {{-- @canany(['TSO.approved']) --}}
+                    {{-- @canany(['TSO-operational-working.approved']) --}}
                     <th class='px-3 py-3 text-left text-gray-500 text-xs font-medium'></th>
                     {{-- @endcanany --}}
                 </tr>
             </thead>
             <tbody>
-                @foreach ($employee_tsos as $item)
+                @foreach ($employee_tso_datas['data'] as $item)
                 <tr class='hover:bg-gray-50 border-b border-gray-200 cursor-pointer'>
                     <td class='text-left'>
                         <div class="flex items-center">
                             <div class="pl-4 py-2">
                                 {!! FormCustom::checkbox() !!}
                             </div>
-                            <div class="flex gap-3 items-center px-6 py-3 text-gray-500 text-sm">
+                            <div
+                                class="flex gap-3 items-center px-6 py-3 {{ $item['timetable']['is_holiday'] ? 'text-red-500' : 'text-gray-500' }} text-sm">
                                 <x-icon icon="calendar" width=18 height=18 viewBox="20 20" />
                                 <p class="flex truncate items-center text-sm">
                                     {{ date('d-m-Y', strtotime($item['date'])) }}
@@ -50,7 +51,7 @@
                             </div>
                         </div>
                     </td>
-                       <td class='px-3 py text-gray-500 text-sm'>
+                    <td class='px-3 py text-gray-500 text-sm'>
                         <p class="text-gray-500 text-sm truncate cursor-pointer">
                             {{ $item['employee']['first_name'] ??'' }}
                             {{ $item['employee']['last_name'] ??'' }}
@@ -87,7 +88,7 @@
                         <p class="text-center">x</p>
                         @endif
                     </td>
-                 
+
                     <td class='px-3 py text-gray-500 text-sm'>
                         @if (!empty($item['timetable']['status']))
                         <div class="flex items-center justify-center gap-1">
@@ -111,9 +112,10 @@
                         @endif
                     </td>
 
-                    {{-- @canany(['TSO.approved']) --}}
+                    {{-- @canany(['TSO-operational-working.approved']) --}}
                     <td class='px-3 py'>
-                        <button onclick="get_modal({'emp_id': {{ $item['employee']['id'] }}, 'date': {{ $item['date'] }}})"
+                        <button
+                            onclick="get_modal({{ $item['employee']['id'] }},{{ $item['date'] }})"
                             class="flex items-center gap-2.5 px-2 py-1 text-gray-500 text-sm font-medium flex items-center border border-gray-200 shadow-sm rounded-lg">
                             <x-icon icon="check" width=18 height=18 viewBox="20 20" />
                             Setujui
@@ -125,18 +127,28 @@
             </tbody>
         </table>
     </div>
-    {{-- <footer class='flex justify-between items-center px-6 pt-3 pb-4'>
-        <p class="text-gray-700 text-sm">Page <span>{{ $request_tasks->currentPage() }}</span> of <span>
-                {{ $request_tasks->lastPage() }}</span></p>
+    <footer class='flex justify-between items-center px-6 pt-3 pb-4'>
+        <div class="flex items-center gap-3">
+            <select class="select2-page w-14" name="" id="">
+                <option value="10" @selected($page_size=="10" )>10</option>
+                <option value="20" @selected($page_size=="20" )>20</option>
+                <option value="50" @selected($page_size=="50" )>50</option>
+                <option value="100" @selected($page_size=="100" )>100</option>
+            </select>
+            <p class='text-gray-700 text-sm'> Page <span> {{ $employee_tso_datas['currentPage']}} </span>
+                of <span> {{ $employee_tso_datas['lastPage']}}</span>
+            </p>
+        </div>
         <div class='flex gap-3'>
-            @if (!$request_tasks->onFirstPage())
-            <button data-pagination-url="{{ $request_tasks->previousPageUrl() }}"
+            @if (!empty($employee_tso_datas['previous']))
+            <button data-pagination-page="{{ $employee_tso_datas['previous'] }}"
                 class='pagination-button px-3.5 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50'>Previous</button>
             @endif
-            @if ($request_tasks->hasMorePages())
-            <button data-pagination-url="{{ $request_tasks->nextPageUrl() }}"
+
+            @if (!empty($employee_tso_datas['next']))
+            <button data-pagination-page="{{ $employee_tso_datas['next'] }}"
                 class='pagination-button px-3.5 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50'>Next</button>
             @endif
         </div>
-    </footer> --}}
+    </footer>
 </main>

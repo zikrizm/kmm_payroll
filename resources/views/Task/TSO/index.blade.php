@@ -5,25 +5,40 @@
 @endsection
 @section('content')
 <div class="flex flex-col gap-6 flex-1 h-full overflow-auto bg-white px-8 pt-8 pb-12">
-    <header class="flex justify-between items-start">
+    <header class="w-full flex flex-col gap-6 justify-center">
         <div class="flex flex-col gap-1">
-            <p class="text-3xl font-medium text-gray-900">Karyawan TSO <span class="text-xl">(Tidak Sesuai Operational)</span></p>
-            <p class="text-base font-normal text-gray-500">Daftar karyawan yang tidak sesuai managemen operational.
-            </p>
+            <p class="text-3xl font-medium text-gray-900">Karyawan TSO <span class="text-xl">(Tidak Sesuai
+                    Operational)</span></p>
+            <p class="text-base font-normal text-gray-500">Daftar karyawan yang tidak sesuai managemen operational. </p>
         </div>
+        <div class="flex justify-between">
+            <div class="w-72">
+                {!! FormCustom::input('date', null, [
+                'placeholder' => 'Pilih tanggal penugasan',
+                'class' => 'date_input',
+                'readonly' => true,
+                'prefixiconname' => 'calendar',
+                ]) !!}
+            </div>
+            {{--
+            <x-ui.search-data placeholder="Cari penugasan" url="{{ route('TSO.index') }}" /> --}}
+        </div>
+        <ul class="flex border-b">
+            <li>
+                <button data-ref-class-content="business-info-content"
+                    class="business-menu text-gray-500 text-violet-700 border-b-2 mr-4 pt px-1 pb-[19px] border-violet-700 text-sm font-medium">
+                    Jam Kerja Operasional
+                </button>
+            </li>
+            <li>
+                <button data-ref-class-content="business-location-content"
+                    class="business-menu text-gray-500 mr-4 pt px-1 pb-[19px] border-violet-700 text-sm font-medium">
+                    Libur Operasional
+                </button>
+            </li>
+        </ul>
     </header>
-    <hr>
-    <div class="flex justify-between">
-        <div class="w-72">
-            {!! FormCustom::input('date', null, [
-            'placeholder' => 'Pilih tanggal penugasan',
-            'class' => 'date_input',
-            'readonly' => true,
-            'prefixiconname' => 'calendar',
-            ]) !!}
-        </div>
-        <x-ui.search-data placeholder="Cari penugasan" url="{{ route('TSO.index') }}" />
-    </div>
+
     <div class="table-content"></div>
 </div>
 
@@ -77,10 +92,64 @@
                 delete dataParams.page;
                 onInit( { q: this.value });
             }, 250));
+
+            $('*[data-ref-class-content]').on('click', function(e) {
+                let _idContent = $(this).data('ref-class-content');
+                $('*[data-ref-class-content]').each(function () {
+                    let _idContent = $(this).data('ref-class-content');
+                    $(this).removeClass('border-b-2 text-violet-700');
+                    $('#'+_idContent).addClass('hidden');
+                });
+
+                $(this).addClass('border-b-2 text-violet-700');
+                $('#'+_idContent).removeClass('hidden');
+            })
         });
+
+        function get_table_working(data) {
+            dataParams = { ...dataParams, ...data };
+            // **
+            // * get table ----->
+            // *
+            var res = await ApiService.get_table('/TSO/table-op-working', dataParams);
+            $('.table-content').html(res);
+            $('.select2-page').select2({ minimumResultsForSearch: -1 });  
+            $('.select2-page').on('select2:select', function (e) {
+                delete dataParams.page;
+
+                onInit({page_size: $(this).val()})
+            });
+
+            // **
+            // * pagination table ----->
+            // *
+            $('.pagination-button').on('click', function() {
+                onInit({...dataParams, page: parseInt($(this).data('pagination-page'))})
+            })
+            
+        }
+        function get_table_lb(data) {
+            // **
+            // * get table ----->
+            // *
+            var res = await ApiService.get_table('/TSO/table-op-lb', dataParams);
+            $('.table-content').html(res);
+            $('.select2-page').select2({ minimumResultsForSearch: -1 });  
+            $('.select2-page').on('select2:select', function (e) {
+                delete dataParams.page;
+
+                onInit({page_size: $(this).val()})
+            });
+
+            // **
+            // * pagination table ----->
+            // *
+            $('.pagination-button').on('click', function() {
+                onInit({...dataParams, page: parseInt($(this).data('pagination-page'))})
+            })
+        }
     
         async function onInit(data) {
-            console.log(data)
             // **
             // * Build data params table ----->
             // *
@@ -89,59 +158,38 @@
             // **
             // * get table ----->
             // *
-            var res = await ApiService.get_table('/TSO', dataParams);
-            $('.table-content').html(res);
+            // var res = await ApiService.get_table('/TSO', dataParams);
+            // $('.table-content').html(res);
+            // $('.select2-page').select2({ minimumResultsForSearch: -1 });  
+            // $('.select2-page').on('select2:select', function (e) {
+            //     delete dataParams.page;
+
+            //     onInit({page_size: $(this).val()})
+            // });
             
 
             // **
             // * pagination table ----->
             // *
             $('.pagination-button').on('click', function() {
-                var url = new URL($(this).data('pagination-url'));
-                var page = url.searchParams.get("page");
-                onInit({page})
+                onInit({...dataParams, page: parseInt($(this).data('pagination-page'))})
             })
         }
     
-        async function get_modal(id) {
+        async function get_modal(emp_id, tso_date) {
             // **
             // * open modal form ----->
             // *
-            var URL = (id) ? '/request-task/' + id + '/edit' : '/request-task/create';
+            var URL = '/TSO/create';
             var res = await ApiService.get_modal(URL, null);
-            $(".select2-position").select2();
-            if(!id) {
-                $('.select2-position').on('select2:select', async function (e) {
-                    if ($('#selected-employee-content').is(':hidden')) {
-                        $('#selected-employee-content').toggle('hidden');
-                    }
-                });
-            }
-            select2_employee();
-            $('.request-task-date').daterangepicker({
-                locale: { format: 'YYYY-MM-DD' },
-                startDate: moment().subtract(6, 'days'),
-                endDate: moment(),
-                ranges: {
-                    'Today': [moment(), moment()],
-                    'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
-                    'Last 7 Days': [moment().subtract(6, 'days'), moment()],
-                    'Last 30 Days': [moment().subtract(29, 'days'), moment()],
-                    'This Month': [moment().startOf('month'), moment().endOf('month')],
-                    'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
-                },
-                alwaysShowCalendars: true,
-                showCustomRangeLabel: false,
-                showDropdowns: true,
-                minYear: 2000,
-                drops: "auto",
-                maxYear: parseInt(moment().format('YYYY'), 10)
-            });
+            $(".select2-modal").select2();
+            $('input[name=emp_id]').val(emp_id);
+            $('input[name=tso_date]').val(tso_date);
             
             // **
             // * submit form ----->
             // *
-            var resSubmit = ApiService.submit_form('.submit-request-task', (_response) => { 
+            var resSubmit = ApiService.submit_form('.submit-TSO', (_response) => { 
                 if (_response.response < 200 || _response.response >= 300) {
                     // * SET NOTIFICATION MESSAGE REQUIRED ----->
                 } else {

@@ -65,7 +65,6 @@
             // **
             // * open modal form ----->
             // *
-            console.log(holiday_id)
             var URL = (holiday_id) ? '/holiday/' + holiday_id + '/edit' : '/holiday/create';
             var res = await ApiService.get_modal(URL, null);
             $('input[name="holiday_date"]').daterangepicker({
@@ -85,12 +84,15 @@
         }
 
         async function open_modal_confirm(holiday_id) {
-        // **
-        // * open modal confirm ----->
-        // *
-        await ApiService.get_confirm('.submit-delete-holiday', '/holiday/' + holiday_id, null, () => {
-            onInit();
-        })
-    }
+            // **
+            // * open modal confirm ----->
+            // *
+            await ApiService.get_confirm('.submit-delete-holiday', '/holiday/' + holiday_id, null, (_response) => {
+                if (_response.response < 200 || _response.response >= 300) {
+                } else {
+                    onInit();
+                }
+            })
+        }
 </script>
 @endsection

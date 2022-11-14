@@ -101,7 +101,7 @@
                         {{ Auth::user()->business->name }}</p>
                 </header>
                 <main class="flex flex-col gap-2">
-                    <a href="{{ route('home.index') }}" data-tooltip-menu="Dashboard" class="my-dropdown-menu flex items-center {{ $is_mini ? 'justify-center' : 'justify-between' }} hover:bg-gray-50 p-2.5 rounded-lg w-full 
+                    <a href="{{ route('home.index') }}" data-tooltip-menu="Dashboard" class="my-dropdown-menu cursor-pointer flex items-center {{ $is_mini ? 'justify-center' : 'justify-between' }} hover:bg-gray-50 p-2.5 rounded-lg w-full 
                                 @activemenu('home')
 bg-gray-100 active
 @else
@@ -116,7 +116,7 @@ hover:bg-gray-50
                         </div>
                     </a>
                     @canany(['department.view', 'position.view', 'area.view', 'device.view'])
-                    <section class="my-dropdown-menu hover:bg-gray-50 flex items-center {{ $is_mini ? 'justify-center' : 'justify-between' }} p-2.5 rounded-lg w-full
+                    <section class="my-dropdown-menu cursor-pointer hover:bg-gray-50 flex items-center {{ $is_mini ? 'justify-center' : 'justify-between' }} p-2.5 rounded-lg w-full
                                     @activemenu('organization')
 bg-gray-100 active
 @else
@@ -208,7 +208,7 @@ hover:bg-gray-50
                     </div>
                     @endcanany
                     @canany(['user.view', 'role.view'])
-                    <section class="my-dropdown-menu flex items-center {{ $is_mini ? 'justify-center' : 'justify-between' }} p-2.5 rounded-lg w-full 
+                    <section class="my-dropdown-menu cursor-pointer flex items-center {{ $is_mini ? 'justify-center' : 'justify-between' }} p-2.5 rounded-lg w-full 
                                         @activemenu('users')
 bg-gray-100 active
 @else
@@ -275,7 +275,7 @@ hover:bg-gray-50
                     </div>
                     @endcanany
                     @canany(['break-time.view', 'timetable.view', 'shift.view', 'holiday.view'])
-                    <section class="my-dropdown-menu flex items-center {{ $is_mini ? 'justify-center' : 'justify-between' }} p-2.5 rounded-lg w-full
+                    <section class="my-dropdown-menu cursor-pointer flex items-center {{ $is_mini ? 'justify-center' : 'justify-between' }} p-2.5 rounded-lg w-full
                                     @activemenu('shifts')
 bg-gray-100 active
 @else
@@ -358,7 +358,7 @@ hover:bg-gray-50
                     @endcanany
 
                     @canany(['employee.view', 'resign.view', 'kasbon.view', 'transaction.view'])
-                    <section class="my-dropdown-menu flex items-center {{ $is_mini ? 'justify-center' : 'justify-between' }} p-2.5 rounded-lg w-full 
+                    <section class="my-dropdown-menu cursor-pointer flex items-center {{ $is_mini ? 'justify-center' : 'justify-between' }} p-2.5 rounded-lg w-full 
                                     @activemenu('employees')
 bg-gray-100 active
 @else
@@ -442,7 +442,7 @@ hover:bg-gray-50
                     @endcanany
 
                     @canany(['operational.view', 'request-help.view', 'request-task.view'])
-                    <section class="my-dropdown-menu flex items-center {{ $is_mini ? 'justify-center' : 'justify-between' }} p-2.5 rounded-lg w-full
+                    <section class="my-dropdown-menu cursor-pointer flex items-center {{ $is_mini ? 'justify-center' : 'justify-between' }} p-2.5 rounded-lg w-full
                                     @activemenu('task-management')
 bg-gray-100 active
 @else
@@ -526,7 +526,7 @@ hover:bg-gray-50
                     @endcanany
 
                     @canany(['attendance-report.view', 'payroll-report.view', 'overtime-rice-report.view'])
-                    <section class="my-dropdown-menu flex items-center {{ $is_mini ? 'justify-center' : 'justify-between' }} p-2.5 rounded-lg w-full
+                    <section class="my-dropdown-menu cursor-pointer flex items-center {{ $is_mini ? 'justify-center' : 'justify-between' }} p-2.5 rounded-lg w-full
                                     @activemenu('reports')
 bg-gray-100 active
 @else
@@ -817,7 +817,7 @@ hover:bg-gray-50
                         $('#dropdown-menu').css({ 
                             position: "absolute",
                             display: 'block',
-                            top: position_element.top+$(this).outerHeight()+10, left: position_element.left,
+                            top: position_element.top+$(this).outerHeight()+5, left: position_element.left,
                         });
                     }
                 }

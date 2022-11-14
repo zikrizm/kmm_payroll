@@ -129,38 +129,4 @@
             @endif
         </div>
     </footer>
-    {{-- <footer class='flex justify-between items-center px-6 pt-3 pb-4'>
-        @php
-        $page_of = ceil($transactions['count'] / (int)$page_size);
-        if($transactions['next']) {
-        $parts = parse_url($transactions['next']);
-        parse_str($parts['query'], $query);
-        $page = (int)$query['page'] -1;
-        }else {
-        $page = $page_of;
-        }
-        @endphp
-        <div class="flex items-center gap-3">
-            <select class="select2-page w-14" name="" id="">
-                <option value="10" @selected($page_size=="10" )>10</option>
-                <option value="20" @selected($page_size=="20" )>20</option>
-                <option value="50" @selected($page_size=="50" )>50</option>
-                <option value="100" @selected($page_size=="100" )>100</option>
-            </select>
-            <p class='text-gray-700 text-xs'>
-                Page <span> {{ $page}} </span> of <span>{{ $page_of }}</span>
-            </p>
-        </div>
-        <div class='flex gap-3'>
-            @if (!empty($transactions['previous']))
-            <button data-pagination-url="{{ $transactions['previous'] }}"
-                class='pagination-button px-3.5 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50'>Previous</button>
-            @endif
-
-            @if (!empty($transactions['next']))
-            <button data-pagination-url="{{ $transactions['next'] }}"
-                class='pagination-button px-3.5 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50'>Next</button>
-            @endif
-        </div>
-    </footer> --}}
 </main>

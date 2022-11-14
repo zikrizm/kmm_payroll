@@ -17,8 +17,8 @@ return new class extends Migration
             $table->increments('id');
             $table->integer('business_id')->unsigned();
             $table->string('name');
-            $table->dateTime('start_date');
-            $table->dateTime('end_date');
+            $table->date('start_date');
+            $table->date('end_date');
             
             $table->integer('created_user')->unsigned();
             $table->integer('updated_user')->nullable()->unsigned();

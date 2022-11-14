@@ -56,9 +56,10 @@ class Api extends NetworkUtils {
     };
     async get_confirm(className, url, data, callback) {
         // * OPEN MODAL ----->
-        openModal({ name: '.confirmation-modal', content: null });
+        openModal({ name: '.confirmation-modal-' + className.replace('.', ''), content: null });
 
         var method = $(className).attr('method');
+        $(className).off("submit");
         $(className).on("submit", async (e) => {
             e.preventDefault();
             try {
@@ -67,14 +68,15 @@ class Api extends NetworkUtils {
                 $('#loading-block-document').hide();
                 if (_response.response < 200 || _response.response >= 300) {
                     // * SET NOTIFICATION MESSAGE REQUIRED ----->
-                    callback();
+                    callback(_response);
+                    handleMessage(_response);
                 } else {
                     handleMessage(_response);
                     // * CLEAR ERROR ----->
                     clearErrorFormInputs();
                     // * CLOSE MODAL ----->
-                    closeModal({ name: '.confirmation-modal', content: null });
-                    callback(_response.data);
+                    closeModal({ name: '.confirmation-modal-' + className.replace('.', ''), content: null });
+                    callback(_response);
                     $(className).off();
                 }
             } catch (error) {

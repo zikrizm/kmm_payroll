@@ -82,7 +82,7 @@ class PermissionsTableSeeder extends Seeder
             ['name' => 'area.create'],
             ['name' => 'area.update'],
             ['name' => 'area.delete'],
-           
+
             ['name' => 'device.view'],
             ['name' => 'device.create'],
             ['name' => 'device.update'],
@@ -115,7 +115,10 @@ class PermissionsTableSeeder extends Seeder
             ['name' => 'request-help.update'],
             ['name' => 'request-help.delete'],
             ['name' => 'TSO.view'],
-            ['name' => 'TSO.approved'],
+            ['name' => 'employee-tso.view'],
+            ['name' => 'employee-not-given-holiday-pay.view'],
+            ['name' => 'approved-employee-TSO.approved'],
+            ['name' => 'approved-not-given-employee-holiday-pay.approved'],
             ['name' => 'request-task.view'],
             ['name' => 'request-task.create'],
             ['name' => 'request-task.update'],

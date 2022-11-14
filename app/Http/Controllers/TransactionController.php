@@ -79,21 +79,21 @@ class TransactionController extends Controller
 
                 $attenDBs = $attenDBs->get()->toArray();
                 $transactions = collect(array_merge($transactions, $attenDBs));
-                $next = (ceil($transactions->count() / $page_size) == $page) ?  null : $page + 1;
                 if ($search != '') {
                     $transactions = $transactions->filter(function ($atten) use ($search) {
                         return str_contains(strtolower($atten['emp_code']), $search)||str_contains(strtolower($atten['first_name']), $search)||
                         str_contains(strtolower($atten['last_name']), $search)||str_contains(strtolower($atten['verify_type_display']), $search);
                     });
                 }
-
+                $transactions_count = $transactions->count();
+                $next = (ceil($transactions_count / $page_size) == $page) ?  null : $page + 1;
                 $transactions = $transactions->skip(($page - 1) * $page_size)->take($page_size);
                 $transactions = collect([
-                    'count' => $transactions->count(),
+                    'count' => $transactions_count,
                     'data' => $transactions,
                     'next' => $next,
                     'previous' => $page - 1,
-                    'lastPage' => ceil($transactions->count() / $page_size),
+                    'lastPage' => ceil($transactions_count / $page_size),
                     'currentPage' => $page,
                 ]);
 

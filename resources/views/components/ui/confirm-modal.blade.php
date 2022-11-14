@@ -1,4 +1,4 @@
-<div class="fixed z-10 inset-0  min-h-screen duration-300 hidden invisible confirmation-modal" aria-labelledby="modal-title" role="dialog"
+<div class="fixed z-10 inset-0  min-h-screen duration-300 hidden invisible confirmation-modal-{{ $class }}" aria-labelledby="modal-title" role="dialog"
     aria-modal="true">
     <div class="fixed inset-0 bg-gray-500 bg-opacity-50 transition-opacity inner-modal" aria-hidden="true">
     </div>
