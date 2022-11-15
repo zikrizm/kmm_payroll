@@ -491,7 +491,10 @@ class TSOController extends Controller
         // $employees = Employee::select('id', 'emp_id', 'emp_code', 'first_name', 'last_name',  'daily_salary', 'payment_period', 'status')->get();
         // Log::info($employees);
 
-        // $
+        foreach ($operationals as $key => $itenOP) {
+            
+        }
+        
         // Log::info($operationals);
         // $temp_dept = null;
         // foreach ($operationals as $key => $itemOP) {
