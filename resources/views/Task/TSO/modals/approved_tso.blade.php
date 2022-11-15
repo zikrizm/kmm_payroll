@@ -1,3 +1,4 @@
+@if ($slug == 'not-allowed')
 <form autocomplete="off" action="{{ route('approved-tso.store') }}" method="POST"
     class="submit-approve-tso flex items-start gap-5 justify-center">
     @csrf
@@ -16,7 +17,7 @@
                         <x-icon icon="check" width=16 height=16 viewBox="20 20" />
                     </div>
                     <div>
-                        <p class="text-xl font-semibold text-gray-900">Penyetujui TSO
+                        <p class="text-xl font-semibold text-gray-900">Penyetujui Kehadiran
                         </p>
                         <p class="text-sm font-normal text-gray-500 xs/max:text-xs">
                             Harap berikan detail karyawan TSO.
@@ -31,10 +32,10 @@
                 <input type="hidden" name="emp_id">
                 <input type="hidden" name="tso_date">
                 <section class="flex flex-col gap-1">
-                    <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Bagian utama*</label>
+                    <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Bagian karyawan*</label>
                     <select class="select2-modal" name="dept_id">
                         <option value="" disabled selected>Silahkan Pilih</option>
-                        @foreach (($department_bios['data'] ?? []) as $department)
+                        @foreach (($department_bios ?? []) as $department)
                         <option value="{{ $department['id'] }}">{{ $department['dept_name'] }}</option>
                         @endforeach
                     </select>
@@ -66,3 +67,38 @@
         </div>
     </section>
 </form>
+@else
+<form autocomplete="off" action="{{ route('approved-tso.store') }}" method="POST" class="submit-approve-tso">
+    @csrf
+    <!-- {{ csrf_field() }} -->
+    <section
+        class="flex flex-col gap-8 py-4 w-[400px] bg-white border max-h-[95vh] overflow-y-auto overflow-x-hidden relative rounded-lg">
+        <div class="flex items-center gap-5 px-4 relative">
+            <button
+                class="absolute top-[-5px] right-3 xs/max:top-[-6px] modal-close hover:border-white  border border-transparent text-white rounded p-0.5">
+                <x-icon icon="x" width=16 height=16 viewBox="20 20" />
+            </button>
+            <div class="text-gray-500">
+                <x-icon icon="bullhorn" width=100 height=100 viewBox="20 20" />
+            </div>
+            <div class="flex flex-col gap-3 flex-1">
+                <input type="hidden" name="emp_id">
+                <input type="hidden" name="dept_id">
+                <input type="hidden" name="tso_date">
+                <div class="flex flex-col gap-1">
+                    <p class="text-gray-700 font-bold text-lg">Konfirmasi</p>
+                    <p class="text-gray-500 font-normal text-xs">Apakah Perbedaan jadwal operasional dengan Kehadiran
+                        karyawan di Setujui?,
+                        karena data akan tersimpan.</p>
+                </div>
+                <div class="flex items-center gap-3 flex-1">
+                    <button
+                        class="text-gray-500 shadow bg-white hover:bg-gray-100 focus:ring-2 focus:ring-gray-300 font-medium rounded-lg xs/max:rounded-md border border-gray-200  text-sm xs/max:text-xs inline-flex items-center xs/max:px-4 px-6 xs/max:py-1.5 py-1 text-center">Ya</button>
+                    <button type="reset"
+                        class="modal-close shadow text-gray-500 bg-white hover:bg-gray-100 focus:ring-2 focus:ring-gray-300 rounded-lg xs/max:rounded-md border border-gray-200 text-sm xs/max:text-xs font-medium xs/max:px-4 px-6 xs/max:py-1.5 py-1 hover:text-gray-900 focus:z-10">Batal</button>
+                </div>
+            </div>
+        </div>
+    </section>
+</form>
+@endif

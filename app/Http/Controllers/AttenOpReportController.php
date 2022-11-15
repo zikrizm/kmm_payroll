@@ -183,7 +183,7 @@ class AttenOpReportController extends Controller
                     $instalment_debt_total = ($instalment_debt_total > $debt_total) ? $sisa_kasbon : $instalment_debt_total;
                     $daily_salary = $empDB->daily_salary ?? 0;
 
-                    Log::info("sisa_kasbon $sisa_kasbon ");
+                    // Log::info("sisa_kasbon $sisa_kasbon ");
 
                     foreach ($dates as $date_key => $date) {
                         if (count($dates) - 1 != $date_key) {
@@ -613,7 +613,7 @@ class AttenOpReportController extends Controller
                     }
                     // $total = (($amout_of_ot_pay + $early_check_in_pay + $tbhn_u_libur_total + $position_extra_pay) - $instalment_debt_total) + ($amount_day * $daily_salary);
                     $total = (($amout_of_ot_pay + $tbhn_u_libur_total + $position_extra_pay) - $instalment_debt_total) + ($amount_day * $daily_salary);
-                    Log::info("amout_of_ot_pay $amout_of_ot_pay early_check_in_pay $early_check_in_pay tbhn_u_libur_total $tbhn_u_libur_total position_extra_pay $position_extra_pay instalment_debt_total $instalment_debt_total");
+                    // Log::info("amout_of_ot_pay $amout_of_ot_pay early_check_in_pay $early_check_in_pay tbhn_u_libur_total $tbhn_u_libur_total position_extra_pay $position_extra_pay instalment_debt_total $instalment_debt_total");
                     $attendance_reports[] = [
                         'employee' => $emp,
                         'range_date' => $request->input('date'),

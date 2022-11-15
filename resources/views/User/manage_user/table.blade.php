@@ -72,8 +72,8 @@
                         <td class='px-3 py'>
                             <div class='flex gap-1'>
                                 @can('user.delete')
-                                    <button type="button" disabled
-                                        class='cursor-not-allowed px-2.5 cursor-pointer text-gray-300 delete-btn'>
+                                    <button type="button" onclick="open_modal_confirm('{{ $item->id }}')"
+                                        class='px-2.5 cursor-pointer text-gray-500 delete-btn'>
                                         <x-icon icon="trash-2" width=18 height=18 viewBox="20 20" />
                                     </button>
                                 @endcan

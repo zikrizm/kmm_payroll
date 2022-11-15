@@ -100,6 +100,9 @@
                     <td class='px-3 py text-gray-500 text-sm'>
                         @if (!empty($item['timetable']['status']))
                         <div class="flex items-center justify-center gap-1">
+                            @if ($item['is_approved_tso'])
+                            <x-icon icon="check" class="text-green-600" width=12 height=12 viewBox="20 20" />
+                            @else
                             @if ($item['timetable']['status']['slug'] == 'LB')
                             <p class="text-gray-500">LB</p>
                             @endif
@@ -115,6 +118,8 @@
                             @if ($item['timetable']['status']['slug'] == 'plusmn')
                             <p class="text-gray-500">{{ $item['timetable']['status']['value'] }}</p>
                             @endif
+                            @endif
+
                         </div>
                         @else
                         @endif
@@ -122,12 +127,27 @@
 
                     @canany(['approved-employee-TSO.approved'])
                     <td class='px-3 py'>
-                        <button @disabled($item['is_approved_tso'])
-                            onclick="get_modal_approve_tso('{{ $item['employee']['id'] }}','{{ $item['date'] }}')"
-                            class="flex items-center gap-2.5 px-2 py-1 text-gray-500 text-sm font-medium flex items-center border border-gray-200 shadow-sm rounded-lg {{ $item['is_approved_tso'] ? 'cursor-not-allowed' : '' }}" style="opacity: {{ $item['is_approved_tso'] ? '0.5' : '' }};">
+                        @if ($item['is_approved_tso'])
+                        <button disabled
+                            class="flex items-center gap-2.5 px-2 py-1 text-gray-500 text-sm font-medium flex items-center border border-gray-200 shadow-sm rounded-lg cursor-not-allowed"
+                            style="opacity: 0.5;">
                             <x-icon icon="check" width=18 height=18 viewBox="20 20" />
-                            Setujui
+                            Disetujui
                         </button>
+                        @else
+                        <button onclick="get_modal_approve_tso({{ json_encode([
+                            'emp_id' => $item['employee']['id'],
+                            'dept_id' => $item['employee']['department']['id'],
+                            'id_operasional' => $item['id_operasional'],
+                            'tso_date' => $item['date'],
+                            'slug' => $item['timetable']['status']['slug'] ?? null,
+                        ]) }})"
+                            class="flex items-center gap-2.5 px-2 py-1 text-gray-500 text-sm font-medium flex items-center border border-gray-200 shadow-sm rounded-lg ">
+                            <x-icon icon="check" width=18 height=18 viewBox="20 20" />
+                            Disetujui
+                        </button>
+                        @endif
+
                     </td>
                     @endcanany
                 </tr>

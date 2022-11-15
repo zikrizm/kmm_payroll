@@ -3,6 +3,9 @@
 * {
     font-family: 'Inter', sans-serif;
 }
+body {
+    transition: 3000ms;
+}
 .no-scrollbar::-webkit-scrollbar {
     display: none;
 }

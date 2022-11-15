@@ -15,13 +15,13 @@
         <ul class="flex border-b">
             <li>
                 <button data-ref-class-content="tso-content"
-                    class="business-menu text-gray-500 text-violet-700 border-b-2 mr-4 pt px-1 pb-[16px] border-violet-700 text-sm font-medium">
+                    class="active-sub-menu text-gray-500 text-violet-700 border-b-2 mr-4 pt px-1 pb-[16px] border-violet-700 text-sm font-medium">
                     Jam Kerja Operasional
                 </button>
             </li>
             <li>
                 <button data-ref-class-content="lb-content"
-                    class="business-menu text-gray-500 mr-4 pt px-1 pb-[16px] border-violet-700 text-sm font-medium">
+                    class="text-gray-500 mr-4 pt px-1 pb-[16px] border-violet-700 text-sm font-medium">
                     Libur Operasional
                 </button>
             </li>
@@ -78,13 +78,24 @@
             },function(start, end, label) {
                 var dateFormat = 'YYYY-MM-DD';
                 delete dataParams.page;
-                get_table('tso', { 
+                let _idContent = $('.active-sub-menu').data('ref-class-content');
+                var buildData = { 
                     q: $('.search-data-input').val(),
                     date: { 
                         start_time: convertLocalTimezone(start, dateFormat), 
                         end_time: convertLocalTimezone(end, dateFormat)
                     } 
-                });
+                };
+                switch (_idContent) {
+                    case 'tso-content':
+                        get_table('tso', buildData);
+                        break;
+                    case 'lb-content' :
+                        get_table('not-given-lb', buildData);
+                        break;
+                    default:
+                        break;
+                }
             });
 
             $(".search-data-input").on('keyup', debounce(function(e) {
@@ -97,38 +108,34 @@
                 let _idContent = $(this).data('ref-class-content');
                 $('*[data-ref-class-content]').each(function () {
                     let _idContent = $(this).data('ref-class-content');
-                    $(this).removeClass('border-b-2 text-violet-700');
-
-                    var buildDataReq = {
-                        q: $('.search-data-input').val(),
-                        date: {start_time:convertLocalTimezone(moment().subtract(6, 'days'),'YYYY-MM-DD'), end_time: convertLocalTimezone(moment(),'YYYY-MM-DD')}
-                    }
-
-                    switch (_idContent) {
-                        case 'tso-content':
-                            get_table('tso', buildDataReq);
-                            break;
-                        case 'lb-content' :
-                            get_table('not-given-lb', buildDataReq);
-                            break;
-                        default:
-                            break;
-                    }
+                    $(this).removeClass('border-b-2 text-violet-700 active-sub-menu');
                     $('#'+_idContent).addClass('hidden');
                 });
 
-                $(this).addClass('border-b-2 text-violet-700');
+                $(this).addClass('border-b-2 text-violet-700 active-sub-menu');
                 $('#'+_idContent).removeClass('hidden');
+                switch (_idContent) {
+                    case 'tso-content':
+                        get_table('tso', {});
+                        break;
+                    case 'lb-content' :
+                        get_table('not-given-lb', {});
+                        break;
+                    default:
+                        break;
+                }
             })
         });
 
         async function get_table(type, data) {
+            $('#loading-block-document').show();
             dataParams = { ...dataParams, ...data };
             // **
             // * get table ----->
             // *
             var url = (type == 'tso') ? '/table-tso': '/table-not-given-lb';
             var res = await ApiService.get_table(url, dataParams);
+            $('#loading-block-document').hide();
             if (type == 'tso') {
                 $('.table-content-tso').html(res);
             } else {
@@ -150,55 +157,31 @@
             
         }
     
-        async function onInit(data) {
-            // **
-            // * Build data params table ----->
-            // *
-            dataParams = { ...dataParams, ...data };
-        
-            // **
-            // * get table ----->
-            // *
-            // var res = await ApiService.get_table('/TSO', dataParams);
-            // $('.table-content').html(res);
-            // $('.select2-page').select2({ minimumResultsForSearch: -1 });  
-            // $('.select2-page').on('select2:select', function (e) {
-            //     delete dataParams.page;
-
-            //     onInit({page_size: $(this).val()})
-            // });
-            
-
-            // **
-            // * pagination table ----->
-            // *
-            $('.pagination-button').on('click', function() {
-                onInit({...dataParams, page: parseInt($(this).data('pagination-page'))})
-            })
-        }
-    
-        async function get_modal_approve_tso(emp_id, tso_date) {
+        async function get_modal_approve_tso(data_tso) {
             // **
             // * open modal form ----->
             // *
             var URL = '/approved-tso';
-            var res = await ApiService.get_modal(URL, null);
-            $(".select2-modal").select2();
-            $('input[name=emp_id]').val(emp_id);
-            $('input[name=tso_date]').val(tso_date);
-            
-            // **
-            // * submit form ----->
-            // *
-            var resSubmit = ApiService.submit_form('.submit-approve-tso', (_response) => { 
-                if (_response.response < 200 || _response.response >= 300) {
-                    // * SET NOTIFICATION MESSAGE REQUIRED ----->
-                } else {
-                    get_table('tso', { q: $('.search-data-input').val() });
-                }
-            });
+            if(data_tso.slug && data_tso.emp_id && data_tso.tso_date && data_tso.dept_id) {
+                var res = await ApiService.get_modal(URL, {...data_tso});
+                $(".select2-modal").select2();
+                if(data_tso.slug == 'plusmn')  $('input[name=dept_id]').val(data_tso.dept_id);
+                $('input[name=emp_id]').val(data_tso.emp_id);
+                $('input[name=tso_date]').val(data_tso.tso_date);
+                
+                // **
+                // * submit form ----->
+                // *
+                var resSubmit = ApiService.submit_form('.submit-approve-tso', (_response) => { 
+                    if (_response.response < 200 || _response.response >= 300) {
+                        // * SET NOTIFICATION MESSAGE REQUIRED ----->
+                    } else {
+                        get_table('tso', { q: $('.search-data-input').val() });
+                    }
+                });
+            }
         }
-        async function get_modal_approve_not_given_lb(emp_id, tso_date) {
+        async function get_modal_approve_not_given_lb(emp_id, lb_date) {
             // **
             // * open modal form ----->
             // *
@@ -206,7 +189,7 @@
             var res = await ApiService.get_modal(URL, null);
             $(".select2-modal").select2();
             $('input[name=emp_id]').val(emp_id);
-            $('input[name=tso_date]').val(tso_date);
+            $('input[name=lb_date]').val(lb_date);
             
             // **
             // * submit form ----->
@@ -215,18 +198,9 @@
                 if (_response.response < 200 || _response.response >= 300) {
                     // * SET NOTIFICATION MESSAGE REQUIRED ----->
                 } else {
-                    onInit( { q: $('.search-data-input').val() });
+                    get_table('not-given-lb', { q: $('.search-data-input').val() });
                 }
             });
-        }
-
-        async function open_modal_confirm(id) {
-            // **
-            // * open modal confirm ----->
-            // *
-            await ApiService.get_confirm('.submit-delete-request-task', '/request-task/' + id, null, () => {
-                onInit();
-            })
         }
 </script>
 @endsection

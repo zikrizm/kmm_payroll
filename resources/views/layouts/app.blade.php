@@ -61,15 +61,28 @@
 </head>
 
 <body class="overflow-hidden">
+    {{-- <div id="loading-line"
+        class="duration-1000 w-0 h-[3px] rounded hidden bg-black absolute top-0 bg-gradient-to-r from-violet-300 to-violet-700 ">
 
+    </div> --}}
     <div id="dropdown-menu"
         class="hidden absolute border border-gray-200 backdrop-blur-[3px] rounded-xl shadow-sm p-1.5 bg-transparent z-[999]">
     </div>
     {{-- Loading elemnt --}}
     <div id="loading-block-document" style="display: none;">
         <div class="fixed flex items-center justify-center z-[999] h-screen w-full">
-            <div class="w-full h-full absolute" style="background: rgba(0, 0, 0, 0.2);"></div>
-            <x-icon icon="loader" class="animate-spin" width=25 height=25 viewBox="20 20" />
+            <div class="w-full h-full absolute" style="background: rgba(92, 92, 92, 0.1);"></div>
+            <div class="flex items-center ">
+                {{-- backdrop-blur-sm py-2 px-3 rounded-xl --}}
+                <svg class="-ml-1 mr-3 h-10 w-10 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none"
+                    viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                    </path>
+                </svg>
+                <p class="text-gray-500 text-xl font-semibold">Loading...</p>
+            </div>
         </div>
     </div>
     {{-- @dd() --}}
@@ -700,6 +713,13 @@ hover:bg-gray-50
 <script type="application/javascript">
     const API = "{{ config('constants.api') }}";
     window.addEventListener('DOMContentLoaded', (event) => {
+        $(document).ajaxSend(function(event, request, settings) {
+            console.log('send')
+        });
+
+        $(document).ajaxComplete(function(event, request, settings) {
+            console.log('ajaxComplete')
+        });
         $('#switch-size-menu').on('click',function(e) {
             if($('#aside-navigation').hasClass('is-full-size')) {
                 $('.footer-full-size').toggle('flex');
@@ -756,7 +776,26 @@ hover:bg-gray-50
         } else {
             dropdown_menu_click_full_size();
         }
+
     });
+
+    // function set_loading_line(status) {
+    //     switch (status) {
+    //         case 'pending':
+    //         $('#loading-line').removeClass('hidden');
+    //         $('#loading-line').addClass('flex');
+    //         $('#loading-line').width('20%');
+    //             break;
+    //         case 'finish':
+    //         $('#loading-line').width('100%');
+    //         setTimeout(() => {
+    //             $('#loading-line').addClass('hidden');
+    //             $('#loading-line').width('0');
+    //         }, 2000);
+    //             break;
+    //     }
+        
+    // }
 
     function dropdown_menu_click_full_size(params) {
         $('.my-dropdown-menu').each(function (e) {

@@ -86,13 +86,13 @@
         }
 
         async function open_modal_confirm(user_id) {
-        // **
-        // * open modal confirm ----->
-        // *
-        await ApiService.get_confirm('.submit-delete-user', '/user/' + user_id, null, () => {
-            onInit();
-        })
-    }
+            // **
+            // * open modal confirm ----->
+            // *
+            await ApiService.get_confirm('.submit-delete-user', '/user/' + user_id, null, () => {
+                onInit();
+            })
+        }
 
 
     function resetSortTable() {
