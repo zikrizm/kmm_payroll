@@ -373,6 +373,7 @@ class TSOController extends Controller
                         }
 
                         if (!$timetable['status']['valid']) {
+                            $employee_tso = EmployeeTso::where('tso_date', $date)->where('emp_id', $employee_bios['id'])->first();
                             $employee_tsos[] = [
                                 'employee' => [
                                     'id' => $employee_bios['id'],
@@ -388,6 +389,7 @@ class TSOController extends Controller
                                 "first_punch" => $timetable['first_punch'] ?? null,
                                 "last_punch" => $timetable['last_punch'] ?? null,
                                 "total_time" => (!empty($timetable['diff_time_punch'])) ? $timetable['diff_time_punch']->format('%H:%I') : null,
+                                'is_approved_tso' => !empty($employee_tso),
                                 "timetable" => $timetable,
                             ];
                         }
@@ -487,11 +489,6 @@ class TSOController extends Controller
             $query->where('status', 'inactive');
         })->get();
 
-        // $emp_count = $this->apiService->get_employees([])['count'];
-        // $employees = $this->apiService->get_employees(['page_size' => $emp_count])['data'];
-        // $employees = Employee::select('id', 'emp_id', 'emp_code', 'first_name', 'last_name',  'daily_salary', 'payment_period', 'status')->get();
-        // Log::info($employees);
-
         foreach ($operationals as $key => $itemOP) {
             $employee_count_bios = $this->apiService->get_employees(['department' =>  $itemOP->dept_id])['count'];
             $employee_bios = $this->apiService->get_employees(['department' =>  $itemOP->dept_id, 'page_size' => $employee_count_bios])['data'];
@@ -506,6 +503,23 @@ class TSOController extends Controller
                     if (count($dates) - 1 != $date_key) {
                         $attendance_item_perdate = collect($attendance_employee[$date] ?? []);
                         if ($attendance_item_perdate->isEmpty()) {
+                            // $employee_tsos[] = [
+                            //     'employee' => [
+                            //         'id' => $employee_bios['id'],
+                            //         'emp_code' => $employee_bios['emp_code'],
+                            //         'first_name' => $employee_bios['first_name'],
+                            //         'last_name' => $employee_bios['last_name'],
+                            //         'photo' => $employee_bios['photo'],
+                            //         'department' => $employee_bios['department'],
+                            //     ],
+                            //     "date" => $date,
+                            //     "is_less_than_time" => $timetable['is_less_than_time']  ?? null,
+                            //     "is_diff_day" => $timetable['is_diff_day'] ?? null,
+                            //     "first_punch" => $timetable['first_punch'] ?? null,
+                            //     "last_punch" => $timetable['last_punch'] ?? null,
+                            //     "total_time" => (!empty($timetable['diff_time_punch'])) ? $timetable['diff_time_punch']->format('%H:%I') : null,
+                            //     "timetable" => $timetable,
+                            // ];
                         }
                     }
                 }

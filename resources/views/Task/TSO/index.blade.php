@@ -77,9 +77,9 @@
                 maxYear: parseInt(moment().format('YYYY'), 10)
             },function(start, end, label) {
                 var dateFormat = 'YYYY-MM-DD';
-                $('.search-data-input').val('');
                 delete dataParams.page;
-                get_modal_approve_tso({ 
+                get_table('tso', { 
+                    q: $('.search-data-input').val(),
                     date: { 
                         start_time: convertLocalTimezone(start, dateFormat), 
                         end_time: convertLocalTimezone(end, dateFormat)
@@ -90,7 +90,7 @@
             $(".search-data-input").on('keyup', debounce(function(e) {
                 if(e.key == 'Shift') return 0;
                 delete dataParams.page;
-                get_modal_approve_tso( { q: this.value });
+                get_table('tso', { q: this.value });
             }, 250));
 
             $('*[data-ref-class-content]').on('click', function(e) {
@@ -138,14 +138,14 @@
             $('.select2-page').on('select2:select', function (e) {
                 delete dataParams.page;
 
-                get_table({page_size: $(this).val()})
+                get_table(type, {page_size: $(this).val()})
             });
 
             // **
             // * pagination table ----->
             // *
             $('.pagination-button').on('click', function() {
-                get_table({...dataParams, page: parseInt($(this).data('pagination-page'))})
+                get_table(type, {...dataParams, page: parseInt($(this).data('pagination-page'))})
             })
             
         }
@@ -194,7 +194,7 @@
                 if (_response.response < 200 || _response.response >= 300) {
                     // * SET NOTIFICATION MESSAGE REQUIRED ----->
                 } else {
-                    onInit( { q: $('.search-data-input').val() });
+                    get_table('tso', { q: $('.search-data-input').val() });
                 }
             });
         }

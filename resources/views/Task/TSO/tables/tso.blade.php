@@ -114,9 +114,9 @@
 
                     @canany(['approved-employee-TSO.approved'])
                     <td class='px-3 py'>
-                        <button
+                        <button @disabled($item['is_approved_tso'])
                             onclick="get_modal_approve_tso('{{ $item['employee']['id'] }}','{{ $item['date'] }}')"
-                            class="flex items-center gap-2.5 px-2 py-1 text-gray-500 text-sm font-medium flex items-center border border-gray-200 shadow-sm rounded-lg">
+                            class="flex items-center gap-2.5 px-2 py-1 text-gray-500 text-sm font-medium flex items-center border border-gray-200 shadow-sm rounded-lg {{ $item['is_approved_tso'] ? 'cursor-not-allowed' : '' }}" style="opacity: {{ $item['is_approved_tso'] ? '0.5' : '' }};">
                             <x-icon icon="check" width=18 height=18 viewBox="20 20" />
                             Setujui
                         </button>
