@@ -483,24 +483,34 @@ class TSOController extends Controller
 
         $operational_start_time = Carbon::parse($request->date['start_time'])->format('Y-m-d');
         $operational_end_time = Carbon::parse($request->date['end_time'])->format('Y-m-d');
-        $operationals = Operational::where('business_id', $business_id)->whereBetween('date', [$operational_start_time, $operational_end_time])
-            ->with('operational_has_timetables.timetable')->get();
+        $operationals = Operational::where('business_id', $business_id)->whereBetween('date', [$operational_start_time, $operational_end_time])->whereHas('operational_has_timetables', function ($query) {
+            $query->where('status', 'inactive');
+        })->get();
 
         // $emp_count = $this->apiService->get_employees([])['count'];
         // $employees = $this->apiService->get_employees(['page_size' => $emp_count])['data'];
         // $employees = Employee::select('id', 'emp_id', 'emp_code', 'first_name', 'last_name',  'daily_salary', 'payment_period', 'status')->get();
         // Log::info($employees);
 
-        foreach ($operationals as $key => $itenOP) {
-            
+        foreach ($operationals as $key => $itemOP) {
+            $employee_count_bios = $this->apiService->get_employees(['department' =>  $itemOP->dept_id])['count'];
+            $employee_bios = $this->apiService->get_employees(['department' =>  $itemOP->dept_id, 'page_size' => $employee_count_bios])['data'];
+            foreach ($employee_bios as $key => $itemEmp) {
+                $emp_id = $itemEmp['id'];
+                $attendance_employee = $attendance_devices->filter(function ($value, $key) use ($emp_id) {
+                    return $value['emp'] == $emp_id;
+                })->sortBy('punch_time')->groupBy([function ($item) {
+                    return Carbon::parse($item['punch_time'])->format('Y-m-d');
+                }]);
+                foreach ($dates as $date_key => $date) {
+                    if (count($dates) - 1 != $date_key) {
+                        $attendance_item_perdate = collect($attendance_employee[$date] ?? []);
+                        if ($attendance_item_perdate->isEmpty()) {
+                        }
+                    }
+                }
+            }
         }
-        
-        // Log::info($operationals);
-        // $temp_dept = null;
-        // foreach ($operationals as $key => $itemOP) {
-        //     $employee_count_bios = $this->apiService->get_employees(['department' =>  $itemOP->dept_id])['count'];
-        //     $employee_bios = $this->apiService->get_employees(['department' =>  $itemOP->dept_id, 'page_size' => $employee_count_bios])['data'];
-        // }
 
         // $order = null;
         // $render =  view('Task.TSO.tables.not_given_lb', compact('employee_tso_datas', 'order', 'page_size'))->render();

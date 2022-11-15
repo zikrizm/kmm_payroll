@@ -79,7 +79,7 @@
                 var dateFormat = 'YYYY-MM-DD';
                 $('.search-data-input').val('');
                 delete dataParams.page;
-                onInit({ 
+                get_modal_approve_tso({ 
                     date: { 
                         start_time: convertLocalTimezone(start, dateFormat), 
                         end_time: convertLocalTimezone(end, dateFormat)
@@ -90,7 +90,7 @@
             $(".search-data-input").on('keyup', debounce(function(e) {
                 if(e.key == 'Shift') return 0;
                 delete dataParams.page;
-                onInit( { q: this.value });
+                get_modal_approve_tso( { q: this.value });
             }, 250));
 
             $('*[data-ref-class-content]').on('click', function(e) {
