@@ -29,7 +29,7 @@
                     <th class='px-3 py-3 text-left cursor-pointer'>
                         <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Status</p>
                     </th>
-                    {{-- @canany(['TSO-operational-working.approved']) --}}
+                    {{-- @canany(['approved-employee-TSO.approved']) --}}
                     <th class='px-3 py-3 text-left text-gray-500 text-xs font-medium'></th>
                     {{-- @endcanany --}}
                 </tr>
@@ -112,22 +112,22 @@
                         @endif
                     </td>
 
-                    {{-- @canany(['TSO-operational-working.approved']) --}}
+                    @canany(['approved-employee-TSO.approved'])
                     <td class='px-3 py'>
                         <button
-                            onclick="get_modal({{ $item['employee']['id'] }},{{ $item['date'] }})"
+                            onclick="get_modal_approve_tso('{{ $item['employee']['id'] }}','{{ $item['date'] }}')"
                             class="flex items-center gap-2.5 px-2 py-1 text-gray-500 text-sm font-medium flex items-center border border-gray-200 shadow-sm rounded-lg">
                             <x-icon icon="check" width=18 height=18 viewBox="20 20" />
                             Setujui
                         </button>
                     </td>
-                    {{-- @endcanany --}}
+                    @endcanany
                 </tr>
                 @endforeach
             </tbody>
         </table>
     </div>
-    {{-- <footer class='flex justify-between items-center px-6 pt-3 pb-4'>
+    <footer class='flex justify-between items-center px-6 pt-3 pb-4'>
         <div class="flex items-center gap-3">
             <select class="select2-page w-14" name="" id="">
                 <option value="10" @selected($page_size=="10" )>10</option>
@@ -150,5 +150,5 @@
                 class='pagination-button px-3.5 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50'>Next</button>
             @endif
         </div>
-    </footer> --}}
+    </footer>
 </main>

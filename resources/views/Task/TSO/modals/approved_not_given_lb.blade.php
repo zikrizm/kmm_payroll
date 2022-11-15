@@ -1,4 +1,4 @@
-<form autocomplete="off" action="{{ route('holiday.store') }}" method="POST" class="submit-holiday">
+<form autocomplete="off" action="{{ route('approved-not-given-lb-lb.store') }}" method="POST" class="submit-not-given-lb">
     @csrf
     <!-- {{ csrf_field() }} -->
     <section
@@ -15,7 +15,7 @@
                 <div class="flex flex-col gap-1">
                     <p class="text-white font-bold text-lg">Hei tunggu</p>
                     <p class="text-white font-normal text-xs">
-                        Apakah anda yakin, ingin melakuakan kalkulasi penggajian ini?,
+                        Apakah anda yakin, ingin melakukan pembatalan uang libur pada karyawan ini?,
                         karena data akan tersimpan.</p>
                 </div>
                 <div class="flex items-center gap-3 flex-1">

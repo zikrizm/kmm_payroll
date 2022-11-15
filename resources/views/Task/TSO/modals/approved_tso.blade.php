@@ -1,5 +1,5 @@
-<form autocomplete="off" action="{{ route('request-task.store') }}" method="POST"
-    class="submit-request-task flex items-start gap-5 justify-center">
+<form autocomplete="off" action="{{ route('approved-tso.store') }}" method="POST"
+    class="submit-approve-tso flex items-start gap-5 justify-center">
     @csrf
     <!-- {{ csrf_field() }} -->
     <section
@@ -32,13 +32,13 @@
                 <input type="hidden" name="tso_date">
                 <section class="flex flex-col gap-1">
                     <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Bagian utama*</label>
-                    <select class="select2-modal" name="parent_dept">
+                    <select class="select2-modal" name="dept_id">
                         <option value="" disabled selected>Silahkan Pilih</option>
                         @foreach (($department_bios['data'] ?? []) as $department)
                         <option value="{{ $department['id'] }}">{{ $department['dept_name'] }}</option>
                         @endforeach
                     </select>
-                    <label class="font-normal text-xs text-red-500 xs/max:text-xs parent_dept hint-text"></label>
+                    <label class="font-normal text-xs text-red-500 xs/max:text-xs dept_id hint-text"></label>
                 </section>
                 <div class="flex justify-center w-full">
                     <div class="flex flex-col gap-2.5 border rounded p-4 w-[375px]">
@@ -49,7 +49,7 @@
                             <div>
                                 <p class="text-sm font-medium text-gray-400">Catatan.</p>
                                 <p class="text-xs text-gray-300">Silahkan pilih bagian karyawan
-                                    dan pastikan karyawan sudah sesuai karena data akan tersimpan.</p>
+                                    dan pastikan karyawan sudah sesuai, karena data akan tersimpan.</p>
                             </div>
                         </div>
                     </div>
