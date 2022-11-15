@@ -24,6 +24,9 @@
                         <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Keluar</p>
                     </th>
                     <th class='px-3 py-3 text-center cursor-pointer'>
+                        <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Bagian</p>
+                    </th>
+                    <th class='px-3 py-3 text-center cursor-pointer'>
                         <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Shift</p>
                     </th>
                     <th class='px-3 py-3 text-left cursor-pointer'>
@@ -80,6 +83,11 @@
                             x
                             @endif
                         </div>
+                    </td>
+                    <td class='px-3 py text-gray-500 text-sm'>
+                        <p class="text-gray-500 text-sm truncate cursor-pointer">
+                            {{ $item['employee']['department']['dept_name'] ?? '-' }}
+                        </p>
                     </td>
                     <td class='px-3 py text-gray-500 text-sm'>
                         @if (!empty($item['timetable']['name']))

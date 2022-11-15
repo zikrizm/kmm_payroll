@@ -503,32 +503,28 @@ class TSOController extends Controller
                     if (count($dates) - 1 != $date_key) {
                         $attendance_item_perdate = collect($attendance_employee[$date] ?? []);
                         if ($attendance_item_perdate->isEmpty()) {
-                            // $employee_tsos[] = [
-                            //     'employee' => [
-                            //         'id' => $employee_bios['id'],
-                            //         'emp_code' => $employee_bios['emp_code'],
-                            //         'first_name' => $employee_bios['first_name'],
-                            //         'last_name' => $employee_bios['last_name'],
-                            //         'photo' => $employee_bios['photo'],
-                            //         'department' => $employee_bios['department'],
-                            //     ],
-                            //     "date" => $date,
-                            //     "is_less_than_time" => $timetable['is_less_than_time']  ?? null,
-                            //     "is_diff_day" => $timetable['is_diff_day'] ?? null,
-                            //     "first_punch" => $timetable['first_punch'] ?? null,
-                            //     "last_punch" => $timetable['last_punch'] ?? null,
-                            //     "total_time" => (!empty($timetable['diff_time_punch'])) ? $timetable['diff_time_punch']->format('%H:%I') : null,
-                            //     "timetable" => $timetable,
-                            // ];
+                            $employee_not_given_lb = EmployeeNotLb::where('tso_date', $date)->where('emp_id', $employee_bios['id'])->first();
+                            $employee_tsos[] = [
+                                'employee' => [
+                                    'id' => $employee_bios['id'],
+                                    'emp_code' => $employee_bios['emp_code'],
+                                    'first_name' => $employee_bios['first_name'],
+                                    'last_name' => $employee_bios['last_name'],
+                                    'photo' => $employee_bios['photo'],
+                                    'department' => $employee_bios['department'],
+                                ],
+                                'is_approved_not_given_lb' => !empty($employee_not_given_lb),
+                                "date" => $date,
+                            ];
                         }
                     }
                 }
             }
         }
 
-        // $order = null;
-        // $render =  view('Task.TSO.tables.not_given_lb', compact('employee_tso_datas', 'order', 'page_size'))->render();
-        // return $this->buildRes->RESPONSE_REQ('success', $render, null);
+        $order = null;
+        $render =  view('Task.TSO.tables.not_given_lb', compact('employee_tso_datas', 'order', 'page_size'))->render();
+        return $this->buildRes->RESPONSE_REQ('success', $render, null);
     }
 
     public function approved_tso(Request $request)

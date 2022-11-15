@@ -15,7 +15,7 @@ return new class extends Migration
     {
         Schema::create('employee_not_lbs', function (Blueprint $table) {
             $table->increments('id');
-            $table->date('tso_date');
+            $table->date('lb_date');
             $table->integer('emp_id');
             $table->timestamps();
         });
