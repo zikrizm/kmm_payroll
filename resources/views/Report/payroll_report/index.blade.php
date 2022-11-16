@@ -15,7 +15,7 @@
     </header>
     <hr>
     <div class="flex justify-between">
-        <div class="flex items-center gap-3">
+        <div class="flex items-center gap-2.5">
             <div class="w-72">
                 {!! FormCustom::input('date', null, [
                 'placeholder' => 'Pilih tanggal penggajian',
@@ -24,7 +24,18 @@
                 'prefixiconname' => 'calendar',
                 ]) !!}
             </div>
-            <button onclick="get_modal()" class="flex items-center gap-2.5 px-4 h-[36px] mb-1 text-gray-500 text-sm font-medium  flex items-center border border-gray-200 shadow-sm rounded-lg">
+            <section class="flex flex-col gap-1">
+                <select class="select2-department hidden" name="">
+                    <option value="" selected>Semua bagian</option>
+                    @foreach (($department_bios ?? []) as $department)
+                    <option value="{{ $department['id'] }}" @selected($department_bios->first()['id'] ==
+                        $department['id'])>{{ $department['dept_name'] }}</option>
+                    @endforeach
+                </select>
+                <label class="font-normal text-xs text-red-500 xs/max:text-xs parent_dept hint-text"></label>
+            </section>
+            <button onclick="get_modal()"
+                class="flex items-center gap-2.5 px-4 h-[36px] mb-1 text-gray-500 text-sm font-medium  flex items-center border border-gray-200 shadow-sm rounded-lg">
                 <x-icon icon="dollar-sign" width=18 height=18 viewBox="20 20" />
                 Hitung penggajian
             </button>
@@ -41,13 +52,14 @@
         window.addEventListener('DOMContentLoaded', (event) => {
             $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
             
-            dataParams = {
+            onInit({
+                q: $('.search-data-input').val(),
+                department_id: "{{ $department_bios->first()['id'] }}",
                 date: { 
                     start_time: convertLocalTimezone(moment().subtract(7, 'days'), 'YYYY-MM-DD'), 
                     end_time: convertLocalTimezone(moment(), 'YYYY-MM-DD')
                 }
-            }
-            onInit(dataParams);
+            });
 
             $('input[name="date"]').daterangepicker({
                 locale: { format: 'YYYY-MM-DD' },
@@ -70,14 +82,21 @@
             },function(start, end, label) {
                 var dateFormat = 'YYYY-MM-DD';
 
-                $('.search-data-input').val('');
                 delete dataParams.page;
                 onInit({ 
+                    q: $('.search-data-input').val(),
                     date: { 
                         start_time: convertLocalTimezone(start, dateFormat), 
                         end_time: convertLocalTimezone(end, dateFormat)
                     } 
                 });
+            });
+
+            $('.select2-department').select2({ minimumResultsForSearch: -1 });  
+            $('.select2-department').show();
+            $('.select2-department').on('select2:select', function (e) {
+                delete dataParams.page;
+                onInit({department_id: this.value});
             });
 
 
@@ -89,6 +108,7 @@
         });
     
         async function onInit(data) {
+            $('#loading-block-document').show();
             // **
             // * Build data params table ----->
             // *
@@ -97,8 +117,9 @@
             // **
             // * get table ----->
             // *
-            var res = await ApiService.get_table('/payroll-report', data);
+            var res = await ApiService.get_table('/payroll-report', dataParams);
             $('.table-content').html(res);
+            $('#loading-block-document').hide();
 
             // **
             // * pagination table ----->

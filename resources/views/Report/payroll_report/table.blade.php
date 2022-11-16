@@ -12,9 +12,10 @@
                     @foreach ($th_dates as $item)
                     {{-- @php
                     $isSunday = Carbon\Carbon::parse($item_report['date'])->isSunday();
-                @endphp --}}
+                    @endphp --}}
                     <th class='border border-t-0 px-3 py-1 text-left cursor-pointer'>
-                        <p class="text-xs font-medium truncate cursor-pointer text-center {{ $item['is_holiday'] ? 'text-red-500' : 'text-gray-500' }}">
+                        <p
+                            class="text-xs font-medium truncate cursor-pointer text-center {{ $item['is_holiday'] ? 'text-red-500' : 'text-gray-500' }} ">
                             {{ date('d', strtotime($item['date'])) }}
                         </p>
                     </th>
@@ -74,13 +75,14 @@
                     </td>
                     @foreach (($item['reports'] ?? []) as $item_report)
                     <td class='border border-b-0 px-3 py-2 text-left'>
-                        <p class="text-xs text-gray-500 truncate text-center">
+                        <p
+                            class="text-xs truncate text-center {{ !empty($item_report['timetable']['status']) && $item_report['timetable']['status']['valid'] ? 'text-gray-500' : 'text-gray-300' }}">
                             {{ $item_report['timetable']['calculate_atten_per_day'] }}
                             {{-- @php
-                                $calculate_atten = 
+                            $calculate_atten =
                             @endphp --}}
                             {{-- @if (!empty($item_report['timetable']['per_day']))
-                                {{ $item_report['timetable']['per_day'] }}
+                            {{ $item_report['timetable']['per_day'] }}
                             @endif --}}
                             {{-- @php
                             $overtime = ($item_report['timetable']['overtime'] ?? 0) +

@@ -100,6 +100,7 @@
         });
     
         async function onInit(data) {
+            $('#loading-block-document').show();
             // **
             // * Build data params table ----->
             // *
@@ -109,6 +110,7 @@
             // *
             var res = await ApiService.get_table('/operational', dataParams);
             $('.table-content').html(res);
+            $('#loading-block-document').hide();
 
             // **
             // * pagination table ----->
@@ -181,146 +183,8 @@
                 if(!data_operasional) date = $('.operational_date').val();
                 else date = moment($('.operational_date').val()).format('YYYY-MM-DD');
                 get_card_operational((!data_operasional), date, this.value);
-
-                // $('#next-day').on('click', function(e) {
-                //     counter_day++;
-                //     $('#prev-day').removeClass('hidden');
-                //     $('*[data-timetable-day]').each(function(e) {
-                //         if($(this).data('timetable-day') == counter_day) $(this).removeClass('hidden');
-                //         else $(this).addClass('hidden');
-                //     });
-                //     if(timetableDayContentChildLen-1 == counter_day) $(this).addClass('hidden');
-                //     set_pagination_name_timetable(counter_day)
-                // });
-                // $('#prev-day').on('click', function(e) {
-                //     counter_day--;
-                //     $('#next-day').removeClass('hidden');
-                //     $('*[data-timetable-day]').each(function(e) {
-                //         if($(this).data('timetable-day') == counter_day) $(this).removeClass('hidden');
-                //         else $(this).addClass('hidden');
-                //     });
-                //     if(counter_day == 0) $(this).addClass('hidden');
-                //     set_pagination_name_timetable(counter_day)
-                // });
-
-                // set_pagination_name_timetable(counter_day)
-
-                // $('.select2-status').select2();
-                // $('.specific_date').daterangepicker({
-                //     locale: { format: 'YYYY-MM-DD' },
-                //     startDate: $('.operational_date').data('daterangepicker').startDate._d,
-                //     endDate: $('.operational_date').data('daterangepicker').endDate._d ,
-                //     minDate: $('.operational_date').data('daterangepicker').startDate._d,
-                //     maxDate: $('.operational_date').data('daterangepicker').endDate._d,
-                //     ranges: {
-                //         'Today': [moment(), moment()],
-                //         'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
-                //         'Last 7 Days': [moment().subtract(6, 'days'), moment()],
-                //         'Last 30 Days': [moment().subtract(29, 'days'), moment()],
-                //         'This Month': [moment().startOf('month'), moment().endOf('month')],
-                //         'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
-                //     },
-                //     alwaysShowCalendars: true,
-                //     showCustomRangeLabel: false,
-                //     showDropdowns: true,
-                //     minYear: 2000,
-                //     drops: "auto",
-                //     maxYear: parseInt(moment().format('YYYY'), 10)
-                // });
-                
-                // $("input[name*='group']").each(function(e) {
-                //     var subname= this.name.split('[').pop().split(']').shift();
-                //     if(subname == 'date') {
-                //         var a = moment($('.operational_date').data('daterangepicker').startDate._d);
-                //         var b = moment($('.operational_date').data('daterangepicker').endDate._d).add(1, 'd');
-                //         $(this).parent().parent().children('.hint-text').removeClass('text-red-500');
-                //         $(this).parent().parent().children('.hint-text').addClass('text-gray-300');
-                //         $(this).parent().parent().children('.hint-text').html(`Range tanggal oprasional-nya: <span class="font-bold">${b.diff(a, 'days')}</span>`);
-                //         $(this).on('apply.daterangepicker', function(ev, picker) {
-                //             var a = moment(picker.startDate);
-                //             var b = moment(picker.endDate).add(1, 'd');
-                //             $(this).parent().parent().children('.hint-text').removeClass('text-red-500');
-                //             $(this).parent().parent().children('.hint-text').addClass('text-gray-300');
-                //             $(this).parent().parent().children('.hint-text').html(`Range tanggal oprasional-nya: <span class="font-bold">${b.diff(a, 'days')}</span>`);
-                //         });
-
-                //         $(this).on('cancel.daterangepicker', function(ev, picker) {
-                //             $(this).val('');
-                //         });
-                //     } else if(subname == 'status') {
-                //         $(this).on('change', function(e) {
-                //             $(this).parent().parent().parent().parent().toggle('hidden');
-                //             setTimeout(() => {
-                //                 $(this).parent().parent().parent().parent().parent().toggle('hidden');
-                //             }, 200);
-                //         })
-                //     }
-                // })
             });
 
-            
-
-
-               // $('.operational_date').on('change', function(){
-            //     if($('.specific_date').length) {
-            //         $('.specific_date').each(function(e) {
-            //             $(this).data('daterangepicker').minDate = moment($('.operational_date').data('daterangepicker').startDate._d);
-            //             $(this).data('daterangepicker').maxDate = moment($('.operational_date').data('daterangepicker').endDate._d);
-            //         })
-            //     }
-            // });π
-
-            // $('.select2-status').select2();
-            // $('.specific_date').daterangepicker({
-            //     locale: { format: 'YYYY-MM-DD' },
-            //     startDate: $('.operational_date').data('daterangepicker').startDate._d,
-            //     endDate: $('.operational_date').data('daterangepicker').endDate._d ,
-            //     minDate: $('.operational_date').data('daterangepicker').startDate._d,
-            //     maxDate: $('.operational_date').data('daterangepicker').endDate._d,
-            //     ranges: {
-            //         'Today': [moment(), moment()],
-            //         'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
-            //         'Last 7 Days': [moment().subtract(6, 'days'), moment()],
-            //         'Last 30 Days': [moment().subtract(29, 'days'), moment()],
-            //         'This Month': [moment().startOf('month'), moment().endOf('month')],
-            //         'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
-            //     },
-            //     alwaysShowCalendars: true,
-            //     showCustomRangeLabel: false,
-            //     showDropdowns: true,
-            //     minYear: 2000,
-            //     drops: "auto",
-            //     maxYear: parseInt(moment().format('YYYY'), 10)
-            // });
-            // $("input[name*='group']").each(function(e) {
-            //     var subname= this.name.split('[').pop().split(']').shift();
-            //     if(subname == 'date') {
-            //         var a = moment($('.operational_date').data('daterangepicker').startDate._d);
-            //         var b = moment($('.operational_date').data('daterangepicker').endDate._d).add(1, 'd');
-            //         $(this).parent().parent().children('.hint-text').removeClass('text-red-500');
-            //         $(this).parent().parent().children('.hint-text').addClass('text-gray-300');
-            //         $(this).parent().parent().children('.hint-text').html(`Range tanggal oprasional-nya: <span class="font-bold">${b.diff(a, 'days')}</span>`);
-            //         $(this).on('apply.daterangepicker', function(ev, picker) {
-            //             var a = moment(picker.startDate);
-            //             var b = moment(picker.endDate).add(1, 'd');
-            //             $(this).parent().parent().children('.hint-text').removeClass('text-red-500');
-            //             $(this).parent().parent().children('.hint-text').addClass('text-gray-300');
-            //             $(this).parent().parent().children('.hint-text').html(`Range tanggal oprasional-nya: <span class="font-bold">${b.diff(a, 'days')}</span>`);
-            //         });
-
-            //         $(this).on('cancel.daterangepicker', function(ev, picker) {
-            //             $(this).val('');
-            //         });
-            //     } else if(subname == 'status') {
-            //         $(this).on('change', function(e) {
-            //             $(this).parent().parent().parent().parent().toggle('hidden');
-            //             setTimeout(() => {
-            //                 $(this).parent().parent().parent().parent().parent().toggle('hidden');
-            //             }, 200);
-            //         })
-            //     }
-            // })
-           
             // **
             // * submit form ----->
             // *

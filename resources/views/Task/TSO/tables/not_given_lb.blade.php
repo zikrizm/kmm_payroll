@@ -27,7 +27,7 @@
             </thead>
             <tbody>
                 @foreach ($employee_lb_datas['data'] as $item)
-                <tr class='hover:bg-gray-50 border-b border-gray-200 cursor-pointer'>
+                <tr class='hover:bg-gray-50 border-b border-gray-200'>
                     <td class='text-left'>
                         <div class="flex items-center">
                             <div class="pl-4 py-2">
@@ -43,13 +43,13 @@
                         </div>
                     </td>
                     <td class='px-3 py text-gray-500 text-sm'>
-                        <p class="text-gray-500 text-sm truncate cursor-pointer">
+                        <p class="text-gray-500 text-sm truncate">
                             {{ $item['employee']['first_name'] ??'' }}
                             {{ $item['employee']['last_name'] ??'' }}
                         </p>
                     </td>
                     <td class='px-3 py text-gray-500 text-sm'>
-                        <p class="text-gray-500 text-sm truncate cursor-pointer">
+                        <p class="text-gray-500 text-sm truncate">
                             {{ $item['employee']['department']['dept_name'] ?? '-' }}
                         </p>
                     </td>

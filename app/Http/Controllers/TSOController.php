@@ -6,18 +6,15 @@ use App\Utils\Util;
 use App\Models\Shift;
 use App\Models\Holiday;
 use App\Models\Employee;
-use App\Models\Position;
 use App\Models\Department;
 use App\Models\ActivityLog;
 use App\Models\EmployeeNotLb;
 use App\Models\EmployeeTso;
 use App\Models\Operational;
-use App\Models\RequestTask;
 use App\Models\Transaction;
 use App\Utils\ResponseUtil;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
-use App\Models\RequestTaskHasEmp;
 use App\Services\Api\ApiServices;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Session;
@@ -49,7 +46,8 @@ class TSOController extends Controller
         }
 
         try {
-            return  view('Task.TSO.index');
+            $department_bios = collect($this->apiService->get_departments(['page_size' => 999])['data']);
+            return  view('Task.TSO.index', compact('department_bios'));
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
 
@@ -77,9 +75,9 @@ class TSOController extends Controller
             $q = $request->q;
         }
 
-        $dept_id = null;
-        if ($request->has('dept_id') && $request->dept_id != 'all') {
-            $dept_id = $request->dept_id;
+        $department_id = '';
+        if ($request->has('department_id')) {
+            $department_id = $request->department_id;
         }
 
         $business_id = Session::get('business_id');
@@ -107,29 +105,27 @@ class TSOController extends Controller
         // $attens_groupings = $attendance_devices->sortBy('punch_time')->groupBy(function ($item) {
         //     return Carbon::parse($item['punch_time'])->format('Y-m-d') . '(' . $item['emp'] . ')';
         // });
+        $shifts = Shift::where('business_id', $business_id)->get();
         $department_bios = collect($this->apiService->get_departments(["page_size" => 999])['data']);
         $attens_groupings = $attendance_devices->sortBy('punch_time')->groupBy([function ($item) {
             return "emp_id_{$item['emp']} - emp_code_{$item['emp_code']}";
         }, function ($item) {
             return Carbon::parse($item['punch_time'])->format('Y-m-d');
         }]);
-        // Log::info("count=====".count($attens_groupings));
-        // Log::info($attens_groupings);
         $employee_tsos = collect();
         foreach (($attens_groupings ?? []) as $key => $attendance_employee) {
             $emp_code = explode('_', explode(" - ", $key)[1])[2];
             // Log::info('emp_code ' . $emp_code);
             // if ($emp_code == 12)
             //     Log::info(response()->json($attendance_employee));
-            $employee_bios = $this->apiService->get_employees(['emp_code' => $emp_code])['data'];
+            $employee_bios = $this->apiService->get_employees(array_merge(['emp_code' => $emp_code], ($department_id != '' ? ["departments" => $department_id] : [])))['data'];
             if (empty($employee_bios)) continue;
             else $employee_bios = $employee_bios[0];
 
             $employee = Employee::where('business_id', $business_id)->where('emp_id', $employee_bios['id'])->first();
             $employee_dept_parent = $department_bios->where('id', $employee_bios['department']['id'])->first()['parent_dept'];
             $department = Department::where('dept_id', $employee_bios['department']['id'])->first();
-            $shift = Shift::where('business_id', $business_id)->where('dept_id', empty($employee_dept_parent) ? $employee_bios['department']['id'] : $employee_dept_parent['id'])->with(['shiftday.shiftday_has_timetable.timetable'])->first();
-
+            $employee_shift = $shifts->where('dept_id', empty($employee_dept_parent) ? $employee_bios['department']['id'] : $employee_dept_parent['id'])->first();
             $operational_start_time = Carbon::parse($request->date['start_time'])->format('Y-m-d');
             $operational_end_time = Carbon::parse($request->date['end_time'])->format('Y-m-d');
             $operational = Operational::where('business_id', $business_id)->where('dept_id', $employee_bios['department']['id'])->whereBetween('date', [$operational_start_time, $operational_end_time])
@@ -141,10 +137,7 @@ class TSOController extends Controller
 
             foreach ($dates as $date_key => $date) {
                 if (count($dates) - 1 != $date_key) {
-                    // if (!empty($attendance_employee[$date]) && $emp_code == 5) {
-                    //     Log::info("date $date type=" . gettype($attendance_employee[$date]));
-                    // }
-
+                    // Log::info("=============== date={$date}");
                     $C_date = Carbon::parse($date);
                     $timetable = [];
                     $timetable['id'] = '';
@@ -192,7 +185,7 @@ class TSOController extends Controller
                         $punch_check_in = Carbon::parse($timetable['first_punch']);
                         $punch_check_out = Carbon::parse($timetable['last_punch']);
 
-                        $itemShiftDay = $shift->shiftday->where('code_day', $timetable['code_day'])->first();
+                        $itemShiftDay = $employee_shift->shiftday->where('code_day', $timetable['code_day'])->first();
                         foreach ($itemShiftDay->shiftday_has_timetable as $keyHas => $itemHasTimetable) {
                             $timeT = $itemHasTimetable->timetable;
                             $timeT_check_in = Carbon::parse($date . $timeT->check_in);
@@ -399,6 +392,7 @@ class TSOController extends Controller
                 }
             }
         }
+
         $employee_tsos = $employee_tsos->sortBy('date');
         if ($q != '') {
             $employee_tsos = $employee_tsos->filter(function ($atten) use ($q) {
@@ -429,27 +423,27 @@ class TSOController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        $page_size = 10;
         $page = 1;
-        if (!empty($request->input('page'))) {
+        if ($request->has('page') && !empty($request->input('page'))) {
             $page = (int)$request->page;
         }
 
-        if ($request->has('page_size')) {
+        $page_size = 10;
+        if ($request->has('page_size') && !empty($request->input('page_size'))) {
             $page_size = $request->page_size;
         }
+
         $q = '';
-        if (!empty($request->input('q'))) {
+        if ($request->input('q') && !empty($request->input('q'))) {
             $q = $request->q;
         }
 
-        $dept_id = null;
-        if ($request->has('dept_id') && $request->dept_id != 'all') {
-            $dept_id = $request->dept_id;
+        $department_id = '';
+        if ($request->has('department_id')) {
+            $department_id = $request->department_id;
         }
 
         $business_id = Session::get('business_id');
-        $slug_week = ['mgg', 'sen', 'sel', 'rab', 'kam', 'jum', 'sab'];
         // $start_time = Carbon::parse("2022-10-16 23:59:59");
         // $end_time = Carbon::parse("2022-10-22 23:59:59");
         $start_time = Carbon::parse($request->date['start_time']);
@@ -470,38 +464,29 @@ class TSOController extends Controller
         $employee_lbs = collect();
         $operational_start_time = Carbon::parse($request->date['start_time'])->format('Y-m-d');
         $operational_end_time = Carbon::parse($request->date['end_time'])->format('Y-m-d');
-        $operationals = Operational::where('business_id', $business_id)->whereBetween('date', [$operational_start_time, $operational_end_time])->whereHas('operational_has_timetables', function ($query) {
+        $operationals = Operational::where('business_id', $business_id);
+        if ($department_id != '') $operationals = $operationals->where('dept_id', $department_id);
+        $operationals = $operationals->whereBetween('date', [$operational_start_time, $operational_end_time])->whereHas('operational_has_timetables', function ($query) {
             $query->where('status', 'inactive');
         })->get();
 
-        Log::info($operationals);
-
-
         foreach ($operationals as $key => $itemOP) {
             $op_date = Carbon::parse($itemOP->date);
+            $timetable = ['is_holiday' => false];
+            $holidays = Holiday::where('business_id', $business_id)->whereDate('start_date', '<=', $op_date->format('Y-m-d'))
+                ->whereDate('end_date', '>=', $op_date->format('Y-m-d'))->get();
+            if ($op_date->isSunday() || $holidays->isNotEmpty()) {
+                $department = Department::where('dept_id', $itemOP->dept_id)->first();
+                if (!empty($department) && $department->still_paid) {
+                    $timetable['is_holiday'] = true;
+                }
+            }
             $employee_count_bios = $this->apiService->get_employees(['employee_icontains' => $q, 'department' =>  $itemOP->dept_id])['count'];
             $employee_bios = $this->apiService->get_employees(['employee_icontains' => $q, 'department' =>  $itemOP->dept_id, 'page_size' => $employee_count_bios])['data'];
             foreach ($employee_bios as $key => $itemEmp) {
                 $attendance_item_perdate = $attendance_devices->where('emp_id', $itemEmp['id'])->whereBetween('punch_time', [$op_date, $op_date->hour(23)->minute(59)->second(59)]);
-
-                // $attendance_employee = $attendance_devices->filter(function ($value, $key) use ($emp_id) {
-                //     return $value['emp'] == $emp_id;
-                // })->sortBy('punch_time')->groupBy([function ($item) {
-                //     return Carbon::parse($item['punch_time'])->format('Y-m-d');
-                // }]);
-                // foreach ($dates as $date_key => $date) {
-                // if (count($dates) - 1 != $date_key) {
-                // $C_date = Carbon::parse($itemEmp->date);
-                // $attendance_item_perdate = collect($attendance_employee[$C_date->format('Y-m-d')] ?? []);
                 if ($attendance_item_perdate->isEmpty()) {
-                    $timetable = ['is_holiday' => false];
-                    $holidays = Holiday::where('business_id', $business_id)->whereDate('start_date', '>=', $op_date)
-                        ->whereDate('end_date', '<=', $op_date->format('Y-m-d'))->get();
-                    if ($op_date->isSunday() || $holidays->isNotEmpty()) {
-                        if (!empty($department) && $department->still_paid) {
-                            $timetable['is_holiday'] = true;
-                        }
-                    }
+
                     $employee_not_given_lb = EmployeeNotLb::where('lb_date', $op_date->format('Y-m-d'))->where('emp_id', $itemEmp['id'])->first();
                     $employee_lbs[] = [
                         'employee' => [
@@ -517,8 +502,6 @@ class TSOController extends Controller
                         "timetable" => $timetable,
                     ];
                 }
-                //     }
-                // }
             }
         }
 
@@ -542,7 +525,6 @@ class TSOController extends Controller
             'lastPage' => ceil($employee_lbs_count / $page_size),
             'currentPage' => $page,
         ]);
-
 
         // Log::info(response()->json($employee_tsos));
 
@@ -584,25 +566,26 @@ class TSOController extends Controller
         }
 
         try {
-            $rules = ['tso_date' => 'required', 'emp_id' => 'required'];
-            if ($request->slug == 'plusmn') $rules['dept_id'] = 'required';
+            Log::info($request);
+            // $rules = ['tso_date' => 'required', 'emp_id' => 'required'];
+            // if ($request->slug == 'plusmn') $rules['dept_id'] = 'required';
 
-            $validator = Validator::make($request->all(), $rules);
-            if ($validator->fails()) {
-                return $this->buildRes->RESPONSE_REQ('error', null, $validator->errors());
-            } else {
-                $reqdata = $request->only(['emp_id', 'tso_date', 'dept_id']);
-                $employee_tso = new EmployeeTso([
-                    'tso_date' => Carbon::parse($reqdata['tso_date'])->format('Y-m-d'),
-                    'emp_id' => $reqdata['emp_id'],
-                    'dept_id' => $reqdata['dept_id'],
-                ]);
-                $employee_tso->save();
+            // $validator = Validator::make($request->all(), $rules);
+            // if ($validator->fails()) {
+            //     return $this->buildRes->RESPONSE_REQ('error', null, $validator->errors());
+            // } else {
+            //     $reqdata = $request->only(['emp_id', 'tso_date', 'dept_id']);
+            //     $employee_tso = new EmployeeTso([
+            //         'tso_date' => Carbon::parse($reqdata['tso_date'])->format('Y-m-d'),
+            //         'emp_id' => $reqdata['emp_id'],
+            //         'dept_id' => $reqdata['dept_id'],
+            //     ]);
+            //     $employee_tso->save();
 
-                // ** create activity log user
-                ActivityLog::created_activity('Approved attendance', 'User ' . auth()->user()->username . ' approved TSO (tidak sesuai operasional)');
-                return $this->buildRes->RESPONSE_REQ('success', null,  ['success' => 'Add transaction succesfully']);
-            }
+            //     // ** create activity log user
+            //     ActivityLog::created_activity('Approved attendance', 'User ' . auth()->user()->username . ' approved TSO (tidak sesuai operasional)');
+            //     return $this->buildRes->RESPONSE_REQ('success', null,  ['success' => 'Add transaction succesfully']);
+            // }
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
 

@@ -61,19 +61,43 @@
 </head>
 
 <body class="overflow-hidden">
+    <div id="dropdown-action" class="w-44 hidden flex-col absolute border border-gray-200 bg-white rounded-lg shadow-sm z-[999]"></div>
+    <div id="loading-block-document" style="display: none;">
+        <div class="absolute w-full h-screen flex items-center justify-center flex-col gap-2"
+            style="z-index: 999;background-color: rgba(0, 0, 0, 0.3);">
+            <div class="bg-white rounded-full shadow">
+                <x-icon icon="loading-3" width=80 height=80 viewBox="20 20" />
+            </div>
+            <p id="loading-text" class="p-1.5 bg-gray-100 text-gray-700 rounded-lg shadow font-semibold text-xs">Loading
+            </p>
+        </div>
+    </div>
+    {{-- <button class="flex item-center gap-3 px-4 py-2.5">
+        <span class="min-h-[14px] min-w-[14px] w-3.5 h-3.5 border border-gray-400 rounded"></span>
+        <p class="text-xs text-gray-500 font-medium">Unselect All</p>
+    </button>
+    <button class="flex item-center gap-3 px-4 py-2.5">
+        <x-icon icon="check" class="text-gray-500" width=16 height=16 viewBox="20 20" />
+        <p class="text-xs text-gray-500 font-medium">Disetujui semua</p>
+    </button>
+    <button class="flex item-center gap-3 px-4 py-2.5">
+        <x-icon icon="copy" class="text-gray-500" width=16 height=16 viewBox="20 20" />
+        <p class="text-xs text-gray-500 font-medium">Duplikat</p>
+    </button>
+    <button class="flex item-center gap-3 px-4 py-2.5 border-t border-t-gray-200">
+        <x-icon icon="trash-2" class="text-red-400" width=16 height=16 viewBox="20 20" />
+        <p class="text-xs text-gray-500 font-medium">Hapus semua</p>
+    </button> --}}
     {{-- <div id="loading-line"
         class="duration-1000 w-0 h-[3px] rounded hidden bg-black absolute top-0 bg-gradient-to-r from-violet-300 to-violet-700 ">
-
     </div> --}}
     <div id="dropdown-menu"
         class="hidden absolute border border-gray-200 backdrop-blur-[3px] rounded-xl shadow-sm p-1.5 bg-transparent z-[999]">
     </div>
-    {{-- Loading elemnt --}}
-    <div id="loading-block-document" style="display: none;">
+    {{-- <div id="loading-block-document" style="display: none;">
         <div class="fixed flex items-center justify-center z-[999] h-screen w-full">
             <div class="w-full h-full absolute" style="background: rgba(92, 92, 92, 0.1);"></div>
             <div class="flex items-center ">
-                {{-- backdrop-blur-sm py-2 px-3 rounded-xl --}}
                 <svg class="-ml-1 mr-3 h-10 w-10 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none"
                     viewBox="0 0 24 24">
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -84,8 +108,7 @@
                 <p class="text-gray-500 text-xl font-semibold">Loading...</p>
             </div>
         </div>
-    </div>
-    {{-- @dd() --}}
+    </div> --}}
 
     <div class="w-full h-screen flex overflow-hidden">
         @if (request()->segment(2) != 'register' && request()->segment(1) != 'employee-photo')
@@ -713,13 +736,13 @@ hover:bg-gray-50
 <script type="application/javascript">
     const API = "{{ config('constants.api') }}";
     window.addEventListener('DOMContentLoaded', (event) => {
-        $(document).ajaxSend(function(event, request, settings) {
-            console.log('send')
-        });
+        // $(document).ajaxSend(function(event, request, settings) {
+        //     console.log('send')
+        // });
 
-        $(document).ajaxComplete(function(event, request, settings) {
-            console.log('ajaxComplete')
-        });
+        // $(document).ajaxComplete(function(event, request, settings) {
+        //     console.log('ajaxComplete')
+        // });
         $('#switch-size-menu').on('click',function(e) {
             if($('#aside-navigation').hasClass('is-full-size')) {
                 $('.footer-full-size').toggle('flex');

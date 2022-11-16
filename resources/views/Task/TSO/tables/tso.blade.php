@@ -6,7 +6,7 @@
                     <th class='text-left'>
                         <div class='flex items-center'>
                             <div class='pl-4 py-2 flex items-center'>
-                                {!! FormCustom::checkbox() !!}
+                                {!! FormCustom::checkbox(null, true, ['class' => 'select_all_card']) !!}
                             </div>
                             <div class='px-6 py-3 cursor-pointer flex-1'>
                                 <x-ui.sort-table text="Tanggal" url="{{ route('request-task.index') }}" field="ots_date"
@@ -39,11 +39,13 @@
             </thead>
             <tbody>
                 @foreach ($employee_tso_datas['data'] as $item)
-                <tr class='hover:bg-gray-50 border-b border-gray-200 cursor-pointer'>
+                <tr class='hover:bg-gray-50 border-b border-gray-200'>
+                    <input type="hidden" name="emp_id" value="{{ $item['employee']['id'] }}">
+                    <input type="hidden" name="tso_date" value="{{ $item['date'] }}">
                     <td class='text-left'>
                         <div class="flex items-center">
                             <div class="pl-4 py-2">
-                                {!! FormCustom::checkbox() !!}
+                                {!! FormCustom::checkbox(null, true, ['class' => 'select_card']) !!}
                             </div>
                             <div
                                 class="flex gap-3 items-center px-6 py-3 {{ $item['timetable']['is_holiday'] ? 'text-red-500' : 'text-gray-500' }} text-sm">
@@ -55,7 +57,7 @@
                         </div>
                     </td>
                     <td class='px-3 py text-gray-500 text-sm'>
-                        <p class="text-gray-500 text-sm truncate cursor-pointer">
+                        <p class="text-gray-500 text-sm truncate">
                             {{ $item['employee']['first_name'] ??'' }}
                             {{ $item['employee']['last_name'] ??'' }}
                         </p>
@@ -85,7 +87,7 @@
                         </div>
                     </td>
                     <td class='px-3 py text-gray-500 text-sm'>
-                        <p class="text-gray-500 text-sm truncate cursor-pointer">
+                        <p class="text-gray-500 text-sm truncate">
                             {{ $item['employee']['department']['dept_name'] ?? '-' }}
                         </p>
                     </td>
