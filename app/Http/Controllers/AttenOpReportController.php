@@ -79,7 +79,7 @@ class AttenOpReportController extends Controller
                     // $end_time = Carbon::parse("2022-10-22 23:59:59");
                     $start_time = Carbon::parse($request->date['start_time']);
                     $end_time = Carbon::parse($request->date['end_time']);
-                    $filter['start_time'] = $start_time->hour(0)->minute(0)->second(0)->format('Y-m-d H:i:s');
+                    $filter['start_time'] = $start_time->subDays(1)->hour(0)->minute(0)->second(0)->format('Y-m-d H:i:s');
                     $filter['end_time'] = $end_time->addDays(1)->hour(23)->minute(59)->second(59)->format('Y-m-d H:i:s');
                     $attenDBs = Transaction::whereBetween('punch_time', [$filter['start_time'], $filter['end_time']])->get();
                     $dates = $this->util->generateDateRange($start_time, $end_time);

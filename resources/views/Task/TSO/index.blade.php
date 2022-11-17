@@ -292,6 +292,7 @@
             var URL = '/approved-not-given-lb';
             var res = await ApiService.get_modal(URL, null);
             $(".select2-modal").select2();
+            $('input[name="lb_datas[0][dept_id]"]').val(dept_id);
             $('input[name="lb_datas[0][emp_id]"]').val(emp_id);
             $('input[name="lb_datas[0][lb_date]"]').val(lb_date);
             
@@ -299,6 +300,7 @@
             // * submit form ----->
             // *
             var resSubmit = ApiService.submit_form('.submit-not-given-lb', (_response) => { 
+                console.log(_response)
                 if (_response.response < 200 || _response.response >= 300) {
                     // * SET NOTIFICATION MESSAGE REQUIRED ----->
                 } else {
