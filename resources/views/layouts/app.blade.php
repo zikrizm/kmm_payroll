@@ -673,7 +673,7 @@ hover:bg-gray-50
                 </main>
             </div>
             <hr>
-            <footer class="{{ !$is_mini ? 'hidden' : 'flex' }} items-center justify-center pb-4 w-full footer-mini">
+            <footer class="flex items-center justify-center pb-4 w-full footer-mini" style="display: {{ !$is_mini ? 'none' : 'flex' }};">
                 <div class="flex items-center gap-2 flex-col">
                     <div class="w-10 h-10 rounded-full bg-gray-100 overflow-hidden">
                         @if (!empty(Auth::user()->photo))
@@ -695,7 +695,7 @@ hover:bg-gray-50
                 </div>
             </footer>
             <footer
-                class="{{ $is_mini ? 'hidden' : 'flex' }} items-center justify-between pb-8 w-full footer-full-size">
+                class="flex items-center justify-between pb-8 w-full footer-full-size" style="display: {{ $is_mini ? 'none' : 'flex' }};">
                 <div class="flex items-center gap-2 ">
                     <div class="w-10 h-10 rounded-full bg-gray-100 overflow-hidden">
                         @if (!empty(Auth::user()->photo))

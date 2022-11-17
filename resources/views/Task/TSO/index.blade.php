@@ -138,10 +138,13 @@
             // console.log(res);
             if (type == 'table-tso') {
                 $('.table-content-tso').html(res);
-                build_dropdown_action('table-tso', element_dropdown_tso);
+                $('.table-tso .select-all-card').off('change');
+                $('.table-tso .select-all-card').on('change', function(e) {
+                    var isChecked = $(this).is(':checked');
+                    $('.select-card').prop('checked', isChecked);
+                });
             } else {
                 $('.table-content-lb').html(res);
-                build_dropdown_action('table-not-given-lb');
             }
             $('#loading-block-document').hide();
             $('.select2-page').select2({ minimumResultsForSearch: -1 });  
@@ -185,45 +188,6 @@
 
         }
 
-        function element_dropdown_tso(selected_element, is_multi_select) {
-            let is_selected = $(selected_element).is(':checked');
-            return $(`
-                ${is_multi_select > 1 && is_selected ? `<button type="button" onclick="uncheck_all()" class="flex item-center gap-3 px-4 py-2.5 hover:bg-gray-50">
-                    <span class="min-h-[14px] min-w-[14px] w-3.5 h-3.5 border border-gray-400 rounded"></span>
-                    <p class="text-xs text-gray-500 font-medium">Unselect All</p>
-                </button>`: ''}
-                <button type="button" onclick="approved_all()" class="flex item-center gap-3 px-4 py-2.5 hover:bg-gray-50">
-                    <x-icon icon="check" class="text-gray-500" width=16 height=16 viewBox="20 20" />
-                    <p class="text-xs text-gray-500 font-medium">${is_multi_select > 1 && is_selected? 'Disetujui semua': 'Disetujui'}</p>
-                </button>
-            `);
-        }
-
-        function uncheck_all() {
-            $('.select_all_card').prop('checked', false);
-            $('.select_card').prop('checked', false);
-            close_dropdown_action()
-        }
-
-        async function approved_all() {
-            let datas = [];
-            $('.select_card:checked').each(function(e) {
-                let tr = $(this).closest('tr');
-                let emp_id = tr.find('input[name="emp_id"]').val();
-                let tso_date = tr.find('input[name="tso_date"]').val();
-                let dept_id = tr.find('input[name="dept_id"]').val();
-                datas.push({emp_id, tso_date,dept_id})
-            })
-            
-            var res = await ApiService.store("{{ route('approved-tso.store') }}", {tso_datas: datas});
-            close_dropdown_action();
-            get_table({});
-        }
-
-        function close_dropdown_action() {
-            $('#dropdown-action').css({display: 'none', top: 0, left: 0});
-            $('#dropdown-action').html('');
-        }
     
         async function get_modal_approve_tso(data_tso) {
             // **
@@ -270,41 +234,6 @@
                     get_table( { q: $('.search-data-input').val() });
                 }
             });
-        }
-
-        class MyDropdwonTable {
-            constructor(tableContainer, dropdownElement) {
-                this.tableContainer = tableContainer;
-                this.typeListener = 'contextmenu';
-                this.dropdownElement = dropdownElement;
-                listenerShowDropdown();
-            }
-
-            select_all_card() {
-                // $(`.${table_class} .select_all_card`).off('change');
-                // $(`.${table_class} .select_all_card`).on('change', function(e) {
-                //     var isChecked = $(this).is(':checked');
-                //     $('.select_card').prop('checked', isChecked);
-                // });
-            }
-
-            listenerShowDropdown(params) {
-                $(`.table-tso tr`).on('contextmenu', function(e) {
-                    e.preventDefault();
-                    console.log("Sdfsdf");
-                    // let checkbox_element = $(this).find('.select_card');
-                    // if(checkbox_element.length) {
-                    //     $('#dropdown-action').css({display: 'flex', top: e.pageY, left: e.pageX});
-                    //     let htmlElement = element_build(checkbox_element, $('.select_card:checked').length);
-                    //     $('#dropdown-action').html(htmlElement)
-                    //     $(document).off('click');
-                    //     $(document).on("click",function(e){
-                    //         if ($(e.target).closest('#dropdown-action').length) return;
-                    //         close_dropdown_action();
-                    //     });
-                    // }
-                });
-            }
         }
 </script>
 @endsection

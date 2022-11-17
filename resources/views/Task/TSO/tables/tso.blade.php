@@ -6,7 +6,7 @@
                     <th class='text-left'>
                         <div class='flex items-center'>
                             <div class='pl-4 py-2 flex items-center'>
-                                {!! FormCustom::checkbox(null, true, ['class' => 'select_all_card']) !!}
+                                {!! FormCustom::checkbox(null, true, ['class' => 'select-all-card']) !!}
                             </div>
                             <div class='px-6 py-3 cursor-pointer flex-1'>
                                 <x-ui.sort-table text="Tanggal" url="{{ route('request-task.index') }}" field="ots_date"
@@ -32,9 +32,9 @@
                     <th class='px-3 py-3 text-left cursor-pointer'>
                         <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Status</p>
                     </th>
-                    {{-- @canany(['approved-employee-TSO.approved']) --}}
+                    @canany(['approved-employee-TSO.approved'])
                     <th class='px-3 py-3 text-left text-gray-500 text-xs font-medium'></th>
-                    {{-- @endcanany --}}
+                    @endcanany
                 </tr>
             </thead>
             <tbody>
@@ -49,7 +49,7 @@
                                 <input type="hidden" name="emp_id" value="{{ $item['employee']['id'] }}">
                                 <input type="hidden" name="tso_date" value="{{ $item['date'] }}">
                                 <input type="hidden" name="dept_id" value="{{ $item['employee']['department']['id'] }}">
-                                {!! FormCustom::checkbox(null, true, ['class' => 'select_card']) !!}
+                                {!! FormCustom::checkbox(null, true, ['class' => 'select-card']) !!}
                                 @endif
                             </div>
                             <div
