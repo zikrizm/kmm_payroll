@@ -43,16 +43,16 @@
 
             dataParams = {
                 attendance_report_date: { 
-                    start_time: convertLocalTimezone(moment().startOf("month").toDate(), 'YYYY-MM-DD'), 
-                    end_time: convertLocalTimezone(moment().subtract(6, 'days'), 'YYYY-MM-DD')
+                    start_time: convertLocalTimezone(moment().startOf('week'), 'YYYY-MM-DD'), 
+                    end_time: convertLocalTimezone(moment().endOf('week'), 'YYYY-MM-DD')
                 }
             }
             onInit(dataParams);
 
             $('input[name="attendance-report-date"]').daterangepicker({
                 locale: { format: 'YYYY-MM-DD' },
-                startDate: moment().startOf("month").toDate(),
-                endDate: moment().subtract(6, 'days'),
+                startDate: moment().startOf('week'),
+                endDate: moment().endOf('week'),
                 ranges: {
                     'Today': [moment(), moment()],
                     'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],

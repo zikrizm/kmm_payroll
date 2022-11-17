@@ -57,7 +57,7 @@ class AttenOpReportController extends Controller
                 }
 
                 // * Employee search
-                $search = 'Erw';
+                $search = '';
                 if (!empty($request->input('q'))) {
                     $search = $request->q;
                 }

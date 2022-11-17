@@ -43,15 +43,15 @@
             onInit( { 
                 q: $('.search-data-input').val(),
                 kasbon_date: { 
-                    start_date: convertLocalTimezone(moment().startOf("month").toDate(), 'YYYY-MM-DD'), 
-                    end_date: convertLocalTimezone(moment().endOf("month").toDate(), 'YYYY-MM-DD')
+                    start_date: convertLocalTimezone(moment().startOf('week'), 'YYYY-MM-DD'), 
+                    end_date: convertLocalTimezone(moment().endOf('week'), 'YYYY-MM-DD')
                 }
              });
 
             $('input[name="kasbon_date"]').daterangepicker({
                 locale: { format: 'YYYY-MM-DD' },
-                startDate: moment().startOf("month").toDate(),
-                endDate: moment().endOf("month").toDate(),
+                startDate: moment().startOf('week'),
+                endDate: moment().endOf('week'),
                 ranges: {
                     'Today': [moment(), moment()],
                     'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],

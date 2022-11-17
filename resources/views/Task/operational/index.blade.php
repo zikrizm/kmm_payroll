@@ -55,15 +55,15 @@
             onInit({ 
                 q: $('.search-data-input').val(),
                 date: { 
-                    start_date:convertLocalTimezone(moment().subtract(6, 'days'),'YYYY-MM-DD'), 
-                    end_date: convertLocalTimezone(moment(),'YYYY-MM-DD')
+                    start_date:convertLocalTimezone(moment().startOf('week'),'YYYY-MM-DD'), 
+                    end_date: convertLocalTimezone(moment().endOf('week'),'YYYY-MM-DD')
                 }
             });
 
             $('input[name="header-date"]').daterangepicker({
                 locale: { format: 'YYYY-MM-DD' },
-                startDate: moment().subtract(6, 'days'),
-                endDate: moment(),
+                startDate: moment().startOf('week'),
+                endDate: moment().endOf('week'),
                 ranges: {
                     'Today': [moment(), moment()],
                     'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],

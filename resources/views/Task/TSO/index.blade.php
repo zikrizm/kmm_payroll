@@ -45,11 +45,11 @@
                     </select>
                     <label class="font-normal text-xs text-red-500 xs/max:text-xs parent_dept hint-text"></label>
                 </section>
-                {{-- <button onclick="get_modal()"
+                <button onclick="get_modal()"
                     class="flex items-center gap-2.5 px-4 py-2 text-gray-500 text-sm font-medium flex items-center border border-gray-200 shadow-sm rounded-lg">
                     <x-icon icon="plus" width=18 height=18 viewBox="20 20" />
                     Setujui
-                </button> --}}
+                </button>
             </div>
             <x-ui.search-data placeholder="Cari penugasan" url="{{ route('TSO.index') }}" />
         </div>

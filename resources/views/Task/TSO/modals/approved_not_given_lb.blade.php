@@ -16,7 +16,7 @@
                 <input type="hidden" name="lb_date">
                 <div class="flex flex-col gap-1">
                     <p class="text-gray-700 font-bold text-lg">Konfirmasi</p>
-                    <p class="text-gray-500 font-normal text-xs">Apakah anda yakin, ingin melakuakan kalkulasi penggajian ini?,
+                    <p class="text-gray-500 font-normal text-xs">Apakah anda yakin, ingin melakukan pembatalan uang libur ke karyawan ini?,
                         karena data akan tersimpan.</p>
                 </div>
                 <div class="flex items-center gap-3 flex-1">

@@ -58,8 +58,7 @@
                     </td>
                     <td class='px-3 py text-gray-500 text-sm'>
                         <div class="flex items-center gap-2">
-                            ({{ $item->emp_id }})
-                            {{ $item->first_name }}
+                            {{ $item->emp_code }} - {{ $item->first_name }}
                         </div>
                     </td>
                     <td class='px-3 py text-gray-500 text-sm'>
