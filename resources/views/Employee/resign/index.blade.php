@@ -45,7 +45,7 @@
         });
 
         $('input[name="resign_date"]').daterangepicker({
-            locale: { format: 'YYYY-MM-DD' },
+            locale: { format: 'DD-MM-YYYY' },
             ranges: {
                 'Today': [moment(), moment()],
                 'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
@@ -113,7 +113,7 @@
         select2_employee();
 
         $('.date_input').daterangepicker({
-            locale: { format: 'YYYY-MM-DD' },
+            locale: { format: 'DD-MM-YYYY' },
             singleDatePicker: true,
             showDropdowns: true,
             minYear: 2000,

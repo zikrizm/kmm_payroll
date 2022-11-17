@@ -45,11 +45,20 @@
                     </select>
                     <label class="font-normal text-xs text-red-500 xs/max:text-xs parent_dept hint-text"></label>
                 </section>
-                <button onclick="get_modal()"
-                    class="flex items-center gap-2.5 px-4 py-2 text-gray-500 text-sm font-medium flex items-center border border-gray-200 shadow-sm rounded-lg">
-                    <x-icon icon="plus" width=18 height=18 viewBox="20 20" />
-                    Setujui
-                </button>
+                <div id="approved-all-tso" class="hidden">
+                    <button onclick="approved_all_tso()"
+                        class="mb-1 flex items-center gap-2.5 px-4 py-[7px] text-gray-500 text-sm font-medium border border-gray-200 shadow-sm rounded-lg">
+                        <x-icon icon="check" width=18 height=18 viewBox="20 20" />
+                        <p class="truncate">Disetujui semua</p>
+                    </button>
+                </div>
+                <div id="cancel-all-lb" class="hidden">
+                    <button onclick="approved_all_not_given_lb()"
+                        class="mb-1 flex items-center gap-2.5 px-4 py-[7px] text-gray-500 text-sm font-medium border border-gray-200 shadow-sm rounded-lg">
+                        <x-icon icon="x" width=18 height=18 viewBox="20 20" />
+                        <p class="truncate">Batalkan semua</p>
+                    </button>
+                </div>
             </div>
             <x-ui.search-data placeholder="Cari penugasan" url="{{ route('TSO.index') }}" />
         </div>
@@ -72,7 +81,7 @@
             });
 
             $('input[name="date"]').daterangepicker({
-                locale: { format: 'YYYY-MM-DD' },
+                locale: { format: 'DD-MM-YYYY' },
                 startDate: moment().startOf('week'),
                 endDate: moment().endOf('week'),
                 ranges: {
@@ -117,6 +126,16 @@
                     let _idContent = $(this).data('ref-class-content');
                     $(this).removeClass('border-b-2 text-violet-700 active-sub-menu');
                     $('#'+_idContent).addClass('hidden');
+                    $('.table-tso .select-all-card').prop('checked', false);
+                    $('.table-tso .select-card').prop('checked', false);
+                    $('.table-not-given-lb .select-all-card').prop('checked', false);
+                    $('.table-not-given-lb .select-card').prop('checked', false);
+                    if (!$('#approved-all-tso').is(':hidden')) {
+                        $('#approved-all-tso').toggle();
+                    }
+                    if (!$('#cancel-all-lb').is(':hidden')) {
+                        $('#cancel-all-lb').toggle();
+                    }
                 });
 
                 $(this).addClass('border-b-2 text-violet-700 active-sub-menu');
@@ -126,6 +145,12 @@
         });
 
         async function get_table(data) {
+            if (!$('#approved-all-tso').is(':hidden')) {
+                $('#approved-all-tso').toggle();
+            }
+            if (!$('#cancel-all-lb').is(':hidden')) {
+                $('#cancel-all-lb').toggle();
+            }
             let type = '';
             switch ($('.active-sub-menu').data('ref-class-content')) {
                 case 'tso-content': type = 'table-tso'; break;
@@ -139,16 +164,58 @@
             // *
             var url = (type == 'table-tso') ? '/table-tso': '/table-not-given-lb';
             var res = await ApiService.get_table(url, dataParams);
-            // console.log(res);
             if (type == 'table-tso') {
                 $('.table-content-tso').html(res);
                 $('.table-tso .select-all-card').off('change');
                 $('.table-tso .select-all-card').on('change', function(e) {
                     var isChecked = $(this).is(':checked');
-                    $('.select-card').prop('checked', isChecked);
+                    $('.table-tso .select-card').prop('checked', isChecked);
+                    if ($('.table-tso .select-card:checked').length) {
+                        if ($('#approved-all-tso').is(':hidden')) {
+                            $('#approved-all-tso').toggle();
+                        } else {
+                            if(!isChecked) $('#approved-all-tso').toggle();
+                        }
+                    }else {
+                        if (!$('#approved-all-tso').is(':hidden')) $('#approved-all-tso').toggle()
+                    }
+                });
+                $('.table-tso .select-card').on('change', function(e) {
+                    if($('.table-tso .select-card:checked').length) {
+                        if ($('#approved-all-tso').is(':hidden')) {
+                            $('#approved-all-tso').toggle();
+                        }
+                    }else {
+                        $('.table-tso .select-all-card').prop('checked', false)
+                        $('#approved-all-tso').toggle();
+                    }
                 });
             } else {
                 $('.table-content-lb').html(res);
+                $('.table-not-given-lb .select-all-card').off('change');
+                $('.table-not-given-lb .select-all-card').on('change', function(e) {
+                    var isChecked = $(this).is(':checked');
+                    $('.table-not-given-lb .select-card').prop('checked', isChecked);
+                    if ($('.table-not-given-lb .select-card:checked').length) {
+                        if ($('#cancel-all-lb').is(':hidden')) {
+                            $('#cancel-all-lb').toggle();
+                        } else {
+                            if(!isChecked) $('#cancel-all-lb').toggle();
+                        }
+                    }else {
+                        if (!$('#cancel-all-lb').is(':hidden')) $('#cancel-all-lb').toggle()
+                    }
+                });
+                $('.table-not-given-lb .select-card').on('change', function(e) {
+                    if($('.table-not-given-lb .select-card:checked').length) {
+                        if ($('#cancel-all-lb').is(':hidden')) {
+                            $('#cancel-all-lb').toggle();
+                        }
+                    }else {
+                        $('.table-not-given-lb .select-all-card').prop('checked', false)
+                        $('#cancel-all-lb').toggle();
+                    }
+                });
             }
             $('#loading-block-document').hide();
             $('.select2-page').select2({ minimumResultsForSearch: -1 });  
@@ -218,15 +285,15 @@
             }
         }
 
-        async function get_modal_approve_not_given_lb(emp_id, lb_date) {
+        async function get_modal_approve_not_given_lb(emp_id, lb_date, dept_id) {
             // **
             // * open modal form ----->
             // *
             var URL = '/approved-not-given-lb';
             var res = await ApiService.get_modal(URL, null);
             $(".select2-modal").select2();
-            $('input[name="tso_datas[0][emp_id]"]').val(emp_id);
-            $('input[name="tso_datas[0][lb_date]"]').val(lb_date);
+            $('input[name="lb_datas[0][emp_id]"]').val(emp_id);
+            $('input[name="lb_datas[0][lb_date]"]').val(lb_date);
             
             // **
             // * submit form ----->
@@ -238,6 +305,48 @@
                     get_table( { q: $('.search-data-input').val() });
                 }
             });
+        }
+
+        async function approved_all_tso() {
+            let datas = [];
+            $('.table-tso .select-card:checked').each(function(e) {
+                let tr = $(this).closest('tr');
+                let emp_id = tr.find('input[name="emp_id"]').val();
+                let tso_date = tr.find('input[name="tso_date"]').val();
+                let dept_id = tr.find('input[name="dept_id"]').val();
+                datas.push({emp_id, tso_date,dept_id})
+            })
+
+            var _response = await ApiService.store("{{ route('approved-tso.store') }}", {tso_datas: datas});
+            if (_response.response < 200 || _response.response >= 300) {
+                // * SHOW NOTIFICATION ----->
+                handleMessage(_response);
+            } else {
+                handleMessage(_response);
+                if (!$('#approved-all-tso').is(':hidden')) $('#approved-all-tso').toggle()
+                get_table({});
+            }
+        }
+        async function approved_all_not_given_lb() {
+            let datas = [];
+            $('.table-not-given-lb .select-card:checked').each(function(e) {
+                let tr = $(this).closest('tr');
+                let emp_id = tr.find('input[name="emp_id"]').val();
+                let lb_date = tr.find('input[name="lb_date"]').val();
+                let dept_id = tr.find('input[name="dept_id"]').val();
+                datas.push({emp_id, lb_date,dept_id})
+            })
+
+            var _response = await ApiService.store("{{ route('approved-not-given-lb.store') }}", {lb_datas: datas});
+            if (_response.response < 200 || _response.response >= 300) {
+                // * SHOW NOTIFICATION ----->
+                handleMessage(_response);
+            } else {
+                handleMessage(_response);
+                if (!$('#cancel-all-lb').is(':hidden')) $('#cancel-all-lb').toggle()
+                get_table({});
+               
+            }
         }
 </script>
 @endsection

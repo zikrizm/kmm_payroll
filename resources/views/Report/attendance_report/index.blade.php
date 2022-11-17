@@ -50,7 +50,7 @@
             onInit(dataParams);
 
             $('input[name="attendance-report-date"]').daterangepicker({
-                locale: { format: 'YYYY-MM-DD' },
+                locale: { format: 'DD-MM-YYYY' },
                 startDate: moment().startOf('week'),
                 endDate: moment().endOf('week'),
                 ranges: {
@@ -117,7 +117,7 @@
 
             select2_employee({},'emp_code');
             $('input[name="date"]').daterangepicker({
-                locale: { format: 'YYYY-MM-DD' },
+                locale: { format: 'DD-MM-YYYY' },
                 startDate: moment().startOf("month").toDate(),
                 endDate: moment().subtract(6, 'days'),
                 ranges: {

@@ -49,7 +49,7 @@
             });
 
             $('input[name="date"]').daterangepicker({
-                locale: { format: 'YYYY-MM-DD' },
+                locale: { format: 'DD-MM-YYYY' },
                 startDate: moment().subtract(6, 'days'),
                 endDate: moment(),
                 ranges: {
@@ -121,7 +121,7 @@
                 select2_employee({operational_id});
             }
             $('.request-help-date').daterangepicker({
-                locale: { format: 'YYYY-MM-DD' },
+                locale: { format: 'DD-MM-YYYY' },
                 startDate: moment().subtract(6, 'days'),
                 endDate: moment(),
                 ranges: {

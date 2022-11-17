@@ -12,8 +12,9 @@
                 <x-icon icon="bullhorn" width=100 height=100 viewBox="20 20" />
             </div>
             <div class="flex flex-col gap-3 flex-1">
-                <input type="hidden" name="emp_id">
-                <input type="hidden" name="lb_date">
+                <input type="hidden" name="lb_datas[0][emp_id]">
+                <input type="hidden" name="lb_datas[0][lb_date]">
+                <input type="hidden" name="lb_datas[0][dept_id]">
                 <div class="flex flex-col gap-1">
                     <p class="text-gray-700 font-bold text-lg">Konfirmasi</p>
                     <p class="text-gray-500 font-normal text-xs">Apakah anda yakin, ingin melakukan pembatalan uang libur ke karyawan ini?,

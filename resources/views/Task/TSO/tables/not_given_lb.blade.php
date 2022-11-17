@@ -6,7 +6,7 @@
                     <th class='text-left'>
                         <div class='flex items-center'>
                             <div class='pl-4 py-2 flex items-center'>
-                                {!! FormCustom::checkbox() !!}
+                                {!! FormCustom::checkbox(null, true, ['class' => 'select-all-card']) !!}
                             </div>
                             <div class='px-6 py-3 cursor-pointer flex-1'>
                                 <x-ui.sort-table text="Tanggal" url="{{ route('request-task.index') }}" field="ots_date"
@@ -31,7 +31,14 @@
                     <td class='text-left'>
                         <div class="flex items-center">
                             <div class="pl-4 py-2">
-                                {!! FormCustom::checkbox() !!}
+                                @if ($item['is_approved_not_given_lb'])
+                                <span class="min-h-[16px] min-w-[16px] w-4 h-4 block"></span>
+                                @else
+                                <input type="hidden" name="emp_id" value="{{ $item['employee']['id'] }}">
+                                <input type="hidden" name="lb_date" value="{{ $item['date'] }}">
+                                <input type="hidden" name="dept_id" value="{{ $item['employee']['department']['id'] }}">
+                                {!! FormCustom::checkbox(null, true, ['class' => 'select-card']) !!}
+                                @endif
                             </div>
                             <div
                                 class="flex gap-3 items-center px-6 py-3 {{ $item['timetable']['is_holiday'] ? 'text-red-500' : 'text-gray-500' }} text-sm">
@@ -56,7 +63,7 @@
                     @canany(['approved-not-given-employee-holiday-pay.approved'])
                     <td class='px-3 py'>
                         <button @disabled($item['is_approved_not_given_lb'])
-                            onclick="get_modal_approve_not_given_lb('{{ $item['employee']['id'] }}', '{{ $item['date'] }}')"
+                            onclick="get_modal_approve_not_given_lb('{{ $item['employee']['id'] }}', '{{ $item['date'] }}', '{{ $item['employee']['department']['id'] }}')"
                             class="flex items-center gap-2.5 px-2 py-1 text-gray-500 text-sm font-medium flex items-center border border-gray-200 shadow-sm rounded-lg {{ $item['is_approved_not_given_lb'] ? 'cursor-not-allowed' : '' }}"
                             style="opacity: {{ $item['is_approved_not_given_lb'] ? '0.5' : '' }};">
                             <x-icon icon="x" width=18 height=18 viewBox="20 20" />

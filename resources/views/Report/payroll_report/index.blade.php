@@ -62,7 +62,7 @@
             });
 
             $('input[name="date"]').daterangepicker({
-                locale: { format: 'YYYY-MM-DD' },
+                locale: { format: 'DD-MM-YYYY' },
                 startDate: moment().startOf('week'),
                 endDate: moment().endOf('week'),
                 ranges: {
@@ -138,7 +138,7 @@
             var URL = (payroll_report_id) ? '/payroll-report/' + payroll_report_id + '/edit' : '/payroll-report/create';
             var res = await ApiService.get_modal(URL, null);
             $('input[name="holiday_date"]').daterangepicker({
-                locale: { format: 'YYYY-MM-DD' },
+                locale: { format: 'DD-MM-YYYY' },
                 showDropdowns: true,
                 minYear: 2000,
                 drops: "auto",

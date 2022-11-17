@@ -67,7 +67,7 @@
             });
 
             $('input[name="date"]').daterangepicker({
-                locale: { format: 'YYYY-MM-DD' },
+                locale: { format: 'DD-MM-YYYY' },
                 startDate: moment().startOf('week'),
                 endDate: moment().endOf('week'),
                 ranges: {

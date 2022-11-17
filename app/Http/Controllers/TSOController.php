@@ -61,8 +61,6 @@ class TSOController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        Log::info($request);
-
         $page_size = 10;
         $page = 1;
         if (!empty($request->input('page'))) {
@@ -89,7 +87,7 @@ class TSOController extends Controller
         $start_time = Carbon::parse($request->date['start_time']);
         $end_time = Carbon::parse($request->date['end_time']);
         $filter['start_time'] = $start_time->hour(0)->minute(0)->second(0)->format('Y-m-d H:i:s');
-        $filter['end_time'] = $end_time->addHours(1)->hour(23)->minute(59)->second(59)->format('Y-m-d H:i:s');
+        $filter['end_time'] = $end_time->addDays(1)->hour(23)->minute(59)->second(59)->format('Y-m-d H:i:s');
         $dates = $this->util->generateDateRange($start_time, $end_time);
         foreach ($dates as $date) {
             $code_day = Carbon::parse($date)->dayOfWeek;
@@ -115,11 +113,12 @@ class TSOController extends Controller
             return Carbon::parse($item['punch_time'])->format('Y-m-d');
         }]);
         $employee_tsos = collect();
+        Log::info("===============PEMISAH-PEMISAH-PEMISAH-PEMISAH-PEMISAH================");
         foreach (($attens_groupings ?? []) as $key => $attendance_employee) {
             $emp_code = explode('_', explode(" - ", $key)[1])[2];
             // Log::info('emp_code ' . $emp_code);
             // if ($emp_code == 12)
-            //     Log::info(response()->json($attendance_employee));
+                // Log::info(response()->json($attendance_employee));
             $employee_bios = $this->apiService->get_employees(array_merge(['emp_code' => $emp_code], ($department_id != '' ? ["departments" => $department_id] : [])))['data'];
             if (empty($employee_bios)) continue;
             else $employee_bios = $employee_bios[0];
@@ -135,7 +134,7 @@ class TSOController extends Controller
                     return Carbon::parse($item->date)->format('Y-m-d');
                 });
             // if ($emp_code == 5)
-            //     Log::info("===============================");
+                // Log::info("===============================");
 
             foreach ($dates as $date_key => $date) {
                 if (count($dates) - 1 != $date_key) {
@@ -311,87 +310,89 @@ class TSOController extends Controller
                             }
                         }
                     }
-                }
-                if ($attendance_item_perdate->count() > 1) {
-                    $operational_atten_by_date = $operational->get($date);
-                    // Log::info("date=$date " . !empty($operational_atten_by_date));
-                    if (!empty($operational_atten_by_date)) {
-                        foreach ($operational_atten_by_date as $value) {
-                            foreach ($value->operational_has_timetables as $itemOpTimeT) {
-                                if ($timetable['id'] != '' && $timetable['id'] == $itemOpTimeT->timetable->id) {
-                                    if ($itemOpTimeT->status == 'active') {
-                                        $_punch_check_out = Carbon::parse($timetable['last_punch']);
-                                        $_timeT_check_out_cross_plus_ot_limit_op = Carbon::parse($date . $timetable['check_out'])->addDays($timetable['cross_day'] ?? 0)->addHours($itemOpTimeT->ot_limit ?? 0);
-                                        $shift_bagian_check_out_add_plusmn = Carbon::parse($date . $timetable['check_out'])->subMinutes($timetable['check_out_plusmn']);
-                                        $diff_check_out_hrs = $_timeT_check_out_cross_plus_ot_limit_op->diffInHours($_punch_check_out, false);
 
-                                        if ($_punch_check_out->gte($shift_bagian_check_out_add_plusmn)) {
-                                            if ($timetable['real_overtime'] == $itemOpTimeT->ot_limit) {
-                                                $timetable['status']['slug'] = 'check';
-                                                $timetable['status']['valid'] = true;
-                                            } else if ($timetable['real_overtime'] < $itemOpTimeT->ot_limit || $timetable['real_overtime'] > $itemOpTimeT->ot_limit) {
+                    // if ($attendance_item_perdate->count() > 1) {
+                        $operational_atten_by_date = $operational->get($date);
+                        // Log::info("date=$date " . !empty($operational_atten_by_date));
+                        if (!empty($operational_atten_by_date)) {
+                            foreach ($operational_atten_by_date as $value) {
+                                foreach ($value->operational_has_timetables as $itemOpTimeT) {
+                                    if ($timetable['id'] != '' && $timetable['id'] == $itemOpTimeT->timetable->id) {
+                                        if ($itemOpTimeT->status == 'active') {
+                                            $_punch_check_out = Carbon::parse($timetable['last_punch']);
+                                            $_timeT_check_out_cross_plus_ot_limit_op = Carbon::parse($date . $timetable['check_out'])->addDays($timetable['cross_day'] ?? 0)->addHours($itemOpTimeT->ot_limit ?? 0);
+                                            $shift_bagian_check_out_add_plusmn = Carbon::parse($date . $timetable['check_out'])->subMinutes($timetable['check_out_plusmn']);
+                                            $diff_check_out_hrs = $_timeT_check_out_cross_plus_ot_limit_op->diffInHours($_punch_check_out, false);
+    
+                                            if ($_punch_check_out->gte($shift_bagian_check_out_add_plusmn)) {
+                                                if ($timetable['real_overtime'] == $itemOpTimeT->ot_limit) {
+                                                    $timetable['status']['slug'] = 'check';
+                                                    $timetable['status']['valid'] = true;
+                                                } else if ($timetable['real_overtime'] < $itemOpTimeT->ot_limit || $timetable['real_overtime'] > $itemOpTimeT->ot_limit) {
+                                                    $timetable['status']['slug'] = 'plusmn';
+                                                    $timetable['status']['value'] = ($timetable['real_overtime'] > $itemOpTimeT->ot_limit) ?  '+' . $timetable['real_overtime'] - $itemOpTimeT->ot_limit
+                                                        : $timetable['real_overtime'] - $itemOpTimeT->ot_limit;
+                                                    $timetable['status']['valid'] = false;
+                                                } else if ($_timeT_check_out_cross_plus_ot_limit_op->lt($_punch_check_out)) {
+                                                    $timetable['status']['slug'] = 'not-allowed';
+                                                    $timetable['status']['valid'] = false;
+                                                }
+                                            } else {
                                                 $timetable['status']['slug'] = 'plusmn';
-                                                $timetable['status']['value'] = ($timetable['real_overtime'] > $itemOpTimeT->ot_limit) ?  '+' . $timetable['real_overtime'] - $itemOpTimeT->ot_limit
-                                                    : $timetable['real_overtime'] - $itemOpTimeT->ot_limit;
-                                                $timetable['status']['valid'] = false;
-                                            } else if ($_timeT_check_out_cross_plus_ot_limit_op->lt($_punch_check_out)) {
-                                                $timetable['status']['slug'] = 'not-allowed';
+                                                $timetable['status']['value'] = $diff_check_out_hrs;
                                                 $timetable['status']['valid'] = false;
                                             }
-                                        } else {
-                                            $timetable['status']['slug'] = 'plusmn';
-                                            $timetable['status']['value'] = $diff_check_out_hrs;
-                                            $timetable['status']['valid'] = false;
-                                        }
-                                    } else {
-                                        $timetable['status']['slug'] = 'not-allowed';
-                                        $timetable['status']['valid'] = false;
-                                    }
-
-                                    break;
-                                } else {
-                                    if ($itemOpTimeT->status == 'active') {
-                                        $timetable['status']['slug'] = 'not-allowed';
-                                        $timetable['status']['valid'] = $attendance_item_perdate->isEmpty();
-                                        break;
-                                    } else {
-                                        if ($attendance_item_perdate->isEmpty()) {
-                                            $timetable['status']['slug'] = 'check';
-                                            $timetable['status']['valid'] = true;
                                         } else {
                                             $timetable['status']['slug'] = 'not-allowed';
                                             $timetable['status']['valid'] = false;
                                         }
+    
+                                        break;
+                                    } else {
+                                        if ($itemOpTimeT->status == 'active') {
+                                            $timetable['status']['slug'] = 'not-allowed';
+                                            $timetable['status']['valid'] = $attendance_item_perdate->isEmpty();
+                                            break;
+                                        } else {
+                                            if ($attendance_item_perdate->isEmpty()) {
+                                                $timetable['status']['slug'] = 'check';
+                                                $timetable['status']['valid'] = true;
+                                            } else {
+                                                $timetable['status']['slug'] = 'not-allowed';
+                                                $timetable['status']['valid'] = false;
+                                            }
+                                        }
                                     }
                                 }
+    
+                                if (!$timetable['status']['valid']) {
+                                    $employee_tso = EmployeeTso::where('tso_date', $date)->where('emp_id', $employee_bios['id'])->first();
+                                    $employee_tsos[] = [
+                                        'employee' => [
+                                            'id' => $employee_bios['id'],
+                                            'emp_code' => $employee_bios['emp_code'],
+                                            'first_name' => $employee_bios['first_name'],
+                                            'last_name' => $employee_bios['last_name'],
+                                            'photo' => $employee_bios['photo'],
+                                            'department' => $employee_bios['department'],
+                                        ],
+                                        "date" => $date,
+                                        "id_operasional" => $value->id,
+                                        "is_less_than_time" => $timetable['is_less_than_time']  ?? null,
+                                        "is_diff_day" => $timetable['is_diff_day'] ?? null,
+                                        "first_punch" => $timetable['first_punch'] ?? null,
+                                        "last_punch" => $timetable['last_punch'] ?? null,
+                                        "total_time" => (!empty($timetable['diff_time_punch'])) ? $timetable['diff_time_punch']->format('%H:%I') : null,
+                                        'is_approved_tso' => !empty($employee_tso),
+                                        "timetable" => $timetable,
+                                    ];
+                                }
                             }
-
-                            if (!$timetable['status']['valid']) {
-                                $employee_tso = EmployeeTso::where('tso_date', $date)->where('emp_id', $employee_bios['id'])->first();
-                                $employee_tsos[] = [
-                                    'employee' => [
-                                        'id' => $employee_bios['id'],
-                                        'emp_code' => $employee_bios['emp_code'],
-                                        'first_name' => $employee_bios['first_name'],
-                                        'last_name' => $employee_bios['last_name'],
-                                        'photo' => $employee_bios['photo'],
-                                        'department' => $employee_bios['department'],
-                                    ],
-                                    "date" => $date,
-                                    "id_operasional" => $value->id,
-                                    "is_less_than_time" => $timetable['is_less_than_time']  ?? null,
-                                    "is_diff_day" => $timetable['is_diff_day'] ?? null,
-                                    "first_punch" => $timetable['first_punch'] ?? null,
-                                    "last_punch" => $timetable['last_punch'] ?? null,
-                                    "total_time" => (!empty($timetable['diff_time_punch'])) ? $timetable['diff_time_punch']->format('%H:%I') : null,
-                                    'is_approved_tso' => !empty($employee_tso),
-                                    "timetable" => $timetable,
-                                ];
-                            }
+                        } else {
                         }
-                    } else {
-                    }
+                    // }
                 }
+                
             }
         }
 
@@ -424,7 +425,6 @@ class TSOController extends Controller
         if (!auth()->user()->can('employee-not-given-holiday-pay.view') || !request()->ajax()) {
             abort(403, 'Unauthorized action.');
         }
-        Log::info($request);
 
         $page = 1;
         if ($request->has('page') && !empty($request->input('page'))) {
@@ -473,6 +473,8 @@ class TSOController extends Controller
             $query->where('status', 'inactive');
         })->get();
 
+        // Log::info(response()->json($attendance_devices));
+
         foreach ($operationals as $key => $itemOP) {
             $op_date = Carbon::parse($itemOP->date);
             $timetable = ['is_holiday' => false];
@@ -487,9 +489,9 @@ class TSOController extends Controller
             $employee_count_bios = $this->apiService->get_employees(['employee_icontains' => $q, 'department' =>  $itemOP->dept_id])['count'];
             $employee_bios = $this->apiService->get_employees(['employee_icontains' => $q, 'department' =>  $itemOP->dept_id, 'page_size' => $employee_count_bios])['data'];
             foreach ($employee_bios as $key => $itemEmp) {
-                $attendance_item_perdate = $attendance_devices->where('emp_id', $itemEmp['id'])->whereBetween('punch_time', [$op_date, $op_date->hour(23)->minute(59)->second(59)]);
+            $op_date_end_day = Carbon::parse($itemOP->date)->hour(23)->minute(59)->second(59);
+                $attendance_item_perdate = $attendance_devices->where('emp', $itemEmp['id'])->whereBetween('punch_time', [$op_date, $op_date_end_day]);
                 if ($attendance_item_perdate->isEmpty()) {
-
                     $employee_not_given_lb = EmployeeNotLb::where('lb_date', $op_date->format('Y-m-d'))->where('emp_id', $itemEmp['id'])->first();
                     $employee_lbs[] = [
                         'employee' => [
@@ -569,10 +571,11 @@ class TSOController extends Controller
         }
 
         try {
-            $rules = ['tso_datas.*.tso_date' => 'required', 'tso_datas.*.emp_id' => 'required'];
-            $rules['tso_datas.*.dept_id'] = 'required';
-
-            $validator = Validator::make($request->all(), $rules);
+            $validator = Validator::make($request->all(), [
+                'tso_datas.*.tso_date' => 'required',
+                'tso_datas.*.emp_id' => 'required',
+                'tso_datas.*.dept_id' => 'required',
+            ]);
             if ($validator->fails()) {
                 return $this->buildRes->RESPONSE_REQ('error', null, $validator->errors());
             } else {
@@ -588,7 +591,7 @@ class TSOController extends Controller
 
                 // ** create activity log user
                 ActivityLog::created_activity('Approved attendance', 'User ' . auth()->user()->username . ' approved TSO (tidak sesuai operasional)');
-                return $this->buildRes->RESPONSE_REQ('success', null,  ['success' => 'Add transaction succesfully']);
+                return $this->buildRes->RESPONSE_REQ('success', null,  ['success' => ['Approved TSO succesfully']]);
             }
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
@@ -620,23 +623,27 @@ class TSOController extends Controller
 
         try {
             $validator = Validator::make($request->all(), [
-                'lb_date' => 'required',
-                'emp_id' => 'required',
+                'lb_datas.*.lb_date' => 'required',
+                'lb_datas.*.emp_id' => 'required',
+                'lb_datas.*.dept_id' => 'required',
             ]);
 
             if ($validator->fails()) {
                 return $this->buildRes->RESPONSE_REQ('error', null, $validator->errors());
             } else {
-                $reqdata = $request->only(['emp_id', 'lb_date']);
-                $employee_tso = new EmployeeNotLb([
-                    'lb_date' => $reqdata['lb_date'],
-                    'emp_id' => $reqdata['emp_id'],
-                ]);
-                $employee_tso->save();
+                $reqdata = $request->only(['lb_datas']);
+                foreach ($reqdata['lb_datas'] as $itemLB) {
+                    $employee_not_given_lb = new EmployeeNotLb([
+                        'lb_date' => $itemLB['lb_date'],
+                        'emp_id' => $itemLB['emp_id'],
+                        'dept_id' => $itemLB['dept_id'],
+                    ]);
+                    $employee_not_given_lb->save();
+                }
 
                 // ** create activity log user
                 ActivityLog::created_activity('Reject wages LB', 'User ' . auth()->user()->username . ' Reject LB (libur operasional)');
-                return $this->buildRes->RESPONSE_REQ('success', null,  ['success' => 'Add transaction succesfully']);
+                return $this->buildRes->RESPONSE_REQ('success', null,  ['success' => 'Reject wages LB succesfully']);
             }
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());

@@ -90,6 +90,8 @@ class AttenOpReportController extends Controller
                     }
                 }
 
+                Log::info($filter);
+
                 // ** get department data dari biotime
                 $dept_bios = $this->apiService->get_departments(["page_size" => 999])['data'];
                 // ** get employee data dari biotime

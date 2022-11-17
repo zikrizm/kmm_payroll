@@ -61,7 +61,7 @@
             });
 
             $('input[name="header-date"]').daterangepicker({
-                locale: { format: 'YYYY-MM-DD' },
+                locale: { format: 'DD-MM-YYYY' },
                 startDate: moment().startOf('week'),
                 endDate: moment().endOf('week'),
                 ranges: {
@@ -133,7 +133,7 @@
             
             if(!data_operasional) {
                 $('.operational_date').daterangepicker({
-                    locale: { format: 'YYYY-MM-DD' },
+                    locale: { format: 'DD-MM-YYYY' },
                     startDate: moment(),
                     endDate: moment().add(6, 'days'),
                     ranges: {
@@ -217,7 +217,7 @@
             }
             if(!date_task) {
                 $('.request-task-date').daterangepicker({
-                    locale: { format: 'YYYY-MM-DD' },
+                    locale: { format: 'DD-MM-YYYY' },
                     startDate: moment().subtract(6, 'days'),
                     endDate: moment(),
                     ranges: {

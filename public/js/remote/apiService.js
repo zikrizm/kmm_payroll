@@ -2,13 +2,7 @@ class Api extends NetworkUtils {
     async store(url, data) {
         try {
             let _response = await this.emitter('POST', url, data, {})
-            if (_response.response < 200 || _response.response >= 300) {
-                // * SHOW NOTIFICATION ----->
-                handleMessage(_response);
-                return null;
-            } else {
-                return _response.data;
-            }
+            return _response;
         } catch (error) {
 
         }

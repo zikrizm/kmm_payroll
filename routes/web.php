@@ -97,7 +97,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/approved-tso', 'TSOController@approved_tso')->name('approved-tso.approved');
     Route::get('/approved-not-given-lb', 'TSOController@approved_not_given_lb')->name('approved-not-given-lb-lb.approved');
     Route::post('/approved-tso', 'TSOController@approved_tso_store')->name('approved-tso.store');
-    Route::post('/approved-not-given-lb', 'TSOController@approved_not_given_lb_store')->name('approved-not-given-lb-lb.store');
+    Route::post('/approved-not-given-lb', 'TSOController@approved_not_given_lb_store')->name('approved-not-given-lb.store');
     // * request-help.
     Route::resource('request-help', 'RequestHelpController', ['except' => ['update']]);
     Route::post('/request-help/{request_help}', 'RequestHelpController@update')->name('request-help.update');

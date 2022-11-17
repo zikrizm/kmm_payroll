@@ -41,7 +41,7 @@
         });
 
         $('input[name="date"]').daterangepicker({
-            locale: { format: 'YYYY-MM-DD' },
+            locale: { format: 'DD-MM-YYYY' },
             startDate:moment().subtract(6, 'days'),
             endDate: moment(),
             ranges: {

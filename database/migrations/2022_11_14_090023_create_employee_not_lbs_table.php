@@ -17,6 +17,7 @@ return new class extends Migration
             $table->increments('id');
             $table->date('lb_date');
             $table->integer('emp_id');
+            $table->integer('dept_id');
             $table->timestamps();
         });
     }
