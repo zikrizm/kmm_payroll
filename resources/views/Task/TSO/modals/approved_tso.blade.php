@@ -29,11 +29,11 @@
         </header>
         <div>
             <main class="px-4 flex flex-col gap-2.5 xs/max:gap-3 mb-8">
-                <input type="hidden" name="emp_id">
-                <input type="hidden" name="tso_date">
+                <input type="hidden" name="tso_datas[emp_id]">
+                <input type="hidden" name="tso_datas[tso_date]">
                 <section class="flex flex-col gap-1">
                     <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Bagian karyawan*</label>
-                    <select class="select2-modal" name="dept_id">
+                    <select class="select2-modal" name="tso_datas[dept_id]">
                         <option value="" disabled selected>Silahkan Pilih</option>
                         @foreach (($department_bios ?? []) as $department)
                         <option value="{{ $department['id'] }}">{{ $department['dept_name'] }}</option>
@@ -82,9 +82,9 @@
                 <x-icon icon="bullhorn" width=100 height=100 viewBox="20 20" />
             </div>
             <div class="flex flex-col gap-3 flex-1">
-                <input type="hidden" name="emp_id">
-                <input type="hidden" name="dept_id">
-                <input type="hidden" name="tso_date">
+                <input type="hidden" name="tso_datas[emp_id]">
+                <input type="hidden" name="tso_datas[dept_id]">
+                <input type="hidden" name="tso_datas[tso_date]">
                 <div class="flex flex-col gap-1">
                     <p class="text-gray-700 font-bold text-lg">Konfirmasi</p>
                     <p class="text-gray-500 font-normal text-xs">Apakah Perbedaan jadwal operasional dengan Kehadiran

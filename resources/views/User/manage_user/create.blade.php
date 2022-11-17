@@ -26,6 +26,8 @@
         </header>
         <div>
             <main class="px-4 flex flex-col gap-2.5 xs/max:gap-3 mb-8">
+                <input type="hidden" name="tess[tesssss2]" value="yy">
+                <input type="hidden" name="tess[tesssss1]" value="yy">
                 <div>
                     <p class='text-gray-700 text-sm font-medium'>Foto Anda</p>
                     <p class='text-gray-500 text-sm font-normal'>Ini akan ditampilkan di profil Anda.</p>

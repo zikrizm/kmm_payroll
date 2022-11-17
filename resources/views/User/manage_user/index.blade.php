@@ -76,7 +76,9 @@
             $('.select2').select2();
             var toggle = new Toggle();
             var toggleStatus = toggle.button('status', (!user_id) ? 'active': '', {})
+            console.log($('input[name="tess[tesssss2]"]').val())
 
+            // tess[tesssss2]
             // **
             // * submit form ----->
             // *

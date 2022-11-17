@@ -115,33 +115,34 @@ class ManageUserController extends Controller
             abort(403, 'Unauthorized action.');
         }
         try {
-            $validator = Validator::make($request->all(), $this->rules(null));
+            Log::info($request);
+            // $validator = Validator::make($request->all(), $this->rules(null));
 
-            if ($validator->fails()) {
-                return $this->buildRes->RESPONSE_REQ('error', null, $validator->errors());
-            } else {
-                $user_data = $request->only(['name', 'status', 'email', 'username', 'password', 'role']);
-                $role = app(Services::class)->findRoleById($request->role);
-                if (!empty($request->input('password'))) {
-                    $user_data['password'] = Hash::make($request->input('password'));
-                }
+            // if ($validator->fails()) {
+            //     return $this->buildRes->RESPONSE_REQ('error', null, $validator->errors());
+            // } else {
+            //     $user_data = $request->only(['name', 'status', 'email', 'username', 'password', 'role']);
+            //     $role = app(Services::class)->findRoleById($request->role);
+            //     if (!empty($request->input('password'))) {
+            //         $user_data['password'] = Hash::make($request->input('password'));
+            //     }
 
-                $user_data['business_id'] = Session::get('business_id');
+            //     $user_data['business_id'] = Session::get('business_id');
 
-                // upload logo
-                $photo_profile = $this->businessUtil->uploadFile($request, 'photo', 'uploads/photos', 'image');
-                if (!empty($photo_profile)) {
-                    $user_data['photo'] = Storage::url('/uploads/photos/' . $photo_profile);
-                }
-                $user = new User($user_data);
-                $user->save();
+            //     // upload logo
+            //     $photo_profile = $this->businessUtil->uploadFile($request, 'photo', 'uploads/photos', 'image');
+            //     if (!empty($photo_profile)) {
+            //         $user_data['photo'] = Storage::url('/uploads/photos/' . $photo_profile);
+            //     }
+            //     $user = new User($user_data);
+            //     $user->save();
 
-                $user->assignRole($role->name);
+            //     $user->assignRole($role->name);
 
-                // ** create activity log user
-                ActivityLog::created_activity('Pengguna', 'User ' . auth()->user()->username . ' tambah user ' . $user->name);
-                return $this->buildRes->RESPONSE_REQ('success', null, ['success' => 'Add user succesfully']);
-            }
+            //     // ** create activity log user
+            //     ActivityLog::created_activity('Pengguna', 'User ' . auth()->user()->username . ' tambah user ' . $user->name);
+            //     return $this->buildRes->RESPONSE_REQ('success', null, ['success' => 'Add user succesfully']);
+            // }
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
 

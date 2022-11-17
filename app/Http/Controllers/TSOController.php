@@ -566,26 +566,27 @@ class TSOController extends Controller
         }
 
         try {
-            Log::info($request);
-            // $rules = ['tso_date' => 'required', 'emp_id' => 'required'];
-            // if ($request->slug == 'plusmn') $rules['dept_id'] = 'required';
+            $rules = ['tso_datas.tso_date' => 'required', 'tso_datas.emp_id' => 'required'];
+            if ($request->slug == 'plusmn') $rules['tso_datas.dept_id'] = 'required';
 
-            // $validator = Validator::make($request->all(), $rules);
-            // if ($validator->fails()) {
-            //     return $this->buildRes->RESPONSE_REQ('error', null, $validator->errors());
-            // } else {
-            //     $reqdata = $request->only(['emp_id', 'tso_date', 'dept_id']);
-            //     $employee_tso = new EmployeeTso([
-            //         'tso_date' => Carbon::parse($reqdata['tso_date'])->format('Y-m-d'),
-            //         'emp_id' => $reqdata['emp_id'],
-            //         'dept_id' => $reqdata['dept_id'],
-            //     ]);
-            //     $employee_tso->save();
+            $validator = Validator::make($request->all(), $rules);
+            if ($validator->fails()) {
+                return $this->buildRes->RESPONSE_REQ('error', null, $validator->errors());
+            } else {
+                $reqdata = $request->only(['tso_datas']);
+                foreach ($reqdata['tso_datas'] as $itemTSO) {
+                    $employee_tso = new EmployeeTso([
+                        'tso_date' => Carbon::parse($itemTSO['tso_date'])->format('Y-m-d'),
+                        'emp_id' => $itemTSO['emp_id'],
+                        'dept_id' => $itemTSO['dept_id'],
+                    ]);
+                    $employee_tso->save();
+                }
 
-            //     // ** create activity log user
-            //     ActivityLog::created_activity('Approved attendance', 'User ' . auth()->user()->username . ' approved TSO (tidak sesuai operasional)');
-            //     return $this->buildRes->RESPONSE_REQ('success', null,  ['success' => 'Add transaction succesfully']);
-            // }
+                // ** create activity log user
+                ActivityLog::created_activity('Approved attendance', 'User ' . auth()->user()->username . ' approved TSO (tidak sesuai operasional)');
+                return $this->buildRes->RESPONSE_REQ('success', null,  ['success' => 'Add transaction succesfully']);
+            }
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
 

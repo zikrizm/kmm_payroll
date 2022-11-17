@@ -1,66 +1,66 @@
 @extends('layouts.app')
 @section('title', 'Request task')
 @section('css')
-<style></style>
+    <style></style>
 @endsection
 @section('content')
-<div class="flex flex-col gap-6 flex-1 h-full overflow-auto bg-white px-8 pt-8 pb-12">
-    <header class="w-full flex flex-col gap-6 justify-center">
-        <div class="flex flex-col gap-1">
-            <p class="text-3xl font-medium text-gray-900">Karyawan TSO <span class="text-xl">(Tidak Sesuai
-                    Operational)</span></p>
-            <p class="text-base font-normal text-gray-500">Daftar karyawan yang tidak sesuai managemen operational. </p>
-        </div>
-
-        <ul class="flex border-b">
-            <li>
-                <button data-ref-class-content="tso-content"
-                    class="active-sub-menu text-gray-500 text-violet-700 border-b-2 mr-4 pt px-1 pb-[16px] border-violet-700 text-sm font-medium">
-                    Jam Kerja Operasional
-                </button>
-            </li>
-            <li>
-                <button data-ref-class-content="lb-content"
-                    class="text-gray-500 mr-4 pt px-1 pb-[16px] border-violet-700 text-sm font-medium">
-                    Libur Operasional
-                </button>
-            </li>
-        </ul>
-        <div class="flex justify-between">
-            <div class="flex itemsc-center gap-2.5">
-                <div class="w-72">
-                    {!! FormCustom::input('date', null, [
-                    'placeholder' => 'Pilih tanggal penugasan',
-                    'class' => 'date_input',
-                    'readonly' => true,
-                    'prefixiconname' => 'calendar',
-                    ]) !!}
-                </div>
-                <section class="flex flex-col gap-1">
-                    <select class="select2-department hidden" name="">
-                        <option value="" selected>Semua bagian</option>
-                        @foreach (($department_bios ?? []) as $department)
-                        <option value="{{ $department['id'] }}">{{ $department['dept_name'] }}</option>
-                        @endforeach
-                    </select>
-                    <label class="font-normal text-xs text-red-500 xs/max:text-xs parent_dept hint-text"></label>
-                </section>
+    <div class="flex flex-col gap-6 flex-1 h-full overflow-auto bg-white px-8 pt-8 pb-12">
+        <header class="w-full flex flex-col gap-6 justify-center">
+            <div class="flex flex-col gap-1">
+                <p class="text-3xl font-medium text-gray-900">Karyawan TSO <span class="text-xl">(Tidak Sesuai
+                        Operational)</span></p>
+                <p class="text-base font-normal text-gray-500">Daftar karyawan yang tidak sesuai managemen operational. </p>
             </div>
-            <x-ui.search-data placeholder="Cari penugasan" url="{{ route('TSO.index') }}" />
-        </div>
-    </header>
 
-    <div class="table-content-tso" id="tso-content"></div>
-    <div class="table-content-lb" id="lb-content"></div>
-</div>
+            <ul class="flex border-b">
+                <li>
+                    <button data-ref-class-content="tso-content"
+                        class="active-sub-menu text-gray-500 text-violet-700 border-b-2 mr-4 pt px-1 pb-[16px] border-violet-700 text-sm font-medium">
+                        Jam Kerja Operasional
+                    </button>
+                </li>
+                <li>
+                    <button data-ref-class-content="lb-content"
+                        class="text-gray-500 mr-4 pt px-1 pb-[16px] border-violet-700 text-sm font-medium">
+                        Libur Operasional
+                    </button>
+                </li>
+            </ul>
+            <div class="flex justify-between">
+                <div class="flex itemsc-center gap-2.5">
+                    <div class="w-72">
+                        {!! FormCustom::input('date', null, [
+                            'placeholder' => 'Pilih tanggal penugasan',
+                            'class' => 'date_input',
+                            'readonly' => true,
+                            'prefixiconname' => 'calendar',
+                        ]) !!}
+                    </div>
+                    <section class="flex flex-col gap-1">
+                        <select class="select2-department hidden" name="">
+                            <option value="" selected>Semua bagian</option>
+                            @foreach ($department_bios ?? [] as $department)
+                                <option value="{{ $department['id'] }}">{{ $department['dept_name'] }}</option>
+                            @endforeach
+                        </select>
+                        <label class="font-normal text-xs text-red-500 xs/max:text-xs parent_dept hint-text"></label>
+                    </section>
+                </div>
+                <x-ui.search-data placeholder="Cari penugasan" url="{{ route('TSO.index') }}" />
+            </div>
+        </header>
 
-<script type="application/javascript">
+        <div class="table-content-tso" id="tso-content"></div>
+        <div class="table-content-lb" id="lb-content"></div>
+    </div>
+
+    <script type="application/javascript">
     let dataParams = {};
 
         window.addEventListener('DOMContentLoaded', (event) => {
             $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
             
-            get_table('table-tso',{ 
+            get_table({ 
                 q: $('.search-data-input').val(),
                 date: { 
                     start_time:convertLocalTimezone(moment().subtract(6, 'days'),'YYYY-MM-DD'), 
@@ -88,20 +88,10 @@
                 maxYear: parseInt(moment().format('YYYY'), 10)
             },function(start, end, label) {
                 delete dataParams.page;
-                let buildData = { 
+                get_table({ 
                     q: $('.search-data-input').val(),
                     date: { start_time: convertLocalTimezone(start, 'YYYY-MM-DD'),  end_time: convertLocalTimezone(end, 'YYYY-MM-DD') } 
-                };
-                switch ($('.active-sub-menu').data('ref-class-content')) {
-                    case 'tso-content':
-                        get_table('table-tso', buildData);
-                        break;
-                    case 'lb-content' :
-                        get_table('not-given-lb', buildData);
-                        break;
-                    default:
-                        break;
-                }
+                });
             });
             
             $('.select2-department').select2({ minimumResultsForSearch: -1 });  
@@ -109,32 +99,13 @@
             $('.select2-department').on('select2:select', function (e) {
                 delete dataParams.page;
 
-                switch ($('.active-sub-menu').data('ref-class-content')) {
-                    case 'tso-content':
-                            get_table('table-tso', { department_id: this.value });
-                        break;
-                    case 'lb-content' :
-                            get_table('not-given-lb', { department_id: this.value });
-                        break;
-                    default:
-                        break;
-                }
+                get_table({ department_id: this.value });
             });
 
             $(".search-data-input").on('keyup', debounce(function(e) {
                 if(e.key == 'Shift') return 0;
                 delete dataParams.page;
-
-                switch ($('.active-sub-menu').data('ref-class-content')) {
-                    case 'tso-content':
-                            get_table('table-tso', { q: this.value });
-                        break;
-                    case 'lb-content' :
-                            get_table('not-given-lb', { q: this.value });
-                        break;
-                    default:
-                        break;
-                }
+                get_table({ q: this.value });
             }, 250));
 
             $('*[data-ref-class-content]').on('click', function(e) {
@@ -146,21 +117,17 @@
                 });
 
                 $(this).addClass('border-b-2 text-violet-700 active-sub-menu');
-                $('#'+_idContent).removeClass('hidden');
-                switch (_idContent) {
-                    case 'tso-content':
-                        get_table('table-tso', {});
-                        break;
-                    case 'lb-content' :
-                        get_table('table-not-given-lb', {});
-                        break;
-                    default:
-                        break;
-                }
+                get_table({});
             })
         });
 
-        async function get_table(type, data) {
+        async function get_table(data) {
+            let type = '';
+            switch ($('.active-sub-menu').data('ref-class-content')) {
+                case 'tso-content': type = 'tso-content'; break;
+                case 'lb-content' : type = 'lb-content'; break;
+            }
+
             $('#loading-block-document').show();
             dataParams = { ...dataParams, ...data };
             // **
@@ -178,7 +145,7 @@
             $('.select2-page').on('select2:select', function (e) {
                 delete dataParams.page;
 
-                get_table(type, {page_size: $(this).val()})
+                get_table({page_size: $(this).val()})
             });
 
             $('.select_all_card').off('change');
@@ -205,7 +172,7 @@
             // * pagination table ----->
             // *
             $('.pagination-button').on('click', function() {
-                get_table(type, {...dataParams, page: parseInt($(this).data('pagination-page'))})
+                get_table({...dataParams, page: parseInt($(this).data('pagination-page'))})
             })
             
         }
@@ -238,7 +205,8 @@
                 datas.push({emp_id, tso_date})
             })
             
-            var res = await ApiService.store("{{ route('approved-tso.store') }}", {...datas});
+            var res = await ApiService.store("{{ route('approved-tso.store') }}", {tso_datas: datas});
+            close_dropdown_action();
         }
 
         function close_dropdown_action() {
@@ -254,9 +222,9 @@
             if(data_tso.slug && data_tso.emp_id && data_tso.tso_date && data_tso.dept_id) {
                 var res = await ApiService.get_modal(URL, {...data_tso});
                 $(".select2-modal").select2();
-                if(data_tso.slug == 'plusmn')  $('input[name=dept_id]').val(data_tso.dept_id);
-                $('input[name=emp_id]').val(data_tso.emp_id);
-                $('input[name=tso_date]').val(data_tso.tso_date);
+                if(data_tso.slug == 'plusmn')  $('input[name="tso_datas[dept_id]"]').val(data_tso.dept_id);
+                $('input[name="tso_datas[emp_id]"]').val(data_tso.emp_id);
+                $('input[name="tso_datas[tso_date]"]').val(data_tso.tso_date);
                 
                 // **
                 // * submit form ----->
@@ -265,7 +233,7 @@
                     if (_response.response < 200 || _response.response >= 300) {
                         // * SET NOTIFICATION MESSAGE REQUIRED ----->
                     } else {
-                        get_table('table-tso', { q: $('.search-data-input').val() });
+                        get_table({ q: $('.search-data-input').val() });
                     }
                 });
             }
@@ -278,8 +246,8 @@
             var URL = '/approved-not-given-lb';
             var res = await ApiService.get_modal(URL, null);
             $(".select2-modal").select2();
-            $('input[name=emp_id]').val(emp_id);
-            $('input[name=lb_date]').val(lb_date);
+            $('input[name="tso_datas[emp_id]"]').val(emp_id);
+            $('input[name="tso_datas[lb_date]"]').val(lb_date);
             
             // **
             // * submit form ----->
@@ -288,7 +256,7 @@
                 if (_response.response < 200 || _response.response >= 300) {
                     // * SET NOTIFICATION MESSAGE REQUIRED ----->
                 } else {
-                    get_table('table-not-given-lb', { q: $('.search-data-input').val() });
+                    get_table( { q: $('.search-data-input').val() });
                 }
             });
         }
