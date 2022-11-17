@@ -14,7 +14,7 @@
                     $isSunday = Carbon\Carbon::parse($item_report['date'])->isSunday();
                     @endphp --}}
                     <th class='border border-t-0 px-3 py-1 text-left cursor-pointer'>
-                        <p
+                        <p style="opacity: {{ $item['is_pending_day'] ? '0.4': ''}};"
                             class="text-xs font-medium truncate cursor-pointer text-center {{ $item['is_holiday'] ? 'text-red-500' : 'text-gray-500' }} ">
                             {{ date('d', strtotime($item['date'])) }}
                         </p>
@@ -37,7 +37,7 @@
                     </th>
                     @foreach ($th_dates as $item)
                     <th class='border px-3 py-1 text-left cursor-pointer'>
-                        <p class="text-xs font-medium truncate cursor-pointer text-center text-gray-500">
+                        <p style="opacity: {{ $item['is_pending_day'] ? '0.4': ''}};" class="text-xs font-medium truncate cursor-pointer text-center text-gray-500">
                             {{ $item['slug'] }}
                         </p>
                     </th>

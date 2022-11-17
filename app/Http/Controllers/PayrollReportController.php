@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Business;
 use App\Utils\Util;
 use App\Models\Shift;
 use App\Models\Holiday;
@@ -64,17 +65,20 @@ class PayrollReportController extends Controller
                 $dates = [];
                 $th_dates = [];
                 $slug_week = ['Mgg', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
-                $start_time = Carbon::parse("2022-10-16 23:59:59");
-                $end_time = Carbon::parse("2022-10-22 22:59:59");
-                // $start_time = Carbon::parse($request->date['start_time']);
-                // $end_time = Carbon::parse($request->date['end_time']);
+                $business = Business::where('id', $business_id)->first();
+                Log::info($business);
+                // $start_time = Carbon::parse("2022-10-16 23:59:59");
+                // $end_time = Carbon::parse("2022-10-22 22:59:59");
+                $start_time = Carbon::parse($request->date['start_time'])->subDays($business->pending_day);
+                $end_time = Carbon::parse($request->date['end_time']);
                 $filter['start_time'] = $start_time->hour(0)->minute(0)->second(0)->format('Y-m-d H:i:s');
                 $filter['end_time'] = $end_time->addDays(1)->hour(23)->minute(59)->second(59)->format('Y-m-d H:i:s');
                 $dates = $this->util->generateDateRange($start_time, $end_time);
                 foreach ($dates as $date_key => $date) {
                     if (count($dates) - 1 != $date_key) {
                         $code_day = Carbon::parse($date)->dayOfWeek;
-                        $th_dates[] = ['slug' => $slug_week[$code_day], 'date' => $date, 'is_holiday' => false,];
+                        $is_pending_day = $date_key < $business->pending_day;
+                        $th_dates[] = ['slug' => $slug_week[$code_day], 'date' => $date, 'is_holiday' => false, 'is_pending_day' => $is_pending_day];
                     }
                 }
 
@@ -112,7 +116,7 @@ class PayrollReportController extends Controller
                         ->with('operational_has_timetables.timetable')->get()->groupBy(function ($item) {
                             return Carbon::parse($item->date)->format('Y-m-d');
                         });
-                
+
                     $range_payment_period = 0;
                     if (!empty($employee)) {
                         switch ($employee->payment_period) {
@@ -158,6 +162,8 @@ class PayrollReportController extends Controller
 
                     foreach ($dates as $date_key => $date) {
                         if (count($dates) - 1 != $date_key) {
+                            $is_pending_day = $date_key < $business->pending_day;
+
                             // Log::info("=============== date={$date}");
                             $C_date = Carbon::parse($date);
                             $timetable = [];
@@ -194,7 +200,7 @@ class PayrollReportController extends Controller
                                     $th_dates[$date_key]['is_holiday'] = true;
                                     $timetable['is_holiday'] = true;
                                     $timetable['code_day'] = 6;
-                                    $timetable['per_day']++;
+                                    if(!$is_pending_day) $timetable['per_day']++;
                                 }
                             }
 
@@ -298,6 +304,7 @@ class PayrollReportController extends Controller
                                                     $ot_period = $timeT->ot_period;
                                                     $ot_pay = $timeT->ot_pay;
                                                     if ($timeT->duration_count_one_shift <= $timetable['overtime']) {
+                                                        if(!$is_pending_day)
                                                         $timetable['per_day'] += floor($timetable['overtime'] / ($timeT->duration_count_one_shift));
                                                         $timetable['overtime'] = $timetable['overtime'] % ($timeT->duration_count_one_shift);
                                                     }

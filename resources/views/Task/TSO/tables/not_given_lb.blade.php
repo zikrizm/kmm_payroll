@@ -67,7 +67,7 @@
                             class="flex items-center gap-2.5 px-2 py-1 text-gray-500 text-sm font-medium flex items-center border border-gray-200 shadow-sm rounded-lg {{ $item['is_approved_not_given_lb'] ? 'cursor-not-allowed' : '' }}"
                             style="opacity: {{ $item['is_approved_not_given_lb'] ? '0.5' : '' }};">
                             <x-icon icon="x" width=18 height=18 viewBox="20 20" />
-                            Tidak
+                            Tidak dapat LB
                         </button>
                     </td>
                     @endcanany

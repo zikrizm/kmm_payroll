@@ -1,4 +1,4 @@
-<form autocomplete="off" action="{{ route('approved-not-given-lb-lb.store') }}" method="POST" class="submit-not-given-lb">
+<form autocomplete="off" action="{{ route('approved-not-given-lb.store') }}" method="POST" class="submit-not-given-lb">
     @csrf
     <!-- {{ csrf_field() }} -->
     <section
