@@ -1,6 +1,6 @@
 <main class='border border-gray-200 rounded-lg shadow-sm w-max overflow-hidden'>
     <div class="w-full overflow-auto overflow-y-hidden">
-        <table class='table border-collapse w-full'>
+        <table class='table border-collapse w-full table-not-given-lb'>
             <thead class='border-b border-gray-200 bg-gray-50'>
                 <tr class=''>
                     <th class='text-left'>

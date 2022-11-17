@@ -61,6 +61,8 @@ class TSOController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
+        Log::info($request);
+
         $page_size = 10;
         $page = 1;
         if (!empty($request->input('page'))) {
@@ -422,6 +424,7 @@ class TSOController extends Controller
         if (!auth()->user()->can('employee-not-given-holiday-pay.view') || !request()->ajax()) {
             abort(403, 'Unauthorized action.');
         }
+        Log::info($request);
 
         $page = 1;
         if ($request->has('page') && !empty($request->input('page'))) {
@@ -566,8 +569,8 @@ class TSOController extends Controller
         }
 
         try {
-            $rules = ['tso_datas.tso_date' => 'required', 'tso_datas.emp_id' => 'required'];
-            if ($request->slug == 'plusmn') $rules['tso_datas.dept_id'] = 'required';
+            $rules = ['tso_datas.*.tso_date' => 'required', 'tso_datas.*.emp_id' => 'required'];
+            $rules['tso_datas.*.dept_id'] = 'required';
 
             $validator = Validator::make($request->all(), $rules);
             if ($validator->fails()) {

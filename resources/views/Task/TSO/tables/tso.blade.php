@@ -1,6 +1,6 @@
 <main class='border border-gray-200 rounded-lg shadow-sm w-max overflow-hidden'>
     <div class="w-full overflow-auto overflow-y-hidden">
-        <table class='table border-collapse w-full'>
+        <table class='table border-collapse w-full table-tso'>
             <thead class='border-b border-gray-200 bg-gray-50'>
                 <tr class=''>
                     <th class='text-left'>
@@ -40,12 +40,17 @@
             <tbody>
                 @foreach ($employee_tso_datas['data'] as $item)
                 <tr class='hover:bg-gray-50 border-b border-gray-200'>
-                    <input type="hidden" name="emp_id" value="{{ $item['employee']['id'] }}">
-                    <input type="hidden" name="tso_date" value="{{ $item['date'] }}">
                     <td class='text-left'>
                         <div class="flex items-center">
                             <div class="pl-4 py-2">
+                                @if ($item['is_approved_tso'])
+                                <span class="min-h-[16px] min-w-[16px] w-4 h-4 block"></span>
+                                @else
+                                <input type="hidden" name="emp_id" value="{{ $item['employee']['id'] }}">
+                                <input type="hidden" name="tso_date" value="{{ $item['date'] }}">
+                                <input type="hidden" name="dept_id" value="{{ $item['employee']['department']['id'] }}">
                                 {!! FormCustom::checkbox(null, true, ['class' => 'select_card']) !!}
+                                @endif
                             </div>
                             <div
                                 class="flex gap-3 items-center px-6 py-3 {{ $item['timetable']['is_holiday'] ? 'text-red-500' : 'text-gray-500' }} text-sm">

@@ -4,9 +4,9 @@
             <tr class=''>
                 <th class='text-left'>
                     <div class='flex items-center'>
-                        <div class='pl-4 py-2 flex items-center'>
+                        {{-- <div class='pl-4 py-2 flex items-center'>
                             {!! FormCustom::checkbox() !!}
-                        </div>
+                        </div> --}}
                         <div class='px-6 py-3 cursor-pointer flex-1'>
                             <x-ui.sort-table text="Nama & Email" url="{{ route('user.index') }}" field="email"
                                 order="{{ $order }}" />
@@ -33,9 +33,9 @@
                 <tr class='hover:bg-gray-50 border-b border-gray-200'>
                     <td class='text-left'>
                         <div class="flex items-center">
-                            <div class="pl-4 py">
+                            {{-- <div class="pl-4 py">
                                 {!! FormCustom::checkbox() !!}
-                            </div>
+                            </div> --}}
                             <div class="flex gap-3 items-center px-6 py-1">
                                 <div class="w-8 h-8 min-w-[32px] min-h-[32px] rounded-full overflow-hidden">
                                     @if (!empty($item->photo))
