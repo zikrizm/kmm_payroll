@@ -27,7 +27,7 @@
             </li>
         </ul>
         <div class="flex justify-between">
-            <div class="flex itemsc-center gap-2.5">
+            <div class="flex items-center gap-2.5">
                 <div class="w-72">
                     {!! FormCustom::input('date', null, [
                     'placeholder' => 'Pilih tanggal penugasan',
@@ -45,6 +45,11 @@
                     </select>
                     <label class="font-normal text-xs text-red-500 xs/max:text-xs parent_dept hint-text"></label>
                 </section>
+                {{-- <button onclick="get_modal()"
+                    class="flex items-center gap-2.5 px-4 py-2 text-gray-500 text-sm font-medium flex items-center border border-gray-200 shadow-sm rounded-lg">
+                    <x-icon icon="plus" width=18 height=18 viewBox="20 20" />
+                    Setujui
+                </button> --}}
             </div>
             <x-ui.search-data placeholder="Cari penugasan" url="{{ route('TSO.index') }}" />
         </div>
@@ -58,19 +63,18 @@
 
         window.addEventListener('DOMContentLoaded', (event) => {
             $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
-            
             get_table({ 
                 q: $('.search-data-input').val(),
                 date: { 
-                    start_time:convertLocalTimezone(moment().subtract(6, 'days'),'YYYY-MM-DD'), 
-                    end_time: convertLocalTimezone(moment(),'YYYY-MM-DD')
+                    start_time:convertLocalTimezone(moment().startOf('week'),'YYYY-MM-DD'), 
+                    end_time: convertLocalTimezone(moment().endOf('week'),'YYYY-MM-DD')
                 }
             });
 
             $('input[name="date"]').daterangepicker({
                 locale: { format: 'YYYY-MM-DD' },
-                startDate: moment().subtract(6, 'days'),
-                endDate: moment(),
+                startDate: moment().startOf('week'),
+                endDate: moment().endOf('week'),
                 ranges: {
                     'Today': [moment(), moment()],
                     'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
