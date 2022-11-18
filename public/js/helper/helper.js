@@ -271,6 +271,7 @@ function hideAllHintText() {
 }
 
 function insertHintText(errors) {
+    console.log(errors);
     var isExist = false;
     for (const error in errors) {
         var textError = errors[error][0];

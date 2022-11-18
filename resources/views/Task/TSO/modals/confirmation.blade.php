@@ -1,8 +1,8 @@
-<form autocomplete="off" action="{{ route('approved-not-given-lb.store') }}" method="POST" class="submit-not-given-lb">
+<form autocomplete="off" action="{{ route('approved-tso.store') }}" method="POST" class="submit-approve-tso">
     @csrf
     <!-- {{ csrf_field() }} -->
     <section
-        class="flex flex-col gap-8 py-4 w-[400px] bg-white border max-h-[95vh] overflow-y-auto overflow-x-hidden relative rounded-lg">
+        class="flex flex-col gap-8 py-4 w-[380px] bg-white border max-h-[95vh] overflow-y-auto overflow-x-hidden relative rounded-lg">
         <div class="flex items-center gap-5 px-4 relative">
             <button
                 class="absolute top-[-5px] right-3 xs/max:top-[-6px] modal-close hover:border-white  border border-transparent text-white rounded p-0.5">
@@ -12,13 +12,12 @@
                 <x-icon icon="bullhorn" width=100 height=100 viewBox="20 20" />
             </div>
             <div class="flex flex-col gap-3 flex-1">
-                <input type="hidden" name="lb_datas[0][emp_id]">
-                <input type="hidden" name="lb_datas[0][lb_date]">
-                <input type="hidden" name="lb_datas[0][dept_id]">
-                <input type="hidden" name="lb_datas[0][status]">
+                <input type="hidden" name="tso_datas[0][emp_id]">
+                <input type="hidden" name="tso_datas[0][tso_date]">
+                <input type="hidden" name="tso_datas[0][dept_id]">
                 <div class="flex flex-col gap-1">
-                    <p class="text-gray-700 font-bold text-lg">Konfirmasi</p>
-                    <p class="text-gray-500 font-normal text-xs">{{ $noted }}</p>
+                    <p class="text-gray-700 font-bold text-lg">{{ $title }}</p>
+                    <p class="text-gray-500 font-normal text-xs">{{ $sub_title }}</p>
                 </div>
                 <div class="flex items-center gap-3 flex-1">
                     <button

@@ -1,4 +1,4 @@
-<main class='border border-gray-200 rounded-lg shadow-sm w-max overflow-hidden'>
+<main class='border border-gray-200 rounded-lg shadow-sm w-full overflow-hidden'>
     <div class="w-full overflow-auto overflow-y-hidden">
         <table class='table border-collapse w-full table-tso'>
             <thead class='border-b border-gray-200 bg-gray-50'>
@@ -8,29 +8,32 @@
                             <div class='pl-4 py-2 flex items-center'>
                                 {!! FormCustom::checkbox(null, true, ['class' => 'select-all-card']) !!}
                             </div>
-                            <div class='px-6 py-3 cursor-pointer flex-1'>
-                                <x-ui.sort-table text="Tanggal" url="{{ route('request-task.index') }}" field="ots_date"
-                                    order="{{ $order }}" />
+                            <div class='pl-6 pr-3 py-3 cursor-pointer flex-1'>
+                                <x-ui.sort-table text="Tanggal absensi dan Waktu absensi"
+                                    url="{{ route('request-task.index') }}" field="ots_date" order="{{ $order }}" />
                             </div>
                         </div>
                     </th>
-                    <th class='px-3 py-3 text-left cursor-pointer'>
-                        <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Karyawan</p>
+                    <th class='px-3 py-3 text-left'>
+                        <p class="text-xs font-medium text-gray-500 truncate">Karyawan</p>
                     </th>
-                    <th class='px-3 py-3 text-center cursor-pointer'>
-                        <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Masuk</p>
+                    {{-- <th class='px-3 py-3 text-center'>
+                        <p class="text-xs font-medium text-gray-500 truncate">Masuk</p>
                     </th>
-                    <th class='px-3 py-3 text-center cursor-pointer'>
-                        <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Keluar</p>
+                    <th class='px-3 py-3 text-center'>
+                        <p class="text-xs font-medium text-gray-500 truncate">Keluar</p>
+                    </th> --}}
+                    <th class='px-3 py-3 text-left'>
+                        <p class="text-xs font-medium text-gray-500 truncate">Bagian</p>
                     </th>
-                    <th class='px-3 py-3 text-center cursor-pointer'>
-                        <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Bagian</p>
+                    <th class='px-3 py-3 text-center'>
+                        <p class="text-xs font-medium text-gray-500 truncate">Shift</p>
                     </th>
-                    <th class='px-3 py-3 text-center cursor-pointer'>
-                        <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Shift</p>
+                    <th class='px-3 py-3 text-left'>
+                        <p class="text-xs font-medium text-gray-500 truncate">Keterangan</p>
                     </th>
-                    <th class='px-3 py-3 text-left cursor-pointer'>
-                        <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Status</p>
+                    <th class='px-3 py-3 text-center'>
+                        <p class="text-xs font-medium text-gray-500 truncate">Status</p>
                     </th>
                     @canany(['approved-employee-TSO.approved'])
                     <th class='px-3 py-3 text-left text-gray-500 text-xs font-medium'></th>
@@ -43,7 +46,7 @@
                     <td class='text-left'>
                         <div class="flex items-center">
                             <div class="pl-4 py-2">
-                                @if ($item['is_approved_tso'])
+                                @if ($item['is_approved'])
                                 <span class="min-h-[16px] min-w-[16px] w-4 h-4 block"></span>
                                 @else
                                 <input type="hidden" name="emp_id" value="{{ $item['employee']['id'] }}">
@@ -52,22 +55,45 @@
                                 {!! FormCustom::checkbox(null, true, ['class' => 'select-card']) !!}
                                 @endif
                             </div>
-                            <div
-                                class="flex gap-3 items-center px-6 py-3 {{ $item['timetable']['is_holiday'] ? 'text-red-500' : 'text-gray-500' }} text-sm">
-                                <x-icon icon="calendar" width=18 height=18 viewBox="20 20" />
-                                <p class="flex truncate items-center text-sm">
-                                    {{ date('d-m-Y', strtotime($item['date'])) }}
-                                </p>
+                            <div class="flex-1 flex gap-3 items-center pl-6 pr-3 py-3">
+                                <div
+                                    class="flex gap-3 items-center {{ $item['timetable']['is_holiday'] ? 'text-red-500' : 'text-gray-500' }} text-sm">
+                                    <x-icon icon="calendar" width=18 height=18 viewBox="20 20" />
+                                    <p class="flex truncate items-center text-sm">
+                                        {{ date('d-m-Y', strtotime($item['date'])) }}
+                                    </p>
+                                </div>
+                                <div
+                                    class="border-l-2 pl-2 flex items-center gap-1 justify-around flex-1 text-sm text-gray-500">
+                                    <div class="flex items-center justify-center gap-2">
+                                        @if (!empty($item['first_punch']))
+                                        <p class="truncate text-sm"> {{ date('H:i', strtotime($item['first_punch'])); }}
+                                        </p>
+                                        @else
+                                        -
+                                        @endif
+                                    </div>
+                                    @if (!empty($item['last_punch']))
+                                    <p>-</p>
+                                    @endif
+                                    <div class="flex items-center justify-center gap-2">
+                                        @if (!empty($item['last_punch']))
+                                        <p class="truncate text-sm"> {{ date('H:i', strtotime($item['last_punch'])) }}
+                                        </p>
+                                        @else
+                                        -
+                                        @endif
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </td>
                     <td class='px-3 py text-gray-500 text-sm'>
                         <p class="text-gray-500 text-sm truncate">
-                            {{ $item['employee']['first_name'] ??'' }}
-                            {{ $item['employee']['last_name'] ??'' }}
+                            {{ $item['employee']['first_name'] ??'' }} {{ $item['employee']['last_name'] ??'' }}
                         </p>
                     </td>
-                    <td class='px-3 py text-gray-500 text-sm'>
+                    {{-- <td class='px-3 py text-gray-500 text-sm'>
                         <div class="flex items-center justify-center gap-2">
                             @if (!empty($item['first_punch']))
                             <x-icon icon="clock" width=18 height=18 viewBox="20 20" />
@@ -90,7 +116,7 @@
                             x
                             @endif
                         </div>
-                    </td>
+                    </td> --}}
                     <td class='px-3 py text-gray-500 text-sm'>
                         <p class="text-gray-500 text-sm truncate">
                             {{ $item['employee']['department']['dept_name'] ?? '-' }}
@@ -98,16 +124,18 @@
                     </td>
                     <td class='px-3 py text-gray-500 text-sm'>
                         @if (!empty($item['timetable']['name']))
-                        {{ $item['timetable']['name'] }}
+                        <p class="truncate">{{ $item['timetable']['name'] }}</p>
                         @else
-                        <p class="text-center">x</p>
+                        <p class="text-center">-</p>
                         @endif
                     </td>
-
+                    <td class='px-3 py text-gray-500 text-sm min-w-[240px]'>
+                        <p>{{ $item['noted']??'' }}</p>
+                    </td>
                     <td class='px-3 py text-gray-500 text-sm'>
                         @if (!empty($item['timetable']['status']))
                         <div class="flex items-center justify-center gap-1">
-                            @if ($item['is_approved_tso'])
+                            @if ($item['is_approved'] && $item['timetable']['status']['for'] == 'TSO')
                             <x-icon icon="check" class="text-green-600" width=12 height=12 viewBox="20 20" />
                             @else
                             @if ($item['timetable']['status']['slug'] == 'LB')
@@ -126,34 +154,63 @@
                             <p class="text-gray-500">{{ $item['timetable']['status']['value'] }}</p>
                             @endif
                             @endif
-
                         </div>
                         @else
                         @endif
                     </td>
-
                     @canany(['approved-employee-TSO.approved'])
                     <td class='px-3 py'>
-                        @if ($item['is_approved_tso'])
-                        <button disabled
-                            class="flex items-center gap-2.5 px-2 py-1 text-gray-500 text-sm font-medium flex items-center border border-gray-200 shadow-sm rounded-lg cursor-not-allowed"
-                            style="opacity: 0.5;">
-                            <x-icon icon="check" width=18 height=18 viewBox="20 20" />
-                            Disetujui
-                        </button>
-                        @else
-                        <button onclick="get_modal_approve_tso({{ json_encode([
-                            'emp_id' => $item['employee']['id'],
-                            'dept_id' => $item['employee']['department']['id'],
-                            'id_operasional' => $item['id_operasional'],
-                            'tso_date' => $item['date'],
-                            'slug' => $item['timetable']['status']['slug'] ?? null,
-                        ]) }})"
-                            class="flex items-center gap-2.5 px-2 py-1 text-gray-500 text-sm font-medium flex items-center border border-gray-200 shadow-sm rounded-lg ">
-                            <x-icon icon="check" width=18 height=18 viewBox="20 20" />
-                            Disetujui
-                        </button>
-                        @endif
+                        <div class="flex justify-center w-full">
+                            @php
+                            $text_button = '';
+                            $icon_button = '';
+                            if ($item['timetable']['status']['for'] == 'TSO' && !$item['timetable']['status']['valid'])
+                            {
+                            $text_button = 'Disetujui';
+                            $icon_button = 'check';
+                            }else if($item['timetable']['status']['for'] == 'LB' &&
+                            $item['timetable']['status']['valid']) {
+                            $text_button = 'Tidak dapat LB';
+                            $icon_button = 'x';
+                            }else {
+                            $text_button = 'Dapat LB';
+                            $icon_button = 'check';
+                            }
+                            @endphp
+                            @if ($item['is_approved'])
+                            <button disabled
+                                class="truncate flex items-center gap-2.5 px-2 py-1 text-gray-500 text-sm font-medium flex items-center border border-gray-200 shadow-sm rounded-lg cursor-not-allowed"
+                                style="opacity: 0.5;">
+                                <x-icon icon="{{ $icon_button }}" width=16 height=16 viewBox="20 20" />
+                                {{ $text_button }}
+                            </button>
+                            @else
+                            @if ($item['timetable']['status']['for'] == 'LB')
+                            <button onclick="get_modal_approve_not_given_lb({{ json_encode([
+                                    'emp_id' => $item['employee']['id'],
+                                    'dept_id' => $item['employee']['department']['id'],
+                                    'date' => $item['date'],
+                                    'status' => $item['timetable']['status'] ?? null,
+                                ]) }})"
+                                class="truncate flex items-center gap-2.5 px-2 py-1 text-gray-500 text-sm font-medium flex items-center border border-gray-200 shadow-sm rounded-lg ">
+                                <x-icon icon="{{ $icon_button }}" width=16 height=16 viewBox="20 20" />
+                                {{ $text_button }}
+                            </button>
+                            @else
+                            <button onclick="get_modal_approve_tso({{ json_encode([
+                                    'emp_id' => $item['employee']['id'],
+                                    'dept_id' => $item['employee']['department']['id'],
+                                    'id_operasional' => $item['id_operasional'],
+                                    'tso_date' => $item['date'],
+                                    'status' => $item['timetable']['status'] ?? null,
+                                ]) }})"
+                                class="truncate flex items-center gap-2.5 px-2 py-1 text-gray-500 text-sm font-medium flex items-center border border-gray-200 shadow-sm rounded-lg ">
+                                <x-icon icon="{{ $icon_button }}" width=16 height=16 viewBox="20 20" />
+                                {{ $text_button }}
+                            </button>
+                            @endif
+                            @endif
+                        </div>
 
                     </td>
                     @endcanany

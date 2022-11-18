@@ -264,11 +264,13 @@
             // **
             // * open modal form ----->
             // *
-            var URL = '/approved-tso';
-            if(data_tso.slug && data_tso.emp_id && data_tso.tso_date && data_tso.dept_id) {
-                var res = await ApiService.get_modal(URL, {...data_tso});
+            if(data_tso.status && data_tso.emp_id && data_tso.tso_date && data_tso.dept_id) {
+                var res = await ApiService.get_modal('/approved-tso', {...data_tso});
                 $(".select2-modal").select2();
-                if(data_tso.slug == 'plusmn') $('input[name="tso_datas[0][dept_id]"]').val(data_tso.dept_id);
+                if(data_tso.status.slug == 'not-allowed' && data_tso.status.for == 'TSO') {
+                } else {
+                    $('input[name="tso_datas[0][dept_id]"]').val(data_tso.dept_id);
+                }
                 $('input[name="tso_datas[0][emp_id]"]').val(data_tso.emp_id);
                 $('input[name="tso_datas[0][tso_date]"]').val(data_tso.tso_date);
                 
@@ -285,28 +287,29 @@
             }
         }
 
-        async function get_modal_approve_not_given_lb(emp_id, lb_date, dept_id) {
+        async function get_modal_approve_not_given_lb(data) {
             // **
             // * open modal form ----->
             // *
-            var URL = '/approved-not-given-lb';
-            var res = await ApiService.get_modal(URL, null);
-            $(".select2-modal").select2();
-            $('input[name="lb_datas[0][dept_id]"]').val(dept_id);
-            $('input[name="lb_datas[0][emp_id]"]').val(emp_id);
-            $('input[name="lb_datas[0][lb_date]"]').val(lb_date);
-            
-            // **
-            // * submit form ----->
-            // *
-            var resSubmit = ApiService.submit_form('.submit-not-given-lb', (_response) => { 
-                console.log(_response)
-                if (_response.response < 200 || _response.response >= 300) {
-                    // * SET NOTIFICATION MESSAGE REQUIRED ----->
-                } else {
-                    get_table( { q: $('.search-data-input').val() });
-                }
-            });
+            if(data.status && data.emp_id && data.date && data.dept_id) {
+                var res = await ApiService.get_modal('/approved-not-given-lb', data);
+                $('input[name="lb_datas[0][dept_id]"]').val(data.dept_id);
+                $('input[name="lb_datas[0][emp_id]"]').val(data.emp_id);
+                $('input[name="lb_datas[0][lb_date]"]').val(data.date);
+                $('input[name="lb_datas[0][status]"]').val(data.status.slug == 'check'? 'cancel': 'give');
+                
+                // **
+                // * submit form ----->
+                // *
+                var resSubmit = ApiService.submit_form('.submit-not-given-lb', (_response) => { 
+                    console.log(_response)
+                    if (_response.response < 200 || _response.response >= 300) {
+                        // * SET NOTIFICATION MESSAGE REQUIRED ----->
+                    } else {
+                        get_table( { q: $('.search-data-input').val() });
+                    }
+                });
+            }
         }
 
         async function approved_all_tso() {

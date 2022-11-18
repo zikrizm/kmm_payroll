@@ -18,6 +18,7 @@ return new class extends Migration
             $table->date('lb_date');
             $table->integer('emp_id');
             $table->integer('dept_id');
+            $table->enum('status',['give','cancel']);
             $table->timestamps();
         });
     }
