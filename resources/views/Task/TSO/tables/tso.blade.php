@@ -17,12 +17,6 @@
                     <th class='px-3 py-3 text-left'>
                         <p class="text-xs font-medium text-gray-500 truncate">Karyawan</p>
                     </th>
-                    {{-- <th class='px-3 py-3 text-center'>
-                        <p class="text-xs font-medium text-gray-500 truncate">Masuk</p>
-                    </th>
-                    <th class='px-3 py-3 text-center'>
-                        <p class="text-xs font-medium text-gray-500 truncate">Keluar</p>
-                    </th> --}}
                     <th class='px-3 py-3 text-left'>
                         <p class="text-xs font-medium text-gray-500 truncate">Bagian</p>
                     </th>
@@ -49,8 +43,9 @@
                                 @if ($item['is_approved'])
                                 <span class="min-h-[16px] min-w-[16px] w-4 h-4 block"></span>
                                 @else
+                                <input type="hidden" name="for" value="{{ $item['timetable']['status']['for'] }}">
                                 <input type="hidden" name="emp_id" value="{{ $item['employee']['id'] }}">
-                                <input type="hidden" name="tso_date" value="{{ $item['date'] }}">
+                                <input type="hidden" name="date" value="{{ $item['date'] }}">
                                 <input type="hidden" name="dept_id" value="{{ $item['employee']['department']['id'] }}">
                                 {!! FormCustom::checkbox(null, true, ['class' => 'select-card']) !!}
                                 @endif
@@ -93,30 +88,6 @@
                             {{ $item['employee']['first_name'] ??'' }} {{ $item['employee']['last_name'] ??'' }}
                         </p>
                     </td>
-                    {{-- <td class='px-3 py text-gray-500 text-sm'>
-                        <div class="flex items-center justify-center gap-2">
-                            @if (!empty($item['first_punch']))
-                            <x-icon icon="clock" width=18 height=18 viewBox="20 20" />
-                            <p class="truncate">
-                                {{ date('H:i', strtotime($item['first_punch'])); }}
-                            </p>
-                            @else
-                            x
-                            @endif
-                        </div>
-                    </td>
-                    <td class='px-3 py text-gray-500 text-sm'>
-                        <div class="flex items-center justify-center gap-2">
-                            @if (!empty($item['last_punch']))
-                            <x-icon icon="clock" width=18 height=18 viewBox="20 20" />
-                            <p class="truncate">
-                                {{ date('H:i', strtotime($item['last_punch'])) }}
-                            </p>
-                            @else
-                            x
-                            @endif
-                        </div>
-                    </td> --}}
                     <td class='px-3 py text-gray-500 text-sm'>
                         <p class="text-gray-500 text-sm truncate">
                             {{ $item['employee']['department']['dept_name'] ?? '-' }}
@@ -161,40 +132,53 @@
                     @canany(['approved-employee-TSO.approved'])
                     <td class='px-3 py'>
                         <div class="flex justify-center w-full">
-                            @php
-                            $text_button = '';
-                            $icon_button = '';
-                            if ($item['timetable']['status']['for'] == 'TSO' && !$item['timetable']['status']['valid'])
-                            {
-                            $text_button = 'Disetujui';
-                            $icon_button = 'check';
-                            }else if($item['timetable']['status']['for'] == 'LB' &&
-                            $item['timetable']['status']['valid']) {
-                            $text_button = 'Tidak dapat LB';
-                            $icon_button = 'x';
-                            }else {
-                            $text_button = 'Dapat LB';
-                            $icon_button = 'check';
-                            }
-                            @endphp
+                            @if ($item['timetable']['status']['for'] == 'cancel-LB')
                             @if ($item['is_approved'])
                             <button disabled
                                 class="truncate flex items-center gap-2.5 px-2 py-1 text-gray-500 text-sm font-medium flex items-center border border-gray-200 shadow-sm rounded-lg cursor-not-allowed"
                                 style="opacity: 0.5;">
-                                <x-icon icon="{{ $icon_button }}" width=16 height=16 viewBox="20 20" />
-                                {{ $text_button }}
+                                <x-icon icon="x" width=16 height=16 viewBox="20 20" />
+                                Tidak dapat LB
                             </button>
                             @else
-                            @if ($item['timetable']['status']['for'] == 'LB')
-                            <button onclick="get_modal_approve_not_given_lb({{ json_encode([
+                            <button onclick="get_modal_change_status_given_lb({{ json_encode([
                                     'emp_id' => $item['employee']['id'],
                                     'dept_id' => $item['employee']['department']['id'],
                                     'date' => $item['date'],
-                                    'status' => $item['timetable']['status'] ?? null,
+                                    'type' => 'cancel',
                                 ]) }})"
                                 class="truncate flex items-center gap-2.5 px-2 py-1 text-gray-500 text-sm font-medium flex items-center border border-gray-200 shadow-sm rounded-lg ">
-                                <x-icon icon="{{ $icon_button }}" width=16 height=16 viewBox="20 20" />
-                                {{ $text_button }}
+                                <x-icon icon="x" width=16 height=16 viewBox="20 20" />
+                                Tidak dapat LB
+                            </button>
+                            @endif
+                            @elseif($item['timetable']['status']['for'] == 'approved-LB')
+                            @if ($item['is_approved'])
+                            <button disabled
+                                class="truncate flex items-center gap-2.5 px-2 py-1 text-gray-500 text-sm font-medium flex items-center border border-gray-200 shadow-sm rounded-lg cursor-not-allowed"
+                                style="opacity: 0.5;">
+                                <x-icon icon="check" width=16 height=16 viewBox="20 20" />
+                                Dapat LB
+                            </button>
+                            @else
+                            <button onclick="get_modal_change_status_given_lb({{ json_encode([
+                                'emp_id' => $item['employee']['id'],
+                                'dept_id' => $item['employee']['department']['id'],
+                                'date' => $item['date'],
+                                'type' => 'given',
+                            ]) }})"
+                                class="truncate flex items-center gap-2.5 px-2 py-1 text-gray-500 text-sm font-medium flex items-center border border-gray-200 shadow-sm rounded-lg ">
+                                <x-icon icon="check" width=16 height=16 viewBox="20 20" />
+                                Dapat LB
+                            </button>
+                            @endif
+                            @elseif($item['timetable']['status']['for'] == 'approved-tso')
+                            @if ($item['is_approved'])
+                            <button disabled
+                                class="truncate flex items-center gap-2.5 px-2 py-1 text-gray-500 text-sm font-medium flex items-center border border-gray-200 shadow-sm rounded-lg cursor-not-allowed"
+                                style="opacity: 0.5;">
+                                <x-icon icon="check" width=16 height=16 viewBox="20 20" />
+                                Disetujui
                             </button>
                             @else
                             <button onclick="get_modal_approve_tso({{ json_encode([
@@ -205,13 +189,12 @@
                                     'status' => $item['timetable']['status'] ?? null,
                                 ]) }})"
                                 class="truncate flex items-center gap-2.5 px-2 py-1 text-gray-500 text-sm font-medium flex items-center border border-gray-200 shadow-sm rounded-lg ">
-                                <x-icon icon="{{ $icon_button }}" width=16 height=16 viewBox="20 20" />
-                                {{ $text_button }}
+                                <x-icon icon="check" width=16 height=16 viewBox="20 20" />
+                                Disetujui
                             </button>
                             @endif
                             @endif
                         </div>
-
                     </td>
                     @endcanany
                 </tr>

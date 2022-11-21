@@ -18,7 +18,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use App\Services\Api\ApiServices;
 use App\Models\EmployeeHasPosition;
-use App\Models\EmployeeNotLb;
+use App\Models\EmployeeStatusLb;
 use App\Models\EmployeeTso;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Session;
@@ -66,7 +66,7 @@ class PayrollReportController extends Controller
                 $th_dates = [];
                 $slug_week = ['Mgg', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
                 $business = Business::where('id', $business_id)->first();
-                Log::info($business);
+                // Log::info($business);
                 // $start_time = Carbon::parse("2022-10-16 23:59:59");
                 // $end_time = Carbon::parse("2022-10-22 22:59:59");
                 $start_time = Carbon::parse($request->date['start_time'])->subDays($business->pending_day);
@@ -96,7 +96,7 @@ class PayrollReportController extends Controller
                 $shifts = Shift::where('business_id', $business_id)->get();
 
                 $attendance_reports = [];
-                // Log::info("===============PEMISAH-PEMISAH-PEMISAH-PEMISAH-PEMISAH================");
+                Log::info("===============PEMISAH-PEMISAH-PEMISAH-PEMISAH-PEMISAH================");
                 // // Log::info("============================================");
                 foreach (($employee_bios ?? []) as $itemEmp) {
                     $report_by_dates = [];
@@ -133,6 +133,7 @@ class PayrollReportController extends Controller
                     }
 
                     $kasbons = EmployeeDebt::where('business_id', $business_id)->where('paid', 0)->where('emp_id', $itemEmp['id'])->whereDate('date', '<=', $end_time)->get();
+                    Log::info($kasbons);
                     $daily_salary = $employee->daily_salary ?? 0;
                     $cicilan_kasbon_total = 0;
                     $instalment_total = $kasbons->sum('instalment');
@@ -421,11 +422,11 @@ class PayrollReportController extends Controller
 
                                 if ($attendance_item_perdate->isEmpty()) {
                                     if ($timetable['status']['status'] == 'inactive' && !$timetable['is_holiday'] && !empty($department)) {
-                                        $employee_no_given_lb = EmployeeNotLb::where('lb_date', $date)->where('emp_id', $itemEmp['id'])->first();
-                                        if (empty($employee_no_given_lb)) {
-                                            $timetable['tbhn_u_libur'] += $department->sitting_money ?? 0;
-                                            $timetable['calculate_atten_per_day'] = 'LB';
-                                        }
+                                        // $employee_no_given_lb = EmployeeStatusLb::where('lb_date', $date)->where('emp_id', $itemEmp['id'])->first();
+                                        // if (empty($employee_no_given_lb)) {
+                                        //     $timetable['tbhn_u_libur'] += $department->sitting_money ?? 0;
+                                        //     $timetable['calculate_atten_per_day'] = 'LB';
+                                        // }
                                     }
                                 } else {
                                     if ($attendance_item_perdate->count() > 1 && !empty($request_tasks[$date])) {

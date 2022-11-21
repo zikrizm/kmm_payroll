@@ -8,7 +8,7 @@ use App\Models\Holiday;
 use App\Models\Employee;
 use App\Models\Department;
 use App\Models\ActivityLog;
-use App\Models\EmployeeNotLb;
+use App\Models\EmployeeStatusLb;
 use App\Models\EmployeeTso;
 use App\Models\Operational;
 use App\Models\Transaction;
@@ -321,32 +321,32 @@ class TSOControllerPercobaan extends Controller
                                             if ($timetable['real_overtime'] == $timetable_operational->ot_limit) {
                                                 $timetable['status']['slug'] = 'check';
                                                 $timetable['status']['valid'] = true;
-                                                $timetable['status']['for'] = 'TSO';
+                                                $timetable['status']['for'] = 'approved-tso';
                                                 $timetable['status']['noted'] = 'Sudah sesuai';
                                             } else if ($timetable['real_overtime'] < $timetable_operational->ot_limit || $timetable['real_overtime'] > $timetable_operational->ot_limit) {
                                                 $timetable['status']['slug'] = 'plusmn';
                                                 $timetable['status']['value'] = ($timetable['real_overtime'] > $timetable_operational->ot_limit) ?  '+' . $timetable['real_overtime'] - $timetable_operational->ot_limit
                                                     : $timetable['real_overtime'] - $timetable_operational->ot_limit;
                                                 $timetable['status']['valid'] = false;
-                                                $timetable['status']['for'] = 'TSO';
+                                                $timetable['status']['for'] = 'approved-tso';
                                                 $timetable['status']['noted'] = 'Operasional dan kehadiran karyawan tidak sesuai';
                                             } else if ($_timeT_check_out_cross_plus_ot_limit_op->lt($_punch_check_out)) {
                                                 $timetable['status']['slug'] = 'not-allowed';
                                                 $timetable['status']['valid'] = false;
-                                                $timetable['status']['for'] = 'TSO';
+                                                $timetable['status']['for'] = 'approved-tso';
                                                 $timetable['status']['noted'] = 'Operasional dan kehadiran karyawan tidak sesuai';
                                             }
                                         } else {
                                             $timetable['status']['slug'] = 'plusmn';
                                             $timetable['status']['value'] = $diff_check_out_hrs;
                                             $timetable['status']['valid'] = false;
-                                            $timetable['status']['for'] = 'TSO';
+                                            $timetable['status']['for'] = 'approved-tso';
                                             $timetable['status']['noted'] = 'Operasional dan kehadiran karyawan tidak sesuai';
                                         }
                                     } else {
                                         $timetable['status']['slug'] = 'not-allowed';
                                         $timetable['status']['valid'] = false;
-                                        $timetable['status']['for'] = 'TSO';
+                                        $timetable['status']['for'] = 'approved-tso';
                                         $timetable['status']['noted'] = 'Operasional diliburkan, tetapi karyawan masuk';
                                         // $timetable['status']['noted'] = 'Operasional diliburkan, karyawan diminta masuk';
                                     }
@@ -357,12 +357,12 @@ class TSOControllerPercobaan extends Controller
                                         if ($attendance_item_perdate->isEmpty()) {
                                             $timetable['status']['slug'] = 'not-allowed';
                                             $timetable['status']['valid'] = false;
-                                            $timetable['status']['for'] = 'LB';
+                                            $timetable['status']['for'] = 'approved-LB';
                                             $timetable['status']['noted'] = 'Operasional hadir, tetapi karyawan tidak masuk';
                                         } else {
                                             $timetable['status']['slug'] = 'not-allowed';
                                             $timetable['status']['valid'] = false;
-                                            $timetable['status']['for'] = 'TSO';
+                                            $timetable['status']['for'] = 'approved-tso';
                                             $timetable['status']['noted'] = 'Operasional dan kehadiran karyawan tidak sesuai';
                                         }
                                         break;
@@ -370,12 +370,12 @@ class TSOControllerPercobaan extends Controller
                                         if ($attendance_item_perdate->isEmpty()) {
                                             $timetable['status']['slug'] = 'check';
                                             $timetable['status']['valid'] = true;
-                                            $timetable['status']['for'] = 'LB';
+                                            $timetable['status']['for'] = 'cancel-LB';
                                             $timetable['status']['noted'] = 'Sudah sesuai';
                                         } else {
                                             $timetable['status']['slug'] = 'not-allowed';
                                             $timetable['status']['valid'] = false;
-                                            $timetable['status']['for'] = 'TSO';
+                                            $timetable['status']['for'] = 'approved-tso';
                                             $timetable['status']['noted'] = 'Operasional diliburkan, tetapi karyawan masuk';
                                         }
                                     }
@@ -383,8 +383,8 @@ class TSOControllerPercobaan extends Controller
                             }
 
                             if ($attendance_item_perdate->isEmpty() && !$timetable['is_holiday']) {
-                                $employee_tso = EmployeeNotLb::where('lb_date', $date)->where('emp_id', $itemEmp['id'])->where('status', ($timetable['status']['valid']) ? 'cancel' : 'give')->first();
-                                if (!empty($employee_tso)) $noted = $employee_tso->status == 'cancel' ? 'Karyawan tidak dapat uang libur' : 'Ada operasional tetapi karyawan absen, karyawan dapat uang libur';
+                                $employee_status_lb = EmployeeStatusLb::where('lb_date', $date)->where('emp_id', $itemEmp['id'])->where('type', ($timetable['status']['for'] == 'cancel-LB') ? 'cancel' : 'given')->first();
+                                if (!empty($employee_status_lb)) $noted = $employee_status_lb->type == 'cancel' ? 'Karyawan tidak dapat uang libur' : 'Ada operasional tetapi karyawan absen, karyawan dapat uang libur';
                                 else $noted = $timetable['status']['valid'] ? 'Karyawan dapat uang libur' : 'Ada operasional tetapi karyawan absen, karyawan tidak dapat uang libur';
 
                                 $employee_lbs[] = [
@@ -404,12 +404,12 @@ class TSOControllerPercobaan extends Controller
                                     "last_punch" => $timetable['last_punch'] ?? null,
                                     "total_time" => (!empty($timetable['diff_time_punch'])) ? $timetable['diff_time_punch']->format('%H:%I') : null,
                                     "noted" => $noted,
-                                    'is_approved' => !empty($employee_tso),
+                                    'is_approved' => !empty($employee_status_lb),
                                     "timetable" => $timetable,
                                 ];
                             }
 
-                            if (!$timetable['status']['valid'] &&  $timetable['status']['for'] == 'TSO') {
+                            if (!$timetable['status']['valid'] &&  $timetable['status']['for'] == 'approved-tso') {
                                 $employee_tso = EmployeeTso::where('tso_date', $date)->where('emp_id', $itemEmp['id'])->first();
                                 if (!empty($employee_tso)) $noted = 'kehadiran karyawan telah Disetujui';
                                 else $noted = $timetable['status']['noted'];
@@ -541,7 +541,7 @@ class TSOControllerPercobaan extends Controller
                 $op_date_end_day = Carbon::parse($itemOP->date)->hour(23)->minute(59)->second(59);
                 $attendance_item_perdate = $attendance_devices->where('emp', $itemEmp['id'])->whereBetween('punch_time', [$op_date, $op_date_end_day]);
                 if ($attendance_item_perdate->isEmpty()) {
-                    $employee_not_given_lb = EmployeeNotLb::where('lb_date', $op_date->format('Y-m-d'))->where('emp_id', $itemEmp['id'])->first();
+                    $employee_not_given_lb = EmployeeStatusLb::where('lb_date', $op_date->format('Y-m-d'))->where('emp_id', $itemEmp['id'])->first();
                     $employee_lbs[] = [
                         'employee' => [
                             'id' => $itemEmp['id'],
@@ -667,31 +667,22 @@ class TSOControllerPercobaan extends Controller
         }
     }
 
-    public function approved_not_given_lb(Request $request)
+    public function approved_given_lb(Request $request)
     {
         if (!auth()->user()->can('approved-not-given-employee-holiday-pay.approved')) {
             abort(403, 'Unauthorized action.');
         }
-        Log::info($request);
-
-
 
         try {
             $validator = Validator::make($request->all(), [
-                'date' => 'required', 'emp_id' => 'required',
-                'dept_id' => 'required', 'status' => 'required',
+                'date' => 'required',
+                'emp_id' => 'required',
+                'dept_id' => 'required',
             ]);
             if ($validator->fails()) {
                 return $this->buildRes->RESPONSE_REQ('error', null, $validator->errors());
             } else {
-                $status = $request->status;
-                if ($status['slug'] == 'check') {
-                    $noted = 'Apakah anda yakin, ingin melakukan pemberian uang libur ke karyawan ini?, karena data akan tersimpan.';
-                } else {
-                    $noted = 'Apakah anda yakin, ingin melakukan pemberian uang libur ke karyawan ini?, karena data akan tersimpan.';
-                }
-
-                $render = view('Task.TSO.modals.approved_not_given_lb', compact('noted'))->render();
+                $render = view('Task.TSO.modals.approved_not_given_lb')->render();
                 return $this->buildRes->RESPONSE_REQ('success', $render, null);
             }
         } catch (\Exception $e) {
@@ -700,7 +691,35 @@ class TSOControllerPercobaan extends Controller
             return $this->buildRes->RESPONSE_REQ('error', null, ['error' => 'something wrong']);
         }
     }
-    public function approved_not_given_lb_store(Request $request)
+
+    public function change_status_given_lb(Request $request)
+    {
+        if (!auth()->user()->can('approved-not-given-employee-holiday-pay.approved')) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        try {
+            $validator = Validator::make($request->all(), [
+                'date' => 'required', 
+                'emp_id' => 'required',
+                'dept_id' => 'required',
+                'type' => 'required',
+            ]);
+            if ($validator->fails()) {
+                return $this->buildRes->RESPONSE_REQ('error', null, $validator->errors());
+            } else {
+                $type = $request->type;
+                $render = view('Task.TSO.modals.change_status_given_lb', compact('type'))->render();
+                return $this->buildRes->RESPONSE_REQ('success', $render, null);
+            }
+        } catch (\Exception $e) {
+            Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
+
+            return $this->buildRes->RESPONSE_REQ('error', null, ['error' => 'something wrong']);
+        }
+    }
+
+    public function change_status_given_lb_store(Request $request)
     {
         if (!auth()->user()->can('approved-not-given-employee-holiday-pay.approved')) {
             abort(403, 'Unauthorized action.');
@@ -711,7 +730,7 @@ class TSOControllerPercobaan extends Controller
                 'lb_datas.*.lb_date' => 'required',
                 'lb_datas.*.emp_id' => 'required',
                 'lb_datas.*.dept_id' => 'required',
-                'lb_datas.*.status' => 'required',
+                'lb_datas.*.type' => 'required',
             ]);
 
             if ($validator->fails()) {
@@ -720,18 +739,19 @@ class TSOControllerPercobaan extends Controller
                 $reqdata = $request->only(['lb_datas']);
                 foreach ($reqdata['lb_datas'] as $itemLB) {
                     $employee_bio = $this->apiService->read_employee($itemLB['emp_id']);
-                    $employee_not_given_lb_check = EmployeeNotLb::where('emp_id', $itemLB['emp_id'])->where('lb_date', $itemLB['lb_date'])->where('status', $itemLB['status']);
+                    $employee_not_given_lb_check = EmployeeStatusLb::where('emp_id', $itemLB['emp_id'])->where('lb_date', $itemLB['lb_date'])->where('type', $itemLB['type'])->first();
                     if (empty($employee_not_given_lb_check)) {
-                        $employee_not_given_lb = new EmployeeNotLb([
+                        $employee_not_given_lb = new EmployeeStatusLb([
                             'lb_date' => $itemLB['lb_date'],
                             'emp_id' => $itemLB['emp_id'],
                             'dept_id' => $itemLB['dept_id'],
-                            'status' => $itemLB['status'],
+                            'type' => $itemLB['type'],
                         ]);
                         $employee_not_given_lb->save();
                         // ** create activity log user
                         ActivityLog::created_activity('Status LB', 'User ' . auth()->user()->username . " Ganti status LB (libur operasional) untuk karyawan " . $employee_bio['first_name']);
                     } else {
+                        Log::info($itemLB);
                         return $this->buildRes->RESPONSE_REQ('error', null,  ['error' => "status untuk LB pada tanggal di {$itemLB['lb_date']} sudah ada!"]);
                     }
                 }

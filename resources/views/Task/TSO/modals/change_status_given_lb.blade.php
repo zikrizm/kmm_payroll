@@ -1,4 +1,4 @@
-<form autocomplete="off" action="{{ route('approved-not-given-lb.store') }}" method="POST" class="submit-not-given-lb">
+<form autocomplete="off" action="{{ route('change-status-given-lb.store') }}" method="POST" class="submit-not-given-lb">
     @csrf
     <!-- {{ csrf_field() }} -->
     <section
@@ -15,10 +15,18 @@
                 <input type="hidden" name="lb_datas[0][emp_id]">
                 <input type="hidden" name="lb_datas[0][lb_date]">
                 <input type="hidden" name="lb_datas[0][dept_id]">
-                <input type="hidden" name="lb_datas[0][status]">
+                <input type="hidden" name="lb_datas[0][type]" value="{{ $type }}">
                 <div class="flex flex-col gap-1">
                     <p class="text-gray-700 font-bold text-lg">Konfirmasi</p>
-                    <p class="text-gray-500 font-normal text-xs">{{ $noted }}</p>
+                    <p class="text-gray-500 font-normal text-xs">
+                        @if ($type =='given')
+                        Apakah anda yakin, ingin melakukan pemberian uang libur ke karyawan ini?, karena data akan
+                        tersimpan.
+                        @else
+                        Apakah anda yakin, ingin melakukan pemberian uang libur ke karyawan ini?, karena data akan
+                        tersimpan.
+                        @endif
+                    </p>
                 </div>
                 <div class="flex items-center gap-3 flex-1">
                     <button

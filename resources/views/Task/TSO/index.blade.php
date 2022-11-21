@@ -11,8 +11,8 @@
                     Operational)</span></p>
             <p class="text-base font-normal text-gray-500">Daftar karyawan yang tidak sesuai managemen operational. </p>
         </div>
-
-        <ul class="flex border-b">
+        <hr>
+        {{-- <ul class="flex border-b">
             <li>
                 <button data-ref-class-content="tso-content"
                     class="active-sub-menu text-gray-500 text-violet-700 border-b-2 mr-4 pt px-1 pb-[16px] border-violet-700 text-sm font-medium">
@@ -25,8 +25,8 @@
                     Libur Operasional
                 </button>
             </li>
-        </ul>
-        <div class="flex justify-between">
+        </ul> --}}
+        <div class="flex justify-between gap-2.5 overflow-auto">
             <div class="flex items-center gap-2.5">
                 <div class="w-72">
                     {!! FormCustom::input('date', null, [
@@ -53,10 +53,17 @@
                     </button>
                 </div>
                 <div id="cancel-all-lb" class="hidden">
-                    <button onclick="approved_all_not_given_lb()"
+                    <button onclick="change_all_status_given_lb('cancel')"
                         class="mb-1 flex items-center gap-2.5 px-4 py-[7px] text-gray-500 text-sm font-medium border border-gray-200 shadow-sm rounded-lg">
                         <x-icon icon="x" width=18 height=18 viewBox="20 20" />
-                        <p class="truncate">Batalkan semua</p>
+                        <p class="truncate">Batalkan LB semua</p>
+                    </button>
+                </div>
+                <div id="given-all-lb" class="hidden">
+                    <button onclick="change_all_status_given_lb('given')"
+                        class="mb-1 flex items-center gap-2.5 px-4 py-[7px] text-gray-500 text-sm font-medium border border-gray-200 shadow-sm rounded-lg">
+                        <x-icon icon="check" width=18 height=18 viewBox="20 20" />
+                        <p class="truncate">Dapat LB semua</p>
                     </button>
                 </div>
             </div>
@@ -120,103 +127,144 @@
                 get_table({ q: this.value });
             }, 250));
 
-            $('*[data-ref-class-content]').on('click', function(e) {
-                let _idContent = $(this).data('ref-class-content');
-                $('*[data-ref-class-content]').each(function () {
-                    let _idContent = $(this).data('ref-class-content');
-                    $(this).removeClass('border-b-2 text-violet-700 active-sub-menu');
-                    $('#'+_idContent).addClass('hidden');
-                    $('.table-tso .select-all-card').prop('checked', false);
-                    $('.table-tso .select-card').prop('checked', false);
-                    $('.table-not-given-lb .select-all-card').prop('checked', false);
-                    $('.table-not-given-lb .select-card').prop('checked', false);
-                    if (!$('#approved-all-tso').is(':hidden')) {
-                        $('#approved-all-tso').toggle();
-                    }
-                    if (!$('#cancel-all-lb').is(':hidden')) {
-                        $('#cancel-all-lb').toggle();
-                    }
-                });
+            // $('*[data-ref-class-content]').on('click', function(e) {
+            //     let _idContent = $(this).data('ref-class-content');
+            //     $('*[data-ref-class-content]').each(function () {
+            //         let _idContent = $(this).data('ref-class-content');
+            //         $(this).removeClass('border-b-2 text-violet-700 active-sub-menu');
+            //         $('#'+_idContent).addClass('hidden');
+            //         $('.table-tso .select-all-card').prop('checked', false);
+            //         $('.table-tso .select-card').prop('checked', false);
+            //         $('.table-not-given-lb .select-all-card').prop('checked', false);
+            //         $('.table-not-given-lb .select-card').prop('checked', false);
+            //         if (!$('#approved-all-tso').is(':hidden')) {
+            //             $('#approved-all-tso').toggle();
+            //         }
+            //         if (!$('#cancel-all-lb').is(':hidden')) {
+            //             $('#cancel-all-lb').toggle();
+            //         }
+            //     });
 
-                $(this).addClass('border-b-2 text-violet-700 active-sub-menu');
-                $('#'+_idContent).removeClass('hidden');
-                get_table({});
-            })
+            //     $(this).addClass('border-b-2 text-violet-700 active-sub-menu');
+            //     $('#'+_idContent).removeClass('hidden');
+            //     get_table({});
+            // })
         });
 
         async function get_table(data) {
-            if (!$('#approved-all-tso').is(':hidden')) {
-                $('#approved-all-tso').toggle();
-            }
-            if (!$('#cancel-all-lb').is(':hidden')) {
-                $('#cancel-all-lb').toggle();
-            }
-            let type = '';
-            switch ($('.active-sub-menu').data('ref-class-content')) {
-                case 'tso-content': type = 'table-tso'; break;
-                case 'lb-content' : type = 'table-not-given-lb'; break;
-            }
+            // if (!$('#approved-all-tso').is(':hidden')) {
+            //     $('#approved-all-tso').toggle();
+            // }
+            // if (!$('#cancel-all-lb').is(':hidden')) {
+            //     $('#cancel-all-lb').toggle();
+            // }
+            // let type = '';
+            // switch ($('.active-sub-menu').data('ref-class-content')) {
+            //     case 'tso-content': type = 'table-tso'; break;
+            //     case 'lb-content' : type = 'table-not-given-lb'; break;
+            // }
 
             $('#loading-block-document').show();
             dataParams = { ...dataParams, ...data };
             // **
             // * get table ----->
             // *
-            var url = (type == 'table-tso') ? '/table-tso': '/table-not-given-lb';
+            var url = '/table-tso';
+            // var url = (type == 'table-tso') ? '/table-tso': '/table-not-given-lb';
             var res = await ApiService.get_table(url, dataParams);
-            if (type == 'table-tso') {
+            // if (type == 'table-tso') {
                 $('.table-content-tso').html(res);
                 $('.table-tso .select-all-card').off('change');
                 $('.table-tso .select-all-card').on('change', function(e) {
+                    var showApproveAllTSO = false, showGivenAllLB = false, showNotGivenAllLB = false;
                     var isChecked = $(this).is(':checked');
+                    $('.table-tso input[name="for"]').each(function(e) {
+                        let value = $(this).val();
+                        if(value == 'approved-tso') showApproveAllTSO = true;
+                        if(value == 'approved-LB') showGivenAllLB = true;
+                        if(value == 'cancel-LB') showNotGivenAllLB = true;
+                    });
                     $('.table-tso .select-card').prop('checked', isChecked);
                     if ($('.table-tso .select-card:checked').length) {
-                        if ($('#approved-all-tso').is(':hidden')) {
-                            $('#approved-all-tso').toggle();
-                        } else {
-                            if(!isChecked) $('#approved-all-tso').toggle();
+                        if(showApproveAllTSO) { 
+                            if ($('#approved-all-tso').is(':hidden')) {
+                                $('#approved-all-tso').toggle();
+                            } else {
+                                if(!isChecked) $('#approved-all-tso').toggle();
+                            }
                         }
+                        if(showGivenAllLB) { 
+                            if ($('#given-all-lb').is(':hidden')) {
+                                $('#given-all-lb').toggle();
+                            } else {
+                                if(!isChecked) $('#given-all-lb').toggle();
+                            }
+                        }
+                        if(showNotGivenAllLB) { 
+                            if ($('#cancel-all-lb').is(':hidden')) {
+                                $('#cancel-all-lb').toggle();
+                            } else {
+                                if(!isChecked) $('#cancel-all-lb').toggle();
+                            }
+                        }
+                       
                     }else {
                         if (!$('#approved-all-tso').is(':hidden')) $('#approved-all-tso').toggle()
-                    }
-                });
-                $('.table-tso .select-card').on('change', function(e) {
-                    if($('.table-tso .select-card:checked').length) {
-                        if ($('#approved-all-tso').is(':hidden')) {
-                            $('#approved-all-tso').toggle();
-                        }
-                    }else {
-                        $('.table-tso .select-all-card').prop('checked', false)
-                        $('#approved-all-tso').toggle();
-                    }
-                });
-            } else {
-                $('.table-content-lb').html(res);
-                $('.table-not-given-lb .select-all-card').off('change');
-                $('.table-not-given-lb .select-all-card').on('change', function(e) {
-                    var isChecked = $(this).is(':checked');
-                    $('.table-not-given-lb .select-card').prop('checked', isChecked);
-                    if ($('.table-not-given-lb .select-card:checked').length) {
-                        if ($('#cancel-all-lb').is(':hidden')) {
-                            $('#cancel-all-lb').toggle();
-                        } else {
-                            if(!isChecked) $('#cancel-all-lb').toggle();
-                        }
-                    }else {
+                        if (!$('#given-all-lb').is(':hidden')) $('#given-all-lb').toggle()
                         if (!$('#cancel-all-lb').is(':hidden')) $('#cancel-all-lb').toggle()
                     }
                 });
-                $('.table-not-given-lb .select-card').on('change', function(e) {
-                    if($('.table-not-given-lb .select-card:checked').length) {
-                        if ($('#cancel-all-lb').is(':hidden')) {
+                $('.table-tso .select-card').on('change', function(e) {
+                    let value = $(this).closest('td').find('input[name="for"]').val();
+                    var showApproveAllTSO = false, showGivenAllLB = false, showNotGivenAllLB = false;
+                    if(value == 'approved-tso') showApproveAllTSO = true;
+                    if(value == 'approved-LB') showGivenAllLB = true;
+                    if(value == 'cancel-LB') showNotGivenAllLB = true;
+                    if($('.table-tso .select-card:checked').length) {
+                        if(showApproveAllTSO && $('#approved-all-tso').is(':hidden')) { 
+                            $('#approved-all-tso').toggle();
+                        }
+                        if(showGivenAllLB && $('#given-all-lb').is(':hidden')) { 
+                            $('#given-all-lb').toggle();
+                        }
+                        if(showNotGivenAllLB && $('#cancel-all-lb').is(':hidden')) { 
                             $('#cancel-all-lb').toggle();
                         }
+                       
                     }else {
-                        $('.table-not-given-lb .select-all-card').prop('checked', false)
-                        $('#cancel-all-lb').toggle();
+                        $('.table-tso .select-all-card').prop('checked', false)
+                        if(showApproveAllTSO) $('#approved-all-tso').toggle();
+                        if(showGivenAllLB) $('#given-all-lb').toggle();
+                        if(showNotGivenAllLB) $('#cancel-all-lb').toggle();
                     }
                 });
-            }
+            // } else {
+                // $('.table-content-lb').html(res);
+                // $('.table-not-given-lb .select-all-card').off('change');
+                // $('.table-not-given-lb .select-all-card').on('change', function(e) {
+                //     var isChecked = $(this).is(':checked');
+                //     $('.table-not-given-lb .select-card').prop('checked', isChecked);
+                //     if ($('.table-not-given-lb .select-card:checked').length) {
+                //         if ($('#cancel-all-lb').is(':hidden')) {
+                //             $('#cancel-all-lb').toggle();
+                //         } else {
+                //             if(!isChecked) $('#cancel-all-lb').toggle();
+                //         }
+                //     }else {
+                //         if (!$('#cancel-all-lb').is(':hidden')) $('#cancel-all-lb').toggle()
+                //     }
+                // });
+                // $('.table-not-given-lb .select-card').on('change', function(e) {
+                //     if($('.table-not-given-lb .select-card:checked').length) {
+                //         if ($('#cancel-all-lb').is(':hidden')) {
+                //             $('#cancel-all-lb').toggle();
+                //         }
+                //     }else {
+                //         $('.table-not-given-lb .select-all-card').prop('checked', false)
+                //         $('#cancel-all-lb').toggle();
+                //     }
+                // });
+            // }
             $('#loading-block-document').hide();
             $('.select2-page').select2({ minimumResultsForSearch: -1 });  
             $('.select2-page').on('select2:select', function (e) {
@@ -287,16 +335,15 @@
             }
         }
 
-        async function get_modal_approve_not_given_lb(data) {
+        async function get_modal_change_status_given_lb(data) {
             // **
             // * open modal form ----->
             // *
-            if(data.status && data.emp_id && data.date && data.dept_id) {
-                var res = await ApiService.get_modal('/approved-not-given-lb', data);
+            if(data.type && data.emp_id && data.date && data.dept_id) {
+                var res = await ApiService.get_modal('/change-status-given-lb', data);
                 $('input[name="lb_datas[0][dept_id]"]').val(data.dept_id);
                 $('input[name="lb_datas[0][emp_id]"]').val(data.emp_id);
                 $('input[name="lb_datas[0][lb_date]"]').val(data.date);
-                $('input[name="lb_datas[0][status]"]').val(data.status.slug == 'check'? 'cancel': 'give');
                 
                 // **
                 // * submit form ----->
@@ -316,10 +363,13 @@
             let datas = [];
             $('.table-tso .select-card:checked').each(function(e) {
                 let tr = $(this).closest('tr');
+                let statusFor = tr.find('input[name="for"]').val();
                 let emp_id = tr.find('input[name="emp_id"]').val();
-                let tso_date = tr.find('input[name="tso_date"]').val();
+                let tso_date = tr.find('input[name="date"]').val();
                 let dept_id = tr.find('input[name="dept_id"]').val();
-                datas.push({emp_id, tso_date,dept_id})
+                if(statusFor == 'approved-tso') {
+                    datas.push({emp_id, tso_date,dept_id})
+                }
             })
 
             var _response = await ApiService.store("{{ route('approved-tso.store') }}", {tso_datas: datas});
@@ -329,25 +379,35 @@
             } else {
                 handleMessage(_response);
                 if (!$('#approved-all-tso').is(':hidden')) $('#approved-all-tso').toggle()
+                if (!$('#given-all-lb').is(':hidden')) $('#given-all-lb').toggle()
+                if (!$('#cancel-all-lb').is(':hidden')) $('#cancel-all-lb').toggle()
                 get_table({});
             }
         }
-        async function approved_all_not_given_lb() {
+        async function change_all_status_given_lb(type) {
             let datas = [];
-            $('.table-not-given-lb .select-card:checked').each(function(e) {
+            $('.table-tso .select-card:checked').each(function(e) {
                 let tr = $(this).closest('tr');
+                let statusFor = tr.find('input[name="for"]').val();
                 let emp_id = tr.find('input[name="emp_id"]').val();
-                let lb_date = tr.find('input[name="lb_date"]').val();
+                let lb_date = tr.find('input[name="date"]').val();
                 let dept_id = tr.find('input[name="dept_id"]').val();
-                datas.push({emp_id, lb_date,dept_id})
+                if(statusFor == 'cancel-LB' && type=='cancel') {
+                    datas.push({emp_id, lb_date,dept_id, type})
+                }
+                if(statusFor == 'approved-LB' && type=='given') {
+                    datas.push({emp_id, lb_date,dept_id, type})
+                }
             })
 
-            var _response = await ApiService.store("{{ route('approved-not-given-lb.store') }}", {lb_datas: datas});
+            var _response = await ApiService.store("{{ route('change-status-given-lb.store') }}", {lb_datas: datas});
             if (_response.response < 200 || _response.response >= 300) {
                 // * SHOW NOTIFICATION ----->
                 handleMessage(_response);
             } else {
                 handleMessage(_response);
+                if (!$('#approved-all-tso').is(':hidden')) $('#approved-all-tso').toggle()
+                if (!$('#given-all-lb').is(':hidden')) $('#given-all-lb').toggle()
                 if (!$('#cancel-all-lb').is(':hidden')) $('#cancel-all-lb').toggle()
                 get_table({});
                

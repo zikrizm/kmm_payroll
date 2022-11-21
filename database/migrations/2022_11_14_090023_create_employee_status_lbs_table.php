@@ -13,12 +13,12 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('employee_not_lbs', function (Blueprint $table) {
+        Schema::create('employee_status_lbs', function (Blueprint $table) {
             $table->increments('id');
             $table->date('lb_date');
             $table->integer('emp_id');
             $table->integer('dept_id');
-            $table->enum('status',['give','cancel']);
+            $table->enum('type',['given','cancel']);
             $table->timestamps();
         });
     }
@@ -30,6 +30,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('employee_not_lbs');
+        Schema::dropIfExists('employee_status_lbs');
     }
 };
