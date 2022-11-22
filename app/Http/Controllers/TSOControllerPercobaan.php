@@ -343,12 +343,14 @@ class TSOControllerPercobaan extends Controller
                                             $timetable['status']['for'] = 'approved-tso';
                                             $timetable['status']['noted'] = 'Operasional dan kehadiran karyawan tidak sesuai';
                                         }
+
+                                        $timetable['status']['status'] = 'active';
                                     } else {
                                         $timetable['status']['slug'] = 'not-allowed';
                                         $timetable['status']['valid'] = false;
                                         $timetable['status']['for'] = 'approved-tso';
                                         $timetable['status']['noted'] = 'Operasional diliburkan, tetapi karyawan masuk';
-                                        // $timetable['status']['noted'] = 'Operasional diliburkan, karyawan diminta masuk';
+                                        $timetable['status']['status'] = 'inactive';
                                     }
 
                                     break;
@@ -365,6 +367,7 @@ class TSOControllerPercobaan extends Controller
                                             $timetable['status']['for'] = 'approved-tso';
                                             $timetable['status']['noted'] = 'Operasional dan kehadiran karyawan tidak sesuai';
                                         }
+                                        $timetable['status']['status'] = 'active';
                                         break;
                                     } else {
                                         if ($attendance_item_perdate->isEmpty()) {
@@ -378,6 +381,7 @@ class TSOControllerPercobaan extends Controller
                                             $timetable['status']['for'] = 'approved-tso';
                                             $timetable['status']['noted'] = 'Operasional diliburkan, tetapi karyawan masuk';
                                         }
+                                        $timetable['status']['status'] = 'inactive';
                                     }
                                 }
                             }
@@ -411,7 +415,7 @@ class TSOControllerPercobaan extends Controller
 
                             if (!$timetable['status']['valid'] &&  $timetable['status']['for'] == 'approved-tso') {
                                 $employee_tso = EmployeeTso::where('tso_date', $date)->where('emp_id', $itemEmp['id'])->first();
-                                if (!empty($employee_tso)) $noted = 'kehadiran karyawan telah Disetujui';
+                                if (!empty($employee_tso)) $noted =  ($timetable['status']['status'] == 'inactive') ? 'Operasional diliburkan, karyawan diminta masuk' : 'kehadiran karyawan telah Disetujui';
                                 else $noted = $timetable['status']['noted'];
 
                                 $employee_tsos[] = [
@@ -700,7 +704,7 @@ class TSOControllerPercobaan extends Controller
 
         try {
             $validator = Validator::make($request->all(), [
-                'date' => 'required', 
+                'date' => 'required',
                 'emp_id' => 'required',
                 'dept_id' => 'required',
                 'type' => 'required',

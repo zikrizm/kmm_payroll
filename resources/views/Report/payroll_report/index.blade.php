@@ -113,12 +113,13 @@
             // * Build data params table ----->
             // *
             dataParams = { ...dataParams, ...data };
-        
+            
             // **
             // * get table ----->
             // *
             var res = await ApiService.get_table('/payroll-report', dataParams);
             $('.table-content').html(res);
+            
             $('#loading-block-document').hide();
 
             // **
@@ -144,6 +145,67 @@
                 drops: "auto",
                 maxYear: parseInt(moment().format('YYYY'), 10)
             });
+            let start_date = $('input[name="date"]').data('daterangepicker').startDate;
+            let end_date = $('input[name="date"]').data('daterangepicker').endDate;
+            let duration = 4000;
+            $('.prosess-cointainer').each(function (index) {
+                let thisElement = $(this);
+                let thisIndex = index;
+                let nextElement = thisElement.next();
+                let nextElement4 = $('.prosess-cointainer').eq(index+4);
+                console.log(nextElement4)
+                let percentElementBeforeLength = 0;
+                if(index > 0) percentElementBeforeLength = $('.prosess-cointainer').eq(index-1).find('.percent').length;
+
+                let percentElement = $(this).find('.percent');
+                percentElement.each(function (index) {
+                    $(this).prop('Counter',0).delay( (index * duration) + ((percentElementBeforeLength * thisIndex) * duration) ).animate({
+                        Counter: 100
+                    }, {
+                        duration: duration,
+                        easing: 'swing',
+                        step: function (now) {
+                            $(this).text(Math.ceil(now));
+                        },
+                        complete: function () {
+                            $(this).parent().toggle();
+                            let iconElement = $(this).closest('.container-perdate').find('.icon-date-finish-prosess');
+                            let dateTextElement = $(this).closest('.container-perdate').find('.proses-date');
+                            iconElement.toggle();
+                            dateTextElement.removeClass('text-gray-500');
+                            dateTextElement.addClass('text-gray-300');
+
+                            if(percentElement.length -1 == index) {
+                                thisElement.find('.prosess-container-perdates').toggle('flex')
+                                thisElement.find('.icon-finish-prosess').toggle();
+                                thisElement.find('.text-prosess').text('Selesai');
+                                if (!thisElement.find('.icon-on-prosess').is(':hidden')) 
+                                    thisElement.find('.icon-on-prosess').toggle()
+                                if (!thisElement.find('.icon-waiting-prosess').is(':hidden')) 
+                                    thisElement.find('.icon-waiting-prosess').toggle()
+
+                                if(nextElement.length){
+                                    nextElement.find('.prosess-container-perdates').toggle('flex')
+                                    nextElement.find('.icon-waiting-prosess').toggle();
+                                    nextElement.find('.icon-on-prosess').toggle();
+                                    nextElement.find('.text-prosess').text('Dalam proses');
+                                }
+
+                                let percentNextElementLength = nextElement.find('.percent').length;
+                                setTimeout(() => {
+                                    thisElement.toggle('flex');
+                                    if(nextElement4.length) {
+                                        nextElement4.toggle('flex');
+                                    }
+                                }, percentNextElementLength * duration);
+                               
+                                
+                            }
+                        }
+                    });
+                });
+            });
+            
 
             // **
             // * submit form ----->

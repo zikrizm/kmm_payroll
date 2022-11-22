@@ -23,7 +23,7 @@
                         Apakah anda yakin, ingin melakukan pemberian uang libur ke karyawan ini?, karena data akan
                         tersimpan.
                         @else
-                        Apakah anda yakin, ingin melakukan pemberian uang libur ke karyawan ini?, karena data akan
+                        Apakah anda yakin, ingin melakukan pembatalan pemberian uang libur ke karyawan ini?, karena data akan
                         tersimpan.
                         @endif
                     </p>

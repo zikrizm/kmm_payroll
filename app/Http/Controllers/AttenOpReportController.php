@@ -7,7 +7,7 @@ use App\Models\Employee;
 use App\Models\Shift;
 use App\Utils\ResponseUtil;
 use App\Models\EmployeeDebt;
-use App\Models\EmployeeNotLb;
+use App\Models\EmployeeStatusLb;
 use App\Models\EmployeeTso;
 use App\Models\Holiday;
 use App\Models\Operational;
@@ -542,7 +542,7 @@ class AttenOpReportController extends Controller
 
                                 if (empty($attens_groupings[$date])) {
                                     if ($is_inactive && !$report_by_date['timetable']['is_holiday'] && !empty($departmentDB)) {
-                                        $employee_no_given_lb = EmployeeNotLb::where('lb_date', $date)->where('emp_id', $emp['id'])->first();
+                                        $employee_no_given_lb = EmployeeStatusLb::where('lb_date', $date)->where('emp_id', $emp['id'])->first();
                                         if (empty($employee_no_given_lb)) $report_by_date['timetable']['tbhn_u_libur'] += $departmentDB->sitting_money ?? 0;
                                     }
                                 } else {

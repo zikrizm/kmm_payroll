@@ -76,37 +76,14 @@
                     @foreach (($item['reports'] ?? []) as $item_report)
                     <td class='border border-b-0 px-3 py-2 text-left'>
                         <p
-                            class="text-xs truncate text-center {{ !empty($item_report['timetable']['status']) && $item_report['timetable']['status']['valid'] ? 'text-gray-500' : 'text-gray-300' }}">
+                            class="text-xs truncate text-center text-gray-500">
                             {{ $item_report['timetable']['calculate_atten_per_day'] }}
-                            {{-- @php
-                            $calculate_atten =
-                            @endphp --}}
-                            {{-- @if (!empty($item_report['timetable']['per_day']))
-                            {{ $item_report['timetable']['per_day'] }}
-                            @endif --}}
-                            {{-- @php
-                            $overtime = ($item_report['timetable']['overtime'] ?? 0) +
-                            ($item_report['timetable']['early_check_in'] ?? 0);
-                            @endphp
-                            {{ !is_null($item_report['timetable']['per_day'])? $overtime: '' }} --}}
-                            {{-- @if (!empty($item_report['timetable']['per_day']) &&
-                            $item_report['timetable']['per_day'] > 1)
-                            {{ $item_report['timetable']['per_day']+($item_report['timetable']['overtime'] ?? 0) }}
-                            @elseif (!empty($item_report['timetable']['per_day']) &&
-                            $item_report['timetable']['per_day'] >= 1)
-                            {{ $item_report['timetable']['overtime'] ?? 0 }}
-                            @elseif (empty($item_report['timetable']['per_day']))
-                            {{-- x --}}
-                            {{-- @endif
-                            {{ $item_report['timetable']['overtime']??'' }}
-                            {{ $item_report['timetable']['early_check_in']??'' }} --}}
-                            {{-- {{ ($item_report['timetable']['overtime'] ?? 0) + ($item_report['in'] ?? 0) }} --}}
                         </p>
                     </td>
                     @endforeach
                     <td class='border border-b-0 px-3 py-2 text-gray-500 text-xs'>
                         <p class="truncate text-center">{{ $item['amount_day'] ?? 0 }}</p>
-                    </td>
+                </td>
                     <td class='border border-b-0 px-3 py-2 text-gray-500 text-xs'>
                         <p class="truncate text-center">{{ ($item['amount_of_ot'] ?? 0) + ($item['early_check_in'] ?? 0)
                             }}</p>

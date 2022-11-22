@@ -26,8 +26,13 @@ return new class extends Migration
             $table->integer('dept_id');
             $table->string('dept_code');
             $table->string('dept_name');
+            $table->float('amount_day')->nullable();
+            $table->float('amount_of_ot')->nullable();
+            $table->decimal('amount_of_ot_pay', 22, 2)->nullable();
+            $table->float('amount_early_check_in')->nullable();
+            $table->decimal('amount_early_check_in_pay', 22, 2)->nullable();
             $table->decimal('daily_salary', 22, 2)->nullable();
-            $table->decimal('position_total', 22, 2)->nullable();
+            $table->decimal('position_extra_pay_total', 22, 2)->nullable();
             $table->decimal('instalment_dept_total', 22, 2)->nullable();
             $table->decimal('tbhn_u_libur_total', 22, 2)->nullable();
             $table->decimal('daily_salary_total', 22, 2)->nullable();

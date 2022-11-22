@@ -111,7 +111,7 @@ Route::middleware(['auth'])->group(function () {
     // * attendance-card
     Route::resource('attendance-card', 'AttendanceReportCardController', ['except' => ['update', 'show']]);
     // * attendance-operational
-    Route::resource('attendance-operational', 'AttenOpReportController', ['except' => ['update', 'show']]);
+    Route::resource('attendance-operational', 'AttenOpReportController', ['except' => ['update', 'show', 'edit']]);
     // * payroll-report
     Route::resource('payroll-report', 'PayrollReportController', ['except' => ['update', 'show']]);
     // * overtime-rice-report

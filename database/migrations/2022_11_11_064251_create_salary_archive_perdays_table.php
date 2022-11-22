@@ -17,8 +17,10 @@ return new class extends Migration
             $table->increments('id');
             $table->integer('salary_archive_id')->unsigned();
             $table->integer('timetable_id')->unsigned();
+            $table->dateTime('date');
             $table->dateTime('first_punch');
             $table->dateTime('last_punch');
+            $table->boolean('is_less_than_time')->default(0);
             $table->decimal('daily_salary_perday', 22, 2)->nullable();
             $table->decimal('tbhn_u_libur_perday', 22, 2)->nullable();
             $table->decimal('overtime_perday', 22, 2)->nullable();
