@@ -33,7 +33,7 @@ return new class extends Migration
             $table->decimal('amount_early_check_in_pay', 22, 2)->nullable();
             $table->decimal('daily_salary', 22, 2)->nullable();
             $table->decimal('position_extra_pay_total', 22, 2)->nullable();
-            $table->decimal('instalment_dept_total', 22, 2)->nullable();
+            $table->decimal('instalment_debt_total', 22, 2)->nullable();
             $table->decimal('tbhn_u_libur_total', 22, 2)->nullable();
             $table->decimal('daily_salary_total', 22, 2)->nullable();
             $table->decimal('total', 22, 2)->nullable();

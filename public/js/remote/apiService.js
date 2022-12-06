@@ -36,15 +36,18 @@ class Api extends NetworkUtils {
 
         }
     };
-    async submit_form(className, callback) {
+    async submit_form(className, callback, options = {
+        allowLoading: true,
+        allowCloseModal: true,
+    }) {
         var url = $(className).attr('action');
         var method = $(className).attr('method');
         $(className).on("submit", async (e) => {
             e.preventDefault();
             try {
-                $('#loading-block-document').show();
+                if (options.allowLoading) $('#loading-block-document').show();
                 let _response = await this.emitter(method, url, new FormData(document.querySelector(className)));
-                $('#loading-block-document').hide();
+                if (options.allowLoading) $('#loading-block-document').hide();
                 if (_response.response < 200 || _response.response >= 300) {
                     // * SET NOTIFICATION MESSAGE REQUIRED ----->
                     setErorrsformInputs(_response.msg);
@@ -54,7 +57,8 @@ class Api extends NetworkUtils {
                     // * CLEAR ERROR ----->
                     clearErrorFormInputs();
                     // * CLOSE MODAL ----->
-                    closeModal({ name: '.main-modal', content: '.content-main-modal' });
+                    if (options.allowCloseModal)
+                        closeModal({ name: '.main-modal', content: '.content-main-modal' });
                     callback(_response);
                 }
             } catch (error) {

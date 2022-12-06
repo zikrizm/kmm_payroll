@@ -6,6 +6,7 @@ use App\Models\ActivityLog;
 use App\Utils\ResponseUtil;
 use App\Models\EmployeeDebt;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use App\Services\Api\ApiServices;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Session;
@@ -114,6 +115,7 @@ class KasbonController extends Controller
                 $kasbon_data = $request->only(['emp_id', 'date', 'debt', 'instalment']);
 
                 $employee = $this->apiService->read_employee($kasbon_data['emp_id']);
+                $kasbon_data['date'] = Carbon::createFromFormat('d-m-Y', $kasbon_data['date']);
                 $kasbon_data['business_id'] = Session::get('business_id');
                 $kasbon_data['first_name'] = $employee['first_name'];
                 $kasbon_data['emp_code'] = $employee['emp_code'];
@@ -211,7 +213,9 @@ class KasbonController extends Controller
                     $kasbon->update($kasbon_data);
                 } else {
                     $kasbon_data = $request->only(['emp_id', 'date', 'debt', 'instalment']);
+                    Log::info($kasbon_data);
                     $employee = $this->apiService->read_employee($kasbon_data['emp_id']);
+                    $kasbon_data['date'] = Carbon::createFromFormat('d-m-Y', $kasbon_data['date']);
                     $kasbon_data['first_name'] = $employee['first_name'];
                     $kasbon_data['emp_code'] = $employee['emp_code'];
                     $kasbon_data['updated_user'] = auth()->user()->id;

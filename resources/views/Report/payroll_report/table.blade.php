@@ -3,62 +3,69 @@
         <table class='table border-collapse w-full'>
             <thead class='border border-gray-200 bg-gray-50'>
                 <tr class='border-t'>
-                    <th class='border border-t-0 border-l-0 px-3 py-1 text-left cursor-pointer' rowspan="2">
-                        <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">No.</p>
+                    <th class='border border-t-0 border-l-0 px-3 py-1 text-left' rowspan="2">
+                        <p class="text-xs font-medium text-gray-500 truncate">No.</p>
                     </th>
-                    <th class='border border-t-0 px-3 py-1 text-center cursor-pointer'>
-                        <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Nama</p>
+                    <th class='border border-t-0 px-3 py-1 text-center'>
+                        <p class="text-xs font-medium text-gray-500 truncate">Nama</p>
                     </th>
                     @foreach ($th_dates as $item)
-                    {{-- @php
-                    $isSunday = Carbon\Carbon::parse($item_report['date'])->isSunday();
-                    @endphp --}}
-                    <th class='border border-t-0 px-3 py-1 text-left cursor-pointer'>
-                        <p style="opacity: {{ $item['is_pending_day'] ? '0.4': ''}};"
-                            class="text-xs font-medium truncate cursor-pointer text-center {{ $item['is_holiday'] ? 'text-red-500' : 'text-gray-500' }} ">
+                    <th class='border border-t-0 px-3 py-1 text-left w-[56px] min-w-[56px]'>
+                        <p
+                            class="text-xs font-medium truncate text-center {{ $item['is_holiday'] ? 'text-gray-300' : 'text-gray-500' }} ">
                             {{ date('d', strtotime($item['date'])) }}
                         </p>
                     </th>
                     @endforeach
-                    <th class='border border-t-0 px-3 py-1 text-left cursor-pointer' rowspan="2">
-                        <p class="text-xs font-medium text-gray-500 truncate cursor-pointer text-center">HK</p>
+                    <th class='border border-t-0 px-3 py-1 text-left' rowspan="2">
+                        <p class="text-xs font-medium text-gray-500 truncate text-center">HK</p>
                     </th>
-                    <th class='border border-t-0 px-3 py-1 text-left cursor-pointer' rowspan="2">
-                        <p class="text-xs font-medium text-gray-500 truncate cursor-pointer text-center">JL</p>
+                    <th class='border border-t-0 px-3 py-1 text-left' rowspan="2">
+                        <p class="text-xs font-medium text-gray-500 truncate text-center">JL</p>
                     </th>
-                    <th class='border border-t-0 border-r-0 px-3 py-1 text-center cursor-pointer' colspan="6">
-                        <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Jumlah( Rupiah )</p>
+                    <th class='border border-t-0 border-r-0 px-3 py-1 text-center' colspan="6">
+                        <p class="text-xs font-medium text-gray-500 truncate">Jumlah( Rupiah )</p>
                     </th>
 
                 </tr>
                 <tr class='border-b-2'>
-                    <th class='border px-3 py-1 text-center cursor-pointer'>
-                        <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Pegawai</p>
+                    <th class='border px-3 py-1 text-center'>
+                        <p class="text-xs font-medium text-gray-500 truncate">Pegawai</p>
                     </th>
                     @foreach ($th_dates as $item)
-                    <th class='border px-3 py-1 text-left cursor-pointer'>
-                        <p style="opacity: {{ $item['is_pending_day'] ? '0.4': ''}};" class="text-xs font-medium truncate cursor-pointer text-center text-gray-500">
-                            {{ $item['slug'] }}
-                        </p>
+                    <th class='border px-3 py-1 text-left w-[56px] min-w-[56px]'>
+                        <div class="tooltip-custom">
+                            <p
+                                class="text-xs font-medium truncate text-center {{ $item['is_holiday'] ? 'text-gray-300 cursor-pointer' : 'text-gray-500' }} ">
+                                {{ $item['slug'] }}
+                            </p>
+                            @if ($item['is_holiday'])
+                            <div
+                                class="tooltip-custom-text border p-1 px-1.5 top-[-30px] rounded bg-white after:!border-t-gray-300 flex flex-col items-center">
+                                <p class="truncate text-[10px] text-gray-500 font-normal">{{ $item['holiday_name'] }}</p>
+                            </div>
+                            @endif
+
+                        </div>
                     </th>
                     @endforeach
-                    <th class='border px-3 py-1 text-center cursor-pointer'>
-                        <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Gaji</p>
+                    <th class='border px-3 py-1 text-center'>
+                        <p class="text-xs font-medium text-gray-500 truncate">Gaji</p>
                     </th>
-                    <th class='border px-3 py-1 text-center cursor-pointer'>
-                        <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Kasbon</p>
+                    <th class='border px-3 py-1 text-center'>
+                        <p class="text-xs font-medium text-gray-500 truncate">Kasbon</p>
                     </th>
-                    <th class='border px-3 py-1 text-left cursor-pointer'>
-                        <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Lembur</p>
+                    <th class='border px-3 py-1 text-left'>
+                        <p class="text-xs font-medium text-gray-500 truncate">Lembur</p>
                     </th>
-                    <th class='border px-3 py-1 text-center cursor-pointer'>
-                        <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Rbhn+U.Libur</p>
+                    <th class='border px-3 py-1 text-center'>
+                        <p class="text-xs font-medium text-gray-500 truncate">Rbhn+U.Libur</p>
                     </th>
-                    <th class='border px-3 py-1 text-center cursor-pointer'>
-                        <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Jabatan</p>
+                    <th class='border px-3 py-1 text-center'>
+                        <p class="text-xs font-medium text-gray-500 truncate">Jabatan</p>
                     </th>
-                    <th class='border border-r-0 px-3 py-1 text-center cursor-pointer'>
-                        <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">TOTAL</p>
+                    <th class='border border-r-0 px-3 py-1 text-center'>
+                        <p class="text-xs font-medium text-gray-500 truncate">TOTAL</p>
                     </th>
                 </tr>
             </thead>
@@ -74,18 +81,33 @@
                         </p>
                     </td>
                     @foreach (($item['reports'] ?? []) as $item_report)
-                    <td class='border border-b-0 px-3 py-2 text-left'>
-                        <p
-                            class="text-xs truncate text-center text-gray-500">
-                            {{ $item_report['timetable']['calculate_atten_per_day'] }}
-                        </p>
+                    <td class='border border-b-0 px-3 py-2  text-left w-[56px] min-w-[56px]'>
+                        <div
+                            class="tooltip-custom flex justify-center relative {{ (!empty($item_report['timetable']['status']) && !$item_report['timetable']['status']['valid']) ? 'border-l-2 border-l-red-500 cursor-pointer' :'' }} w-full h-full">
+                            <p
+                                class="text-xs truncate text-center {{ !empty($item_report['timetable']['is_holiday']) && $item_report['timetable']['is_holiday'] ? 'text-gray-300' : 'text-gray-500' }} ">
+                                {{ $item_report['timetable']['atten_value_day'] }}
+                            </p>
+                            @if (!empty($item_report['timetable']['calculate_one_shift']))
+                            <p class="absolute text-[8px] text-violet-600 right-[-6px] top-[-3px]">+{{
+                                $item_report['timetable']['calculate_one_shift'] }}</p>
+                            @endif
+
+                            @if (!empty($item_report['timetable']['status']) && !$item_report['timetable']['status']['valid'])
+                                <div
+                                    class="tooltip-custom-text border p-1 px-1.5 top-[-30px] rounded bg-white after:!border-t-gray-300 flex flex-col items-center">
+                                    <p class="truncate text-[10px] text-gray-500">{{ $item_report['timetable']['status']['noted'] ?? '-' }}</p>
+                                </div>
+                            @endif
+                            
+                        </div>
                     </td>
                     @endforeach
                     <td class='border border-b-0 px-3 py-2 text-gray-500 text-xs'>
                         <p class="truncate text-center">{{ $item['amount_day'] ?? 0 }}</p>
-                </td>
+                    </td>
                     <td class='border border-b-0 px-3 py-2 text-gray-500 text-xs'>
-                        <p class="truncate text-center">{{ ($item['amount_of_ot'] ?? 0) + ($item['early_check_in'] ?? 0)
+                        <p class="truncate text-center">{{ $item['amount_of_ot'] ?? 0
                             }}</p>
                     </td>
                     <td class='border border-b-0 px-3 py-2 text-gray-500 text-xs'>
@@ -102,8 +124,8 @@
                     </td>
                     <td class='border border-b-0 px-3 py-2 text-gray-500 text-xs'>
                         <p class="truncate text-right">
-                            @if ($item['amout_of_ot_pay'])
-                            @convertnorp($item['amout_of_ot_pay'])
+                            @if ($item['amount_of_ot_pay'])
+                            @convertnorp($item['amount_of_ot_pay'])
                             @else
                             -
                             @endif
@@ -120,8 +142,8 @@
                     </td>
                     <td class='border border-b-0 px-3 py-2 text-gray-500 text-xs'>
                         <p class="truncate text-right">
-                            @if ($item['position_extra_pay'])
-                            @convertnorp($item['position_extra_pay'])
+                            @if ($item['position_extra_pay_total'])
+                            @convertnorp($item['position_extra_pay_total'])
                             @else
                             -
                             @endif
@@ -134,19 +156,5 @@
                 @endforeach
             </tbody>
         </table>
-        {{-- <footer class='flex justify-between items-center px-6 pt-3 pb-4'>
-            <p class="text-gray-700 text-sm">Page <span>{{ $holidays->currentPage() }}</span> of <span>
-                    {{ $holidays->lastPage() }}</span></p>
-            <div class='flex gap-3'>
-                @if (!$holidays->onFirstPage())
-                <button data-pagination-url="{{ $holidays->previousPageUrl() }}"
-                    class='pagination-button px-3.5 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50'>Previous</button>
-                @endif
-                @if ($holidays->hasMorePages() )
-                <button data-pagination-url="{{ $holidays->nextPageUrl() }}"
-                    class='pagination-button px-3.5 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50'>Next</button>
-                @endif
-            </div>
-        </footer> --}}
     </div>
 </main>

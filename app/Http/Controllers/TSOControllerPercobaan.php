@@ -90,7 +90,7 @@ class TSOControllerPercobaan extends Controller
         $filter['start_time'] = $start_time->subDay()->hour(0)->minute(0)->second(0)->format('Y-m-d H:i:s');
         $filter['end_time'] = $end_time->addDay()->hour(23)->minute(59)->second(59)->format('Y-m-d H:i:s');
         $dates = $this->util->generateDateRange($start_time, $end_time);
-        foreach ($dates as $date) {
+        foreach ($dates as $date_key => $date) {
             $code_day = Carbon::parse($date)->dayOfWeek;
             $th_dates[] = ['slug' => $slug_week[$code_day], 'date' => $date];
         }

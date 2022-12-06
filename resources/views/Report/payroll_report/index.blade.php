@@ -14,7 +14,7 @@
         </div>
     </header>
     <hr>
-    <div class="flex justify-between">
+    <div class="flex justify-between gap-2.5">
         <div class="flex items-center gap-2.5">
             <div class="w-72">
                 {!! FormCustom::input('date', null, [
@@ -35,9 +35,9 @@
                 <label class="font-normal text-xs text-red-500 xs/max:text-xs parent_dept hint-text"></label>
             </section>
             <button onclick="get_modal()"
-                class="flex items-center gap-2.5 px-4 h-[36px] mb-1 text-gray-500 text-sm font-medium  flex items-center border border-gray-200 shadow-sm rounded-lg">
+                class="truncate flex items-center gap-2.5 px-4 h-[36px] mb-1 text-gray-500 text-sm font-medium  flex items-center border border-gray-200 shadow-sm rounded-lg">
                 <x-icon icon="dollar-sign" width=18 height=18 viewBox="20 20" />
-                Hitung penggajian
+                <p class="truncate">Hitung penggajian</p>
             </button>
         </div>
         <x-ui.search-data placeholder="Cari penggajian" url="{{ route('payroll-report.index') }}" />
@@ -136,83 +136,101 @@
             // **
             // * open modal form ----->
             // *
-            var URL = (payroll_report_id) ? '/payroll-report/' + payroll_report_id + '/edit' : '/payroll-report/create';
-            var res = await ApiService.get_modal(URL, null);
-            $('input[name="holiday_date"]').daterangepicker({
-                locale: { format: 'DD-MM-YYYY' },
-                showDropdowns: true,
-                minYear: 2000,
-                drops: "auto",
-                maxYear: parseInt(moment().format('YYYY'), 10)
-            });
             let start_date = $('input[name="date"]').data('daterangepicker').startDate;
             let end_date = $('input[name="date"]').data('daterangepicker').endDate;
-            let duration = 4000;
+            var URL = (payroll_report_id) ? '/payroll-report/' + payroll_report_id + '/edit' : '/payroll-report/create';
+            var res = await ApiService.get_modal(URL, { 
+                start_date: start_date.format('YYYY-MM-DD'),
+                end_date: end_date.format('YYYY-MM-DD'),
+            });
+
+            $('#kalkulasi').on('click', function(e) {
+                $('.container-modal-calculate').removeClass('w-[375px]');
+                $('.container-modal-calculate').addClass('w-[650px]');
+                $('.close-calculate').hide();
+                $('.content-confirm-calculate').hide();
+                $('.content-loading-calculate').show();
+                $('input[name="date[start_time]"]').val(start_date.format('YYYY-MM-DD'));
+                $('input[name="date[end_time]"]').val(end_date.format('YYYY-MM-DD'));
+
+                
+                // **
+                // * submit form ----->
+                // *
+                
+
+                // setTimeout(() => {
+                //     $('.content-loading-calculate').hide();
+                //     $('.content-finish-calculate').show();
+                // }, 5000);
+            })
+
+            var resSubmit = ApiService.submit_form('.submit-payroll-report', (data) => { 
+                // onInit( { q: $('.search-data-input').val() });
+                $('.content-loading-calculate').hide();
+                $('.content-finish-calculate').show();
+            }, { allowLoading: false, allowCloseModal: false});
+            
+            let duration = 1000;
             $('.prosess-cointainer').each(function (index) {
-                let thisElement = $(this);
-                let thisIndex = index;
-                let nextElement = thisElement.next();
-                let nextElement4 = $('.prosess-cointainer').eq(index+4);
-                console.log(nextElement4)
-                let percentElementBeforeLength = 0;
-                if(index > 0) percentElementBeforeLength = $('.prosess-cointainer').eq(index-1).find('.percent').length;
+                // let thisElement = $(this);
+                // let thisIndex = index;
+                // let nextElement = thisElement.next();
+                // let nextElement4 = $('.prosess-cointainer').eq(index+4);
+                // let percentElementBeforeLength = 0;
+                // if(index > 0) percentElementBeforeLength = $('.prosess-cointainer').eq(index-1).find('.percent').length;
 
-                let percentElement = $(this).find('.percent');
-                percentElement.each(function (index) {
-                    $(this).prop('Counter',0).delay( (index * duration) + ((percentElementBeforeLength * thisIndex) * duration) ).animate({
-                        Counter: 100
-                    }, {
-                        duration: duration,
-                        easing: 'swing',
-                        step: function (now) {
-                            $(this).text(Math.ceil(now));
-                        },
-                        complete: function () {
-                            $(this).parent().toggle();
-                            let iconElement = $(this).closest('.container-perdate').find('.icon-date-finish-prosess');
-                            let dateTextElement = $(this).closest('.container-perdate').find('.proses-date');
-                            iconElement.toggle();
-                            dateTextElement.removeClass('text-gray-500');
-                            dateTextElement.addClass('text-gray-300');
+                // let percentElement = $(this).find('.percent');
+                // percentElement.each(function (index) {
+                //     $(this).prop('Counter',0).delay( (index * duration) + ((percentElementBeforeLength * thisIndex) * duration) ).animate({
+                //         Counter: 100
+                //     }, {
+                //         duration: duration,
+                //         easing: 'swing',
+                //         step: function (now) {
+                //             $(this).text(Math.ceil(now));
+                //         },
+                //         complete: function () {
+                //             $(this).parent().toggle();
+                //             let iconElement = $(this).closest('.container-perdate').find('.icon-date-finish-prosess');
+                //             let dateTextElement = $(this).closest('.container-perdate').find('.proses-date');
+                //             iconElement.toggle();
+                //             dateTextElement.removeClass('text-gray-500');
+                //             dateTextElement.addClass('text-gray-300');
 
-                            if(percentElement.length -1 == index) {
-                                thisElement.find('.prosess-container-perdates').toggle('flex')
-                                thisElement.find('.icon-finish-prosess').toggle();
-                                thisElement.find('.text-prosess').text('Selesai');
-                                if (!thisElement.find('.icon-on-prosess').is(':hidden')) 
-                                    thisElement.find('.icon-on-prosess').toggle()
-                                if (!thisElement.find('.icon-waiting-prosess').is(':hidden')) 
-                                    thisElement.find('.icon-waiting-prosess').toggle()
+                //             if(percentElement.length -1 == index) {
+                //                 thisElement.find('.prosess-container-perdates').toggle('flex')
+                //                 thisElement.find('.icon-finish-prosess').toggle();
+                //                 thisElement.find('.text-prosess').text('Selesai');
+                //                 if (!thisElement.find('.icon-on-prosess').is(':hidden')) 
+                //                     thisElement.find('.icon-on-prosess').toggle()
+                //                 if (!thisElement.find('.icon-waiting-prosess').is(':hidden')) 
+                //                     thisElement.find('.icon-waiting-prosess').toggle()
 
-                                if(nextElement.length){
-                                    nextElement.find('.prosess-container-perdates').toggle('flex')
-                                    nextElement.find('.icon-waiting-prosess').toggle();
-                                    nextElement.find('.icon-on-prosess').toggle();
-                                    nextElement.find('.text-prosess').text('Dalam proses');
-                                }
+                //                 if(nextElement.length){
+                //                     nextElement.find('.prosess-container-perdates').toggle('flex')
+                //                     nextElement.find('.icon-waiting-prosess').toggle();
+                //                     nextElement.find('.icon-on-prosess').toggle();
+                //                     nextElement.find('.text-prosess').text('Dalam proses');
+                //                 }
 
-                                let percentNextElementLength = nextElement.find('.percent').length;
-                                setTimeout(() => {
-                                    thisElement.toggle('flex');
-                                    if(nextElement4.length) {
-                                        nextElement4.toggle('flex');
-                                    }
-                                }, percentNextElementLength * duration);
-                               
-                                
-                            }
-                        }
-                    });
-                });
+                //                 let percentNextElementLength = nextElement.find('.percent').length;
+                //                 setTimeout(() => {
+                //                     setTimeout(() => {
+                //                         thisElement.toggle('flex');
+                //                     }, 1000);
+                //                     if(nextElement4.length) {
+                //                         nextElement4.toggle('flex');
+                //                     }
+                //                 }, percentNextElementLength * duration);
+                //             }
+                //         }
+                //     });
+                // });
             });
             
 
-            // **
-            // * submit form ----->
-            // *
-            var resSubmit = ApiService.submit_form('.submit-payroll-report', (data) => { 
-                onInit( { q: $('.search-data-input').val() });
-            });
+            
         }
 
         async function open_modal_confirm(payroll_report_id) {

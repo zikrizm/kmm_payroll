@@ -16,6 +16,8 @@ return new class extends Migration
         Schema::create('ot_rice_bills', function (Blueprint $table) {
             $table->increments('id');
             $table->integer('dept_id');
+            $table->string('dept_code');
+            $table->string('dept_name');
             $table->dateTime('start_date');
             $table->dateTime('end_date');
             $table->timestamps();
