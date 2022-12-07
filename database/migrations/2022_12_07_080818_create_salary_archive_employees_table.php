@@ -13,19 +13,14 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('salary_archives', function (Blueprint $table) {
+        Schema::create('salary_archive_employees', function (Blueprint $table) {
             $table->increments('id');
-            $table->integer('business_id')->unsigned();
-            $table->dateTime('start_date');
-            $table->dateTime('end_date');
+            $table->integer('salary_archive_id')->unsigned();
             $table->integer('emp_id');
             $table->string('emp_code');
             $table->string('emp_first_name');
             $table->string('emp_last_name')->nullable();
             $table->string('photo')->nullable();
-            $table->integer('dept_id');
-            $table->string('dept_code');
-            $table->string('dept_name');
             $table->float('amount_day')->nullable();
             $table->float('amount_of_ot')->nullable();
             $table->decimal('amount_of_ot_pay', 22, 2)->nullable();
@@ -37,12 +32,7 @@ return new class extends Migration
             $table->decimal('tbhn_u_libur_total', 22, 2)->nullable();
             $table->decimal('daily_salary_total', 22, 2)->nullable();
             $table->decimal('total', 22, 2)->nullable();
-            $table->integer('created_user')->unsigned();
-            $table->integer('updated_user')->nullable()->unsigned();
-
-            $table->foreign('created_user')->references('id')->on('users')->onDelete('cascade');
-            $table->foreign('updated_user')->references('id')->on('users')->onDelete('cascade');
-            $table->foreign('business_id')->references('id')->on('business')->onDelete('cascade');
+            $table->foreign('salary_archive_id')->references('id')->on('salary_archives')->onDelete('cascade');
             $table->timestamps();
         });
     }
@@ -54,6 +44,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('salary_archives');
+        Schema::dropIfExists('salary_archive_employees');
     }
 };

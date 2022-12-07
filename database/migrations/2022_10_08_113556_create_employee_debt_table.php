@@ -18,13 +18,12 @@ return new class extends Migration
             $table->integer('business_id')->unsigned();
             $table->integer('emp_id');
             $table->string('emp_code');
-            $table->dateTime('date');
+            $table->string('first_name');
+            $table->string('last_name')->nullable();
+            $table->date('date');
             $table->decimal('debt', 22, 2)->nullable();
             $table->decimal('instalment', 22, 2)->nullable();
             $table->integer('paid')->default(0);
-            // $table->decimal('remainder_debt', 22, 2)->nullable();
-            // $table->decimal('instalment_debt', 22, 2)->nullable();
-            $table->string('first_name');
 
             $table->integer('created_user')->unsigned();
             $table->integer('updated_user')->nullable()->unsigned();

@@ -115,7 +115,7 @@
                     </td>
                     <td class='border border-b-0 px-3 py-2 text-gray-500 text-xs'>
                         <p class="truncate text-right">
-                            @if ($item['instalment_debt_total'])
+                            @if (isset($item['instalment_debt_total']))
                             @convertnorp($item['instalment_debt_total'])
                             @else
                             -
@@ -124,7 +124,7 @@
                     </td>
                     <td class='border border-b-0 px-3 py-2 text-gray-500 text-xs'>
                         <p class="truncate text-right">
-                            @if ($item['amount_of_ot_pay'])
+                            @if (isset($item['amount_of_ot_pay']))
                             @convertnorp($item['amount_of_ot_pay'])
                             @else
                             -
@@ -133,7 +133,7 @@
                     </td>
                     <td class='border border-b-0 px-3 py-2 text-gray-500 text-xs'>
                         <p class="truncate text-right">
-                            @if ($item['tbhn_u_libur_total'])
+                            @if (isset($item['tbhn_u_libur_total']))
                             @convertnorp($item['tbhn_u_libur_total'])
                             @else
                             -
@@ -142,7 +142,7 @@
                     </td>
                     <td class='border border-b-0 px-3 py-2 text-gray-500 text-xs'>
                         <p class="truncate text-right">
-                            @if ($item['position_extra_pay_total'])
+                            @if (isset($item['position_extra_pay_total']))
                             @convertnorp($item['position_extra_pay_total'])
                             @else
                             -

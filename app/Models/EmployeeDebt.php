@@ -9,7 +9,7 @@ class EmployeeDebt extends Model
 {
     use HasFactory;
 
-     /**
+    /**
      * The attributes that aren't mass assignable.
      *
      * @var array
@@ -32,10 +32,10 @@ class EmployeeDebt extends Model
         return $this->belongsTo(Employee::class);
     }
     /**
-     * Get the instalment.
+     * Get the employee_debt_pays.
      */
-    public function instalments()
+    public function employee_debt_pays()
     {
-        return $this->hasMany(Instalment::class, 'employee_debt_id');
+        return $this->hasMany(EmployeeDebtPay::class, 'employee_debt_id');
     }
 }

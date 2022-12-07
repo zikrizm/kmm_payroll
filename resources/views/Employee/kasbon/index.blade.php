@@ -109,6 +109,14 @@
             })
         }
     
+        async function get_detail_kasbon_modal(kasbon_id) {
+            // **
+            // * open modal form ----->
+            // *
+            var res = await ApiService.get_modal('kasbon/'+kasbon_id, null);
+           
+        }
+
         async function get_modal(kasbon_id) {
             // **
             // * open modal form ----->

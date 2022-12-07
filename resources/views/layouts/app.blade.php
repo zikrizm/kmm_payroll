@@ -61,7 +61,8 @@
 </head>
 
 <body class="overflow-hidden">
-    <div id="dropdown-action" class="w-44 hidden flex-col absolute border border-gray-200 bg-white rounded-lg shadow-sm z-[999]"></div>
+    <div id="dropdown-action"
+        class="w-44 hidden flex-col absolute border border-gray-200 bg-white rounded-lg shadow-sm z-[999]"></div>
     <div id="loading-block-document" style="display: none;">
         <div class="absolute w-full h-screen flex items-center justify-center flex-col gap-2"
             style="z-index: 999;background-color: rgba(0, 0, 0, 0.3);">
@@ -547,7 +548,7 @@ hover:bg-gray-50
                     </div>
                     @endcanany
 
-                    @canany(['attendance-report.view', 'payroll-report.view', 'overtime-rice-report.view'])
+                    @canany(['attendance-report.view', 'payroll-report.view', 'ot-rice-bill.view'])
                     <section class="my-dropdown-menu cursor-pointer flex items-center {{ $is_mini ? 'justify-center' : 'justify-between' }} p-2.5 rounded-lg w-full
                                     @activemenu('reports')
 bg-gray-100 active
@@ -627,9 +628,9 @@ hover:bg-gray-50
                             </div>
                         </a>
                         @endcan
-                        @can('overtime-rice-report.view')
-                        <a href="{{ route('overtime-rice-report.index') }}" class="flex items-center justify-between p-2.5 rounded-lg w-full hover:underline hover:decoration-gray-500
-                                            @activemenu('overtime-rice-report')
+                        @can('ot-rice-bill.view')
+                        <a href="{{ route('ot-rice-bill.index') }}" class="flex items-center justify-between p-2.5 rounded-lg w-full hover:underline hover:decoration-gray-500
+                                            @activemenu('ot-rice-bill')
 bg-gray-100 active
 @else
 hover:bg-gray-50
@@ -659,7 +660,8 @@ hover:bg-gray-50
                 </main>
             </div>
             <hr>
-            <footer class="flex items-center justify-center pb-4 w-full footer-mini" style="display: {{ !$is_mini ? 'none' : 'flex' }};">
+            <footer class="flex items-center justify-center pb-4 w-full footer-mini"
+                style="display: {{ !$is_mini ? 'none' : 'flex' }};">
                 <div class="flex items-center gap-2 flex-col">
                     <div class="w-10 h-10 rounded-full bg-gray-100 overflow-hidden">
                         @if (!empty(Auth::user()->photo))
@@ -680,8 +682,8 @@ hover:bg-gray-50
                     </div>
                 </div>
             </footer>
-            <footer
-                class="flex items-center justify-between pb-8 w-full footer-full-size" style="display: {{ $is_mini ? 'none' : 'flex' }};">
+            <footer class="flex items-center justify-between pb-8 w-full footer-full-size"
+                style="display: {{ $is_mini ? 'none' : 'flex' }};">
                 <div class="flex items-center gap-2 ">
                     <div class="w-10 h-10 rounded-full bg-gray-100 overflow-hidden">
                         @if (!empty(Auth::user()->photo))

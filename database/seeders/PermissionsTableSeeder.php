@@ -101,10 +101,7 @@ class PermissionsTableSeeder extends Seeder
             ['name' => 'attendance-operational.delete'],
             ['name' => 'payroll-report.view'],
             ['name' => 'payroll-report.calculate'],
-            ['name' => 'overtime-rice-report.view'],
-            ['name' => 'overtime-rice-report.create'],
-            ['name' => 'overtime-rice-report.update'],
-            ['name' => 'overtime-rice-report.delete'],
+           
 
             ['name' => 'operational.view'],
             ['name' => 'operational.create'],
@@ -120,6 +117,9 @@ class PermissionsTableSeeder extends Seeder
             ['name' => 'request-task.update'],
             ['name' => 'request-task.delete'],
 
+            ['name' => 'salary-archive.view'],
+            ['name' => 'salary-archive.create'],
+            ['name' => 'ot-rice-bill.view'],
             ['name' => 'business_settings.access'],
         ];
 

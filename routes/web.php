@@ -106,6 +106,10 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/request-task/{request_task}', 'RequestTaskController@update')->name('request-task.update');
     Route::get('/get-employee-position', 'RequestTaskController@get_employee_position')->name('request-task.get_employee_position');
 
+    // * salary-archive
+    Route::get('/salary-archive', 'SalaryArchiveController@index')->name('salary-archive.index');
+    Route::get('/salary-archive/create', 'SalaryArchiveController@create')->name('salary-archive.create');
+    Route::post('/salary-archive', 'SalaryArchiveController@store')->name('salary-archive.store');
     // * attendance-report
     Route::resource('attendance-report', 'AttendanceReportController', ['except' => ['update', 'show']]);
     // * attendance-card
@@ -114,8 +118,9 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('attendance-operational', 'AttenOpReportController', ['except' => ['update', 'show', 'edit']]);
     // * payroll-report
     Route::resource('payroll-report', 'PayrollReportController', ['except' => ['update', 'show']]);
-    // * overtime-rice-report
-    Route::resource('overtime-rice-report', 'OvertimeRiceReportController', ['except' => ['update', 'show']]);
+    // * ot-rice-bill
+    Route::get('/ot-rice-bill', 'OtRiceBillController@index')->name('ot-rice-bill.index');
+    Route::get('/ot-rice-bill/{id}', 'OtRiceBillController@show')->name('ot-rice-bill.show');
 
 
 

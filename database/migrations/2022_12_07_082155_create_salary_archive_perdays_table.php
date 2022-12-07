@@ -15,7 +15,7 @@ return new class extends Migration
     {
         Schema::create('salary_archive_perdays', function (Blueprint $table) {
             $table->increments('id');
-            $table->integer('salary_archive_id')->unsigned();
+            $table->integer('salary_archive_employee_id')->unsigned();
             $table->integer('timetable_id')->nullable()->unsigned();
             $table->dateTime('date');
             $table->dateTime('first_punch');
@@ -29,7 +29,7 @@ return new class extends Migration
             $table->decimal('overtime_perday', 22, 2)->nullable();
 
             $table->foreign('timetable_id')->references('id')->on('timetables')->onDelete('cascade');
-            $table->foreign('salary_archive_id')->references('id')->on('salary_archives')->onDelete('cascade');
+            $table->foreign('salary_archive_employee_id')->references('id')->on('salary_archive_employees')->onDelete('cascade');
             $table->timestamps();
         });
     }

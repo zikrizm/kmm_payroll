@@ -41,7 +41,7 @@ class AppServiceProvider extends ServiceProvider
             $sub_menu_shifts = ['break-time', 'timetable', 'shift', 'holiday'];
             $sub_menu_organizations = ['department', 'position', 'area', 'device'];
             $sub_menu_tasks = ['operational', 'TSO', 'request-task'];
-            $sub_menu_reports = ['attendance-report', 'attendance-card', 'overtime-rice-report', 'transaction-report'];
+            $sub_menu_reports = ['attendance-report', 'attendance-card', 'ot-rice-bill', 'transaction-report'];
             $sub_menu_settings = ['setting', 'location'];
 
             switch ($menu) {

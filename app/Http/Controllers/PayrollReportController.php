@@ -14,6 +14,7 @@ use App\Models\RequestTask;
 use App\Models\Transaction;
 use App\Utils\ResponseUtil;
 use App\Models\EmployeeDebt;
+use App\Models\EmployeeDebtPay;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use App\Services\Api\ApiServices;
@@ -23,6 +24,7 @@ use App\Models\EmployeeTso;
 use App\Models\OtRicebill;
 use App\Models\OtRicebillPerday;
 use App\Models\SalaryArchive;
+use App\Models\SalaryArchiveEmployee;
 use App\Models\SalaryArchivePerday;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Session;
@@ -45,23 +47,29 @@ class PayrollReportController extends Controller
     {
         $business_id = Session::get('business_id');
         $kasbons = EmployeeDebt::where('business_id', $business_id)->where('paid', 0)->where('emp_id', $data['emp_id'])->whereDate('date', '<=', $data['date'])
-            ->with('instalments')->get();
+            ->with('employee_debt_pays')->get();
 
-        $cicilan_kasbon_terbayar_total = 0;
-        $cicilan_kasbon = $kasbons->sum('instalment');
-        $jumlah_kasbon = $kasbons->sum('debt');
+        $kasbon_data = collect();
         foreach ($kasbons as $itemKasbon) {
-            $cicilan_kasbon_terbayar_total += ($itemKasbon->instalments->isNotEmpty()) ?
-                $itemKasbon->instalments->sum('instalment_debt') : 0;
+            $jumlah_kasbon_terbayar = ($itemKasbon->employee_debt_pays->isNotEmpty()) ?
+                $itemKasbon->employee_debt_pays->sum('payment') : 0;
+            $sisa_kasbon = $itemKasbon->debt - $jumlah_kasbon_terbayar;
+            $total_cicilan_yang_akan_dibayar = $itemKasbon->instalment * $data['range'];
+            if ($itemKasbon->id == 8) {
+                Log::info($data['range']);
+            }
+            $paid = (($jumlah_kasbon_terbayar + $total_cicilan_yang_akan_dibayar) >= $itemKasbon->debt);
+            $total_cicilan = ($total_cicilan_yang_akan_dibayar <= $sisa_kasbon) ? $total_cicilan_yang_akan_dibayar : $sisa_kasbon;
+            $kasbon_data->push([
+                'kasbon_id' => $itemKasbon->id,
+                'jumlah_cicilan' => $total_cicilan,
+                'paid' => $paid,
+            ]);
         }
-        $sisa_kasbon = $jumlah_kasbon - $cicilan_kasbon_terbayar_total;
-
-        return [
-            "cicilan_kasbon_terbayar_total" => $cicilan_kasbon_terbayar_total,
-            "cicilan_kasbon" => $cicilan_kasbon,
-            "jumlah_kasbon" => $jumlah_kasbon,
-            "sisa_kasbon" => $sisa_kasbon,
-        ];
+        // if(count($kasbon_data)!= 0) {
+        //     // Log::info(response()->json($kasbon_data));
+        // }
+        return $kasbon_data;
     }
 
     public function calculate_payroll(Request $request)
@@ -85,6 +93,8 @@ class PayrollReportController extends Controller
         // $end_time = Carbon::parse("2022-10-22 22:59:59");
         $start_time = Carbon::parse($request->date['start_time'])->subDay()->subDays($business->pending_day);
         $end_time = Carbon::parse($request->date['end_time']);
+        $start_time_real = Carbon::parse($request->date['start_time'])->subDay();
+        $end_time_real = Carbon::parse($request->date['end_time']);
         $filter['start_time'] = $start_time->hour(0)->minute(0)->second(0)->format('Y-m-d H:i:s');
         $filter['end_time'] = $end_time->addDays(1)->hour(23)->minute(59)->second(59)->format('Y-m-d H:i:s');
         $dates = $this->util->generateDateRange($start_time, $end_time);
@@ -138,23 +148,22 @@ class PayrollReportController extends Controller
 
             $range_payment_period = 0;
             if (!empty($employee)) {
+
                 switch ($employee->payment_period) {
                     case 'mounthly':
-                        $range_payment_period = $start_time->diffInMonths($end_time);
+                        $range_payment_period = $start_time_real->diffInMonths($end_time_real);
                         break;
                     case 'weekly':
-                        $range_payment_period = $start_time->diffInWeeks($end_time);
+                        $range_payment_period = $start_time_real->diffInWeeks($end_time_real);
                         break;
                     case 'daily':
-                        $range_payment_period = $start_time->diffInDays($end_time);
+                        $range_payment_period = $start_time_real->diffInDays($end_time_real);
                         break;
                 }
             }
 
-            $employee_kasbon = $this->calculate_cicilan_kasbon(['emp_id' =>  $itemEmp['id'], "date" => $end_time]);
-            $instalment_debt_total = $employee_kasbon['cicilan_kasbon'] * $range_payment_period;
-            $instalment_debt_total = ($instalment_debt_total > $employee_kasbon['cicilan_kasbon']) ? $employee_kasbon['sisa_kasbon'] : $instalment_debt_total;
-
+            $employee_kasbon = $this->calculate_cicilan_kasbon(['emp_id' =>  $itemEmp['id'], "date" => $end_time, "range" => $range_payment_period]);
+            $instalment_debt_total = $employee_kasbon->sum('jumlah_cicilan');
             $employee_id = $itemEmp['id'];
             $position = Position::whereHas('employee_has_position.employee', function ($e) use ($employee_id) {
                 $e->where('emp_id', $employee_id);
@@ -508,6 +517,7 @@ class PayrollReportController extends Controller
                     'photo' => $itemEmp['photo'],
                     'department' => $itemEmp['department'],
                 ],
+                'employee_kasbon' => $employee_kasbon,
                 'range_date' => $request->input('date'),
                 'daily_salary' => $daily_salary,
                 'amount_day' => $amount_day,
@@ -549,7 +559,7 @@ class PayrollReportController extends Controller
                 $data = $this->calculate_payroll($request);
                 $attendance_reports = $data['attendance_reports'];
                 $th_dates = $data['th_dates'];
-                Log::info(response()->json($attendance_reports));
+                // Log::info(response()->json($attendance_reports));
                 $order = null;
                 $render =  view('Report.payroll_report.table', compact('attendance_reports', 'th_dates', 'order'))->render();
                 return $this->buildRes->RESPONSE_REQ('success', $render, null);
@@ -607,108 +617,183 @@ class PayrollReportController extends Controller
             $business_id = Session::get('business_id');
             $data = $this->calculate_payroll($request);
             $attendance_reports = collect($data['attendance_reports']);
+            $attendance_report_groupby_dept = collect($data['attendance_reports'])->groupBy(function ($item) {
+                return $item['employee']['department']['id'];
+            });
             $data_rices = [];
-            foreach ($attendance_reports as $key => $itemReport) {
-                
-                $salary_archives = new SalaryArchive([
-                    'business_id' => $business_id,
-                    'start_date' => $itemReport['range_date']['start_time'],
-                    'end_date' => $itemReport['range_date']['end_time'],
-                    'emp_id' => $itemReport['employee']['id'],
-                    'emp_code' => $itemReport['employee']['emp_code'],
-                    'emp_first_name' => $itemReport['employee']['first_name'],
-                    'emp_last_name' => $itemReport['employee']['last_name'],
-                    'photo' => $itemReport['employee']['photo'],
-                    'dept_id' => $itemReport['employee']['department']['id'],
-                    'dept_code' => $itemReport['employee']['department']['dept_code'],
-                    'dept_name' => $itemReport['employee']['department']['dept_name'],
-                    'amount_day' => $itemReport['amount_day'],
-                    'amount_of_ot' => $itemReport['amount_of_ot'],
-                    'amount_of_ot_pay' => $itemReport['amount_of_ot_pay'],
-                    'amount_early_check_in' => $itemReport['amount_early_check_in'],
-                    'amount_early_check_in_pay' => $itemReport['amount_early_check_in_pay'],
-                    'position_extra_pay_total' => $itemReport['position_extra_pay_total'],
-                    'instalment_debt_total' => $itemReport['instalment_debt_total'],
-                    'tbhn_u_libur_total' => $itemReport['tbhn_u_libur_total'],
-                    'daily_salary_total' => $itemReport['daily_salary_total'],
-                    'total' => $itemReport['total'],
-                    'created_user' => auth()->user()->id,
-                    'updated_user' => auth()->user()->id,
-                ]);
-
-                $salary_archives->save();
-
-                $dept_id = $itemReport['employee']['department']['id'];
-                if (!isset($data_rices[$dept_id])) {
-                    $data_rices[$dept_id] = [
-                        "department" => $itemReport['employee']['department'],
-                        "start_date" => $request['date']['start_time'],
-                        "end_date" => $request['date']['end_time'],
-                        "reports" => [],
-                    ];
-                }
-
-                foreach ($itemReport['reports'] as $key => $itemPerday) {
-                    $data_rices[$dept_id]['reports'][$itemPerday['date']][] = [
-                        'employee' => [
-                            'emp_id' => $itemReport['employee']['id'],
-                            'emp_code' =>  $itemReport['employee']['emp_code'],
-                            'emp_first_name' =>  $itemReport['employee']['first_name'],
-                            'emp_last_name' =>  $itemReport['employee']['last_name'],
-                            'photo' =>  $itemReport['employee']['photo'],
-                        ],
-                        'rice_date' => $itemPerday['date'],
-                        'total' => $itemPerday['timetable']['overtime_rice_count'] ?? 0,
-                    ];
-
-                    $salary_archives_perday = new SalaryArchivePerday([
-                        'salary_archive_id' => $salary_archives->id,
-                        'timetable_id' => $itemPerday['timetable']['id'],
-                        'date' => $itemPerday['date'],
-                        'first_punch' => $itemPerday['first_punch'],
-                        'last_punch' => $itemPerday['last_punch'],
-                        'is_less_than_time' => $itemPerday['is_less_than_time'],
-                        'atten_value_day' => strval($itemPerday['timetable']['atten_value_day']),
-                        'status' => (!empty($itemPerday['status'])) ? $itemPerday['status']['valid'] : false,
-                        'status' => (!empty($itemPerday['status'])) ? $itemPerday['status']['noted'] : null,
-                        'total_tbhn_u_libur_day' => $itemPerday['total_tbhn_u_libur_day'],
-                        'total_daily_salary_day' => $itemPerday['total_daily_salary_day'],
-                        'total_overtime_day' => $itemPerday['total_overtime_day'],
+            foreach ($attendance_report_groupby_dept as $key => $item) {
+                if (!empty($item)) {
+                    $department = $item[0]['employee']['department'];
+                    $range_date = $item[0]['range_date'];
+                    $salary_archives = new SalaryArchive([
+                        'business_id' => $business_id,
+                        'start_date' => $range_date['start_time'],
+                        'end_date' => $range_date['end_time'],
+                        'dept_id' => $department['id'],
+                        'dept_code' => $department['dept_code'],
+                        'dept_name' => $department['dept_name'],
+                        'created_user' => auth()->user()->id,
+                        'updated_user' => auth()->user()->id,
                     ]);
-                    $salary_archives_perday->save();
-                }
-            }
-
-            foreach ($data_rices as $key => $itemRice) {
-                $ot_rice_bill = new OtRicebill([
-                    'dept_id' => $itemRice['department']['dept_id'],
-                    'dept_code' => $itemRice['department']['dept_code'],
-                    'dept_name' => $itemRice['department']['dept_name'],
-                    'start_date' => $itemRice['start_date'],
-                    'end_date' => $itemRice['end_date'],
-                ]);
-                $ot_rice_bill->save();
-
-                foreach ($itemRice['reports'] as $key => $itemReportDate) {
-                    foreach ($itemReportDate as $key => $itemDate) {
-                        $ot_rice_bill_perday = new OtRicebillPerday([
-                            'ot_rice_bill_id' => $ot_rice_bill->idate,
-                            'emp_id' => $itemRice['department']['emp_id'],
-                            'emp_code' => $itemRice['emp_code'],
-                            'emp_first_name' => $itemRice['department']['emp_first_name'],
-                            'emp_last_name' => $itemRice['department']['emp_last_name'],
-                            'photo' => $itemRice['department']['photo'],
-                            'rice_date' => $itemRice['rice_date'],
-                            'total' => $itemRice['total'],
+                    $salary_archives->save();
+                    foreach ($item as $key => $itemEmp) {
+                        $salary_archive_emp = new SalaryArchiveEmployee([
+                            'salary_archive_id' => $salary_archives->id,
+                            'emp_id' => $itemEmp['employee']['id'],
+                            'emp_code' => $itemEmp['employee']['emp_code'],
+                            'emp_first_name' => $itemEmp['employee']['first_name'],
+                            'emp_last_name' => $itemEmp['employee']['last_name'],
+                            'photo' => $itemEmp['employee']['photo'],
+                            'amount_day' => $itemEmp['amount_day'],
+                            'amount_of_ot' => $itemEmp['amount_of_ot'],
+                            'amount_of_ot_pay' => $itemEmp['amount_of_ot_pay'],
+                            'amount_early_check_in' => $itemEmp['amount_early_check_in'],
+                            'amount_early_check_in_pay' => $itemEmp['amount_early_check_in_pay'],
+                            'position_extra_pay_total' => $itemEmp['position_extra_pay_total'],
+                            'instalment_debt_total' => $itemEmp['instalment_debt_total'],
+                            'tbhn_u_libur_total' => $itemEmp['tbhn_u_libur_total'],
+                            'daily_salary_total' => $itemEmp['daily_salary_total'],
+                            'total' => $itemEmp['total'],
                         ]);
-                        $ot_rice_bill_perday->save();
+                        $salary_archive_emp->save();
+                        foreach ($itemEmp as $key => $value) {
+                            $salary_archives_perday = new SalaryArchivePerday([
+                                'salary_archive_employee_id' => $salary_archive_emp->id,
+                                'timetable_id' => $value['timetable']['id'],
+                                'date' => $value['date'],
+                                'first_punch' => $value['first_punch'],
+                                'last_punch' => $value['last_punch'],
+                                'is_less_than_time' => $value['is_less_than_time'],
+                                'atten_value_day' => strval($value['timetable']['atten_value_day']),
+                                'status' => (!empty($value['status'])) ? $value['status']['valid'] : false,
+                                'noded' => (!empty($value['status'])) ? $value['status']['noted'] : null,
+                                'total_tbhn_u_libur_day' => $value['total_tbhn_u_libur_day'],
+                                'total_daily_salary_day' => $value['total_daily_salary_day'],
+                                'total_overtime_day' => $value['total_overtime_day'],
+                            ]);
+                            $salary_archives_perday->save();
+                        }
                     }
                 }
             }
 
+            foreach ($attendance_reports as $key => $itemReport) {
+                // $emp_kasbon = $itemReport['employee_kasbon'];
+                // if (!empty($emp_kasbon)) {
+                //     foreach ($emp_kasbon as $key => $value) {
+                //         if ($value['paid']) {
+                //             EmployeeDebt::where('id', $value['kasbon_id'])
+                //                 ->update(['paid' => 1, 'updated_user' => auth()->user()->id]);
+                //         }
+                //         $kasbon_pay_data = new EmployeeDebtPay([
+                //             'employee_debt_id' => $value['kasbon_id'],
+                //             'debt_payment_date' => Carbon::now(),
+                //             'payment' => $value['jumlah_cicilan'],
+                //             'created_user' => auth()->user()->id,
+                //             'updated_user' => auth()->user()->id,
+                //         ]);
+                //         $kasbon_pay_data->save();
+                //     }
+                // }
+
+                // $salary_archives = new SalaryArchive([
+                //     'business_id' => $business_id,
+                //     'start_date' => $itemReport['range_date']['start_time'],
+                //     'end_date' => $itemReport['range_date']['end_time'],
+                //     'emp_id' => $itemReport['employee']['id'],
+                //     'emp_code' => $itemReport['employee']['emp_code'],
+                //     'emp_first_name' => $itemReport['employee']['first_name'],
+                //     'emp_last_name' => $itemReport['employee']['last_name'],
+                //     'photo' => $itemReport['employee']['photo'],
+                //     'dept_id' => $itemReport['employee']['department']['id'],
+                //     'dept_code' => $itemReport['employee']['department']['dept_code'],
+                //     'dept_name' => $itemReport['employee']['department']['dept_name'],
+                //     'amount_day' => $itemReport['amount_day'],
+                //     'amount_of_ot' => $itemReport['amount_of_ot'],
+                //     'amount_of_ot_pay' => $itemReport['amount_of_ot_pay'],
+                //     'amount_early_check_in' => $itemReport['amount_early_check_in'],
+                //     'amount_early_check_in_pay' => $itemReport['amount_early_check_in_pay'],
+                //     'position_extra_pay_total' => $itemReport['position_extra_pay_total'],
+                //     'instalment_debt_total' => $itemReport['instalment_debt_total'],
+                //     'tbhn_u_libur_total' => $itemReport['tbhn_u_libur_total'],
+                //     'daily_salary_total' => $itemReport['daily_salary_total'],
+                //     'total' => $itemReport['total'],
+                //     'created_user' => auth()->user()->id,
+                //     'updated_user' => auth()->user()->id,
+                // ]);
+                // $salary_archives->save();
+
+                //     $dept_id = $itemReport['employee']['department']['id'];
+                //     if (!isset($data_rices[$dept_id])) {
+                //         $data_rices[$dept_id] = [
+                //             "department" => $itemReport['employee']['department'],
+                //             "start_date" => $request['date']['start_time'],
+                //             "end_date" => $request['date']['end_time'],
+                //             "reports" => [],
+                //         ];
+                //     }
+
+                //     foreach ($itemReport['reports'] as $key => $itemPerday) {
+                //         $data_rices[$dept_id]['reports'][$itemPerday['date']][] = [
+                //             'employee' => [
+                //                 'emp_id' => $itemReport['employee']['id'],
+                //                 'emp_code' =>  $itemReport['employee']['emp_code'],
+                //                 'emp_first_name' =>  $itemReport['employee']['first_name'],
+                //                 'emp_last_name' =>  $itemReport['employee']['last_name'],
+                //                 'photo' =>  $itemReport['employee']['photo'],
+                //             ],
+                //             'rice_date' => $itemPerday['date'],
+                //             'total' => $itemPerday['timetable']['overtime_rice_count'] ?? 0,
+                //         ];
+
+                //         $salary_archives_perday = new SalaryArchivePerday([
+                //             'salary_archive_id' => $salary_archives->id,
+                //             'timetable_id' => $itemPerday['timetable']['id'],
+                //             'date' => $itemPerday['date'],
+                //             'first_punch' => $itemPerday['first_punch'],
+                //             'last_punch' => $itemPerday['last_punch'],
+                //             'is_less_than_time' => $itemPerday['is_less_than_time'],
+                //             'atten_value_day' => strval($itemPerday['timetable']['atten_value_day']),
+                //             'status' => (!empty($itemPerday['status'])) ? $itemPerday['status']['valid'] : false,
+                //             'status' => (!empty($itemPerday['status'])) ? $itemPerday['status']['noted'] : null,
+                //             'total_tbhn_u_libur_day' => $itemPerday['total_tbhn_u_libur_day'],
+                //             'total_daily_salary_day' => $itemPerday['total_daily_salary_day'],
+                //             'total_overtime_day' => $itemPerday['total_overtime_day'],
+                //         ]);
+                //         $salary_archives_perday->save();
+                //     }
+                // }
+
+                // foreach ($data_rices as $key => $itemRice) {
+                //     $ot_rice_bill = new OtRicebill([
+                //         'dept_id' => $itemRice['department']['dept_id'],
+                //         'dept_code' => $itemRice['department']['dept_code'],
+                //         'dept_name' => $itemRice['department']['dept_name'],
+                //         'start_date' => $itemRice['start_date'],
+                //         'end_date' => $itemRice['end_date'],
+                //     ]);
+                //     $ot_rice_bill->save();
+
+                //     foreach ($itemRice['reports'] as $key => $itemReportDate) {
+                //         foreach ($itemReportDate as $key => $itemDate) {
+                //             $ot_rice_bill_perday = new OtRicebillPerday([
+                //                 'ot_rice_bill_id' => $ot_rice_bill->idate,
+                //                 'emp_id' => $itemRice['department']['emp_id'],
+                //                 'emp_code' => $itemRice['emp_code'],
+                //                 'emp_first_name' => $itemRice['department']['emp_first_name'],
+                //                 'emp_last_name' => $itemRice['department']['emp_last_name'],
+                //                 'photo' => $itemRice['department']['photo'],
+                //                 'rice_date' => $itemRice['rice_date'],
+                //                 'total' => $itemRice['total'],
+                //             ]);
+                //             $ot_rice_bill_perday->save();
+                //         }
+                //     }
+            }
 
 
-            Log::info(response()->json($data_rices));
+
+            // Log::info(response()->json($data_rices));
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
 
