@@ -41,6 +41,29 @@ class PayrollReportController extends Controller
         $this->util = $util;
     }
 
+    public function calculate_cicilan_kasbon($data)
+    {
+        $business_id = Session::get('business_id');
+        $kasbons = EmployeeDebt::where('business_id', $business_id)->where('paid', 0)->where('emp_id', $data['emp_id'])->whereDate('date', '<=', $data['date'])
+            ->with('instalments')->get();
+
+        $cicilan_kasbon_terbayar_total = 0;
+        $cicilan_kasbon = $kasbons->sum('instalment');
+        $jumlah_kasbon = $kasbons->sum('debt');
+        foreach ($kasbons as $itemKasbon) {
+            $cicilan_kasbon_terbayar_total += ($itemKasbon->instalments->isNotEmpty()) ?
+                $itemKasbon->instalments->sum('instalment_debt') : 0;
+        }
+        $sisa_kasbon = $jumlah_kasbon - $cicilan_kasbon_terbayar_total;
+
+        return [
+            "cicilan_kasbon_terbayar_total" => $cicilan_kasbon_terbayar_total,
+            "cicilan_kasbon" => $cicilan_kasbon,
+            "jumlah_kasbon" => $jumlah_kasbon,
+            "sisa_kasbon" => $sisa_kasbon,
+        ];
+    }
+
     public function calculate_payroll(Request $request)
     {
         $q = '';
@@ -128,18 +151,9 @@ class PayrollReportController extends Controller
                 }
             }
 
-            $kasbons = EmployeeDebt::where('business_id', $business_id)->where('paid', 0)->where('emp_id', $itemEmp['id'])->whereDate('date', '<=', $end_time)->get();
-            $cicilan_kasbon_total = 0;
-            $instalment_total = $kasbons->sum('instalment');
-            $debt_total = $kasbons->sum('debt');
-
-            foreach ($kasbons as $itemKasbon) {
-                $cicilan_kasbon_total += $itemKasbon->instalments->isNotEmpty() ? $itemKasbon->instalments->sum('instalment_debt') : 0;
-            }
-
-            $sisa_kasbon  = $debt_total - $cicilan_kasbon_total;
-            $instalment_debt_total = $instalment_total * $range_payment_period;
-            $instalment_debt_total = ($instalment_debt_total > $debt_total) ? $sisa_kasbon : $instalment_debt_total;
+            $employee_kasbon = $this->calculate_cicilan_kasbon(['emp_id' =>  $itemEmp['id'], "date" => $end_time]);
+            $instalment_debt_total = $employee_kasbon['cicilan_kasbon'] * $range_payment_period;
+            $instalment_debt_total = ($instalment_debt_total > $employee_kasbon['cicilan_kasbon']) ? $employee_kasbon['sisa_kasbon'] : $instalment_debt_total;
 
             $employee_id = $itemEmp['id'];
             $position = Position::whereHas('employee_has_position.employee', function ($e) use ($employee_id) {
@@ -595,6 +609,7 @@ class PayrollReportController extends Controller
             $attendance_reports = collect($data['attendance_reports']);
             $data_rices = [];
             foreach ($attendance_reports as $key => $itemReport) {
+                
                 $salary_archives = new SalaryArchive([
                     'business_id' => $business_id,
                     'start_date' => $itemReport['range_date']['start_time'],
