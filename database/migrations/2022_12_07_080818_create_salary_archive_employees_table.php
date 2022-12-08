@@ -27,10 +27,10 @@ return new class extends Migration
             $table->float('amount_early_check_in')->nullable();
             $table->decimal('amount_early_check_in_pay', 22, 2)->nullable();
             $table->decimal('daily_salary', 22, 2)->nullable();
-            $table->decimal('position_extra_pay_total', 22, 2)->nullable();
-            $table->decimal('instalment_debt_total', 22, 2)->nullable();
-            $table->decimal('tbhn_u_libur_total', 22, 2)->nullable();
-            $table->decimal('daily_salary_total', 22, 2)->nullable();
+            $table->decimal('total_position_extra_pay', 22, 2)->nullable();
+            $table->decimal('total_instalment_debt', 22, 2)->nullable();
+            $table->decimal('total_tbhn_u_libur', 22, 2)->nullable();
+            $table->decimal('total_daily_salary', 22, 2)->nullable();
             $table->decimal('total', 22, 2)->nullable();
             $table->foreign('salary_archive_id')->references('id')->on('salary_archives')->onDelete('cascade');
             $table->timestamps();

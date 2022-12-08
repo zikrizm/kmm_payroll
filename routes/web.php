@@ -110,6 +110,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/salary-archive', 'SalaryArchiveController@index')->name('salary-archive.index');
     Route::get('/salary-archive/create', 'SalaryArchiveController@create')->name('salary-archive.create');
     Route::post('/salary-archive', 'SalaryArchiveController@store')->name('salary-archive.store');
+    Route::get('/salary-archive/{id}', 'SalaryArchiveController@show')->name('salary-archive.show');
     // * attendance-report
     Route::resource('attendance-report', 'AttendanceReportController', ['except' => ['update', 'show']]);
     // * attendance-card

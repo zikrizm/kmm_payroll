@@ -18,15 +18,16 @@ return new class extends Migration
             $table->integer('salary_archive_employee_id')->unsigned();
             $table->integer('timetable_id')->nullable()->unsigned();
             $table->dateTime('date');
-            $table->dateTime('first_punch');
-            $table->dateTime('last_punch');
+            $table->dateTime('first_punch')->nullable();
+            $table->dateTime('last_punch')->nullable();
             $table->boolean('is_less_than_time')->default(0);
-            $table->string('atten_valur_per_day');
+            $table->string('atten_value_day')->nullable();
             $table->boolean('status')->default(0);
             $table->string('noted')->nullable();
-            $table->decimal('daily_salary_perday', 22, 2)->nullable();
-            $table->decimal('tbhn_u_libur_perday', 22, 2)->nullable();
-            $table->decimal('overtime_perday', 22, 2)->nullable();
+            $table->integer('calculate_one_shift')->nullable();
+            $table->decimal('total_tbhn_u_libur_day', 22, 2)->nullable();
+            $table->decimal('total_daily_salary_day', 22, 2)->nullable();
+            $table->decimal('total_overtime_day', 22, 2)->nullable();
 
             $table->foreign('timetable_id')->references('id')->on('timetables')->onDelete('cascade');
             $table->foreign('salary_archive_employee_id')->references('id')->on('salary_archive_employees')->onDelete('cascade');

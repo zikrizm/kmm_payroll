@@ -111,12 +111,12 @@
                             }}</p>
                     </td>
                     <td class='border border-b-0 px-3 py-2 text-gray-500 text-xs'>
-                        <p class="truncate text-right">@convertnorp($item['daily_salary_total'])</p>
+                        <p class="truncate text-right">@convertnorp($item['total_daily_salary'])</p>
                     </td>
                     <td class='border border-b-0 px-3 py-2 text-gray-500 text-xs'>
                         <p class="truncate text-right">
-                            @if (isset($item['instalment_debt_total']))
-                            @convertnorp($item['instalment_debt_total'])
+                            @if (isset($item['total_instalment_debt']))
+                            @convertnorp($item['total_instalment_debt'])
                             @else
                             -
                             @endif
@@ -133,8 +133,8 @@
                     </td>
                     <td class='border border-b-0 px-3 py-2 text-gray-500 text-xs'>
                         <p class="truncate text-right">
-                            @if (isset($item['tbhn_u_libur_total']))
-                            @convertnorp($item['tbhn_u_libur_total'])
+                            @if (isset($item['total_tbhn_u_libur']))
+                            @convertnorp($item['total_tbhn_u_libur'])
                             @else
                             -
                             @endif
@@ -142,8 +142,8 @@
                     </td>
                     <td class='border border-b-0 px-3 py-2 text-gray-500 text-xs'>
                         <p class="truncate text-right">
-                            @if (isset($item['position_extra_pay_total']))
-                            @convertnorp($item['position_extra_pay_total'])
+                            @if (isset($item['total_position_extra_pay']))
+                            @convertnorp($item['total_position_extra_pay'])
                             @else
                             -
                             @endif

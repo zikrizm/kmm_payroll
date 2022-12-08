@@ -10,6 +10,8 @@ return [
     */
     'api_zkteco' => 'http://192.168.2.16:80',
     'api' => 'http://192.168.2.16/',
+    // 'api_zkteco' => 'http://192.168.2.4:8000',
+    // 'api' => 'http://192.168.2.4/',
     'langs' => [
         'en' => ['full_name' => 'English', 'short_name' => 'English'],
         'es' => ['full_name' => 'Spanish - Español', 'short_name' => 'Spanish'],

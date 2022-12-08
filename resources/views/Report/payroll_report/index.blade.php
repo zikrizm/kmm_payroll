@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'User')
+@section('title', 'Payroll report')
 @section('css')
 <style></style>
 @endsection
@@ -9,8 +9,6 @@
         <div class="flex flex-col gap-1">
             <p class="text-3xl font-medium text-gray-900">Laporan penggajian</p>
             <p class="text-base font-normal text-gray-500">Disini untuk melihat status laporan penggajian.</p>
-        </div>
-        <div class="">
         </div>
     </header>
     <hr>

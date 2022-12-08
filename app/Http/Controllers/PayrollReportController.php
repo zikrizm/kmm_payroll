@@ -163,14 +163,14 @@ class PayrollReportController extends Controller
             }
 
             $employee_kasbon = $this->calculate_cicilan_kasbon(['emp_id' =>  $itemEmp['id'], "date" => $end_time, "range" => $range_payment_period]);
-            $instalment_debt_total = $employee_kasbon->sum('jumlah_cicilan');
+            $total_instalment_debt = $employee_kasbon->sum('jumlah_cicilan');
             $employee_id = $itemEmp['id'];
             $position = Position::whereHas('employee_has_position.employee', function ($e) use ($employee_id) {
                 $e->where('emp_id', $employee_id);
             })->get();
             $position_no_permanen = $position->where('permanently', 0);
             $position_permanen = $position->where('permanently', '!=', 0);
-            $position_extra_pay_total = $position_permanen->sum('extra_pay') * $range_payment_period;
+            $total_position_extra_pay = $position_permanen->sum('extra_pay') * $range_payment_period;
             $emp['position'] = $position->toArray();
 
             $request_tasks = RequestTask::whereIn('position_id', array_column($position_no_permanen->toArray(), 'id'))->with('position')->get()->groupBy(function ($item) {
@@ -190,13 +190,10 @@ class PayrollReportController extends Controller
                     $timetable['overtime'] = 0;
                     $timetable['real_overtime'] = 0;
                     $timetable['early_check_in'] = 0;
-                    $timetable['total_overtime_pay_per_day'] = 0;
                     $timetable['per_day'] = 0;
                     $timetable['cross_day'] = 0;
                     $timetable['calculate_one_shift'] = 0;
                     $timetable['overtime_rice_count'] = 0;
-                    $timetable['daily_salary_day'] = 0;
-                    $timetable['tbhn_u_libur'] = 0;
                     $timetable['is_holiday'] = false;
                     $timetable['is_half_day'] = false;
                     $timetable['is_less_than_time'] = false;
@@ -204,6 +201,9 @@ class PayrollReportController extends Controller
                     $timetable['is_pending_kasbon'] = (($dates_count - $business->pending_day) - 2) < $date_key;
                     $timetable['atten_value_day'] = '';
                     $timetable['code_day'] = $C_date->dayOfWeek;
+                    $timetable['total_overtime_day'] = 0;
+                    $timetable['total_tbhn_u_libur_day'] = 0;
+                    $timetable['total_daily_salary_day'] = 0;
 
                     $holiday = Holiday::where('business_id', $business_id)->whereDate('start_date', '<=', $C_date)
                         ->whereDate('end_date', '>=', $C_date)->first();
@@ -282,7 +282,7 @@ class PayrollReportController extends Controller
                                     $ot_period = $timeT->ot_period ?? 1;
                                     $ot_pay = $timeT->ot_pay ?? 1;
                                     $timetable['total_earlyin_pay_per_day']  = ((($timetable['early_check_in'] ?? 0) * 60) / $ot_period) * $ot_pay;
-                                    $timetable['total_overtime_pay_per_day'] += $timetable['total_earlyin_pay_per_day'];
+                                    $timetable['total_overtime_day'] += $timetable['total_earlyin_pay_per_day'];
                                 }
 
                                 if ($attendance_item_perdate->count() != 1) {
@@ -308,7 +308,7 @@ class PayrollReportController extends Controller
                                                 $timetable['calculate_one_shift'] = floor($timetable['overtime'] / ($timeT->duration_count_one_shift));
                                                 $timetable['overtime'] = $timetable['overtime'] - ($timeT->duration_count_one_shift * $timetable['calculate_one_shift']);
                                             }
-                                            $timetable['total_overtime_pay_per_day'] += ((($timetable['overtime'] ?? 0) * 60) / $ot_period) * $ot_pay;
+                                            $timetable['total_overtime_day'] += ((($timetable['overtime'] ?? 0) * 60) / $ot_period) * $ot_pay;
                                         }
                                     }
 
@@ -372,7 +372,7 @@ class PayrollReportController extends Controller
                         }
                     }
 
-                    $timetable['daily_salary_day'] += $timetable['per_day']  * $daily_salary;
+                    $timetable['total_daily_salary_day'] += $timetable['per_day']  * $daily_salary;
                     $operational_atten_by_date = $operational->get($date);
                     if (!empty($operational_atten_by_date)) {
 
@@ -451,19 +451,19 @@ class PayrollReportController extends Controller
                                 $employee_status_lb = EmployeeStatusLb::where('lb_date', $date)->where('emp_id', $itemEmp['id'])->where('type', ($timetable['status']['for'] == 'cancel-LB') ? 'cancel' : 'given')->first();
                                 if (!empty($employee_status_lb)) {
                                     if ($employee_status_lb->type == 'given') {
-                                        $timetable['tbhn_u_libur'] += $department->sitting_money ?? 0;
+                                        $timetable['total_tbhn_u_libur_day'] += $department->sitting_money ?? 0;
                                         $timetable['atten_value_day'] = 'LB';
                                     }
                                 } else {
                                     if ($timetable['status']['status'] == 'inactive' && $timetable['status']['valid']) {
-                                        $timetable['tbhn_u_libur'] += $department->sitting_money ?? 0;
+                                        $timetable['total_tbhn_u_libur_day'] += $department->sitting_money ?? 0;
                                         $timetable['atten_value_day'] = 'LB';
                                     }
                                 }
                             }
                         } else {
                             if ($attendance_item_perdate->count() > 1 && !empty($request_tasks[$date])) {
-                                $timetable['tbhn_u_libur'] += $request_tasks[$date]->sum('position.extra_pay');
+                                $timetable['total_tbhn_u_libur_day'] += $request_tasks[$date]->sum('position.extra_pay');
                             }
                         }
                     } else {
@@ -492,21 +492,21 @@ class PayrollReportController extends Controller
             $early_check_in = 0;
             $early_check_in_pay = 0;
             $amount_day = 0;
-            $tbhn_u_libur_total = 0;
-            $daily_salary_total = 0;
+            $total_tbhn_u_libur = 0;
+            $total_daily_salary = 0;
             $total = 0;
             foreach ($report_by_dates as $value) {
                 if (!empty($value['timetable'])) {
                     $amout_of_ot += $value['timetable']['overtime'] ?? 0;
-                    $amout_of_ot_pay += $value['timetable']['total_overtime_pay_per_day'] ?? 0;
                     $early_check_in += $value['timetable']['early_check_in'] ?? 0;
-                    $early_check_in_pay += $value['timetable']['total_earlyin_pay_per_day'] ?? 0;
                     $amount_day += $value['timetable']['per_day'] ?? 0;
-                    $tbhn_u_libur_total += $value['timetable']['tbhn_u_libur'] ?? 0;
-                    $daily_salary_total += $value['timetable']['daily_salary_day'] ?? 0;
+                    $amout_of_ot_pay += $value['timetable']['total_overtime_day'] ?? 0;
+                    $early_check_in_pay += $value['timetable']['total_earlyin_pay_per_day'] ?? 0;
+                    $total_tbhn_u_libur += $value['timetable']['total_tbhn_u_libur_day'] ?? 0;
+                    $total_daily_salary += $value['timetable']['total_daily_salary_day'] ?? 0;
                 }
             }
-            $total = (($amout_of_ot_pay  + $tbhn_u_libur_total + $position_extra_pay_total) - $instalment_debt_total) + ($amount_day * $daily_salary);
+            $total = (($amout_of_ot_pay  + $total_tbhn_u_libur + $total_position_extra_pay) - $total_instalment_debt) + ($amount_day * $daily_salary);
 
             $attendance_reports[] = [
                 'employee' => [
@@ -525,10 +525,10 @@ class PayrollReportController extends Controller
                 'amount_of_ot_pay' => $amout_of_ot_pay,
                 'amount_early_check_in' => $early_check_in,
                 'amount_early_check_in_pay' => $early_check_in_pay,
-                'position_extra_pay_total' => $position_extra_pay_total,
-                'instalment_debt_total' => $instalment_debt_total,
-                'tbhn_u_libur_total' => $tbhn_u_libur_total,
-                'daily_salary_total' => $daily_salary_total,
+                'total_position_extra_pay' => $total_position_extra_pay,
+                'total_instalment_debt' => $total_instalment_debt,
+                'total_tbhn_u_libur' => $total_tbhn_u_libur,
+                'total_daily_salary' => $total_daily_salary,
                 'total' => $total,
                 'reports' => $report_by_dates,
             ];
@@ -559,7 +559,6 @@ class PayrollReportController extends Controller
                 $data = $this->calculate_payroll($request);
                 $attendance_reports = $data['attendance_reports'];
                 $th_dates = $data['th_dates'];
-                // Log::info(response()->json($attendance_reports));
                 $order = null;
                 $render =  view('Report.payroll_report.table', compact('attendance_reports', 'th_dates', 'order'))->render();
                 return $this->buildRes->RESPONSE_REQ('success', $render, null);
@@ -620,6 +619,8 @@ class PayrollReportController extends Controller
             $attendance_report_groupby_dept = collect($data['attendance_reports'])->groupBy(function ($item) {
                 return $item['employee']['department']['id'];
             });
+            // Log::info(response()->json($attendance_report_groupby_dept));
+
             $data_rices = [];
             foreach ($attendance_report_groupby_dept as $key => $item) {
                 if (!empty($item)) {
@@ -649,27 +650,28 @@ class PayrollReportController extends Controller
                             'amount_of_ot_pay' => $itemEmp['amount_of_ot_pay'],
                             'amount_early_check_in' => $itemEmp['amount_early_check_in'],
                             'amount_early_check_in_pay' => $itemEmp['amount_early_check_in_pay'],
-                            'position_extra_pay_total' => $itemEmp['position_extra_pay_total'],
-                            'instalment_debt_total' => $itemEmp['instalment_debt_total'],
-                            'tbhn_u_libur_total' => $itemEmp['tbhn_u_libur_total'],
-                            'daily_salary_total' => $itemEmp['daily_salary_total'],
+                            'total_position_extra_pay' => $itemEmp['total_position_extra_pay'],
+                            'total_instalment_debt' => $itemEmp['total_instalment_debt'],
+                            'total_tbhn_u_libur' => $itemEmp['total_tbhn_u_libur'],
+                            'total_daily_salary' => $itemEmp['total_daily_salary'],
                             'total' => $itemEmp['total'],
                         ]);
                         $salary_archive_emp->save();
-                        foreach ($itemEmp as $key => $value) {
+                        foreach ($itemEmp['reports'] as $key => $value) {
                             $salary_archives_perday = new SalaryArchivePerday([
                                 'salary_archive_employee_id' => $salary_archive_emp->id,
-                                'timetable_id' => $value['timetable']['id'],
+                                'timetable_id' => !empty($value['timetable']['id']) ? $value['timetable']['id'] : null,
                                 'date' => $value['date'],
-                                'first_punch' => $value['first_punch'],
-                                'last_punch' => $value['last_punch'],
+                                'first_punch' => !empty($value['first_punch']) ? $value['first_punch'] : null,
+                                'last_punch' => !empty($value['last_punch']) ? $value['last_punch'] : null,
                                 'is_less_than_time' => $value['is_less_than_time'],
                                 'atten_value_day' => strval($value['timetable']['atten_value_day']),
-                                'status' => (!empty($value['status'])) ? $value['status']['valid'] : false,
-                                'noded' => (!empty($value['status'])) ? $value['status']['noted'] : null,
-                                'total_tbhn_u_libur_day' => $value['total_tbhn_u_libur_day'],
-                                'total_daily_salary_day' => $value['total_daily_salary_day'],
-                                'total_overtime_day' => $value['total_overtime_day'],
+                                'calculate_one_shift' => $value['timetable']['calculate_one_shift'] ?? null,
+                                'status' => (!empty($value['timetable']['status'])) ? $value['timetable']['status']['valid'] : false,
+                                'noted' => (!empty($value['timetable']['status']['noted'])) ? $value['timetable']['status']['noted'] : null,
+                                'total_tbhn_u_libur_day' => $value['timetable']['total_tbhn_u_libur_day'],
+                                'total_daily_salary_day' => $value['timetable']['total_daily_salary_day'],
+                                'total_overtime_day' => $value['timetable']['total_overtime_day'],
                             ]);
                             $salary_archives_perday->save();
                         }

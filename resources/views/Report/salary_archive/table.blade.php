@@ -11,14 +11,12 @@
                     </div>
                 </th>
                 <th class='px-3 py-3 text-left cursor-pointer'>
-                    <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Tanggal kalkulasi</p>
+                    <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Tanggal & Waktu kalkulasi</p>
                 </th>
                 <th class='px-3 py-3 text-left cursor-pointer'>
                     <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Bagian</p>
                 </th>
-                {{-- @canany(['salary-archive.create']) --}}
-                <th class='px-3 py-3 text-left text-gray-500 text-xs font-medium'></th>
-                {{-- @endcanany --}}
+                <th class='px-3 py-3 text-center text-gray-500 text-xs font-medium'>Action</th>
             </tr>
         </thead>
         <tbody>
@@ -45,25 +43,37 @@
                     <div class="px-3 py flex gap-3 items-center text-gray-500 text-sm"
                         onclick="get_modal('{{ $item->id }}')">
                         <x-icon icon="calendar" width=18 height=18 viewBox="20 20" />
-                        <p class="truncate">
-                            {{ date('d-m-Y', strtotime($item->created_at)) }}
-                        </p>
+                        <div class="flex items-center gap-2">
+                            <p class="truncate pr-2 border-r-2">
+                                {{ date('d-m-Y', strtotime($item->created_at)) }}
+                            </p>
+                            <p class="truncate">
+                                {{Carbon\Carbon::parse($item->created_at)->timezone('Asia/Jakarta')->format('H:i:s') }}
+                            </p>
+                        </div>
                     </div>
                 </td>
                 <td class='px-3 py text-gray-500 text-sm'>
                     {{ $item->dept_name }}
                 </td>
-                {{-- @canany(['salary-archive.create']) --}}
                 <td class='px-3 py'>
-                    <div class="flex items-center">
-                        <button class='px-2.5  py-1.5 cursor-pointer text-gray-500 edit-btn flex items-center gap-2 border rounded-lg shadow' onclick="get_modal('{{ $item->id }}')">
+                    <div class="flex items-center gap-2">
+                        <button onclick="get_detail_salary_modal('{{ $item->id }}')"
+                            class="text-gray-500 flex justify-center items-center gap-2 border rounded-lg shadow px-2.5 py-1.5">
+                            <x-icon icon="detail" width=16 height=16 viewBox="20 20" />
+                            <p class="text-xs">Detail</p>
+                        </button>
+                        {{-- @canany(['salary-archive.create'])
+                        <button
+                            class='px-2.5 py-1.5 cursor-pointer text-gray-500 edit-btn flex items-center gap-2 border rounded-lg shadow'
+                            onclick="re_calculation('{{ $item->id }}')">
                             <x-icon icon="calculator" width=14 height=14 viewBox="20 20" />
                             <p class="text-xs">Re-calculation</p>
                         </button>
+                        @endcanany --}}
                     </div>
-                </td>
-                {{-- @endcanany --}}
 
+                </td>
             </tr>
             @endforeach
         </tbody>
