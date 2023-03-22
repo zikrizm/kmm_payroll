@@ -157,7 +157,7 @@ Route::middleware(['auth'])->group(function () {
 
 
 
-
+    Route::get('/print/payroll_report', 'PrintController@print_payroll_report')->name('print.payroll_report');
 
 
     Route::get('logout', '\App\Http\Controllers\Auth\LoginController@logout')->name('logout');

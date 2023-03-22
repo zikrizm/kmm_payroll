@@ -24,4 +24,11 @@ class Shift extends Model
     {
         return $this->hasMany(ShiftDay::class, 'shift_id');
     }
+    /**
+     * Get the shiftday.
+     */
+    public function shiftdays()
+    {
+        return $this->hasMany(ShiftDay::class, 'shift_id');
+    }
 }

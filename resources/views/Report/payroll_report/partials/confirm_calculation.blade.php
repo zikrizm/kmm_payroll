@@ -10,7 +10,7 @@
                 karena data akan tersimpan.</p>
         </div>
         <div class="flex items-center gap-3 flex-1">
-            <button id="kalkulasi" type="button"
+            <button id="kalkulasi"
                 class="text-gray-500 shadow bg-white hover:bg-gray-100 focus:ring-2 focus:ring-gray-300 font-medium rounded-lg xs/max:rounded-md border border-gray-200  text-sm xs/max:text-xs inline-flex items-center xs/max:px-4 px-6 xs/max:py-1.5 py-1 text-center">Ya,
                 kalkulasi</button>
             <button type="reset"

@@ -14,8 +14,6 @@ return new class extends Migration
     public function up()
     {
         Schema::create('business', function (Blueprint $table) {
-            $table->engine = 'InnoDB';
-
             $table->increments('id');
             $table->string('name');
             $table->date('start_date')->nullable();

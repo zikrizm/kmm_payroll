@@ -112,7 +112,7 @@
     </div> --}}
 
     <div class="w-full h-screen flex overflow-hidden">
-        @if (request()->segment(2) != 'register' && request()->segment(1) != 'employee-photo')
+        @if (request()->segment(1) != 'print' && request()->segment(2) != 'register' && request()->segment(1) != 'employee-photo')
         @if (Auth::user())
         @php
         if(isset($_COOKIE['side_menu_is_mini']))

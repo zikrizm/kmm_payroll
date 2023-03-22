@@ -581,17 +581,17 @@ class PayrollReportController extends Controller
      */
     public function create(Request $request)
     {
-        if (!auth()->user()->can('payroll-report.calculate') || !request()->ajax()) {
+        if (!auth()->user()->can('payroll-report.calculate')) {
             abort(403, 'Unauthorized action.');
         }
 
         try {
-            $start_time = Carbon::parse($request->start_date);
-            $end_time = Carbon::parse($request->end_date);
-            $dates = $this->util->generateDateRange($start_time, $end_time);
+            $start_date = Carbon::parse($request->start_date);
+            $end_date = Carbon::parse($request->end_date);
+            $dates = $this->util->generateDateRange($start_date, $end_date);
             $departments = $this->apiService->get_departments(['page_size' => 999])['data'];
 
-            $render = view('Report.payroll_report.calculate', compact('dates', 'departments'))->render();
+            $render = view('Report.payroll_report.calculation', compact('dates', 'departments'))->render();
             return $this->buildRes->RESPONSE_REQ('success', $render, null);
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
@@ -613,185 +613,187 @@ class PayrollReportController extends Controller
         }
 
         try {
-            $business_id = Session::get('business_id');
-            $data = $this->calculate_payroll($request);
-            $attendance_reports = collect($data['attendance_reports']);
-            $attendance_report_groupby_dept = collect($data['attendance_reports'])->groupBy(function ($item) {
-                return $item['employee']['department']['id'];
-            });
-            // Log::info(response()->json($attendance_report_groupby_dept));
+            sleep(10);
+            return;
+            // $business_id = Session::get('business_id');
+            // $data = $this->calculate_payroll($request);
+            // $attendance_reports = collect($data['attendance_reports']);
+            // $attendance_report_groupby_dept = collect($data['attendance_reports'])->groupBy(function ($item) {
+            //     return $item['employee']['department']['id'];
+            // });
+            // // Log::info(response()->json($attendance_report_groupby_dept));
 
-            $data_rices = [];
-            foreach ($attendance_report_groupby_dept as $key => $item) {
-                if (!empty($item)) {
-                    $department = $item[0]['employee']['department'];
-                    $range_date = $item[0]['range_date'];
-                    $salary_archives = new SalaryArchive([
-                        'business_id' => $business_id,
-                        'start_date' => $range_date['start_time'],
-                        'end_date' => $range_date['end_time'],
-                        'dept_id' => $department['id'],
-                        'dept_code' => $department['dept_code'],
-                        'dept_name' => $department['dept_name'],
-                        'created_user' => auth()->user()->id,
-                        'updated_user' => auth()->user()->id,
-                    ]);
-                    $salary_archives->save();
-                    foreach ($item as $key => $itemEmp) {
-                        $salary_archive_emp = new SalaryArchiveEmployee([
-                            'salary_archive_id' => $salary_archives->id,
-                            'emp_id' => $itemEmp['employee']['id'],
-                            'emp_code' => $itemEmp['employee']['emp_code'],
-                            'emp_first_name' => $itemEmp['employee']['first_name'],
-                            'emp_last_name' => $itemEmp['employee']['last_name'],
-                            'photo' => $itemEmp['employee']['photo'],
-                            'amount_day' => $itemEmp['amount_day'],
-                            'amount_of_ot' => $itemEmp['amount_of_ot'],
-                            'amount_of_ot_pay' => $itemEmp['amount_of_ot_pay'],
-                            'amount_early_check_in' => $itemEmp['amount_early_check_in'],
-                            'amount_early_check_in_pay' => $itemEmp['amount_early_check_in_pay'],
-                            'total_position_extra_pay' => $itemEmp['total_position_extra_pay'],
-                            'total_instalment_debt' => $itemEmp['total_instalment_debt'],
-                            'total_tbhn_u_libur' => $itemEmp['total_tbhn_u_libur'],
-                            'total_daily_salary' => $itemEmp['total_daily_salary'],
-                            'total' => $itemEmp['total'],
-                        ]);
-                        $salary_archive_emp->save();
-                        foreach ($itemEmp['reports'] as $key => $value) {
-                            $salary_archives_perday = new SalaryArchivePerday([
-                                'salary_archive_employee_id' => $salary_archive_emp->id,
-                                'timetable_id' => !empty($value['timetable']['id']) ? $value['timetable']['id'] : null,
-                                'date' => $value['date'],
-                                'first_punch' => !empty($value['first_punch']) ? $value['first_punch'] : null,
-                                'last_punch' => !empty($value['last_punch']) ? $value['last_punch'] : null,
-                                'is_less_than_time' => $value['is_less_than_time'],
-                                'atten_value_day' => strval($value['timetable']['atten_value_day']),
-                                'calculate_one_shift' => $value['timetable']['calculate_one_shift'] ?? null,
-                                'status' => (!empty($value['timetable']['status'])) ? $value['timetable']['status']['valid'] : false,
-                                'noted' => (!empty($value['timetable']['status']['noted'])) ? $value['timetable']['status']['noted'] : null,
-                                'total_tbhn_u_libur_day' => $value['timetable']['total_tbhn_u_libur_day'],
-                                'total_daily_salary_day' => $value['timetable']['total_daily_salary_day'],
-                                'total_overtime_day' => $value['timetable']['total_overtime_day'],
-                            ]);
-                            $salary_archives_perday->save();
-                        }
-                    }
-                }
-            }
+            // $data_rices = [];
+            // foreach ($attendance_report_groupby_dept as $key => $item) {
+            //     if (!empty($item)) {
+            //         $department = $item[0]['employee']['department'];
+            //         $range_date = $item[0]['range_date'];
+            //         $salary_archives = new SalaryArchive([
+            //             'business_id' => $business_id,
+            //             'start_date' => $range_date['start_time'],
+            //             'end_date' => $range_date['end_time'],
+            //             'dept_id' => $department['id'],
+            //             'dept_code' => $department['dept_code'],
+            //             'dept_name' => $department['dept_name'],
+            //             'created_user' => auth()->user()->id,
+            //             'updated_user' => auth()->user()->id,
+            //         ]);
+            //         $salary_archives->save();
+            //         foreach ($item as $key => $itemEmp) {
+            //             $salary_archive_emp = new SalaryArchiveEmployee([
+            //                 'salary_archive_id' => $salary_archives->id,
+            //                 'emp_id' => $itemEmp['employee']['id'],
+            //                 'emp_code' => $itemEmp['employee']['emp_code'],
+            //                 'emp_first_name' => $itemEmp['employee']['first_name'],
+            //                 'emp_last_name' => $itemEmp['employee']['last_name'],
+            //                 'photo' => $itemEmp['employee']['photo'],
+            //                 'amount_day' => $itemEmp['amount_day'],
+            //                 'amount_of_ot' => $itemEmp['amount_of_ot'],
+            //                 'amount_of_ot_pay' => $itemEmp['amount_of_ot_pay'],
+            //                 'amount_early_check_in' => $itemEmp['amount_early_check_in'],
+            //                 'amount_early_check_in_pay' => $itemEmp['amount_early_check_in_pay'],
+            //                 'total_position_extra_pay' => $itemEmp['total_position_extra_pay'],
+            //                 'total_instalment_debt' => $itemEmp['total_instalment_debt'],
+            //                 'total_tbhn_u_libur' => $itemEmp['total_tbhn_u_libur'],
+            //                 'total_daily_salary' => $itemEmp['total_daily_salary'],
+            //                 'total' => $itemEmp['total'],
+            //             ]);
+            //             $salary_archive_emp->save();
+            //             foreach ($itemEmp['reports'] as $key => $value) {
+            //                 $salary_archives_perday = new SalaryArchivePerday([
+            //                     'salary_archive_employee_id' => $salary_archive_emp->id,
+            //                     'timetable_id' => !empty($value['timetable']['id']) ? $value['timetable']['id'] : null,
+            //                     'date' => $value['date'],
+            //                     'first_punch' => !empty($value['first_punch']) ? $value['first_punch'] : null,
+            //                     'last_punch' => !empty($value['last_punch']) ? $value['last_punch'] : null,
+            //                     'is_less_than_time' => $value['is_less_than_time'],
+            //                     'atten_value_day' => strval($value['timetable']['atten_value_day']),
+            //                     'calculate_one_shift' => $value['timetable']['calculate_one_shift'] ?? null,
+            //                     'status' => (!empty($value['timetable']['status'])) ? $value['timetable']['status']['valid'] : false,
+            //                     'noted' => (!empty($value['timetable']['status']['noted'])) ? $value['timetable']['status']['noted'] : null,
+            //                     'total_tbhn_u_libur_day' => $value['timetable']['total_tbhn_u_libur_day'],
+            //                     'total_daily_salary_day' => $value['timetable']['total_daily_salary_day'],
+            //                     'total_overtime_day' => $value['timetable']['total_overtime_day'],
+            //                 ]);
+            //                 $salary_archives_perday->save();
+            //             }
+            //         }
+            //     }
+            // }
 
-            foreach ($attendance_reports as $key => $itemReport) {
-                // $emp_kasbon = $itemReport['employee_kasbon'];
-                // if (!empty($emp_kasbon)) {
-                //     foreach ($emp_kasbon as $key => $value) {
-                //         if ($value['paid']) {
-                //             EmployeeDebt::where('id', $value['kasbon_id'])
-                //                 ->update(['paid' => 1, 'updated_user' => auth()->user()->id]);
-                //         }
-                //         $kasbon_pay_data = new EmployeeDebtPay([
-                //             'employee_debt_id' => $value['kasbon_id'],
-                //             'debt_payment_date' => Carbon::now(),
-                //             'payment' => $value['jumlah_cicilan'],
-                //             'created_user' => auth()->user()->id,
-                //             'updated_user' => auth()->user()->id,
-                //         ]);
-                //         $kasbon_pay_data->save();
-                //     }
-                // }
+            // foreach ($attendance_reports as $key => $itemReport) {
+            //     // $emp_kasbon = $itemReport['employee_kasbon'];
+            //     // if (!empty($emp_kasbon)) {
+            //     //     foreach ($emp_kasbon as $key => $value) {
+            //     //         if ($value['paid']) {
+            //     //             EmployeeDebt::where('id', $value['kasbon_id'])
+            //     //                 ->update(['paid' => 1, 'updated_user' => auth()->user()->id]);
+            //     //         }
+            //     //         $kasbon_pay_data = new EmployeeDebtPay([
+            //     //             'employee_debt_id' => $value['kasbon_id'],
+            //     //             'debt_payment_date' => Carbon::now(),
+            //     //             'payment' => $value['jumlah_cicilan'],
+            //     //             'created_user' => auth()->user()->id,
+            //     //             'updated_user' => auth()->user()->id,
+            //     //         ]);
+            //     //         $kasbon_pay_data->save();
+            //     //     }
+            //     // }
 
-                // $salary_archives = new SalaryArchive([
-                //     'business_id' => $business_id,
-                //     'start_date' => $itemReport['range_date']['start_time'],
-                //     'end_date' => $itemReport['range_date']['end_time'],
-                //     'emp_id' => $itemReport['employee']['id'],
-                //     'emp_code' => $itemReport['employee']['emp_code'],
-                //     'emp_first_name' => $itemReport['employee']['first_name'],
-                //     'emp_last_name' => $itemReport['employee']['last_name'],
-                //     'photo' => $itemReport['employee']['photo'],
-                //     'dept_id' => $itemReport['employee']['department']['id'],
-                //     'dept_code' => $itemReport['employee']['department']['dept_code'],
-                //     'dept_name' => $itemReport['employee']['department']['dept_name'],
-                //     'amount_day' => $itemReport['amount_day'],
-                //     'amount_of_ot' => $itemReport['amount_of_ot'],
-                //     'amount_of_ot_pay' => $itemReport['amount_of_ot_pay'],
-                //     'amount_early_check_in' => $itemReport['amount_early_check_in'],
-                //     'amount_early_check_in_pay' => $itemReport['amount_early_check_in_pay'],
-                //     'position_extra_pay_total' => $itemReport['position_extra_pay_total'],
-                //     'instalment_debt_total' => $itemReport['instalment_debt_total'],
-                //     'tbhn_u_libur_total' => $itemReport['tbhn_u_libur_total'],
-                //     'daily_salary_total' => $itemReport['daily_salary_total'],
-                //     'total' => $itemReport['total'],
-                //     'created_user' => auth()->user()->id,
-                //     'updated_user' => auth()->user()->id,
-                // ]);
-                // $salary_archives->save();
+            //     // $salary_archives = new SalaryArchive([
+            //     //     'business_id' => $business_id,
+            //     //     'start_date' => $itemReport['range_date']['start_time'],
+            //     //     'end_date' => $itemReport['range_date']['end_time'],
+            //     //     'emp_id' => $itemReport['employee']['id'],
+            //     //     'emp_code' => $itemReport['employee']['emp_code'],
+            //     //     'emp_first_name' => $itemReport['employee']['first_name'],
+            //     //     'emp_last_name' => $itemReport['employee']['last_name'],
+            //     //     'photo' => $itemReport['employee']['photo'],
+            //     //     'dept_id' => $itemReport['employee']['department']['id'],
+            //     //     'dept_code' => $itemReport['employee']['department']['dept_code'],
+            //     //     'dept_name' => $itemReport['employee']['department']['dept_name'],
+            //     //     'amount_day' => $itemReport['amount_day'],
+            //     //     'amount_of_ot' => $itemReport['amount_of_ot'],
+            //     //     'amount_of_ot_pay' => $itemReport['amount_of_ot_pay'],
+            //     //     'amount_early_check_in' => $itemReport['amount_early_check_in'],
+            //     //     'amount_early_check_in_pay' => $itemReport['amount_early_check_in_pay'],
+            //     //     'position_extra_pay_total' => $itemReport['position_extra_pay_total'],
+            //     //     'instalment_debt_total' => $itemReport['instalment_debt_total'],
+            //     //     'tbhn_u_libur_total' => $itemReport['tbhn_u_libur_total'],
+            //     //     'daily_salary_total' => $itemReport['daily_salary_total'],
+            //     //     'total' => $itemReport['total'],
+            //     //     'created_user' => auth()->user()->id,
+            //     //     'updated_user' => auth()->user()->id,
+            //     // ]);
+            //     // $salary_archives->save();
 
-                //     $dept_id = $itemReport['employee']['department']['id'];
-                //     if (!isset($data_rices[$dept_id])) {
-                //         $data_rices[$dept_id] = [
-                //             "department" => $itemReport['employee']['department'],
-                //             "start_date" => $request['date']['start_time'],
-                //             "end_date" => $request['date']['end_time'],
-                //             "reports" => [],
-                //         ];
-                //     }
+            //     //     $dept_id = $itemReport['employee']['department']['id'];
+            //     //     if (!isset($data_rices[$dept_id])) {
+            //     //         $data_rices[$dept_id] = [
+            //     //             "department" => $itemReport['employee']['department'],
+            //     //             "start_date" => $request['date']['start_time'],
+            //     //             "end_date" => $request['date']['end_time'],
+            //     //             "reports" => [],
+            //     //         ];
+            //     //     }
 
-                //     foreach ($itemReport['reports'] as $key => $itemPerday) {
-                //         $data_rices[$dept_id]['reports'][$itemPerday['date']][] = [
-                //             'employee' => [
-                //                 'emp_id' => $itemReport['employee']['id'],
-                //                 'emp_code' =>  $itemReport['employee']['emp_code'],
-                //                 'emp_first_name' =>  $itemReport['employee']['first_name'],
-                //                 'emp_last_name' =>  $itemReport['employee']['last_name'],
-                //                 'photo' =>  $itemReport['employee']['photo'],
-                //             ],
-                //             'rice_date' => $itemPerday['date'],
-                //             'total' => $itemPerday['timetable']['overtime_rice_count'] ?? 0,
-                //         ];
+            //     //     foreach ($itemReport['reports'] as $key => $itemPerday) {
+            //     //         $data_rices[$dept_id]['reports'][$itemPerday['date']][] = [
+            //     //             'employee' => [
+            //     //                 'emp_id' => $itemReport['employee']['id'],
+            //     //                 'emp_code' =>  $itemReport['employee']['emp_code'],
+            //     //                 'emp_first_name' =>  $itemReport['employee']['first_name'],
+            //     //                 'emp_last_name' =>  $itemReport['employee']['last_name'],
+            //     //                 'photo' =>  $itemReport['employee']['photo'],
+            //     //             ],
+            //     //             'rice_date' => $itemPerday['date'],
+            //     //             'total' => $itemPerday['timetable']['overtime_rice_count'] ?? 0,
+            //     //         ];
 
-                //         $salary_archives_perday = new SalaryArchivePerday([
-                //             'salary_archive_id' => $salary_archives->id,
-                //             'timetable_id' => $itemPerday['timetable']['id'],
-                //             'date' => $itemPerday['date'],
-                //             'first_punch' => $itemPerday['first_punch'],
-                //             'last_punch' => $itemPerday['last_punch'],
-                //             'is_less_than_time' => $itemPerday['is_less_than_time'],
-                //             'atten_value_day' => strval($itemPerday['timetable']['atten_value_day']),
-                //             'status' => (!empty($itemPerday['status'])) ? $itemPerday['status']['valid'] : false,
-                //             'status' => (!empty($itemPerday['status'])) ? $itemPerday['status']['noted'] : null,
-                //             'total_tbhn_u_libur_day' => $itemPerday['total_tbhn_u_libur_day'],
-                //             'total_daily_salary_day' => $itemPerday['total_daily_salary_day'],
-                //             'total_overtime_day' => $itemPerday['total_overtime_day'],
-                //         ]);
-                //         $salary_archives_perday->save();
-                //     }
-                // }
+            //     //         $salary_archives_perday = new SalaryArchivePerday([
+            //     //             'salary_archive_id' => $salary_archives->id,
+            //     //             'timetable_id' => $itemPerday['timetable']['id'],
+            //     //             'date' => $itemPerday['date'],
+            //     //             'first_punch' => $itemPerday['first_punch'],
+            //     //             'last_punch' => $itemPerday['last_punch'],
+            //     //             'is_less_than_time' => $itemPerday['is_less_than_time'],
+            //     //             'atten_value_day' => strval($itemPerday['timetable']['atten_value_day']),
+            //     //             'status' => (!empty($itemPerday['status'])) ? $itemPerday['status']['valid'] : false,
+            //     //             'status' => (!empty($itemPerday['status'])) ? $itemPerday['status']['noted'] : null,
+            //     //             'total_tbhn_u_libur_day' => $itemPerday['total_tbhn_u_libur_day'],
+            //     //             'total_daily_salary_day' => $itemPerday['total_daily_salary_day'],
+            //     //             'total_overtime_day' => $itemPerday['total_overtime_day'],
+            //     //         ]);
+            //     //         $salary_archives_perday->save();
+            //     //     }
+            //     // }
 
-                // foreach ($data_rices as $key => $itemRice) {
-                //     $ot_rice_bill = new OtRicebill([
-                //         'dept_id' => $itemRice['department']['dept_id'],
-                //         'dept_code' => $itemRice['department']['dept_code'],
-                //         'dept_name' => $itemRice['department']['dept_name'],
-                //         'start_date' => $itemRice['start_date'],
-                //         'end_date' => $itemRice['end_date'],
-                //     ]);
-                //     $ot_rice_bill->save();
+            //     // foreach ($data_rices as $key => $itemRice) {
+            //     //     $ot_rice_bill = new OtRicebill([
+            //     //         'dept_id' => $itemRice['department']['dept_id'],
+            //     //         'dept_code' => $itemRice['department']['dept_code'],
+            //     //         'dept_name' => $itemRice['department']['dept_name'],
+            //     //         'start_date' => $itemRice['start_date'],
+            //     //         'end_date' => $itemRice['end_date'],
+            //     //     ]);
+            //     //     $ot_rice_bill->save();
 
-                //     foreach ($itemRice['reports'] as $key => $itemReportDate) {
-                //         foreach ($itemReportDate as $key => $itemDate) {
-                //             $ot_rice_bill_perday = new OtRicebillPerday([
-                //                 'ot_rice_bill_id' => $ot_rice_bill->idate,
-                //                 'emp_id' => $itemRice['department']['emp_id'],
-                //                 'emp_code' => $itemRice['emp_code'],
-                //                 'emp_first_name' => $itemRice['department']['emp_first_name'],
-                //                 'emp_last_name' => $itemRice['department']['emp_last_name'],
-                //                 'photo' => $itemRice['department']['photo'],
-                //                 'rice_date' => $itemRice['rice_date'],
-                //                 'total' => $itemRice['total'],
-                //             ]);
-                //             $ot_rice_bill_perday->save();
-                //         }
-                //     }
-            }
+            //     //     foreach ($itemRice['reports'] as $key => $itemReportDate) {
+            //     //         foreach ($itemReportDate as $key => $itemDate) {
+            //     //             $ot_rice_bill_perday = new OtRicebillPerday([
+            //     //                 'ot_rice_bill_id' => $ot_rice_bill->idate,
+            //     //                 'emp_id' => $itemRice['department']['emp_id'],
+            //     //                 'emp_code' => $itemRice['emp_code'],
+            //     //                 'emp_first_name' => $itemRice['department']['emp_first_name'],
+            //     //                 'emp_last_name' => $itemRice['department']['emp_last_name'],
+            //     //                 'photo' => $itemRice['department']['photo'],
+            //     //                 'rice_date' => $itemRice['rice_date'],
+            //     //                 'total' => $itemRice['total'],
+            //     //             ]);
+            //     //             $ot_rice_bill_perday->save();
+            //     //         }
+            //     //     }
+            // }
 
 
 

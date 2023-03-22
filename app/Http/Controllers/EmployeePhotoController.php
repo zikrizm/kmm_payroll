@@ -72,12 +72,16 @@ class EmployeePhotoController extends Controller
         try {
             $validator = Validator::make($request->all(), $this->rules());
 
+            Log::info($request);
             if ($validator->fails()) {
+                Log::info('kesini');
                 return $this->buildRes->RESPONSE_REQ('error', null, $validator->errors());
             } else {
                 $emp_data_photo = $request->only(['user_capture', 'employee_code', 'remark']);
                 $emp_data_photo['csrfmiddlewaretoken'] = $this->apiService->get_csrfmiddlewaretoken();
+                Log::info($emp_data_photo);
                 $res = $this->apiService->update_employee_photo($emp_data_photo);
+                Log::info($res);
                 if ($res['ret']) {
                     return $this->buildRes->RESPONSE_REQ('error', null, ['error' => $res['message']]);
                 } else {
@@ -155,7 +159,7 @@ class EmployeePhotoController extends Controller
     public function rules()
     {
         return [
-            'user_capture' => 'required|image|file|max:2000',
+            // 'user_capture' => 'required',
             'employee_code' => 'required|string|max:255',
         ];
     }

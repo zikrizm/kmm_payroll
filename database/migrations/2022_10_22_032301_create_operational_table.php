@@ -16,7 +16,7 @@ return new class extends Migration
         Schema::create('operationals', function (Blueprint $table) {
             $table->increments('id');
             $table->integer('business_id')->unsigned();
-            $table->dateTime('date');
+            $table->date('date');
             $table->integer('dept_id');
             $table->integer('parent_dept_id');
             $table->string('day_name');

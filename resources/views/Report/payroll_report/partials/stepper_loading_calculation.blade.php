@@ -4,7 +4,7 @@
     </div>
     <div class="flex flex-col gap-4 flex-1 py-1">
         @foreach ($departments as $key=> $item)
-        <div class="flex-col w-full prosess-cointainer {{ $key > 6 ? 'hidden': 'flex' }}">
+        <div class="flex-col w-full prosess-cointainer {{ $key > 5 ? 'hidden': 'flex' }}">
             <div class="flex items-start gap-3">
                 <div>
                     <span class="rounded-full text-violet-600 icon-waiting-prosess {{ $key == 0 ? 'hidden': '' }}">
@@ -31,25 +31,6 @@
                             proses':
                             'Dalam proses' }}</p>
                     </div>
-                    {{-- <div class="flex flex-col gap-2 prosess-container-perdates {{ $key != 0 ? 'hidden': '' }}">
-                        @foreach ($dates as $item)
-                        <div class="flex justify-between items-center container-perdate">
-                            <p class="text-gray-500 text-xs font-medium proses-date">
-                                {{ Carbon\Carbon::parse($item)->locale('id')->dayName }}, {{
-                                Carbon\Carbon::parse($item)->format('j F Y'); }}
-                            </p>
-                            <div class="flex items-center justify-center w-7">
-                                <span
-                                    class="icon-date-finish-prosess rounded-full bg-gray-400 text-white p-0.5 h-max hidden">
-                                    <x-icon icon="check" width=8 height=8 strokeWidth=3 viewBox="20 20" />
-                                </span>
-                                <p class="text-violet-600 text-[10px] font-semibold">
-                                    <span class="percent">0</span>%
-                                </p>
-                            </div>
-                        </div>
-                        @endforeach
-                    </div> --}}
                 </div>
             </div>
         </div>
