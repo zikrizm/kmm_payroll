@@ -29,6 +29,6 @@ class ShiftDay extends Model
      */
     public function shiftday_has_timetables()
     {
-        return $this->hasMany(ShiftayDayHasTimetable::class, 'shift_day_id');
+        return $this->hasMany(ShiftDayHasTimetable::class, 'shift_day_id');
     }
 }
