@@ -17,16 +17,6 @@ class PermissionsTableSeeder extends Seeder
     public function run()
     {
         $data = [
-            // ['name' => 'work-section.view'],
-            // ['name' => 'work-section.create'],
-            // ['name' => 'work-section.update'],
-            // ['name' => 'work-section.delete'],
-            // ['name' => 'group.view'],
-            // ['name' => 'group.create'],
-            // ['name' => 'group.update'],
-            // ['name' => 'group.delete'],
-
-
             ['name' => 'user.view'],
             ['name' => 'user.create'],
             ['name' => 'user.update'],
