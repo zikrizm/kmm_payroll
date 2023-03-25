@@ -51,8 +51,12 @@
     }
 </style>
 
-<div class="flex flex-col p-4 w-full h-screen overflow-auto">
-    <div id="print-card-report">
+<div class="flex flex-col items-center w-full h-screen overflow-auto py-8">
+    <div class="w-full flex justify-center items-center">
+        <button type="button" onclick="print()"
+            class="text-white shadow bg-violet-600 hover:bg-violet-700 focus:ring-2 focus:ring-violet-700 font-medium rounded-lg xs/max:rounded-md text-sm xs/max:text-xs inline-flex items-center xs/max:px-4 px-6 xs/max:py-1.5 py-2 text-center">Cetak</button>
+    </div>
+    <div id="print-card-report" class="w-full flex justify-center">
         <style>
             @media print {
                 .page-break {
@@ -60,230 +64,211 @@
                 }
             }
         </style>
-        <div class="flex flex-wrap gap-4 h-full w-full">
+        <div class="h-full w-full flex flex-col items-center">
             @foreach ($datas as $data)
-            <div class="page-break min-h-[400px] max-h-[400px] min-w-[400px] min-w-[400px]">
-                <div class="flex flex-col gap-2.5 p-2.5 w-full">
-                    <header class="relative">
-                        <div>
-                            <p class="font-bold text-base">KARTU ABSEN</p>
-                            <p class="font-medium text-[10px] ">{{ Auth::user()->business->name }}</p>
-                        </div>
-                        <div class="flex items-end absolute top-0 w-full">
-                            <hr class="flex-1 border-[1.5px] border-black rounded ">
-                            <div class="w-14 h-14 bg-white mb-[-10px] rounded-full overflow-hidden">
-                                {{-- @if (!empty($item['employee']['photo']))
-                                <img class="w-full h-full object-cover" src="@zkPhoto({{ $item['employee']['photo'] }})"
-                                    alt="">
-                                @else
-                                <img class="w-full h-full object-cover" src="@zkPhoto(files/nophoto.gif)" alt="">
-                                @endif --}}
-                            </div>
-                            <hr class="w-10 border-[1.5px] border-black rounded ">
-                        </div>
-                    </header>
+            @foreach ($data['attendance_reports'] as $key => $item)
+            <div class="page-break h-max w-full max-w-[350px]">
+                <div class="flex flex-col gap-1 p-2.5 w-full">
                     <div class="flex flex-col mt-2">
-                        <div class="flex items-center gap-2.5">
-                            <div class="flex items-center gap-1">
-                                <span>
-                                    <x-icon icon="calendar" width=10 height=10 viewBox="20 20" />
-                                </span>
-                                <div class="flex items-center justify-between w-[60px] text-[10px] mt-0.5 pl-0.5">
-                                    <p>Tanggal</p>
+                        <div class="flex items-center gap-2 text-xs">
+                            <div class="flex items-center justify-between gap-2">
+                                <p>NIK</p>
+                                <p>:</p>
+                            </div>
+                            <p>{{ $item['employee']['emp_code'] }}</p>
+                        </div>
+                        <div class="flex items-center gap-2 text-xs">
+                            <div class="flex items-center justify-between gap-2">
+                                <p>Nama</p>
+                                <p>:</p>
+                            </div>
+                            <p>
+                                {{ $item['employee']['first_name'] ?? '-' }}
+                                {{ $item['employee']['last_name'] ?? '' }}
+                            </p>
+                        </div>
+                    </div>
+                    <hr class="w-full border-1 border-black">
+                    <hr class="w-full border-1 border-black">
+                    <div class="flex justify-end w-full pt-4">
+                        <div class="flex flex-col max-w-[200px] w-full">
+                            <div class="flex items-center justify-between w-full gap-2 text-xs">
+                                <div class="flex items-center justify-between gap-2">
+                                    <p>Gaji</p>
                                     <p>:</p>
                                 </div>
+                                <p>
+                                    @if (isset($item['salary_pay_value']))
+                                    @convertnorp($item['salary_pay_value'])
+                                    @else
+                                    -
+                                    @endif
+                                </p>
                             </div>
-                            <div></div>
-                        </div>
-                        <div class=" flex items-center gap-2.5">
-                            <div class="flex items-center gap-1">
-                                <span>
-                                    <x-icon icon="user" width=10 height=10 viewBox="20 20" />
-                                </span>
-                                <div class="flex items-center justify-between w-[60px] text-[10px] mt-0.5 pl-0.5">
-                                    <p>Nama</p>
+                            <div class="flex items-center justify-between w-full gap-2 text-xs">
+                                <div class="flex items-center justify-between gap-2">
+                                    <p>Kasbon</p>
                                     <p>:</p>
                                 </div>
+                                <p>
+                                    @if (isset($item['kasbon_pay_value']))
+                                    @convertnorp($item['kasbon_pay_value'])
+                                    @else
+                                    -
+                                    @endif
+                                </p>
                             </div>
-                            <div>
-
-                            </div>
-                        </div>
-                        <div class=" flex items-center gap-2.5">
-                            <div class="flex items-center gap-1">
-                                <span>
-                                    <x-icon icon="briefcase" width=10 height=10 viewBox="20 20" />
-                                </span>
-                                <div class="flex items-center justify-between w-[60px] text-[10px] mt-0.5 pl-0.5">
-                                    <p>Bagian</p>
+                            <div class="flex items-center justify-between w-full gap-2 text-xs">
+                                <div class="flex items-center justify-between gap-2">
+                                    <p>Lembur</p>
                                     <p>:</p>
                                 </div>
+                                <p>
+                                    @if (isset($item['overtime_pay_value']))
+                                    @convertnorp($item['overtime_pay_value'])
+                                    @else
+                                    -
+                                    @endif
+                                </p>
                             </div>
-                            <div>
-
+                            <div class="flex items-center justify-between w-full gap-2 text-xs">
+                                <div class="flex items-center justify-between gap-2">
+                                    <p>Rbhn+U.Libur</p>
+                                    <p>:</p>
+                                </div>
+                                <p>
+                                    @if (isset($item['tbhn_u_libur_pay_value']))
+                                    @convertnorp($item['tbhn_u_libur_pay_value'])
+                                    @else
+                                    -
+                                    @endif
+                                </p>
                             </div>
-                        </div>
-                        <div class=" flex items-center gap-2.5">
-                            <div class="flex items-center gap-1">
-                                <span>
-                                    <x-icon icon="employee-position" width=10 height=10 viewBox="20 20" />
-                                </span>
-                                <div class="flex items-center justify-between w-[60px] text-[10px] mt-0.5 pl-0.5">
+                            <div class="flex items-center justify-between w-full gap-2 text-xs">
+                                <div class="flex items-center justify-between gap-2">
                                     <p>Jabatan</p>
                                     <p>:</p>
                                 </div>
+                                <p>
+                                    @if (isset($item['tbhn_u_position_pay_value']))
+                                    @convertnorp($item['tbhn_u_position_pay_value'])
+                                    @else
+                                    -
+                                    @endif
+                                </p>
                             </div>
-                            <div>
-
+                            <hr class="w-full border-1 border-black my-1">
+                            <div class="flex items-center justify-between w-full gap-2 text-xs">
+                                <div class="flex items-center justify-between gap-2">
+                                    <p>Sisa kasbon</p>
+                                    <p>:</p>
+                                </div>
+                                <p>
+                                    @if (isset($item['remaining_kasbon_pay_value']))
+                                    @convertnorp($item['remaining_kasbon_pay_value'])
+                                    @else
+                                    -
+                                    @endif
+                                </p>
                             </div>
                         </div>
                     </div>
-                    <table class='table border-collapse w-full border border-black mt-4'>
-                        <thead class=''>
-                            <tr class='border-t border-black'>
-                                <th class='bg-white border  border-t-0 border-l-0 py-1 text-center border-black' rowspan="2">
-                                    <p class="text-[8px] font-medium truncate">No.</p>
-                                </th>
-                                {{-- <th class='bg-white border border-black border-t-0 px-1 py-0.5 text-center'>
-                                    <p class="text-[8px] font-medium truncate">Nama</p>
-                                </th> --}}
-                                @foreach ($data['range_dates'] as $item)
-                                <th class="border border-black border-t-0 px-1 py-0.5 text-left">
-                                    <p
-                                        class="text-[8px] font-medium truncate text-center {{ $item['is_holiday'] ? 'text-red-500' : '' }}">
-                                        {{ $item['d'] }}
-                                    </p>
-                                </th>
-                                @endforeach
-                                <th class='bg-white border border-black border-t-0 px-1 py-0.5 text-left' rowspan="2">
-                                    <p class="text-[8px] font-medium truncate text-center">HK</p>
-                                </th>
-                                <th class='bg-white border border-black border-t-0 px-1 py-0.5 text-left' rowspan="2">
-                                    <p class="text-[8px] font-medium truncate text-center">JL</p>
-                                </th>
-                                {{-- <th class='bg-white border border-black border-t-0 border-r-0 px-1 py-0.5 text-center'
-                                    colspan="6">
-                                    <p class="text-[8px] font-medium truncate">Jumlah( Rupiah )</p>
-                                </th> --}}
-        
-                            </tr>
-                            <tr class=''>
-                                @foreach ($data['range_dates'] as $item)
-                                <th class='bg-white border border-black px-1 py-0.5 text-left'>
-                                    <div class="tooltip-custom">
-                                        <p
-                                            class="text-[8px] font-medium truncate text-center {{ $item['is_holiday'] ? 'text-red-500' : '' }}">
-                                            {{ $item['key'] }}
-                                        </p>
-                                    </div>
-                                </th>
-                                @endforeach
-                                {{-- <th class='bg-white border border-black ≈≈ text-center'>
-                                    <p class="text-[8px] font-medium truncate">Gaji</p>
-                                </th>
-                                <th class='bg-white border border-black px-1 py-0.5 text-center'>
-                                    <p class="text-[8px] font-medium truncate">Kasbon</p>
-                                </th>
-                                <th class='bg-white border border-black px-1 py-0.5 text-left'>
-                                    <p class="text-[8px] font-medium truncate">Lembur</p>
-                                </th>
-                                <th class='bg-white border border-black px-1 py-0.5 text-center'>
-                                    <p class="text-[8px] font-medium truncate">Rbhn+U.Libur</p>
-                                </th>
-                                <th class='bg-white border border-black px-1 py-0.5 text-center'>
-                                    <p class="text-[8px] font-medium truncate">Jabatan</p>
-                                </th>
-                                <th class='bg-white border border-black border-r-0 px-1 py-0.5 text-center'>
-                                    <p class="text-[8px] font-medium truncate">TOTAL</p> --}}
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                        </tbody>
-                    </table>
+                    <hr class="w-full border-1 border-black">
+                    <div class="flex w-full justify-end">
+                        <div class="flex items-center justify-between gap-1 text-sm font-semibold">
+                            <p class="truncate text-right">Total: </p>
+                            <p class="truncate text-right">
+                                @if (isset($item['total_pay_value']))
+                                @convertnorp($item['total_pay_value'])
+                                @else
+                                -
+                                @endif
+                            </p>
+                        </div>
+                    </div>
                 </div>
             </div>
             @endforeach
+            @endforeach
         </div>
-        <button type=" button" onclick="testPrint()">print</button>
     </div>
 </div>
 @endif
 <script>
-    function testPrint(params) {
-                var originalContents, popupWin, printContents;
-                return printContents = document.getElementById(
-                        "print-card-report").innerHTML,
-                    originalContents = document.body.innerHTML,
-                    headContents = document.head.innerHTML,
-                    popupWin = window.open(),
-                    popupWin.document.open(),
-                    popupWin.document.write(
-                        '<html><head>' + headContents +
-                        '<body onload="window.print()">' +
-                        printContents + "</html>"),
-                    popupWin.document.close()
-            }
-            window.addEventListener('DOMContentLoaded', (event) => {
-                $('.date-input').daterangepicker({
-                    ranges: {
-                        'Today': [moment(), moment()],
-                        'Yesterday': [moment().subtract(
-                                1, 'days'), moment()
-                            .subtract(1, 'days')
-                        ],
-                        'Last 7 Days': [moment()
-                            .subtract(6, 'days'),
-                            moment()
-                        ],
-                        'Last 30 Days': [moment()
-                            .subtract(29, 'days'),
-                            moment()
-                        ],
-                        'This Month': [moment().startOf(
-                                'month'), moment()
-                            .endOf('month')
-                        ],
-                        'Last Month': [moment()
-                            .subtract(1, 'month')
-                            .startOf('month'),
-                            moment().subtract(1,
-                                'month').endOf(
-                                'month')
-                        ]
-                    },
-                    autoUpdateInput: false,
-                    alwaysShowCalendars: true,
-                    showCustomRangeLabel: false,
-                    showDropdowns: true,
-                    minYear: 2000,
-                    drops: "auto",
-                    maxYear: parseInt(moment().format(
-                        'YYYY'), 10)
-                }, function (start, end, label) {
-                    console.log($(this.element).val())
-                });
+    function print(params) {
+        var originalContents, popupWin, printContents;
+        return printContents = document.getElementById(
+                "print-card-report").innerHTML,
+            originalContents = document.body.innerHTML,
+            headContents = document.head.innerHTML,
+            popupWin = window.open(),
+            popupWin.document.open(),
+            popupWin.document.write(
+                '<html><head>' + headContents +
+                '<body onload="window.print()">' +
+                printContents + "</html>"),
+            popupWin.document.close()
+    }
+    window.addEventListener('DOMContentLoaded', (event) => {
+        $('.date-input').daterangepicker({
+            ranges: {
+                'Today': [moment(), moment()],
+                'Yesterday': [moment().subtract(
+                        1, 'days'), moment()
+                    .subtract(1, 'days')
+                ],
+                'Last 7 Days': [moment()
+                    .subtract(6, 'days'),
+                    moment()
+                ],
+                'Last 30 Days': [moment()
+                    .subtract(29, 'days'),
+                    moment()
+                ],
+                'This Month': [moment().startOf(
+                        'month'), moment()
+                    .endOf('month')
+                ],
+                'Last Month': [moment()
+                    .subtract(1, 'month')
+                    .startOf('month'),
+                    moment().subtract(1,
+                        'month').endOf(
+                        'month')
+                ]
+            },
+            autoUpdateInput: false,
+            alwaysShowCalendars: true,
+            showCustomRangeLabel: false,
+            showDropdowns: true,
+            minYear: 2000,
+            drops: "auto",
+            maxYear: parseInt(moment().format(
+                'YYYY'), 10)
+        }, function (start, end, label) {
+            console.log($(this.element).val())
+        });
 
-                $('.date-input-work-day').on(
-                    'apply.daterangepicker',
-                    function (ev, picker) {
-                        $('input[name="start_date"]').val(
-                            picker.startDate.format(
-                                'DD-MM-YYYY'));
-                        $('input[name="end_date"]').val(
-                            picker.endDate.format(
-                                'DD-MM-YYYY'));
-                        $(this).val(picker.startDate.format(
-                                'DD-MM-YYYY') + ' - ' +
-                            picker.endDate.format(
-                                'DD-MM-YYYY'));
-                    });
-
-                $('.date_input').on('cancel.daterangepicker',
-                    function (ev, picker) {
-                        $(this).val('');
-                    });
+        $('.date-input-work-day').on(
+            'apply.daterangepicker',
+            function (ev, picker) {
+                $('input[name="start_date"]').val(
+                    picker.startDate.format(
+                        'DD-MM-YYYY'));
+                $('input[name="end_date"]').val(
+                    picker.endDate.format(
+                        'DD-MM-YYYY'));
+                $(this).val(picker.startDate.format(
+                        'DD-MM-YYYY') + ' - ' +
+                    picker.endDate.format(
+                        'DD-MM-YYYY'));
             });
+
+        $('.date_input').on('cancel.daterangepicker',
+            function (ev, picker) {
+                $(this).val('');
+            });
+    });
 
 </script>
 @endsection

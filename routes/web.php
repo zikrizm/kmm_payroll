@@ -90,14 +90,7 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('operational', 'OperationalController', ['except' => ['update']]);
     Route::post('/operational/{operational}', 'OperationalController@update')->name('operational.update');
     Route::get('/get-operational-timetable-card', 'OperationalController@get_operational_timetable_card')->name('operasional.get-operational-timetable-card');
-    // * TSO.
-    Route::get('/TSO', 'TSOControllerPercobaan@index')->name('TSO.index');
-    Route::get('/table-tso', 'TSOControllerPercobaan@table_tso')->name('table-tso.view');
-    Route::get('/table-not-given-lb', 'TSOControllerPercobaan@table_not_given_lb')->name('table-not-given-lb.view');
-    Route::get('/approved-tso', 'TSOControllerPercobaan@approved_tso')->name('approved-tso.approved');
-    Route::post('/approved-tso', 'TSOControllerPercobaan@approved_tso_store')->name('approved-tso.store');
-    Route::get('/change-status-given-lb', 'TSOControllerPercobaan@change_status_given_lb')->name('change-status-given-lb-lb.approved');
-    Route::post('/change-status-given-lb', 'TSOControllerPercobaan@change_status_given_lb_store')->name('change-status-given-lb.store');
+
     // * request-help.
     Route::resource('request-help', 'RequestHelpController', ['except' => ['update']]);
     Route::post('/request-help/{request_help}', 'RequestHelpController@update')->name('request-help.update');
@@ -156,10 +149,20 @@ Route::middleware(['auth'])->group(function () {
 
 
 
+    // * PRINT
+    Route::prefix('/print')->group(function () {
+        Route::get('/payroll_report', 'PrintReportContoller@print_payroll_report')->name('print.payroll_report');
+        Route::get('/card_report', 'PrintReportContoller@print_card_report')->name('print.card_report');
+    });
 
-    Route::get('/print/payroll_report', 'PrintController@print_payroll_report')->name('print.payroll_report');
-    Route::get('/print/card_report', 'PrintController@print_card_report')->name('print.card_report');
-
+    // * TSO.
+    Route::prefix('/TSO')->group(function () {
+        Route::get('/', 'TSOController@index')->name('TSO.index');
+        Route::get('/approved', 'TSOController@approved_tso')->name('TSO.approved');
+        Route::post('/approved', 'TSOController@save_approved_tso')->name('TSO.save-approve');
+        Route::get('/set-status-lb', 'TSOController@set_status_lb')->name('TSO.set-starus-lb');
+        Route::post('/set-status-lb', 'TSOController@save_set_status_lb')->name('TSO.save-set-starus-lb');
+    });
 
     Route::get('logout', '\App\Http\Controllers\Auth\LoginController@logout')->name('logout');
 });

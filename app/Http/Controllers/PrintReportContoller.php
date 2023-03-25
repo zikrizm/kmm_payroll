@@ -21,7 +21,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Session;
 
-class PrintController extends Controller
+class PrintReportContoller extends Controller
 {
     private $service;
 
@@ -96,18 +96,19 @@ class PrintController extends Controller
             ->where('emp_id', $emp->emp_id)
             ->whereDate('date', '>= ', $start_date)
             ->whereDate('date', '<= ', $end_date)
-            ->with(['instalments' => fn ($query) => $query->select('id', 'employee_debt_id', 'date', 'instalment_debt')])->get();
+            ->with(['employee_debt_pays' => fn ($query) => $query->select('id', 'employee_debt_id', 'debt_payment_date', 'payment')])->get();
 
+        // TOTAL CICILAN YANG AKAN DI BAYAR
         $total_cicilan_kasbon = $kasbons->sum('instalment');
         $total_kasbon = $kasbons->sum('debt');
         foreach ($kasbons as $item) {
-            $value += ($item->instalments->isNotEmpty()) ? $item->instalments->sum('instalment_debt') : 0;
+            $value += ($item->employee_debt_pays->isNotEmpty()) ? $item->employee_debt_pays->sum('payment') : 0;
         }
 
-        $remaining_kasbon = $total_kasbon - $total_cicilan_kasbon;
-        $value = ($value > $total_cicilan_kasbon) ? $remaining_kasbon : $value * $payment_period_diff;
+        $remaining_kasbon = $total_kasbon - $value;
+        $kasbon_pay = ((($total_cicilan_kasbon * $payment_period_diff) + $value) > $total_kasbon) ? $remaining_kasbon : $total_cicilan_kasbon * $payment_period_diff;
 
-        return $value;
+        return ['remaining_kasbon' => $remaining_kasbon, 'kasbon_pay' => $kasbon_pay];
     }
 
 
@@ -389,6 +390,7 @@ class PrintController extends Controller
                             'HK_value' => 0,
                             'JL_value' => 0,
                             'kasbon_pay_value' => 0,
+                            'remaining_kasbon_pay_value' => 0,
                             'salary_pay_value' => 0,
                             'overtime_pay_value' => 0,
                             'tbhn_u_libur_pay_value' => 0,
@@ -403,7 +405,9 @@ class PrintController extends Controller
                                 ->first();
 
                             if (!empty($emplocal)) {
-                                $report['kasbon_pay_value'] += $this->getEmployeeKasbonPaid($emplocal, $start_date, $end_date);
+                                $kasbon = $this->getEmployeeKasbonPaid($emplocal, $start_date, $end_date);
+                                $report['kasbon_pay_value'] += $kasbon['kasbon_pay'];
+                                $report['remaining_kasbon_pay_value'] += $kasbon['remaining_kasbon'];
                                 $report['tbhn_u_position_pay_value'] += $this->getEmployeeExtraPayPosition($emplocal, $start_date, $end_date);
 
                                 $range_date_count = count($range_dates);
@@ -794,7 +798,7 @@ class PrintController extends Controller
             $end_date = null;
             if ($request->has('deparment_code')) {
                 $deparment_code = $request['deparment_code'];
-            } 
+            }
             if ($request->has('start_date') && $request->has('end_date')) {
                 $start_date = Carbon::createFromFormat('d-m-Y', $request['start_date']);
                 $end_date = Carbon::createFromFormat('d-m-Y', $request['end_date']);
@@ -911,6 +915,7 @@ class PrintController extends Controller
                                 'HK_value' => 0,
                                 'JL_value' => 0,
                                 'kasbon_pay_value' => 0,
+                                'remaining_kasbon_pay_value' => 0,
                                 'salary_pay_value' => 0,
                                 'overtime_pay_value' => 0,
                                 'tbhn_u_libur_pay_value' => 0,
@@ -925,7 +930,9 @@ class PrintController extends Controller
                                     ->first();
 
                                 if (!empty($emplocal)) {
-                                    $report['kasbon_pay_value'] += $this->getEmployeeKasbonPaid($emplocal, $start_date, $end_date);
+                                    $kasbon = $this->getEmployeeKasbonPaid($emplocal, $start_date, $end_date);
+                                    $report['kasbon_pay_value'] += $kasbon['kasbon_pay'];
+                                    $report['remaining_kasbon_pay_value'] += $kasbon['remaining_kasbon'];
                                     $report['tbhn_u_position_pay_value'] += $this->getEmployeeExtraPayPosition($emplocal, $start_date, $end_date);
 
                                     $range_date_count = count($range_dates);
@@ -1217,14 +1224,6 @@ class PrintController extends Controller
                 } else {
                     // MASUKK KESINI KLO ABSENSI GA ADA
                 }
-                // foreach ($datas as $data) {
-                //     foreach ($data['attendance_reports'] as $report) {
-                //         $report['attendances'] = $report['attendances']->map(function ($e) {
-                //             return $this->buildValueHtml($e);
-                //         });
-                //     }
-                // }
-
                 return $datas;
             } else {
                 return $datas;

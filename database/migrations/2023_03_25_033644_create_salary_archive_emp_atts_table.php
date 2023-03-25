@@ -1,0 +1,49 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     *
+     * @return void
+     */
+    public function up()
+    {
+        Schema::create('salary_archive_emp_atts', function (Blueprint $table) {
+            $table->increments('id');
+            $table->integer('salary_archive_emp_id')->unsigned();
+            $table->foreign('salary_archive_emp_id')->references('id')->on('salary_archive_emps')->onDelete('cascade');
+            $table->integer('timetable_id')->nullable()->unsigned();
+            $table->foreign('timetable_id')->references('id')->on('timetables')->onDelete('cascade');
+            $table->date('attendance_date')->unsigned();
+            $table->dateTime('first_punch')->nullable();
+            $table->dateTime('last_punch')->nullable();
+            $table->decimal('JL', 22)->default(0);
+            $table->decimal('HK', 22)->default(0);
+            $table->decimal('be_one_shift', 22)->default(0);
+            $table->decimal('HK_pay_value', 22)->default(0);
+            $table->decimal('JL_pay_value', 22)->default(0);
+            $table->decimal('tbhn_u_libur_pay_value', 22)->default(0);
+            $table->decimal('be_one_shift', 22)->default(0);
+            $table->boolean('is_holiday')->default(0);
+            $table->boolean('is_addition_date')->default(0);
+            $table->boolean('is_counting_salary')->default(0);
+            $table->boolean('is_counting_overtime')->default(0);
+            $table->timestamps();
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     *
+     * @return void
+     */
+    public function down()
+    {
+        Schema::dropIfExists('salary_archive_emp_atts');
+    }
+};

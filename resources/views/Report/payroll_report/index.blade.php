@@ -24,9 +24,9 @@
             </div>
             <section class="flex flex-col gap-1">
                 <select class="select2-department hidden" name="">
-                    <option value="" selected>Semua bagian</option>
+                    <option value="">Semua bagian</option>
                     @foreach (($department_bios ?? []) as $department)
-                    <option value="{{ $department['id'] }}" @selected($department_bios->first()['id'] ==
+                    <option value="{{ $department['dept_code'] }}" @selected($department_bios->first()['dept_code'] ==
                         $department['id'])>{{ $department['dept_name'] }}</option>
                     @endforeach
                 </select>
@@ -52,11 +52,9 @@
             
             onInit({
                 q: $('.search-data-input').val(),
-                department_id: "{{ $department_bios->first()['id'] }}",
-                date: { 
-                    start_time: convertLocalTimezone(moment().startOf('week'), 'YYYY-MM-DD'), 
-                    end_time: convertLocalTimezone(moment().endOf('week'), 'YYYY-MM-DD')
-                }
+                department_code: "{{ $department_bios->first()['dept_code'] }}",
+                start_date: convertLocalTimezone(moment().startOf('week'), 'DD-MM-YYYY'), 
+                end_date: convertLocalTimezone(moment().endOf('week'), 'DD-MM-YYYY')
             });
 
             $('input[name="date"]').daterangepicker({
@@ -78,15 +76,13 @@
                 drops: "auto",
                 maxYear: parseInt(moment().format('YYYY'), 10)
             },function(start, end, label) {
-                var dateFormat = 'YYYY-MM-DD';
+                var dateFormat = 'DD-MM-YYYY';
 
                 delete dataParams.page;
                 onInit({ 
                     q: $('.search-data-input').val(),
-                    date: { 
-                        start_time: convertLocalTimezone(start, dateFormat), 
-                        end_time: convertLocalTimezone(end, dateFormat)
-                    } 
+                    start_date: convertLocalTimezone(start, dateFormat), 
+                    end_date: convertLocalTimezone(end, dateFormat)
                 });
             });
 
@@ -94,7 +90,7 @@
             $('.select2-department').show();
             $('.select2-department').on('select2:select', function (e) {
                 delete dataParams.page;
-                onInit({department_id: this.value});
+                onInit({department_code: this.value});
             });
 
 
@@ -139,8 +135,8 @@
             let end_date = $('input[name="date"]').data('daterangepicker').endDate;
             var URL = (payroll_report_id) ? '/payroll-report/' + payroll_report_id + '/edit' : '/payroll-report/create';
             var res = await ApiService.get_modal(URL, { 
-                start_date: start_date.format('YYYY-MM-DD'),
-                end_date: end_date.format('YYYY-MM-DD'),
+                start_date: start_date.format('DD-MM-YYYY'),
+                end_date: end_date.format('DD-MM-YYYY'),
             });
 
             $('#kalkulasi').on('click', function(e) {
@@ -150,20 +146,6 @@
                 $('#x-icon-close').hide();
                 $('#content-confirm-calculate').hide();
                 $('#content-loading-calculate').show();
-                // $('input[name="date[start_time]"]').val(start_date.format('YYYY-MM-DD'));
-                // $('input[name="date[end_time]"]').val(end_date.format('YYYY-MM-DD'));
-
-                
-                // **
-                // * submit form ----->
-                // *
-                
-
-                // setTimeout(() => {
-                //     $('.content-loading-calculate').hide();
-                //     $('.content-finish-calculate').show();
-                // }, 5000);
-
                 let duration = 1000;
                 let length = $('.prosess-cointainer').length;
                 $('.prosess-cointainer').each(function (i) {

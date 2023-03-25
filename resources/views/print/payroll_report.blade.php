@@ -142,12 +142,10 @@ empty($end_date_overtime))
                         </th>
                         @foreach ($data['range_dates'] as $item)
                         <th class='bg-white border border-black px-1 py-0.5 text-left'>
-                            <div class="tooltip-custom">
                                 <p
                                     class="text-[8px] font-medium truncate text-center {{ $item['is_holiday'] ? 'text-red-500' : '' }}">
                                     {{ $item['key'] }}
                                 </p>
-                            </div>
                         </th>
                         @endforeach
                         <th class='bg-white border border-black ≈≈ text-center'>
