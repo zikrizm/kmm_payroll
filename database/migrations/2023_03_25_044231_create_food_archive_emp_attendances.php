@@ -13,11 +13,12 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('employee_tsos', function (Blueprint $table) {
+        Schema::create('food_archive_emp_attendances', function (Blueprint $table) {
             $table->increments('id');
-            $table->date('tso_date');
-            $table->integer('emp_id');
-            $table->integer('dept_id');
+            $table->date('food_date');
+            $table->decimal('total', 22,0)->nullable();
+            $table->integer('food_archive_emp_id')->unsigned();
+            $table->foreign('food_archive_emp_id')->references('id')->on('food_archive_emps')->onDelete('cascade');
             $table->timestamps();
         });
     }
@@ -29,6 +30,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('employee_tsos');
+        Schema::dropIfExists('food_archive_emp_attendances');
     }
 };

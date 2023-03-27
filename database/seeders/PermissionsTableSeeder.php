@@ -91,25 +91,26 @@ class PermissionsTableSeeder extends Seeder
             ['name' => 'attendance-operational.delete'],
             ['name' => 'payroll-report.view'],
             ['name' => 'payroll-report.calculate'],
-           
+
 
             ['name' => 'operational.view'],
             ['name' => 'operational.create'],
             ['name' => 'operational.update'],
             ['name' => 'operational.delete'],
-            ['name' => 'TSO.view'],
-            ['name' => 'employee-tso.view'],
-            ['name' => 'employee-not-given-holiday-pay.view'],
-            ['name' => 'approved-employee-TSO.approved'],
-            ['name' => 'approved-not-given-employee-holiday-pay.approved'],
+
+            ['name' => 'attendance-tso.view'],
+            ['name' => 'attendance-tso.approved'],
+
+            ['name' => 'attendance-lb.set-status'],
+
             ['name' => 'request-task.view'],
             ['name' => 'request-task.create'],
             ['name' => 'request-task.update'],
             ['name' => 'request-task.delete'],
 
             ['name' => 'salary-archive.view'],
-            ['name' => 'salary-archive.create'],
-            ['name' => 'salary-archive.calculate'],
+            ['name' => 'salary-archive.re-calculate'],
+            
             ['name' => 'food-archive.view'],
             ['name' => 'business_settings.access'],
         ];

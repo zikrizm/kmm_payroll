@@ -13,18 +13,16 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('food_bill_archives', function (Blueprint $table) {
+        Schema::create('food_archive_emps', function (Blueprint $table) {
             $table->increments('id');
-            $table->date('food_date');
-            $table->integer('dept_id');
-            $table->string('dept_code');
-            $table->string('dept_name');
             $table->integer('emp_id');
             $table->string('emp_code');
             $table->string('first_name');
             $table->string('last_name')->nullable();
             $table->string('photo')->nullable();
-            $table->decimal('total', 22)->nullable();
+            $table->integer('food_archive_id')->unsigned();
+            $table->foreign('food_archive_id')->references('id')->on('food_archives')->onDelete('cascade');
+            $table->decimal('total', 22,0)->nullable();
             $table->timestamps();
         });
     }
@@ -36,6 +34,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('food_bill_archives');
+        Schema::dropIfExists('food_archive_emps');
     }
 };

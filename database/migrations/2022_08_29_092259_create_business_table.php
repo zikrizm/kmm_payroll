@@ -20,6 +20,11 @@ return new class extends Migration
             $table->integer('pending_day')->nullable();
             $table->string('logo')->nullable();
             $table->boolean('is_active')->default(true);
+            $table->string('city', 100);
+            $table->char('zip_code', 7);
+            $table->text('full_address')->nullable();
+            $table->string('mobile')->nullable();
+            $table->string('email')->nullable();
             $table->integer('owner_id')->unsigned();
             $table->foreign('owner_id')->references('id')->on('users')->onDelete('cascade');
             $table->timestamps();

@@ -293,7 +293,7 @@ class ShiftController extends Controller
 
             // ** create activity log user
             ActivityLog::created_activity('CRUD shift', 'User ' . auth()->user()->username . ' delete data shift');
-            return $this->buildRes->RESPONSE_REQ('success', null, 'Shift delete succesfully');
+            return $this->buildRes->RESPONSE_REQ('success', null, ['success' => ['Shift delete succesfully']]);
         } catch (\Exception $e) {
             return $this->buildRes->RESPONSE_REQ('error', null, ['error' => 'something wrong']);
         }

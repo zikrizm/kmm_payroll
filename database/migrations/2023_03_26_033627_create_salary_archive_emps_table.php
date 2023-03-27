@@ -22,16 +22,16 @@ return new class extends Migration
             $table->string('photo')->nullable();
             $table->integer('salary_archive_id')->unsigned();
             $table->foreign('salary_archive_id')->references('id')->on('salary_archives')->onDelete('cascade');
-            $table->decimal('HK_value', 22)->nullable();
-            $table->decimal('JL_value', 22)->nullable();
-            $table->decimal('kasbon_pay_value', 22)->nullable();
-            $table->decimal('overtime_pay_value', 22)->nullable();
-            $table->decimal('remaining_kasbon_pay_value', 22)->nullable();
-            $table->decimal('salary_pay_value', 22)->nullable();
-            $table->decimal('tbhn_u_libur_pay_value', 22)->nullable();
-            $table->decimal('tbhn_u_position_pay_value', 22)->nullable();
-            $table->decimal('total_pay_value', 22)->nullable();
-            $table->decimal('grand_total_pay_value', 22)->nullable();
+            $table->float('HK_value')->nullable();
+            $table->float('JL_value')->nullable();
+            $table->decimal('kasbon_pay_value', 22,0)->nullable();
+            $table->decimal('overtime_pay_value', 22,0)->nullable();
+            $table->decimal('remaining_kasbon_pay_value', 22,0)->nullable();
+            $table->decimal('salary_pay_value', 22,0)->nullable();
+            $table->decimal('tbhn_u_libur_pay_value', 22,0)->nullable();
+            $table->decimal('tbhn_u_position_pay_value', 22,0)->nullable();
+            $table->decimal('total_pay_value', 22,0)->nullable();
+            $table->decimal('grand_total_pay_value', 22,0)->nullable();
             $table->timestamps();
         });
     }

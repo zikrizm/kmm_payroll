@@ -12,20 +12,6 @@
             <p class="text-base font-normal text-gray-500">Daftar karyawan yang tidak sesuai managemen operational. </p>
         </div>
         <hr>
-        {{-- <ul class="flex border-b">
-            <li>
-                <button data-ref-class-content="tso-content"
-                    class="active-sub-menu text-gray-500 text-violet-700 border-b-2 mr-4 pt px-1 pb-[16px] border-violet-700 text-sm font-medium">
-                    Jam Kerja Operasional
-                </button>
-            </li>
-            <li>
-                <button data-ref-class-content="lb-content"
-                    class="text-gray-500 mr-4 pt px-1 pb-[16px] border-violet-700 text-sm font-medium">
-                    Libur Operasional
-                </button>
-            </li>
-        </ul> --}}
         <div class="flex justify-between gap-2.5 overflow-auto">
             <div class="flex items-center gap-2.5">
                 <div class="w-72">
@@ -46,28 +32,28 @@
                     <label class="font-normal text-xs text-red-500 xs/max:text-xs parent_dept hint-text"></label>
                 </section>
                 <div id="approved-all-tso" class="hidden">
-                    <button onclick="approved_all_tso()"
+                    <button onclick="approvedAllTso()"
                         class="mb-1 flex items-center gap-2.5 px-4 py-[7px] text-gray-500 text-sm font-medium border border-gray-200 shadow-sm rounded-lg">
                         <x-icon icon="check" width=18 height=18 viewBox="20 20" />
                         <p class="truncate">Disetujui semua</p>
                     </button>
                 </div>
                 <div id="cancel-all-lb" class="hidden">
-                    <button onclick="change_all_status_given_lb('cancel')"
+                    <button onclick="changeAllStatusLb('cancel')"
                         class="mb-1 flex items-center gap-2.5 px-4 py-[7px] text-gray-500 text-sm font-medium border border-gray-200 shadow-sm rounded-lg">
                         <x-icon icon="x" width=18 height=18 viewBox="20 20" />
                         <p class="truncate">Batalkan LB semua</p>
                     </button>
                 </div>
-                <div id="given-all-lb" class="hidden">
-                    <button onclick="change_all_status_given_lb('given')"
+                <div id="accept-all-lb" class="hidden">
+                    <button onclick="changeAllStatusLb('accept')"
                         class="mb-1 flex items-center gap-2.5 px-4 py-[7px] text-gray-500 text-sm font-medium border border-gray-200 shadow-sm rounded-lg">
                         <x-icon icon="check" width=18 height=18 viewBox="20 20" />
                         <p class="truncate">Dapat LB semua</p>
                     </button>
                 </div>
             </div>
-            <x-ui.search-data placeholder="Cari penugasan" url="{{ route('TSO.index') }}" />
+            <x-ui.search-data placeholder="Cari kehadiran" />
         </div>
     </header>
     <div class="table-content"></div>
@@ -260,6 +246,95 @@
             })
         })
 
+    }
+
+    var selectedListAttendanceTso = [];
+    var selectedListAttendanceLb = [];
+
+    function selectAllAttendance(event) {
+        if ($(event).is(':checked')) {
+            $('[data-checkbox-tso-item]').prop('checked', true);
+            buildSelectedAttendance();
+            if (selectedListAttendanceTso.length) {
+                if ($('#approved-all-tso').is(':hidden')) {
+                    $('#approved-all-tso').toggle();
+                }
+            }
+            if (selectedListAttendanceLb.length && selectedListAttendanceLb.findIndex((e) => e.lb_status == 'accept') !=
+                -1) {
+                if ($('#accept-all-lb').is(':hidden')) {
+                    $('#accept-all-lb').toggle();
+                }
+            }
+            if (selectedListAttendanceLb.length && selectedListAttendanceLb.findIndex((e) => e.lb_status == 'cancel') !=
+                -1) {
+                if ($('#cancel-all-lb').is(':hidden')) {
+                    $('#cancel-all-lb').toggle();
+                }
+            }
+        } else {
+            selectedListAttendanceTso = [];
+            selectedListAttendanceLb = [];
+            $('[data-checkbox-tso-item]').prop('checked', false);
+        }
+    }
+
+    function selectAttendance(event) {}
+
+    function buildSelectedAttendance() {
+        $('[data-tso-item]').each(function (e) {
+            var action = $(this).find('input[name="action"]').val();
+            var emp_id = $(this).find('input[name="emp_id"]').val();
+            var dept_id = $(this).find('input[name="dept_id"]').val();
+            var date = $(this).find('input[name="date"]').val();
+            var first_punch = $(this).find('input[name="first_punch"]').val();
+            var last_punch = $(this).find('input[name="last_punch"]').val();
+            var operational_id = $(this).find('input[name="operational_id"]').val();
+            var timetable_id = $(this).find('input[name="timetable_id"]').val();
+            selectedListAttendanceTso = [];
+            selectedListAttendanceLb = [];
+
+            if ($(this).find('[data-checkbox-tso-item]').is(':checked')) {
+                if (action == 'approved-tso') {
+                    selectedListAttendanceTso.push({
+                        emp_id: emp_id,
+                        dept_id: dept_id,
+                        tso_date: date,
+                        first_punch: first_punch,
+                        last_punch: last_punch,
+                        operational_id: operational_id,
+                        note: operational_note,
+                        timetable_id: timetable_id,
+                    });
+                } else {
+                    selectedListAttendanceLb.push({
+                        emp_id: emp_id,
+                        dept_id: dept_id,
+                        dept_id: dept_id,
+                        lb_date: date,
+                        lb_status: (action == 'accept-lb') ? 'accept' : 'cancel',
+                        first_punch: first_punch,
+                        last_punch: last_punch,
+                        operational_id: operational_id,
+                        note: operational_note,
+                        timetable_id: timetable_id,
+                    });
+                }
+            } else {
+                //
+            }
+        });
+    }
+
+    function changeAllStatusLb(type) {
+        if (selectedListAttendanceLb.length) {
+            var tempListLb = selectedListAttendanceLb.filter((e) => {
+                e.lb_status == 'type'
+            });
+
+
+
+        }
     }
 
     // function build_dropdown_action(table_class, element_build) {

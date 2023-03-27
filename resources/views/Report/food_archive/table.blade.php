@@ -5,8 +5,7 @@
                 <th class='text-left'>
                     <div class='flex items-center'>
                         <div class='pl-6 pr-3 py-3 cursor-pointer flex-1'>
-                            <x-ui.sort-table text="Tanggal nasi lembur" url="{{ route('ot-rice-bill.index') }}"
-                                field="ots_date" order="{{ $order }}" />
+                            <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Tanggal nasi lembur</p>
                         </div>
                     </div>
                 </th>
@@ -28,21 +27,27 @@
                                 <x-icon icon="calendar" width=18 height=18 viewBox="20 20" />
                                 <div class="flex items-center gap-2">
                                     <p class="truncate">
-                                        {{ date('d-m-Y', strtotime($item->date)) }}
+                                        {{ date('d-m-Y', strtotime($item->start_date)) }}
+                                    </p>-
+                                    <p class="truncate">
+                                        {{ date('d-m-Y', strtotime($item->end_date)) }}
                                     </p>
                                 </div>
                             </div>
                         </div>
                     </td>
                     <td class='px-3 py text-gray-500 text-sm'>
-                        {{ $item->first_name ?? '-' }}
-                        {{ $item->last_name ?? '' }}
-                    </td>
-                    <td class='px-3 py text-gray-500 text-sm'>
                         {{ $item->dept_name }}
                     </td>
                     <td class='px-3 py text-gray-500 text-sm'>
                         {{ $item->total }}
+                    </td>
+                    <td class='px-3 py text-gray-500 text-sm'>
+                        <button onclick="show('{{ $item->id }}')"
+                            class="text-gray-500 flex justify-center items-center gap-2 border rounded-lg shadow px-2.5 py-1.5">
+                            <x-icon icon="detail" width=16 height=16 viewBox="20 20" />
+                            <p class="text-xs">Detail</p>
+                        </button>
                     </td>
                 </tr>
             @endforeach

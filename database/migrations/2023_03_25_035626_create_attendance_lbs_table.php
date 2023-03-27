@@ -27,7 +27,6 @@ return new class extends Migration
             $table->date('lb_date');
             $table->dateTime('first_punch')->nullable();
             $table->dateTime('last_punch')->nullable();
-            $table->string('note')->nullable();
             $table->integer('operational_id')->nullable()->unsigned();
             $table->foreign('operational_id')->references('id')->on('operationals')->onDelete('cascade');
             $table->integer('timetable_id')->nullable()->unsigned();

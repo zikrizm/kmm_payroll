@@ -15,12 +15,13 @@ use Illuminate\Support\Facades\Session;
 class SalaryArchiveController extends Controller
 {
     private $buildRes;
+    private $service;
     private $util;
 
     public function __construct(Util $util, ApiServices $service, ResponseUtil $buildRes)
     {
         $this->util = $util;
-        $this->apiService = $service;
+        $this->service = $service;
         $this->buildRes = $buildRes;
     }
 
@@ -39,8 +40,7 @@ class SalaryArchiveController extends Controller
         try {
             $business_id = Session::get('business_id');
             if (request()->ajax()) {
-                $salary_archives = SalaryArchive::where('business_id', $business_id)->where('start_date', '<=', $request->start_date)
-                    ->where('end_date', '>=', $request->end_date);
+                $salary_archives = SalaryArchive::where('business_id', $business_id)->whereBetween('created_at', [$request->start_date, $request->end_date]);
 
                 if ($request->has('q')) {
                     $search = $request->q;
@@ -48,13 +48,9 @@ class SalaryArchiveController extends Controller
                         $q->where('dept_name', 'LIKE', "%" . $search . "%")->where('dept_code', 'LIKE', "%" . $search . "%");
                     });
                 }
-                $order = null;
-                if ($request->has('sort')) {
-                    $sort = $request->sort;
-                    $order = $sort['order'];
-                }
-                $salary_archives = $salary_archives->paginate(10);
-                $render =  view('report.salary_archive.table', compact('salary_archives', 'order'))->render();
+
+                $salary_archives = $salary_archives->orderBy('created_at', 'ASC')->paginate(10);
+                $render =  view('report.salary_archive.table', compact('salary_archives'))->render();
 
                 return $this->buildRes->RESPONSE_REQ('success', $render, null);
             }
@@ -80,7 +76,7 @@ class SalaryArchiveController extends Controller
         }
 
         try {
-            $departments = $this->apiService->get_departments(['page_size' => 999])['data'];
+            $departments = $this->service->get_departments(['page_size' => 999])['data'];
             if ($request->has('calculation_id')) {
                 $salary_archive = SalaryArchive::where('id', $request->calculation_id)->first();
                 if (!empty($salary_archive)) {
@@ -132,14 +128,12 @@ class SalaryArchiveController extends Controller
      */
     public function show($id)
     {
-        if (!auth()->user()->can('salary-archive.create')  || !request()->ajax()) {
+        if (!auth()->user()->can('salary-archive.view')  || !request()->ajax()) {
             abort(403, 'Unauthorized action.');
         }
         try {
-            Log::info(request());
-            Log::info($id);
-
-            $render = view('report.salary_archive.show')->render();
+            $salary_archive = SalaryArchive::where('id', $id)->with([''])->first();
+            $render = view('report.salary_archive.show', compact('salary_archive'))->render();
             return $this->buildRes->RESPONSE_REQ('success', $render, null);
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());

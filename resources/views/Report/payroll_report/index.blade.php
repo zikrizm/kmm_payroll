@@ -40,7 +40,7 @@
         </div>
         <x-ui.search-data placeholder="Cari penggajian" url="{{ route('payroll-report.index') }}" />
     </div>
-    <div class="table-content"></div>
+    <div class="table-content flex-1"></div>
     <x-ui.confirm-modal class="submit-delete-payroll-report"></x-ui.confirm-modal>
 </div>
 
@@ -133,14 +133,13 @@
             let runAnimation = true , setTimeoutProses;
             let start_date = $('input[name="date"]').data('daterangepicker').startDate;
             let end_date = $('input[name="date"]').data('daterangepicker').endDate;
-            var URL = (payroll_report_id) ? '/payroll-report/' + payroll_report_id + '/edit' : '/payroll-report/create';
-            var res = await ApiService.get_modal(URL, { 
+            var res = await ApiService.get_modal('/payroll-report/create', { 
                 start_date: start_date.format('DD-MM-YYYY'),
                 end_date: end_date.format('DD-MM-YYYY'),
+                department_code: $('.select2-department').val()
             });
 
             $('#kalkulasi').on('click', function(e) {
-                console.log("Dfsdfsdfsdfsdfsdfsdf")
                 $('#container-modal-calculate').removeClass('w-[440px]');
                 $('#container-modal-calculate').addClass('w-[650px]');
                 $('#x-icon-close').hide();

@@ -59,8 +59,8 @@ class PrintReportContoller extends Controller
     {
         $empbios = [];
         if (!empty($department)) {
-            $empbios_count = $this->service->get_employees(["departments" => $department['id']])["count"];
-            $empbios = collect($this->service->get_employees(["page_size" => $empbios_count, "departments" => $department['id']])['data']);
+            $empbios_count = $this->service->get_employees(["department" => $department['id']])["count"];
+            $empbios = collect($this->service->get_employees(["page_size" => $empbios_count, "department" => $department['id']])['data']);
         } else {
             $empbios_count = $this->service->get_employees([])["count"];
             $empbios = collect($this->service->get_employees(["page_size" => $empbios_count])['data']);
@@ -347,7 +347,7 @@ class PrintReportContoller extends Controller
 
                 break;
             } else {
-                $attendance_data['operational']['operational_has_timetable']['status'] = $timetable_operational->status;
+                // $attendance_data['operational']['operational_has_timetable']['status'] = $timetable_operational->status;
 
                 if ($timetable_operational->status == 'active') {
                     if (empty($attendance_data['first_punch'])) {
@@ -361,13 +361,14 @@ class PrintReportContoller extends Controller
                     }
                 } else {
                     if (empty($attendance_data['first_punch'])) {
-                        // OPERATIONAL SUDAH SEASUAI
+                        // OPERATIONAL SUDAH SESUAI
                         $attendance_data['operational_status'] = 'valid';
                         $attendance_data['attendance_lb_status'] = 'accept';
                         $attendance_data['operational_note'] = 'Sudah sesuai, karena (OPERATIONAL DILIBURKAN DAN KARYAWAN TIDAK MASUK)';
                         break;
                     } else {
                         // OPERATIONAL TIDAK SESUAI OPERASIONAL LIBUR TAPI KARYAWAN MASUK
+                        $attendance_data['operational_status'] = 'invalid';
                         $attendance_data['operational_status'] = false;
                         $attendance_data['operational_note'] = 'Operasional diliburkan, tetapi karyawan masuk';
                     }
@@ -452,7 +453,7 @@ class PrintReportContoller extends Controller
                     $attendance['value_string'] = '-';
                 }
             }
-        } else if ($attendance['JL'] == 0 && $attendance['HK'] == 0 && $attendance['lb_status']['type'] == 'given') {
+        } else if ($attendance['JL'] == 0 && $attendance['HK'] == 0 && $attendance['attendance_lb_status'] == 'given') {
             $attendance['value_string'] = 'LB';
         } else if ($attendance['JL'] == 0 && $attendance['HK'] == 0 && $attendance['is_holiday']) {
             $attendance['value_string'] = '';
@@ -475,7 +476,7 @@ class PrintReportContoller extends Controller
         Carbon $end_date_work_day,
         Carbon $start_date_overtime,
         Carbon $end_date_overtime,
-        string|null $deparment_code,
+        string|null $department_code,
     ) {
         try {
             $datas = collect();
@@ -507,9 +508,10 @@ class PrintReportContoller extends Controller
                     $end_date_overtime->copy()
                 );
 
-                if ($deparment_code) {
-                    $department_query = collect($this->service->get_departments(["dept_code" => $deparment_code])['data']);
-                    $deparment_code = $deparment_code;
+                if ($department_code) {
+                    $department_query = collect($this->service->get_departments(["dept_code" => $department_code])['data'])->first();
+                    $departmentbios = collect($this->service->get_departments(["page_size" => 999])['data']);
+                    $department_code = $department_code;
                 } else {
                     $departmentbios = collect($this->service->get_departments(["page_size" => 999])['data']);
                 }
@@ -532,7 +534,7 @@ class PrintReportContoller extends Controller
 
                 // GET SHIFTS
                 $shifts = Shift::where('business_id', $business_id);
-                if (!empty($deparment_code)) {
+                if (!empty($department_code)) {
                     $shifts = $shifts->where('dept_id', $department_query['id']);
                 }
                 $shifts  = $shifts->with([
@@ -559,7 +561,7 @@ class PrintReportContoller extends Controller
                                 'attendances' => collect(),
                                 'HK_value' => 0,
                                 'JL_value' => 0,
-                                'food' => 0,
+                                'food_value' => 0,
                                 'kasbon_pay_value' => 0,
                                 'remaining_kasbon_pay_value' => 0,
                                 'salary_pay_value' => 0,
@@ -597,7 +599,7 @@ class PrintReportContoller extends Controller
                                                 'value_string' => '',
                                                 'be_one_shift' => 0,
 
-                                                'food_value' => 0,
+                                                'food' => 0,
                                                 'HK_pay_value' => 0,
                                                 'JL_pay_value' => 0,
                                                 'tbhn_u_libur_pay_value' => 0,
@@ -693,7 +695,7 @@ class PrintReportContoller extends Controller
                                                 // MASUKK KESINI KLO ABSENSI USER DI TANGGAL INI GA ADA
                                             }
 
-                                            $operational_date = $empoperationals->where('date', $date)->first();
+                                            $operational_date = $empoperationals->where('date', $date->format('Y-m-d'))->first();
                                             if (!empty($operational_date)) {
                                                 $attendance_data = $this->checkAttendaceOperational($date, $operational_date, $attendance_data);
                                             } else {
@@ -702,6 +704,8 @@ class PrintReportContoller extends Controller
 
                                             $attendance_tso = AttendanceTso::where('tso_date', $date->format('Y-m-d'))->where('emp_id', $emp['id'])->first();
                                             if (!empty($attendance_tso)) {
+                                                $attendance_data['operational_status'] = 'valid';
+                                                $attendance_data['operational_node'] = 'kehadiran karyawan telah Disetujui';
                                                 $attendance_data['attendance_tso_id'] = $attendance_tso->id;
                                             }
 
@@ -798,13 +802,16 @@ class PrintReportContoller extends Controller
     {
         Log::info('[' . request()->route()->getName() . ']::GET');
         try {
+            $start_date_work_day = null;
+            $end_date_work_day = null;
+            $start_date_overtime = null;
+            $end_date_overtime = null;
             $datas = collect();
             if ($request->has('start_date_work_day') && $request->has('end_date_work_day') && $request->has('start_date_overtime') && $request->has('end_date_overtime')) {
                 $start_date_work_day = Carbon::createFromFormat('d-m-Y', $request['start_date_work_day']);
                 $end_date_work_day = Carbon::createFromFormat('d-m-Y', $request['end_date_work_day']);
                 $start_date_overtime = Carbon::createFromFormat('d-m-Y', $request['start_date_overtime']);
                 $end_date_overtime = Carbon::createFromFormat('d-m-Y', $request['end_date_overtime']);
-
                 $datas = $this->getPayrollAttendanceReport(
                     $start_date_work_day,
                     $end_date_work_day,

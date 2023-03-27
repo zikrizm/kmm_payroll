@@ -112,7 +112,8 @@
     </div> --}}
 
     <div class="w-full h-screen flex overflow-hidden">
-        @if (request()->segment(1) != 'print' && request()->segment(2) != 'register' && request()->segment(1) != 'employee-photo')
+        @if (request()->segment(1) != 'print' && request()->segment(2) != 'register' && request()->segment(1) !=
+        'employee-photo')
         @if (Auth::user())
         @php
         if(isset($_COOKIE['side_menu_is_mini']))
@@ -628,9 +629,9 @@ hover:bg-gray-50
                             </div>
                         </a>
                         @endcan
-                        @can('ot-rice-bill.view')
-                        <a href="{{ route('ot-rice-bill.index') }}" class="flex items-center justify-between p-2.5 rounded-lg w-full hover:underline hover:decoration-gray-500
-                                            @activemenu('ot-rice-bill')
+                        @can('food-archive.view')
+                        <a href="{{ route('food-archive.index') }}" class="flex items-center justify-between p-2.5 rounded-lg w-full hover:underline hover:decoration-gray-500
+                                            @activemenu('food-archive')
 bg-gray-100 active
 @else
 hover:bg-gray-50

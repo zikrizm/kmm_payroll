@@ -23,7 +23,7 @@
             'prefixiconname' => 'calendar',
             ]) !!}
         </div>
-        <x-ui.search-data placeholder="Cari tagihan" url="{{ route('ot-rice-bill.index') }}" />
+        <x-ui.search-data placeholder="Cari tagihan" />
     </div>
     <div class="table-content"></div>
 </div>
@@ -84,7 +84,7 @@
         // **
         // * get table ----->
         // *
-        var res = await ApiService.get_table('/ot-rice-bill', data);
+        var res = await ApiService.get_table('/food-archive', data);
         $('.table-content').html(res);
 
         // **
@@ -97,26 +97,8 @@
         })
     }
 
-    function resetSortTable() {
-        $('.sort-table').each(function(e) {
-            $(this).removeClass('active');
-            $(this).children('.sort-icon').removeClass('rotate-180');
-        })
-    }
-
-    function sort_data(event) {
-        let sortKey = $(event).data('sort-key');
-        let sortUrl = $(event).data('sort-url');
-        let isActive = $(event).hasClass('active');
-
-        // Reset sort table
-        resetSortTable();
-        // Build Data sort table
-        let field = { q: $('.search-data-input').val(), };
-        field.sort = { name: sortKey, order: (isActive) ? 'ASC': 'DESC'}
-        console.log(field)
-        // Get Data sort table
-        onInit(field)
+    async function show(id) {
+        var res = await ApiService.get_modal('/food-archive/'+id, null);
     }
 </script>
 @endsection

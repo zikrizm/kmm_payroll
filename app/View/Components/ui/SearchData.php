@@ -14,7 +14,7 @@ class SearchData extends Component
      *
      * @return void
      */
-    public function __construct($placeholder, $url)
+    public function __construct($placeholder, $url = null)
     {
         $this->placeholder = $placeholder;
         $this->url = $url;

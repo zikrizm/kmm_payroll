@@ -111,9 +111,10 @@ Route::middleware(['auth'])->group(function () {
     // * attendance-operational
     Route::resource('attendance-operational', 'AttenOpReportController', ['except' => ['update', 'show', 'edit']]);
     // * payroll-report
-    Route::resource('payroll-report', 'PayrollReportController', ['except' => ['update', 'show']]);
+    Route::resource('payroll-report', 'PayrollReportController', ['except' => ['update', 'show', 'delete']]);
     // * food-archive
     Route::get('/food-archive', 'FoodArchiveController@index')->name('food-archive.index');
+    Route::get('/food-archive/{id}', 'FoodArchiveController@show')->name('food-archive.show');
 
     // Route::resource('additional-employee', 'AdditionalEmployeeController', ['except' => ['update']]);
     // Route::post('/additional-employee/{additional_employee}', 'AdditionalEmployeeController@update')->name('additional-employee.update');

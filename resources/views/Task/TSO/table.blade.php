@@ -6,11 +6,22 @@
                     <th class='text-left'>
                         <div class='flex items-center'>
                             <div class='pl-4 py-2 flex items-center'>
-                                {!! FormCustom::checkbox(null, true, ['class' => 'select-all-card']) !!}
+                                <div class="flex items-center justify-center relative">
+                                    <input type='checkbox' onchange="selectAllAttendance(this)"
+                                        class="min-h-[16px] min-w-[16px] w-4 h-4 opacity-0 z-10 peer cursor-pointer" />
+                                    <span
+                                        class="absolute min-h-[16px] min-w-[16px] w-4 h-4 border border-gray-300 rounded cursor-pointer
+                                        flex items-center justify-center peer-checked:border-violet-600 invisible peer-checked:visible">
+                                        <x-icon icon="check" width=12 height=12 viewBox="20 20" />
+                                    </span>
+                                    <span class="absolute min-h-[16px] min-w-[16px] w-4 h-4 border border-gray-300 rounded
+                                         visible peer-checked:invisible cursor-pointer">
+                                    </span>
+                                </div>
                             </div>
                             <div class='pl-6 pr-3 py-3 cursor-pointer flex-1'>
-                                <x-ui.sort-table text="Tanggal absensi dan Waktu absensi"
-                                    url="{{ route('request-task.index') }}" field="ots_date" />
+                                <p class="text-xs font-medium text-gray-500 truncate">Tanggal absensi dan Waktu absensi
+                                </p>
                             </div>
                         </div>
                     </th>
@@ -29,30 +40,45 @@
                     <th class='px-3 py-3 text-center'>
                         <p class="text-xs font-medium text-gray-500 truncate">Status</p>
                     </th>
-                    @canany(['approved-employee-TSO.approved'])
+                    {{-- @canany(['attendance-tso.approved']) --}}
                     <th class='px-3 py-3 text-left text-gray-500 text-xs font-medium'></th>
-                    @endcanany
+                    {{-- @endcanany --}}
                 </tr>
             </thead>
             <tbody>
-                {{-- @foreach ($employee_tso_datas['data'] as $item)
-                <tr class='hover:bg-gray-50 border-b border-gray-200'>
+                @foreach ($attendance_tsos as $item)
+                <tr class='hover:bg-gray-50 border-b border-gray-200' data-tso-item>
                     <td class='text-left'>
                         <div class="flex items-center">
                             <div class="pl-4 py-2">
-                                @if ($item['is_approved'])
+                                @if ($item['attendance_tso_id'])
                                 <span class="min-h-[16px] min-w-[16px] w-4 h-4 block"></span>
                                 @else
-                                <input type="hidden" name="for" value="{{ $item['timetable']['status']['for'] }}">
                                 <input type="hidden" name="emp_id" value="{{ $item['employee']['id'] }}">
-                                <input type="hidden" name="date" value="{{ $item['date'] }}">
                                 <input type="hidden" name="dept_id" value="{{ $item['employee']['department']['id'] }}">
-                                {!! FormCustom::checkbox(null, true, ['class' => 'select-card']) !!}
+                                <input type="hidden" name="tso_date" value="{{ $item['date'] }}">
+                                <input type="hidden" name="first_punch" value="{{ $item['first_punch'] }}">
+                                <input type="hidden" name="last_punch" value="{{ $item['last_punch'] }}">
+                                <input type="hidden" name="operational_id" value="{{ $item['operational_id'] }}">
+                                <input type="hidden" name="timetable_id"
+                                    value="{{ !empty($item['timetable'])? $item['timetable']['id'] : null }}">
+                                <div class="flex items-center justify-center relative">
+                                    <input type='checkbox' onchange="selectAttendance()" data-checkbox-tso-item
+                                        class="min-h-[16px] min-w-[16px] w-4 h-4 opacity-0 z-10 peer cursor-pointer" />
+                                    <span
+                                        class="absolute min-h-[16px] min-w-[16px] w-4 h-4 border border-gray-300 rounded cursor-pointer
+                                        flex items-center justify-center peer-checked:border-violet-600 invisible peer-checked:visible">
+                                        <x-icon icon="check" width=12 height=12 viewBox="20 20" />
+                                    </span>
+                                    <span class="absolute min-h-[16px] min-w-[16px] w-4 h-4 border border-gray-300 rounded
+                                         visible peer-checked:invisible cursor-pointer">
+                                    </span>
+                                </div>
                                 @endif
                             </div>
                             <div class="flex-1 flex gap-3 items-center pl-6 pr-3 py-3">
                                 <div
-                                    class="flex gap-3 items-center {{ $item['timetable']['is_holiday'] ? 'text-red-500' : 'text-gray-500' }} text-sm">
+                                    class="flex gap-3 items-center {{ $item['is_holiday'] ? 'text-red-500' : 'text-gray-500' }} text-sm">
                                     <x-icon icon="calendar" width=18 height=18 viewBox="20 20" />
                                     <p class="flex truncate items-center text-sm">
                                         {{ date('d-m-Y', strtotime($item['date'])) }}
@@ -83,56 +109,94 @@
                             </div>
                         </div>
                     </td>
-                    <td class='px-3 py text-gray-500 text-sm'>
+                    <td class='px-3 py-3 text-gray-500 text-sm'>
                         <p class="text-gray-500 text-sm truncate">
-                            {{ $item['employee']['first_name'] ??'' }} {{ $item['employee']['last_name'] ??'' }}
+                            {{ $item['employee']['first_name'] ?? '' }} {{ $item['employee']['last_name'] ??'' }}
                         </p>
                     </td>
-                    <td class='px-3 py text-gray-500 text-sm'>
+                    <td class='px-3 py-3 text-gray-500 text-sm'>
                         <p class="text-gray-500 text-sm truncate">
                             {{ $item['employee']['department']['dept_name'] ?? '-' }}
                         </p>
                     </td>
-                    <td class='px-3 py text-gray-500 text-sm'>
-                        @if (!empty($item['timetable']['name']))
+                    <td class='px-3 py-3 text-gray-500 text-sm'>
+                        @if (!empty($item['timetable']))
                         <p class="truncate">{{ $item['timetable']['name'] }}</p>
                         @else
                         <p class="text-center">-</p>
                         @endif
                     </td>
-                    <td class='px-3 py text-gray-500 text-sm min-w-[240px]'>
-                        <p>{{ $item['noted']??'' }}</p>
+                    <td class='px-3 py-3 text-gray-500 text-sm min-w-[240px]'>
+                        <p>{{ $item['operational_note']??'' }}</p>
                     </td>
-                    <td class='px-3 py text-gray-500 text-sm'>
-                        @if (!empty($item['timetable']['status']))
+                    <td class='px-3 py-3 text-gray-500 text-sm'>
                         <div class="flex items-center justify-center gap-1">
-                            @if ($item['is_approved'] && $item['timetable']['status']['for'] == 'TSO')
+                            @if ($item['attendance_tso_id'] || $item['operational_status'] == 'valid')
                             <x-icon icon="check" class="text-green-600" width=12 height=12 viewBox="20 20" />
                             @else
-                            @if ($item['timetable']['status']['slug'] == 'LB')
+                            @if ($item['attendance_lb_status'] == 'accept')
                             <p class="text-gray-500">LB</p>
                             @endif
-                            @if ($item['timetable']['status']['slug'] == 'not-setting')
-                            <p class="text-blue-500">!</p>
-                            @endif
-                            @if ($item['timetable']['status']['slug'] == 'not-allowed')
+                            @if ($item['operational_status'] == 'invalid')
                             <x-icon icon="x" class="text-red-500" width=12 height=12 viewBox="20 20" />
                             @endif
-                            @if ($item['timetable']['status']['slug'] == 'check')
-                            <x-icon icon="check" class="text-green-600" width=12 height=12 viewBox="20 20" />
-                            @endif
-                            @if ($item['timetable']['status']['slug'] == 'plusmn')
-                            <p class="text-gray-500">{{ $item['timetable']['status']['value'] }}</p>
+                            @if (!empty($item['operational_plusm_value']))
+                            <p class="text-gray-500">{{ $item['operational_plusm_value'] }}</p>
                             @endif
                             @endif
                         </div>
-                        @else
-                        @endif
                     </td>
-                    @canany(['approved-employee-TSO.approved'])
-                    <td class='px-3 py'>
-                        <div class="flex justify-center w-full">
-                            @if ($item['timetable']['status']['for'] == 'cancel-LB')
+                    {{-- @canany(['attendance-tso.approved', 'attendance-lb.set-status']) --}}
+                    <td class='px-3 py-3'>
+                        <div class="flex justify-center items-center gap-2.5 w-full">
+                            @if (!empty($item['attendance_lb_id']) && $item['attendance_lb_status'] == 'cancel')
+                            <button disabled
+                                class="truncate flex items-center gap-2.5 px-2 py-1 text-gray-500 text-sm font-medium flex items-center border border-gray-200 shadow-sm rounded-lg cursor-not-allowed"
+                                style="opacity: 0.5;">
+                                <x-icon icon="x" width=16 height=16 viewBox="20 20" />
+                                Tidak dapat LB
+                            </button>
+                            @elseif (!empty($item['attendance_lb_id']) && $item['attendance_lb_status'] == 'cancel')
+                            <button disabled
+                                class="truncate flex items-center gap-2.5 px-2 py-1 text-gray-500 text-sm font-medium flex items-center border border-gray-200 shadow-sm rounded-lg cursor-not-allowed"
+                                style="opacity: 0.5;">
+                                <x-icon icon="check" width=16 height=16 viewBox="20 20" />
+                                Dapat LB
+                            </button>
+                            @elseif($item['attendance_lb_status'] == 'accept')
+                            <button
+                                class="truncate flex items-center gap-2.5 px-2 py-1 text-gray-500 text-sm font-medium flex items-center border border-gray-200 shadow-sm rounded-lg ">
+                                <input type="hidden" name="action" value="cancel-lb">
+                                <x-icon icon="x" width=16 height=16 viewBox="20 20" />
+                                Tidak dapat LB
+                            </button>
+                            @elseif(empty($item['first_punch']))
+                            <button
+                                class="truncate flex items-center gap-2.5 px-2 py-1 text-gray-500 text-sm font-medium flex items-center border border-gray-200 shadow-sm rounded-lg ">
+                                <input type="hidden" name="action" value="accept-lb">
+                                <x-icon icon="check" width=16 height=16 viewBox="20 20" />
+                                Dapat LB
+                            </button>
+                            @endif
+                            @if ($item['attendance_tso_id'])
+                            <button disabled
+                                class="truncate flex items-center gap-2.5 px-2 py-1 text-gray-500 text-sm font-medium flex items-center border border-gray-200 shadow-sm rounded-lg cursor-not-allowed"
+                                style="opacity: 0.5;">
+                                <x-icon icon="check" width=16 height=16 viewBox="20 20" />
+                                Disetujui
+                            </button>
+                            @else
+                            <button
+                                class="truncate flex items-center gap-2.5 px-2 py-1 text-gray-500 text-sm font-medium flex items-center border border-gray-200 shadow-sm rounded-lg ">
+                                <input type="hidden" name="action" value="approved-tso">
+                                <x-icon icon="check" width=16 height=16 viewBox="20 20" />
+                                Disetujui
+                            </button>
+                            @endif
+
+
+
+                            {{-- @if ($item['timetable']['status']['for'] == 'cancel-LB')
                             @if ($item['is_approved'])
                             <button disabled
                                 class="truncate flex items-center gap-2.5 px-2 py-1 text-gray-500 text-sm font-medium flex items-center border border-gray-200 shadow-sm rounded-lg cursor-not-allowed"
@@ -193,16 +257,16 @@
                                 Disetujui
                             </button>
                             @endif
-                            @endif
+                            @endif --}}
                         </div>
                     </td>
-                    @endcanany
+                    {{-- @endcanany --}}
                 </tr>
-                @endforeach --}}
+                @endforeach
             </tbody>
         </table>
     </div>
-    <footer class='flex justify-between items-center px-6 pt-3 pb-4'>
+    {{-- <footer class='flex justify-between items-center px-6 pt-3 pb-4'>
         <div class="flex items-center gap-3">
             <select class="select2-page w-14" name="" id="">
                 <option value="10" @selected($page_size=="10" )>10</option>
@@ -225,5 +289,5 @@
                 class='pagination-button px-3.5 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50'>Next</button>
             @endif
         </div>
-    </footer>
+    </footer> --}}
 </main>

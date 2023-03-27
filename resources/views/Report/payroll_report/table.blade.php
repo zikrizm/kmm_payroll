@@ -1,4 +1,4 @@
-@foreach ($datas as $data)
+@forelse ($datas as $data)
 <div class="">
     <div class="flex items-start justify-between pl-10 pr-20">
         <div class="border pl-2 pr-6 py-1">
@@ -241,8 +241,7 @@
                     </tr>
                     <tr class='border-black'>
                         <td colspan="{{ count($data['range_dates']) + 8 }}"></td>
-                        <td colspan="2"
-                            class='border px-3 py-2 text-gray-500 text-xs bg-gray-200 grand-total-bg-color'>
+                        <td colspan="2" class='border px-3 py-2 text-gray-500 text-xs bg-gray-200 grand-total-bg-color'>
                             <div class="flex items-center justify-between">
                                 <p class="truncate text-right">Total: </p>
                                 <p class="truncate text-right">
@@ -259,4 +258,17 @@
             </table>
         </div>
     </main>
-    @endforeach
+</div>
+@empty
+<div class="h-full w-full flex justify-center items-center">
+    <div class="flex flex-col items-start justify-start gap-4">
+        <span>
+            <x-icon icon="alert-triangle" width=50 height=50 viewBox="20 20" />
+        </span>
+        <div class="text-left">
+            <p class="text-2xl font-semibold">Laporan tidak ada</p>
+            <p>Silahkan pilih bagian lainnya</p>
+        </div>
+    </div>
+</div>
+@endforelse

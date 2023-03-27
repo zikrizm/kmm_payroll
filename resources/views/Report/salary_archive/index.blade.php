@@ -16,13 +16,13 @@
     <div class="flex justify-between gap-2.5">
         <div class="w-72">
             {!! FormCustom::input('selected_date', null, [
-            'placeholder' => 'Pilih tanggal penggajian',
+            'placeholder' => 'Pilih tanggal arsip',
             'class' => 'date_input',
             'readonly' => true,
             'prefixiconname' => 'calendar',
             ]) !!}
         </div>
-        <x-ui.search-data placeholder="Cari penggajian" url="{{ route('salary-archive.index') }}" />
+        <x-ui.search-data placeholder="Cari arsip" url="{{ route('salary-archive.index') }}" />
     </div>
     <div class="table-content"></div>
 </div>

@@ -259,6 +259,7 @@ class DepartmentController extends Controller
         }
 
         try {
+            Department::where('dept_id', $department)->delete();
             $res = $this->apiService->delete_department($department);
 
             // ** create activity log user

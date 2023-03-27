@@ -5,8 +5,7 @@
                 <th class='text-left'>
                     <div class='flex items-center'>
                         <div class='pl-6 pr-3 py-3 cursor-pointer flex-1'>
-                            <x-ui.sort-table text="Tanggal penggajian" url="{{ route('salary-archive.index') }}"
-                                field="ots_date" order="{{ $order }}" />
+                            <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Tanggal penggajian</p>
                         </div>
                     </div>
                 </th>
@@ -16,7 +15,7 @@
                 <th class='px-3 py-3 text-left cursor-pointer'>
                     <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Bagian</p>
                 </th>
-                <th class='px-3 py-3 text-center text-gray-500 text-xs font-medium'>Action</th>
+                <th class='px-3 py-3 text-center text-gray-500 text-xs font-medium'></th>
             </tr>
         </thead>
         <tbody>
@@ -63,14 +62,14 @@
                             <x-icon icon="detail" width=16 height=16 viewBox="20 20" />
                             <p class="text-xs">Detail</p>
                         </button>
-                        {{-- @canany(['salary-archive.create'])
+                        {{-- @canany(['salary-archive.re-calculate']) --}}
                         <button
                             class='px-2.5 py-1.5 cursor-pointer text-gray-500 edit-btn flex items-center gap-2 border rounded-lg shadow'
                             onclick="re_calculation('{{ $item->id }}')">
                             <x-icon icon="calculator" width=14 height=14 viewBox="20 20" />
                             <p class="text-xs">Re-calculation</p>
                         </button>
-                        @endcanany --}}
+                        {{-- @endcanany --}}
                     </div>
 
                 </td>
