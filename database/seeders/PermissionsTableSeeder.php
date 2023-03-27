@@ -109,7 +109,8 @@ class PermissionsTableSeeder extends Seeder
 
             ['name' => 'salary-archive.view'],
             ['name' => 'salary-archive.create'],
-            ['name' => 'ot-rice-bill.view'],
+            ['name' => 'salary-archive.calculate'],
+            ['name' => 'food-archive.view'],
             ['name' => 'business_settings.access'],
         ];
 

@@ -58,7 +58,7 @@ class TSOController extends Controller
                     $start_date_overtime = Carbon::createFromFormat('d-m-Y', $request['start_date'])->subDays($business->pending_day);
                     $end_date_overtime = Carbon::createFromFormat('d-m-Y', $request['end_date'])->subDays($business->pending_day);
 
-                    $datas = app(PrintReportContoller::class)->getAttendanceData(
+                    $datas = app(PrintReportContoller::class)->getPayrollAttendanceReport(
                         $start_date_work_day,
                         $end_date_work_day,
                         $start_date_overtime,
@@ -67,15 +67,6 @@ class TSOController extends Controller
                     );
 
                     Log::info($datas);
-
-                    // foreach ($datas as $data) {
-                    //     foreach ($data['attendance_reports'] as $report) {
-                    //         $report['attendances'] = $report['attendances']->map(function ($e) {
-                    //             return app(PrintReportContoller::class)->buildValueHtml($e);
-                    //         });
-                    //     }
-                    // }
-
                 }
             }
 

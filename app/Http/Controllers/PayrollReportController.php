@@ -4,16 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Utils\Util;
 use App\Models\Business;
+use App\Models\FoodBillArchive;
 use App\Utils\ResponseUtil;
 use Illuminate\Http\Request;
 use App\Models\SalaryArchive;
 use Illuminate\Support\Carbon;
 use App\Models\SalaryArchiveEmp;
 use App\Services\Api\ApiServices;
-use App\Models\SalaryArchiveEmpAtt;
-use App\Models\SalaryArchiveEmpAttLb;
-use App\Models\SalaryArchiveEmpAttOp;
-use App\Models\SalaryArchiveEmpAttTso;
+use App\Models\SalaryArchiveEmpAttendance;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Session;
 
@@ -66,21 +64,13 @@ class PayrollReportController extends Controller
                     $start_date_overtime = Carbon::createFromFormat('d-m-Y', $request['start_date'])->subDays($business->pending_day);
                     $end_date_overtime = Carbon::createFromFormat('d-m-Y', $request['end_date'])->subDays($business->pending_day);
 
-                    $datas = app(PrintReportContoller::class)->getAttendanceData(
+                    $datas = app(PrintReportContoller::class)->getPayrollAttendanceReport(
                         $start_date_work_day,
                         $end_date_work_day,
                         $start_date_overtime,
                         $end_date_overtime,
                         $deparment_code,
                     );
-
-                    foreach ($datas as $data) {
-                        foreach ($data['attendance_reports'] as $report) {
-                            $report['attendances'] = $report['attendances']->map(function ($e) {
-                                return app(PrintReportContoller::class)->buildValueHtml($e);
-                            });
-                        }
-                    }
 
                     $render = view('report.payroll_report.table', compact('datas', 'start_date_work_day', 'end_date_work_day', 'start_date_overtime', 'end_date_overtime'))->render();
                     return $this->buildRes->RESPONSE_REQ('success', $render, null);
@@ -141,8 +131,6 @@ class PayrollReportController extends Controller
         try {
             $datas = collect([]);
             $deparment_code = null;
-            $start_date = null;
-            $end_date = null;
 
             $business_id = Session::get('business_id');
             $business = Business::where('id', $business_id)->select('id', 'pending_day')->first();
@@ -152,15 +140,12 @@ class PayrollReportController extends Controller
             }
 
             if ($request->has('start_date') && $request->has('end_date')) {
-                $start_date = Carbon::createFromFormat('d-m-Y', $request['start_date']);
-                $end_date = Carbon::createFromFormat('d-m-Y', $request['end_date']);
-
                 $start_date_work_day = Carbon::createFromFormat('d-m-Y', $request['start_date']);
                 $end_date_work_day = Carbon::createFromFormat('d-m-Y', $request['end_date']);
                 $start_date_overtime = Carbon::createFromFormat('d-m-Y', $request['start_date'])->subDays($business->pending_day);
                 $end_date_overtime = Carbon::createFromFormat('d-m-Y', $request['end_date'])->subDays($business->pending_day);
 
-                $datas = app(PrintReportContoller::class)->getAttendanceData(
+                $datas = app(PrintReportContoller::class)->getPayrollAttendanceReport(
                     $start_date_work_day,
                     $end_date_work_day,
                     $start_date_overtime,
@@ -169,6 +154,7 @@ class PayrollReportController extends Controller
                 );
 
                 foreach ($datas as $data) {
+                    // SALARY
                     $salary_archive = new SalaryArchive([
                         'business_id' => $business_id,
                         'start_date' => $data['start_date'],
@@ -191,60 +177,67 @@ class PayrollReportController extends Controller
                         'created_user' => auth()->user()->id,
                         'updated_user' => auth()->user()->id,
                     ]);
+
                     foreach ($data['attendance_reports'] as $report) {
                         $salary_archive_emp = new SalaryArchiveEmp([
                             'salary_archive_id' => $salary_archive->id,
-                            'HK_value' => $data['HK_value'],
-                            'JL_value' => $data['JL_value'],
-                            'emp_id' => $data['employee']['id'],
-                            'emp_code' => $data['employee']['emp_code'],
-                            'first_name' =>  $data['employee']['first_name'],
-                            'last_name' =>  $data['employee']['last_name'],
-                            'photo' =>  $data['employee']['photo'],
-                            'kasbon_pay_value' => $data['kasbon_pay_value'],
-                            'remaining_kasbon_pay_value' => $data['remaining_kasbon_pay_value'],
-                            'salary_pay_value' => $data['salary_pay_value'],
-                            'overtime_pay_value' => $data['overtime_pay_value'],
-                            'tbhn_u_position_pay_value' => $data['tbhn_u_position_pay_value'],
-                            'tbhn_u_libur_pay_value' => $data['tbhn_u_libur_pay_value'],
-                            'total_pay_value' => $data['total_pay_value'],
+                            'HK_value' => $report['HK_value'],
+                            'JL_value' => $report['JL_value'],
+                            'emp_id' => $report['employee']['id'],
+                            'emp_code' => $report['employee']['emp_code'],
+                            'first_name' =>  $report['employee']['first_name'],
+                            'last_name' =>  $report['employee']['last_name'],
+                            'photo' =>  $report['employee']['photo'],
+                            'kasbon_pay_value' => $report['kasbon_pay_value'],
+                            'remaining_kasbon_pay_value' => $report['remaining_kasbon_pay_value'],
+                            'salary_pay_value' => $report['salary_pay_value'],
+                            'overtime_pay_value' => $report['overtime_pay_value'],
+                            'tbhn_u_position_pay_value' => $report['tbhn_u_position_pay_value'],
+                            'tbhn_u_libur_pay_value' => $report['tbhn_u_libur_pay_value'],
+                            'total_pay_value' => $report['total_pay_value'],
                         ]);
                         foreach ($report['attendances'] as $attendance) {
-                            $salary_archive_emp_att = new SalaryArchiveEmpAtt([
+                            $salary_archive_emp_attendance = new SalaryArchiveEmpAttendance([
                                 'salary_archive_emp_id' => $salary_archive_emp->id,
-                                'timetable_id' => (!empty($data['timetable'])) ? $data['timetable']['id'] : null,
-                                'attendance_date' => $data['attendance_date'],
-                                'first_punch' => $data['first_punch'],
-                                'last_punch' => $data['last_punch'],
-                                'JL' => $data['JL'],
-                                'HK' => $data['HK'],
-                                'be_one_shift' => $data['be_one_shift'],
-                                'HK_pay_value' => $data['HK_pay_value'],
-                                'JL_pay_value' => $data['JL_pay_value'],
-                                'tbhn_u_libur_pay_value' => $data['tbhn_u_libur_pay_value'],
-                                'be_one_shift' => $data['be_one_shift'],
-                                'is_holiday' => $data['is_holiday'],
-                                'is_addition_date' => $data['is_addition_date'],
-                                'is_counting_salary' => $data['is_counting_salary'],
-                                'is_counting_overtime' => $data['is_counting_overtime'],
+                                'timetable_id' => (!empty($attendance['timetable'])) ? $attendance['timetable']['id'] : null,
+                                'operational_id' => $attendance['operational_id'],
+                                'operational_has_timetable_id' => $attendance['operational_has_timetable_id'],
+                                'operational_plusm_value' => $attendance['operational_plusm_value'],
+                                'operational_status' => $attendance['operational_status'],
+                                'operational_note' => $attendance['operational_note'],
+                                'attendance_tso_id' => $attendance['attendance_tso_id'],
+                                'attendance_lb_id' => $attendance['attendance_lb_id'],
+                                'attendance_lb_status' => $attendance['attendance_lb_status'],
+
+                                'attendance_date' => $attendance['date'],
+                                'value_string' => $attendance['value_string'],
+                                'first_punch' => $attendance['first_punch'],
+                                'last_punch' => $attendance['last_punch'],
+                                'JL' => $attendance['JL'],
+                                'HK' => $attendance['HK'],
+                                'be_one_shift' => $attendance['be_one_shift'],
+                                'HK_pay_value' => $attendance['HK_pay_value'],
+                                'JL_pay_value' => $attendance['JL_pay_value'],
+                                'tbhn_u_libur_pay_value' => $attendance['tbhn_u_libur_pay_value'],
+                                'be_one_shift' => $attendance['be_one_shift'],
+                                'is_holiday' => $attendance['is_holiday'],
+                                'is_addition_date' => $attendance['is_addition_date'],
+                                'is_counting_salary' => $attendance['is_counting_salary'],
+                                'is_counting_overtime' => $attendance['is_counting_overtime'],
                             ]);
 
-                            $salary_archive_emp_att_op = new SalaryArchiveEmpAttOp([
-                                'salary_archive_emp_att_id' => $salary_archive_emp_att->id,
-                                'operational_id' => (!empty($data['operational'])) ? $data['operational']['id'] : null,
-                                'status' => (!empty($data['operational'])) ? $data['operational']['status'] : null,
-                                'plusm_value' => (!empty($data['operational'])) ? $data['operational']['plusm_value'] : null,
-                                'note' => (!empty($data['operational'])) ? $data['operational']['note'] : null,
-                            ]);
-                            $salary_archive_emp_att_lb = new SalaryArchiveEmpAttLb([
-                                'salary_archive_emp_att_id' => $salary_archive_emp_att->id,
-                                'attendance_lb_id' => (!empty($data['lb_status'])) ? $data['lb_status']['id'] : null,
-                                'attendance_lb_date' => (!empty($data['lb_status'])) ? $data['lb_status']['ld_date'] : null,
-                                'note' => (!empty($data['lb_status'])) ? $data['lb_status']['note'] : null,
-                            ]);
-                            $salary_archive_emp_att_tso = new SalaryArchiveEmpAttTso([
-                                'salary_archive_emp_att_id' => $salary_archive_emp_att->id,
-                                'attendance_tso_id' => (!empty($data['tso'])) ? $data['tso']['id'] : null,
+                            // FOOD
+                            $food_archive = new FoodBillArchive([
+                                'food_date' => $attendance['date'],
+                                'dept_id' => $data['department']['id'],
+                                'dept_code' => $data['department']['dept_code'],
+                                'dept_name' =>  $data['department']['dept_name'],
+                                'emp_id' => $report['employee']['id'],
+                                'emp_code' => $report['employee']['emp_code'],
+                                'first_name' =>  $report['employee']['first_name'],
+                                'last_name' =>  $report['employee']['last_name'],
+                                'photo' =>  $report['employee']['photo'],
+                                'total' => $attendance['food'],
                             ]);
                         }
                     }

@@ -15,12 +15,16 @@ return new class extends Migration
     {
         Schema::create('food_bill_archives', function (Blueprint $table) {
             $table->increments('id');
-            $table->date('start_date');
-            $table->date('end_date');
+            $table->date('food_date');
             $table->integer('dept_id');
             $table->string('dept_code');
             $table->string('dept_name');
-            $table->decimal('quantity', 22)->nullable();
+            $table->integer('emp_id');
+            $table->string('emp_code');
+            $table->string('first_name');
+            $table->string('last_name')->nullable();
+            $table->string('photo')->nullable();
+            $table->decimal('total', 22)->nullable();
             $table->timestamps();
         });
     }

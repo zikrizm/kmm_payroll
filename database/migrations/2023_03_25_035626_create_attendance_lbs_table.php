@@ -23,7 +23,7 @@ return new class extends Migration
             $table->integer('dept_id');
             $table->string('dept_code');
             $table->string('dept_name');
-            $table->enum('lb_type',['accept','cancel']);
+            $table->enum('lb_status', ['accept', 'cancel']);
             $table->date('lb_date');
             $table->dateTime('first_punch')->nullable();
             $table->dateTime('last_punch')->nullable();

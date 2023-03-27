@@ -419,7 +419,7 @@ class PrintController extends Controller
                                             'JL' => 0,
                                             'HK' => 0,
 
-                                            'value_html' => '',
+                                            'value_string' => '',
                                             'be_one_shift' => 0,
 
                                             'HK_pay_value' => 0,
@@ -793,59 +793,59 @@ class PrintController extends Controller
             if ($attendance['is_counting_salary'] && $attendance['is_counting_overtime']) {
                 if ($attendance['HK'] == 0.5) {
                     if ($attendance['JL'] > 0) {
-                        $attendance['value_html'] =  '1/2 (' . $attendance['JL'] . ')';
+                        $attendance['value_string'] =  '1/2 (' . $attendance['JL'] . ')';
                     } else {
-                        $attendance['value_html'] = '1/2';
+                        $attendance['value_string'] = '1/2';
                     }
 
                     if ($attendance['lb_status']['type'] == 'given') {
-                        $attendance['value_html'] += ' LB';
+                        $attendance['value_string'] += ' LB';
                     }
                 } else if ($attendance['HK'] > 0.5) {
-                    $attendance['value_html'] = (string)($attendance['JL']);
+                    $attendance['value_string'] = (string)($attendance['JL']);
                     if ($attendance['lb_status']['type'] == 'given') {
-                        $attendance['value_html'] += ' LB';
+                        $attendance['value_string'] += ' LB';
                     }
                 } else {
-                    $attendance['value_html'] = 'X';
+                    $attendance['value_string'] = 'X';
                 }
             } else if ($attendance['is_counting_salary']) {
                 if ($attendance['HK'] == 0.5) {
                     if ($attendance['JL'] > 0) {
-                        $attendance['value_html'] = '1/2';
+                        $attendance['value_string'] = '1/2';
                     } else {
-                        $attendance['value_html'] =  '1/2 (' . $attendance['JL'] . ')';
+                        $attendance['value_string'] =  '1/2 (' . $attendance['JL'] . ')';
                     }
 
                     if ($attendance['lb_status']['type'] == 'given') {
-                        $attendance['value_html'] += ' LB';
+                        $attendance['value_string'] += ' LB';
                     }
                 } else if ($attendance['HK'] > 0.5) {
-                    $attendance['value_html'] = '';
+                    $attendance['value_string'] = '';
                 } else {
-                    $attendance['value_html'] = 'X';
+                    $attendance['value_string'] = 'X';
                 }
             } else if ($attendance['is_counting_overtime']) {
                 if ($attendance['HK'] > 0) {
-                    $attendance['value_html'] = (string)($attendance['JL']);
+                    $attendance['value_string'] = (string)($attendance['JL']);
                     if ($attendance['lb_status']['type'] == 'given') {
-                        $attendance['value_html'] += ' LB';
+                        $attendance['value_string'] += ' LB';
                     }
                 } else {
-                    $attendance['value_html'] = '-';
+                    $attendance['value_string'] = '-';
                 }
             }
         } else if ($attendance['JL'] == 0 && $attendance['HK'] == 0 && $attendance['lb_status']['type'] == 'given') {
-            $attendance['value_html'] = 'LB';
+            $attendance['value_string'] = 'LB';
         } else if ($attendance['JL'] == 0 && $attendance['HK'] == 0 && $attendance['is_holiday']) {
-            $attendance['value_html'] = '';
+            $attendance['value_string'] = '';
         } else if ($attendance['JL'] == 0 && $attendance['HK'] == 0 && !$attendance['is_holiday']) {
             if ($attendance['is_counting_salary'] && $attendance['is_counting_overtime']) {
-                $attendance['value_html'] = 'X';
+                $attendance['value_string'] = 'X';
             } else if ($attendance['is_counting_salary']) {
-                $attendance['value_html'] = 'X';
+                $attendance['value_string'] = 'X';
             } else if ($attendance['is_counting_overtime']) {
-                $attendance['value_html'] = '-';
+                $attendance['value_string'] = '-';
             }
         }
 

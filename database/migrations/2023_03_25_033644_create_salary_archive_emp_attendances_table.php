@@ -13,13 +13,24 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('salary_archive_emp_atts', function (Blueprint $table) {
+        Schema::create('salary_archive_emp_attendances', function (Blueprint $table) {
             $table->increments('id');
             $table->integer('salary_archive_emp_id')->unsigned();
             $table->foreign('salary_archive_emp_id')->references('id')->on('salary_archive_emps')->onDelete('cascade');
             $table->integer('timetable_id')->nullable()->unsigned();
             $table->foreign('timetable_id')->references('id')->on('timetables')->onDelete('cascade');
+            $table->integer('operational_id')->nullable()->unsigned();
+            $table->foreign('operational_id')->references('id')->on('operationals')->onDelete('cascade');
+            $table->integer('operational_has_timetable_id')->nullable()->unsigned();
+            $table->foreign('operational_has_timetable_id')->references('id')->on('operational_has_timetables')->onDelete('cascade');
+            $table->integer('attendance_tso_id')->nullable()->unsigned();
+            $table->foreign('attendance_tso_id')->references('id')->on('attendance_tsos')->onDelete('cascade');
+            $table->integer('attendance_lb_id')->nullable()->unsigned();
+            $table->foreign('attendance_lb_id')->references('id')->on('attendance_lbs')->onDelete('cascade');
+            $table->enum('attendance_lb_status', ['accept', 'cancel', null])->default(null);
+
             $table->date('attendance_date')->unsigned();
+            $table->text('value_string')->unsigned();
             $table->dateTime('first_punch')->nullable();
             $table->dateTime('last_punch')->nullable();
             $table->decimal('JL', 22)->default(0);
@@ -44,6 +55,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('salary_archive_emp_atts');
+        Schema::dropIfExists('salary_archive_emp_attendances');
     }
 };

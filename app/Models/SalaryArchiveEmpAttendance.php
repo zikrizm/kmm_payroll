@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class OtRiceBill extends Model
+class SalaryArchiveEmpAttendance extends Model
 {
     use HasFactory;
 
@@ -15,12 +15,4 @@ class OtRiceBill extends Model
      * @var array
      */
     protected $guarded = ['id'];
-
-     /**
-     * Get the ot_rice_bill_perdays.
-     */
-    public function ot_rice_bill_perdays()
-    {
-        return $this->hasMany(OtRicebillPerday::class, 'ot_rice_bill_id');
-    }
 }

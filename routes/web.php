@@ -112,17 +112,8 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('attendance-operational', 'AttenOpReportController', ['except' => ['update', 'show', 'edit']]);
     // * payroll-report
     Route::resource('payroll-report', 'PayrollReportController', ['except' => ['update', 'show']]);
-    // * ot-rice-bill
-    Route::get('/ot-rice-bill', 'OtRiceBillController@index')->name('ot-rice-bill.index');
-    Route::get('/ot-rice-bill/{id}', 'OtRiceBillController@show')->name('ot-rice-bill.show');
-
-
-
-
-
-
-
-
+    // * food-archive
+    Route::get('/food-archive', 'FoodArchiveController@index')->name('food-archive.index');
 
     // Route::resource('additional-employee', 'AdditionalEmployeeController', ['except' => ['update']]);
     // Route::post('/additional-employee/{additional_employee}', 'AdditionalEmployeeController@update')->name('additional-employee.update');

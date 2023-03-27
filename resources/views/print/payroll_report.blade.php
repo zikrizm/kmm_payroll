@@ -185,7 +185,7 @@ empty($end_date_overtime))
                             <div class="flex justify-center relative w-full h-full">
                                 <p
                                     class="text-[8px] truncate text-center {{ !empty($attendance['is_holiday']) ? 'text-red-500' : '' }} ">
-                                    {{ $attendance['value_html'] }}
+                                    {{ $attendance['value_string'] }}
                                 </p>
                             </div>
                         </td>

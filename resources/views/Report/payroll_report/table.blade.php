@@ -111,7 +111,7 @@
                             <div class="flex justify-center relative w-full h-full">
                                 <p
                                     class="runcate text-center {{ !empty($attendance['is_holiday']) ? 'text-red-500' : 'text-gray-500' }} ">
-                                    {{ $attendance['value_html'] }}
+                                    {{ $attendance['value_string'] }}
                                 </p>
                             </div>
                         </td>
