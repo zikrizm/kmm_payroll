@@ -15,7 +15,7 @@
                     <p class="text-xl font-semibold text-gray-900">Detail tagihan nasi
                     </p>
                     <p class="text-sm font-normal text-gray-500 xs/max:text-xs">
-                        Lihat karyawan bagian = {{ $food_archive->dept_name }}, yang mendapat nasi.
+                        Lihat karyawan bagian = {{ $food_archive->food_archive_th->dept_name }}, yang mendapat nasi.
                     </p>
                 </div>
             </div>
@@ -26,20 +26,20 @@
         <section class="px-4">
             <p class="text-base text-gray-700 font-medium">Range tanggal nasi</p>
             <p class="text-sm text-gray-500">Range tanggal nasi untuk bagian <span class="font-medium text-gray-700">{{
-                    $food_archive->dept_name }}</span>.</p>
+                    $food_archive->food_archive_th->dept_name }}</span>.</p>
             <hr class="mt-2">
         </section>
         <section>
             <div class="w-full flex items-center justify-between px-4 py-1.5 gap-4 bg-gray-100">
                 <p class="text-sm text-gray-500">Tanggal awal</p>
                 <p class="text-sm text-gray-500">
-                    {{ Carbon\Carbon::parse($food_archive->start_date)->format('d-m-Y'); }}
+                    {{ Carbon\Carbon::parse($food_archive->food_archive_th->start_date)->format('d-m-Y'); }}
                 </p>
             </div>
             <div class="w-full flex items-center justify-between px-4 py-1.5 gap-4">
                 <p class="text-sm text-gray-500">Tanggal akhir</p>
                 <p class="text-sm text-gray-500">
-                    {{ Carbon\Carbon::parse($food_archive->end_date)->format('d-m-Y'); }}
+                    {{ Carbon\Carbon::parse($food_archive->food_archive_th->end_date)->format('d-m-Y'); }}
                 </p>
             </div>
         </section>
@@ -60,19 +60,19 @@
                 </div>
             </section>
             <section>
-                @foreach ($food_archive->food_archive_emps as $item)
-                @foreach ($item->food_archive_emp_attendances as $food_archive_emp_attendance)
-                @if ($food_archive_emp_attendance->total > 0)
+                @foreach ($food_archive->food_archive_td_emps as $item)
+                @foreach ($item->food_archive_td_emp_attendances as $food_archive_td_emp_attendance)
+                @if ($food_archive_td_emp_attendance->total > 0)
                 <div class="w-full flex items-center justify-between px-4 py-1.5">
                     <div class="flex-[2]">
                         <p class="text-sm text-gray-500">{{ $item->first_name ?? '-' }} {{ $iten->last_name ?? '' }}</p>
                     </div>
                     <div class="flex items-center gap-2.5 flex-1">
                         <p class="text-sm text-gray-500">
-                            {{ Carbon\Carbon::parse($food_archive_emp_attendance->food_date)->format('Y-m-d'); }}
+                            {{ Carbon\Carbon::parse($food_archive_td_emp_attendance->food_date)->format('Y-m-d'); }}
                         </p>
                         <button class="text-xs text-gray-500 border px-2 py-1 rounded flex items-center gap-1">
-                            {{ $food_archive_emp_attendance->total ?? 0 }}
+                            {{ $food_archive_td_emp_attendance->total ?? 0 }}
                         </button>
                     </div>
                 </div>

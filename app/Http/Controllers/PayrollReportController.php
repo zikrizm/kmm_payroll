@@ -10,7 +10,6 @@ use App\Models\FoodArchiveTdEmpAttendance;
 use App\Models\FoodArchiveTh;
 use App\Utils\ResponseUtil;
 use Illuminate\Http\Request;
-use App\Models\SalaryArchive;
 use Illuminate\Support\Carbon;
 use App\Models\SalaryArchiveTd;
 use App\Models\SalaryArchiveTh;
@@ -163,20 +162,25 @@ class PayrollReportController extends Controller
 
                 if (count($datas)) {
                     foreach ($datas as $data) {
+
                         // SALARY
-                        $salary_archive_th = new SalaryArchiveTh([
-                            'business_id' => $business_id,
-                            'start_date' => $data['start_date'],
-                            'end_date' => $data['end_date'],
-                            'start_date_work_day' => $data['start_date_work_day'],
-                            'end_date_work_day' =>  $data['end_date_work_day'],
-                            'start_date_overtime' => $data['start_date_overtime'],
-                            'end_date_overtime' => $data['start_date_overtime'],
-                            'dept_id' => $data['department']['id'],
-                            'dept_code' => $data['department']['dept_code'],
-                            'dept_name' =>  $data['department']['dept_name'],
-                        ]);
-                        $salary_archive_th->save();
+                        $salary_archive_th = SalaryArchiveTh::whereDate('start_date_work_day', $data['start_date_work_day'],)->whereDate('end_date_work_day', $data['end_date_work_day'])->where('dept_id', $data['department']['id'])->first();
+                        if (empty($salary_archive_th)) {
+                            $salary_archive_th = new SalaryArchiveTh([
+                                'business_id' => $business_id,
+                                'start_date' => $data['start_date'],
+                                'end_date' => $data['end_date'],
+                                'start_date_work_day' => $data['start_date_work_day'],
+                                'end_date_work_day' =>  $data['end_date_work_day'],
+                                'start_date_overtime' => $data['start_date_overtime'],
+                                'end_date_overtime' => $data['start_date_overtime'],
+                                'dept_id' => $data['department']['id'],
+                                'dept_code' => $data['department']['dept_code'],
+                                'dept_name' =>  $data['department']['dept_name'],
+                            ]);
+                            $salary_archive_th->save();
+                        }
+
                         $salary_archive_td = new SalaryArchiveTd([
                             'salary_archive_th_id' => $salary_archive_th->id,
                             'total_HK_value' => $data['total_HK_value'],
@@ -191,15 +195,20 @@ class PayrollReportController extends Controller
                             'updated_user' => auth()->user()->id,
                         ]);
                         $salary_archive_td->save();
+
                         // FOOD
-                        $food_archive_th = new FoodArchiveTh([
-                            'start_date' => $data['start_date'],
-                            'end_date' => $data['end_date'],
-                            'dept_id' => $data['department']['id'],
-                            'dept_code' => $data['department']['dept_code'],
-                            'dept_name' =>  $data['department']['dept_name'],
-                        ]);
-                        $food_archive_th->save();
+                        $food_archive_th = FoodArchiveTh::whereDate('start_date', $data['start_date'],)->whereDate('end_date', $data['end_date'])->where('dept_id', $data['department']['id'])->first();
+                        if (empty($food_archive_th)) {
+                            $food_archive_th = new FoodArchiveTh([
+                                'start_date' => $data['start_date'],
+                                'end_date' => $data['end_date'],
+                                'dept_id' => $data['department']['id'],
+                                'dept_code' => $data['department']['dept_code'],
+                                'dept_name' =>  $data['department']['dept_name'],
+                            ]);
+                            $food_archive_th->save();
+                        }
+
                         $food_archive_td = new FoodArchiveTd([
                             'food_archive_th_id' => $food_archive_th->id,
                             'total' => $data['total_food_value'],
@@ -209,6 +218,8 @@ class PayrollReportController extends Controller
                         $food_archive_td->save();
 
                         foreach ($data['attendance_reports'] as $report) {
+
+                            // SALARY
                             $salary_archive_td_emp = new SalaryArchiveTdEmp([
                                 'salary_archive_td_id' => $salary_archive_td->id,
                                 'HK_value' => $report['HK_value'],
@@ -226,7 +237,6 @@ class PayrollReportController extends Controller
                                 'tbhn_u_libur_pay_value' => $report['tbhn_u_libur_pay_value'],
                                 'total_pay_value' => $report['total_pay_value'],
                             ]);
-
                             $salary_archive_td_emp->save();
 
                             // FOOD
@@ -242,6 +252,8 @@ class PayrollReportController extends Controller
                             $food_archive_td_emp->save();
 
                             foreach ($report['attendances'] as $attendance) {
+
+                                // SALARY
                                 $salary_archive_td_emp_attendance = new SalaryArchiveTdEmpAttendance([
                                     'salary_td_emp_id' => $salary_archive_td_emp->id,
                                     'timetable_id' => (!empty($attendance['timetable'])) ? $attendance['timetable']['id'] : null,

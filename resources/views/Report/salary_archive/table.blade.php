@@ -10,9 +10,6 @@
                     </div>
                 </th>
                 <th class='px-3 py-3 text-left cursor-pointer'>
-                    <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Tanggal & Waktu kalkulasi</p>
-                </th>
-                <th class='px-3 py-3 text-left cursor-pointer'>
                     <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Bagian</p>
                 </th>
                 <th class='px-3 py-3 text-center text-gray-500 text-xs font-medium'></th>
@@ -38,30 +35,11 @@
                         </div>
                     </div>
                 </td>
-                <td class='text-left'>
-                    <div class="px-3 py flex gap-3 items-center text-gray-500 text-sm"
-                        onclick="get_modal('{{ $item->id }}')">
-                        <x-icon icon="calendar" width=18 height=18 viewBox="20 20" />
-                        <div class="flex items-center gap-2">
-                            <p class="truncate pr-2 border-r-2">
-                                {{ date('d-m-Y', strtotime($item->created_at)) }}
-                            </p>
-                            <p class="truncate">
-                                {{Carbon\Carbon::parse($item->created_at)->timezone('Asia/Jakarta')->format('H:i:s') }}
-                            </p>
-                        </div>
-                    </div>
-                </td>
                 <td class='px-3 py text-gray-500 text-sm'>
                     {{ $item->dept_name }}
                 </td>
                 <td class='px-3 py'>
                     <div class="flex items-center gap-2">
-                        <button onclick="get_detail_salary_modal('{{ $item->id }}')"
-                            class="text-gray-500 flex justify-center items-center gap-2 border rounded-lg shadow px-2.5 py-1.5">
-                            <x-icon icon="detail" width=16 height=16 viewBox="20 20" />
-                            <p class="text-xs">Detail</p>
-                        </button>
                         {{-- @canany(['salary-archive.re-calculate']) --}}
                         <button
                             class='px-2.5 py-1.5 cursor-pointer text-gray-500 edit-btn flex items-center gap-2 border rounded-lg shadow'
@@ -72,6 +50,52 @@
                         {{-- @endcanany --}}
                     </div>
 
+                </td>
+            </tr>
+            <tr>
+                <td colspan="3" class="">
+                    @foreach ($item->salary_archive_tds as $salary_archive_td)
+                    <div class="w-full flex items-center overflow-hidden border-b border-gray-200">
+                        <div class="pl-10 text-gray-500 flex items-center justify-center">
+                            <x-icon icon="corner-down-right" width=16 height=16 viewBox="20 20" />
+                        </div>
+                        <table class='table border-collapse w-full'>
+                            <tbody>
+                                <tr class='hover:bg-gray-50'>
+                                    <td class='text-left'>
+                                        <div class="text-gray-500 px-3 py-1 flex gap-3 items-center text-sm"
+                                            onclick="get_modal('{{ $salary_archive_td->id }}')">
+                                            <p>Tanggal Kalkulasi: </p>
+                                            <div class="flex items-center gap-2">
+                                                <p class="truncate pr-2 border-r-2">
+                                                    {{ date('d-m-Y', strtotime($salary_archive_td->created_at)) }}
+                                                </p>
+                                                <p class="truncate">
+                                                    {{Carbon\Carbon::parse($salary_archive_td->created_at)->timezone('Asia/Jakarta')->format('H:i:s')
+                                                    }}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class='px-3 py-1'>
+                                        <div class="flex items-center justify-end gap-2">
+                                            {{-- <button onclick="get_detail_salary_modal('{{ $item->id }}')"
+                                                class="text-gray-500 flex justify-center items-center gap-2 border rounded-lg shadow px-2.5 py-1.5">
+                                                <x-icon icon="detail" width=16 height=16 viewBox="20 20" />
+                                                <p class="text-xs">Detail</p>
+                                            </button> --}}
+                                            <button onclick="get_detail_salary_modal('{{ $item->id }}')"
+                                                class="text-gray-500 flex justify-center items-center gap-2 border rounded-lg shadow px-2.5 py-1.5">
+                                                <x-icon icon="printer" width=16 height=16 viewBox="20 20" />
+                                                <p class="text-xs">Cetak</p>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    @endforeach
                 </td>
             </tr>
             @endforeach

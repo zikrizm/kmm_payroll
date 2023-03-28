@@ -12,7 +12,6 @@
                 <th class='px-3 py-3 text-left cursor-pointer'>
                     <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Bagian</p>
                 </th>
-                <th class='px-3 py-3 text-left text-gray-500 text-xs font-medium'></th>
             </tr>
         </thead>
         <tbody>
@@ -36,12 +35,49 @@
                     <td class='px-3 py text-gray-500 text-sm'>
                         {{ $item->dept_name }}
                     </td>
-                    <td class='px-3 py text-gray-500 text-sm'>
-                        <button onclick="show('{{ $item->id }}')"
-                            class="text-gray-500 flex justify-center items-center gap-2 border rounded-lg shadow px-2.5 py-1.5">
-                            <x-icon icon="detail" width=16 height=16 viewBox="20 20" />
-                            <p class="text-xs">Detail</p>
-                        </button>
+                </tr>
+                <tr>
+                    <td colspan="2" class="">
+                        @foreach ($item->food_archive_tds as $food_archive_td)
+                        <div class="w-full flex items-center overflow-hidden border-b border-gray-200">
+                            <div class="pl-10 text-gray-500 flex items-center justify-center">
+                                <x-icon icon="corner-down-right" width=16 height=16 viewBox="20 20" />
+                            </div>
+                            <table class='table border-collapse w-full'>
+                                <tbody>
+                                    <tr class='hover:bg-gray-50'>
+                                        <td class='text-left'>
+                                            <div class="text-gray-500 px-3 py-1 flex gap-3 items-center text-sm"
+                                                onclick="get_modal('{{ $food_archive_td->id }}')">
+                                                <p>Tanggal Kalkulasi: </p>
+                                                <div class="flex items-center gap-2">
+                                                    <p class="truncate pr-2 border-r-2">
+                                                        {{ date('d-m-Y', strtotime($food_archive_td->created_at)) }}
+                                                    </p>
+                                                    <p class="truncate">
+                                                        {{Carbon\Carbon::parse($food_archive_td->created_at)->timezone('Asia/Jakarta')->format('H:i:s')
+                                                        }}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class='px-3 py text-gray-500 text-sm'>
+                                            Jumlah nasi: {{ $food_archive_td->total }}
+                                        </td>
+                                        <td class='px-3 py-1'>
+                                            <div class="flex items-center justify-end gap-2">
+                                                <button onclick="show('{{ $food_archive_td->id }}')"
+                                                    class="text-gray-500 flex justify-center items-center gap-2 border rounded-lg shadow px-2.5 py-1.5">
+                                                    <x-icon icon="detail" width=16 height=16 viewBox="20 20" />
+                                                    <p class="text-xs">Detail</p>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        @endforeach
                     </td>
                 </tr>
             @endforeach

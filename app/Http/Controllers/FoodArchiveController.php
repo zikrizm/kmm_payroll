@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\FoodArchiveTd;
 use App\Models\FoodArchiveTh;
 use App\Utils\ResponseUtil;
 use Illuminate\Http\Request;
@@ -68,7 +69,7 @@ class FoodArchiveController extends Controller
         }
 
         try {
-            $food_archive = FoodArchiveTh::where('id', $id)->with(['food_archive_tds', 'food_archive_tds.food_archive_td_emps', 'food_archive_tds.food_archive_td_emps.food_archive_td_emp_attendances'])->first();
+            $food_archive = FoodArchiveTd::where('id', $id)->with(['food_archive_td_emps', 'food_archive_td_emps.food_archive_td_emp_attendances'])->first();
             $render =  view('report.food_archive.show', compact('food_archive'))->render();
 
             return $this->buildRes->RESPONSE_REQ('success', $render, null);

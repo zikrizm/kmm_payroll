@@ -1,0 +1,26 @@
+<form autocomplete="off" action="{{ route('payroll-report.store') }}" method="POST" class="submit-re-calculation">
+    @csrf
+    <!-- {{ csrf_field() }} -->
+    <input type="hidden" name="start_date" value="{{ $start_date->format('d-m-Y') }}">
+    <input type="hidden" name="end_date" value="{{ $end_date->format('d-m-Y') }}">
+    <input type="hidden" name="department_code" value="{{ $department_code }}">
+    <section id="container-modal-calculate"
+        class="flex flex-col gap-8 py-4 w-[440px] bg-white border max-h-[95vh] overflow-y-auto overflow-x-hidden relative rounded-lg duration-300">
+        <div class="flex items-center gap-5 px-4 relative">
+            <button id="x-icon-close"
+                class="absolute top-[-5px] right-3 xs/max:top-[-6px] modal-close hover:border-gray-500  border border-transparent text-gray-500 rounded p-0.5">
+                <x-icon icon="x" width=16 height=16 viewBox="20 20" />
+            </button>
+            <div id="content-loading-calculate" class="hidden w-full">
+                @include('report.salary_archive.modals.contents.stepper_loading_re_calculation', ['departments'=>
+                $departments, 'dates' => $dates])
+            </div>
+            <div id="content-finish-calculate" class="hidden w-full">
+                @include('report.salary_archive.modals.contents.finish_re_calculation')
+            </div>
+            <div id="content-confirm-calculate">
+                @include('report.salary_archive.modals.contents.confirm_re_calculation')
+            </div>
+        </div>
+    </section>
+</form>

@@ -2,14 +2,22 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\SalaryArchiveTh;
 use App\Utils\Util;
+use App\Models\Business;
 use App\Utils\ResponseUtil;
 use Illuminate\Http\Request;
+use App\Models\FoodArchiveTd;
+use App\Models\FoodArchiveTh;
 use Illuminate\Support\Carbon;
+use App\Models\SalaryArchiveTd;
+use App\Models\SalaryArchiveTh;
+use App\Models\FoodArchiveTdEmp;
 use App\Services\Api\ApiServices;
+use App\Models\SalaryArchiveTdEmp;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Session;
+use App\Models\FoodArchiveTdEmpAttendance;
+use App\Models\SalaryArchiveTdEmpAttendance;
 
 class SalaryArchiveController extends Controller
 {
@@ -37,6 +45,7 @@ class SalaryArchiveController extends Controller
         }
 
         try {
+            Log::info($request);
             $business_id = Session::get('business_id');
             if (request()->ajax()) {
                 $salary_archives = SalaryArchiveTh::where('business_id', $business_id)->whereBetween('created_at', [$request->start_date, $request->end_date]);
@@ -70,9 +79,9 @@ class SalaryArchiveController extends Controller
      */
     public function get_re_calculate(Request $request)
     {
-        if (!auth()->user()->can('salary-archive.re-calculate') || !request()->ajax()) {
-            abort(403, 'Unauthorized action.');
-        }
+        // if (!auth()->user()->can('salary-archive.re-calculate') || !request()->ajax()) {
+        //     abort(403, 'Unauthorized action.');
+        // }
 
         try {
             $salary_archive = SalaryArchiveTh::where('id', $request->salary_id)->first();
@@ -82,12 +91,12 @@ class SalaryArchiveController extends Controller
             $dates = $this->util->generateDateRange($start_date, $end_date);
             $department_code = $salary_archive->dept_code;
             $departments = $this->service->get_departments(['page_size' => 999, 'dept_code' => $department_code])['data'];
-    
-            if (empty($salary_archive)) {
-                $render = view('report.payroll_report.calculation', compact('dates', 'start_date', 'end_date',  'departments', 'department_code'))->render();
+
+            if (!empty($salary_archive)) {
+                $render = view('report.salary_archive.modals.re_calculation', compact('dates', 'salary_archive', 'start_date', 'end_date',  'departments', 'department_code'))->render();
                 return $this->buildRes->RESPONSE_REQ('success', $render, null);
             } else {
-                $render = view('report.payroll_report.invalid_calculation')->render();
+                $render = view('report.salary_archive.modals.contents.empty_salary_archive')->render();
                 return $this->buildRes->RESPONSE_REQ('success', $render, null);
             }
         } catch (\Exception $e) {
@@ -105,15 +114,6 @@ class SalaryArchiveController extends Controller
      */
     public function save_re_calculate(Request $request)
     {
-        if (!auth()->user()->can('salary-archive.re-calculate')  || !$request->ajax()) {
-            abort(403, 'Unauthorized action.');
-        }
-        try {
-        } catch (\Exception $e) {
-            Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
-
-            return $this->buildRes->RESPONSE_REQ('error', null, ['error' => 'something wrong']);
-        }
     }
 
     /**
@@ -128,7 +128,7 @@ class SalaryArchiveController extends Controller
             abort(403, 'Unauthorized action.');
         }
         try {
-            $salary_archive = SalaryArchiveTh::where('id', $id)->with(['salary_archive_tds','salary_archive_tds.salary_archive_td_emps', 'salary_archive_tds.salary_archive_td_emps.salary_archive_td_emp_attendances'])->first();
+            $salary_archive = SalaryArchiveTd::where('id', $id)->with(['salary_archive_td_emps', 'salary_archive_td_emps.salary_archive_td_emp_attendances'])->first();
             $render = view('report.salary_archive.show', compact('salary_archive'))->render();
             return $this->buildRes->RESPONSE_REQ('success', $render, null);
         } catch (\Exception $e) {

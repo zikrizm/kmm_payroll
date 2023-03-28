@@ -18,6 +18,6 @@ class FoodArchiveTh extends Model
 
     public function food_archive_tds()
     {
-        return $this->hasMany(FoodArchiveTd::class, 'food_archive_td_id');
+        return $this->hasMany(FoodArchiveTd::class, 'food_archive_th_id');
     }
 }

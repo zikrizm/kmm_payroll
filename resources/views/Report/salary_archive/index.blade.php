@@ -32,7 +32,6 @@
 
     window.addEventListener('DOMContentLoaded', (event) => {
         $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
-
         onInit({ 
             q: $('.search-data-input').val(), 
             start_date: convertLocalTimezone(moment().startOf('week'), 'YYYY-MM-DD'), 
@@ -83,7 +82,7 @@
         // **
         // * get table ----->
         // *
-        var res = await ApiService.get_table('/salary-archive', data);
+        var res = await ApiService.get_table('/salary-archive', dataParams);
         $('.table-content').html(res);
 
         // **
@@ -96,7 +95,7 @@
         })
     }
 
-    async function re_calculate(id) {
+    async function re_calculation(id) {
             // **
             // * open modal form ----->
             // *
@@ -150,46 +149,50 @@
                 });
             })
 
+            var resSubmit = ApiService.submit_form('.submit-re-calculation', (_response) => { 
+                if (_response.response < 200 || _response.response >= 300) {
+                    // * SET NOTIFICATION MESSAGE REQUIRED ----->
+                } else {
+                    let length = $('.prosess-cointainer').length;
+                    runAnimation = false;
+                    clearTimeout(setTimeoutProses);
+                    $('.prosess-cointainer').hide();
+                    $('.prosess-cointainer').each(function (i) {
+                        $(this).find('.text-prosess').stop();
+                        if(length -1 != i) {
+                            // $(this).show();
+                            $(this).find('.icon-finish-prosess').show();
+                            $(this).find('.icon-waiting-prosess').hide()
+                            $(this).find('.icon-on-prosess').hide();
+                            $(this).find('.text-prosess').text('Selesai');
 
-            var resSubmit = ApiService.submit_form('.submit-calculation-payroll', (data) => { 
-                let length = $('.prosess-cointainer').length;
-                runAnimation = false;
-                clearTimeout(setTimeoutProses);
-                $('.prosess-cointainer').hide();
-                $('.prosess-cointainer').each(function (i) {
-                    $(this).find('.text-prosess').stop();
-                    if(length -1 != i) {
-                        // $(this).show();
-                        $(this).find('.icon-finish-prosess').show();
-                        $(this).find('.icon-waiting-prosess').hide()
-                        $(this).find('.icon-on-prosess').hide();
-                        $(this).find('.text-prosess').text('Selesai');
+                            if(length - 8 < i) $(this).show();
+                        } else {
+                            $(this).show();
+                            $(this).find('.icon-waiting-prosess').hide()
+                            $(this).find('.icon-on-prosess').show();
+                            $(this).find('.text-prosess').prop('Counter',0).animate({
+                                Counter: 100
+                            }, {
+                                duration: 1000,
+                                easing: 'swing',
+                                step: function (now) { $(this).text(Math.ceil(now)+'%'); },
+                                complete: function () {
+                                    $(this).find('.icon-finish-prosess').show();
+                                    $(this).find('.icon-waiting-prosess').hide()
+                                    $(this).find('.icon-on-prosess').hide();
+                                    $(this).find('.text-prosess').text('Selesai');
+                                    setTimeout(() => {
+                                        $('#content-loading-calculate').hide();
+                                        $('#content-finish-calculate').show();
+                                    }, 1000);
+                                }
+                            });
+                        }
+                    });
 
-                        if(length - 8 < i) $(this).show();
-                    } else {
-                        $(this).show();
-                        $(this).find('.icon-waiting-prosess').hide()
-                        $(this).find('.icon-on-prosess').show();
-                        $(this).find('.text-prosess').prop('Counter',0).animate({
-                            Counter: 100
-                        }, {
-                            duration: 1000,
-                            easing: 'swing',
-                            step: function (now) { $(this).text(Math.ceil(now)+'%'); },
-                            complete: function () {
-                                $(this).find('.icon-finish-prosess').show();
-                                $(this).find('.icon-waiting-prosess').hide()
-                                $(this).find('.icon-on-prosess').hide();
-                                $(this).find('.text-prosess').text('Selesai');
-                                setTimeout(() => {
-                                    $('#content-loading-calculate').hide();
-                                    $('#content-finish-calculate').show();
-                                }, 1000);
-                            }
-                        });
-                    }
-                });
-                
+                    onInit( { q: $('.search-data-input').val() });
+                }
             }, { allowLoading: false, allowCloseModal: false});
         }
 

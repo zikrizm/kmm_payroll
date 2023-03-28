@@ -60,14 +60,15 @@
         <style>
             @media print {
                 .page-break {
-                    page-break-before: always;
+                    page-break-after: always;
+                    page-break-inside: avoid;
                 }
             }
         </style>
         <div class="h-full w-full flex flex-col items-center">
             @foreach ($datas as $data)
             @foreach ($data['attendance_reports'] as $key => $item)
-            <div class="page-break h-max w-full max-w-[350px]">
+            <div class="page-break h-max w-full max-w-[350px] pr-4 pl-2 flex items-start justify-start">
                 <div class="flex flex-col gap-1 p-2.5 w-full">
                     <div class="flex flex-col mt-2">
                         <div class="flex items-center gap-2 text-xs">
@@ -184,7 +185,10 @@
                                 </div>
                                 <p>
                                     @if (isset($item['remaining_kasbon_pay_value']))
-                                    - @convertnorp($item['remaining_kasbon_pay_value'])
+                                    @if ($item['remaining_kasbon_pay_value'] > 0)
+                                    -
+                                    @endif
+                                    @convertnorp($item['remaining_kasbon_pay_value'])
                                     @else
                                     -
                                     @endif

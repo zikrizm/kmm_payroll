@@ -19,4 +19,8 @@ class FoodArchiveTd extends Model
     {
         return $this->hasMany(FoodArchiveTdEmp::class, 'food_archive_td_id');
     }
+    public function food_archive_th()
+    {
+        return $this->belongsTo(FoodArchiveTh::class, 'food_archive_th_id');
+    }
 }
