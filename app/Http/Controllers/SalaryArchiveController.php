@@ -2,11 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\SalaryArchiveTh;
 use App\Utils\Util;
-use App\Models\User;
 use App\Utils\ResponseUtil;
 use Illuminate\Http\Request;
-use App\Models\SalaryArchive;
 use Illuminate\Support\Carbon;
 use App\Services\Api\ApiServices;
 use Illuminate\Support\Facades\Log;
@@ -40,7 +39,7 @@ class SalaryArchiveController extends Controller
         try {
             $business_id = Session::get('business_id');
             if (request()->ajax()) {
-                $salary_archives = SalaryArchive::where('business_id', $business_id)->whereBetween('created_at', [$request->start_date, $request->end_date]);
+                $salary_archives = SalaryArchiveTh::where('business_id', $business_id)->whereBetween('created_at', [$request->start_date, $request->end_date]);
 
                 if ($request->has('q')) {
                     $search = $request->q;
@@ -49,7 +48,7 @@ class SalaryArchiveController extends Controller
                     });
                 }
 
-                $salary_archives = $salary_archives->orderBy('created_at', 'ASC')->paginate(10);
+                $salary_archives = $salary_archives->orderBy('start_date_work_day', 'ASC')->orderBy('created_at', 'ASC')->paginate(10);
                 $render =  view('report.salary_archive.table', compact('salary_archives'))->render();
 
                 return $this->buildRes->RESPONSE_REQ('success', $render, null);
@@ -69,31 +68,28 @@ class SalaryArchiveController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function create(Request $request)
+    public function get_re_calculate(Request $request)
     {
-        if (!auth()->user()->can('salary-archive.create') || !request()->ajax()) {
+        if (!auth()->user()->can('salary-archive.re-calculate') || !request()->ajax()) {
             abort(403, 'Unauthorized action.');
         }
 
         try {
-            $departments = $this->service->get_departments(['page_size' => 999])['data'];
-            if ($request->has('calculation_id')) {
-                $salary_archive = SalaryArchive::where('id', $request->calculation_id)->first();
-                if (!empty($salary_archive)) {
-                    $start_date = Carbon::parse($salary_archive->start_date);
-                    $end_date = Carbon::parse($salary_archive->end_date);
-                    $dates = $this->util->generateDateRange($start_date, $end_date);
-                } else {
-                    return $this->buildRes->RESPONSE_REQ('error', null, ['error' => ['Arsip penggajian tidak ada!']]);
-                }
-            } else {
-                $start_date = Carbon::parse($request->start_date);
-                $end_date = Carbon::parse($request->end_date);
-                $dates = $this->util->generateDateRange($start_date, $end_date);
-            }
+            $salary_archive = SalaryArchiveTh::where('id', $request->salary_id)->first();
 
-            $render = view('report.salary_archive.calculation', compact('dates', 'departments'))->render();
-            return $this->buildRes->RESPONSE_REQ('success', $render, null);
+            $start_date = Carbon::parse($salary_archive->start_date_work_day);
+            $end_date = Carbon::parse($salary_archive->end_date_work_day);
+            $dates = $this->util->generateDateRange($start_date, $end_date);
+            $department_code = $salary_archive->dept_code;
+            $departments = $this->service->get_departments(['page_size' => 999, 'dept_code' => $department_code])['data'];
+    
+            if (empty($salary_archive)) {
+                $render = view('report.payroll_report.calculation', compact('dates', 'start_date', 'end_date',  'departments', 'department_code'))->render();
+                return $this->buildRes->RESPONSE_REQ('success', $render, null);
+            } else {
+                $render = view('report.payroll_report.invalid_calculation')->render();
+                return $this->buildRes->RESPONSE_REQ('success', $render, null);
+            }
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
 
@@ -107,9 +103,9 @@ class SalaryArchiveController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function save_re_calculate(Request $request)
     {
-        if (!auth()->user()->can('salary-archive.create')  || !$request->ajax()) {
+        if (!auth()->user()->can('salary-archive.re-calculate')  || !$request->ajax()) {
             abort(403, 'Unauthorized action.');
         }
         try {
@@ -132,7 +128,7 @@ class SalaryArchiveController extends Controller
             abort(403, 'Unauthorized action.');
         }
         try {
-            $salary_archive = SalaryArchive::where('id', $id)->with([''])->first();
+            $salary_archive = SalaryArchiveTh::where('id', $id)->with(['salary_archive_tds','salary_archive_tds.salary_archive_td_emps', 'salary_archive_tds.salary_archive_td_emps.salary_archive_td_emp_attendances'])->first();
             $render = view('report.salary_archive.show', compact('salary_archive'))->render();
             return $this->buildRes->RESPONSE_REQ('success', $render, null);
         } catch (\Exception $e) {
@@ -140,24 +136,5 @@ class SalaryArchiveController extends Controller
 
             return $this->buildRes->RESPONSE_REQ('error', null, ['error' => 'something wrong']);
         }
-    }
-
-    /**
-     * Rules validation user.
-     *
-     * @param  User $user
-     * @return array
-     */
-    public function rules($user)
-    {
-        return [
-            'name' => 'required|string|max:255',
-            'username' => (empty($user)) ?  'required|string|max:255|unique:users' : 'required|string|max:255|unique:users,username,' . $user->id,
-            'email' => (empty($user)) ? 'required|string|email:rfc,dns|unique:users' : 'required|string|email:rfc,dns|unique:users,email,' . $user->id,
-            'password' => 'required|string|min:6',
-            'role' => 'required|exists:roles,id',
-            'status' => 'required|string',
-            'image' => 'image|file|max:2000',
-        ];
     }
 }

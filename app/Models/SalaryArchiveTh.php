@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class SalaryArchive extends Model
+class SalaryArchiveTh extends Model
 {
     use HasFactory;
 
@@ -15,4 +15,9 @@ class SalaryArchive extends Model
      * @var array
      */
     protected $guarded = ['id'];
+
+    public function salary_archive_tds()
+    {
+        return $this->hasMany(SalaryArchiveTd::class, 'salary_archive_th_id');
+    }
 }

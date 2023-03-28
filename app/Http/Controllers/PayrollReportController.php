@@ -4,18 +4,21 @@ namespace App\Http\Controllers;
 
 use App\Utils\Util;
 use App\Models\Business;
-use App\Models\FoodArchive;
-use App\Models\FoodArchiveEmp;
-use App\Models\FoodArchiveEmpAttendance;
+use App\Models\FoodArchiveTd;
+use App\Models\FoodArchiveTdEmp;
+use App\Models\FoodArchiveTdEmpAttendance;
+use App\Models\FoodArchiveTh;
 use App\Utils\ResponseUtil;
 use Illuminate\Http\Request;
 use App\Models\SalaryArchive;
 use Illuminate\Support\Carbon;
-use App\Models\SalaryArchiveEmp;
+use App\Models\SalaryArchiveTd;
+use App\Models\SalaryArchiveTh;
 use App\Services\Api\ApiServices;
-use App\Models\SalaryArchiveEmpAttendance;
+use App\Models\SalaryArchiveTdEmp;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Session;
+use App\Models\SalaryArchiveTdEmpAttendance;
 
 class PayrollReportController extends Controller
 {
@@ -104,12 +107,20 @@ class PayrollReportController extends Controller
         try {
             $start_date = Carbon::parse($request->start_date);
             $end_date = Carbon::parse($request->end_date);
+            $start_date_format = Carbon::createFromFormat('d-m-Y', $request->start_date);
+            $end_date_format = Carbon::createFromFormat('d-m-Y', $request->end_date);
             $department_code = $request->department_code;
             $dates = $this->util->generateDateRange($start_date, $end_date);
             $departments = $this->service->get_departments(['page_size' => 999, 'dept_code' => $department_code])['data'];
 
-            $render = view('report.payroll_report.calculation', compact('dates', 'start_date', 'end_date',  'departments', 'department_code'))->render();
-            return $this->buildRes->RESPONSE_REQ('success', $render, null);
+            $salary_archive = SalaryArchiveTh::whereDate('start_date_work_day', $start_date_format->format('Y-m-d'))->whereDate('end_date_work_day', $end_date_format->format('Y-m-d'))->where('dept_code', $request->department_code)->first();
+            if (empty($salary_archive)) {
+                $render = view('report.payroll_report.calculation', compact('dates', 'start_date', 'end_date',  'departments', 'department_code'))->render();
+                return $this->buildRes->RESPONSE_REQ('success', $render, null);
+            } else {
+                $render = view('report.payroll_report.invalid_calculation')->render();
+                return $this->buildRes->RESPONSE_REQ('success', $render, null);
+            }
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
 
@@ -153,7 +164,7 @@ class PayrollReportController extends Controller
                 if (count($datas)) {
                     foreach ($datas as $data) {
                         // SALARY
-                        $salary_archive = new SalaryArchive([
+                        $salary_archive_th = new SalaryArchiveTh([
                             'business_id' => $business_id,
                             'start_date' => $data['start_date'],
                             'end_date' => $data['end_date'],
@@ -164,6 +175,10 @@ class PayrollReportController extends Controller
                             'dept_id' => $data['department']['id'],
                             'dept_code' => $data['department']['dept_code'],
                             'dept_name' =>  $data['department']['dept_name'],
+                        ]);
+                        $salary_archive_th->save();
+                        $salary_archive_td = new SalaryArchiveTd([
+                            'salary_archive_th_id' => $salary_archive_th->id,
                             'total_HK_value' => $data['total_HK_value'],
                             'total_JL_value' => $data['total_JL_value'],
                             'total_kasbon_pay_value' => $data['total_kasbon_pay_value'],
@@ -175,21 +190,27 @@ class PayrollReportController extends Controller
                             'created_user' => auth()->user()->id,
                             'updated_user' => auth()->user()->id,
                         ]);
-                        $salary_archive->save();
+                        $salary_archive_td->save();
                         // FOOD
-                        $food_archive = new FoodArchive([
+                        $food_archive_th = new FoodArchiveTh([
                             'start_date' => $data['start_date'],
                             'end_date' => $data['end_date'],
                             'dept_id' => $data['department']['id'],
                             'dept_code' => $data['department']['dept_code'],
                             'dept_name' =>  $data['department']['dept_name'],
-                            'total' => $data['total_food_value'],
                         ]);
-                        $food_archive->save();
+                        $food_archive_th->save();
+                        $food_archive_td = new FoodArchiveTd([
+                            'food_archive_th_id' => $food_archive_th->id,
+                            'total' => $data['total_food_value'],
+                            'created_user' => auth()->user()->id,
+                            'updated_user' => auth()->user()->id,
+                        ]);
+                        $food_archive_td->save();
 
                         foreach ($data['attendance_reports'] as $report) {
-                            $salary_archive_emp = new SalaryArchiveEmp([
-                                'salary_archive_id' => $salary_archive->id,
+                            $salary_archive_td_emp = new SalaryArchiveTdEmp([
+                                'salary_archive_td_id' => $salary_archive_td->id,
                                 'HK_value' => $report['HK_value'],
                                 'JL_value' => $report['JL_value'],
                                 'emp_id' => $report['employee']['id'],
@@ -206,11 +227,11 @@ class PayrollReportController extends Controller
                                 'total_pay_value' => $report['total_pay_value'],
                             ]);
 
-                            $salary_archive_emp->save();
+                            $salary_archive_td_emp->save();
 
                             // FOOD
-                            $food_archive_emp = new FoodArchiveEmp([
-                                'food_archive_id' => $food_archive->id,
+                            $food_archive_td_emp = new FoodArchiveTdEmp([
+                                'food_archive_td_id' => $food_archive_td->id,
                                 'emp_id' => $report['employee']['id'],
                                 'emp_code' => $report['employee']['emp_code'],
                                 'first_name' =>  $report['employee']['first_name'],
@@ -218,10 +239,11 @@ class PayrollReportController extends Controller
                                 'photo' =>  $report['employee']['photo'],
                                 'total' => $report['food_value'],
                             ]);
-                            $food_archive_emp->save();
+                            $food_archive_td_emp->save();
+
                             foreach ($report['attendances'] as $attendance) {
-                                $salary_archive_emp_attendance = new SalaryArchiveEmpAttendance([
-                                    'salary_archive_emp_id' => $salary_archive_emp->id,
+                                $salary_archive_td_emp_attendance = new SalaryArchiveTdEmpAttendance([
+                                    'salary_td_emp_id' => $salary_archive_td_emp->id,
                                     'timetable_id' => (!empty($attendance['timetable'])) ? $attendance['timetable']['id'] : null,
                                     'operational_id' => $attendance['operational_id'],
                                     'operational_has_timetable_id' => $attendance['operational_has_timetable_id'],
@@ -248,15 +270,15 @@ class PayrollReportController extends Controller
                                     'is_counting_salary' => $attendance['is_counting_salary'],
                                     'is_counting_overtime' => $attendance['is_counting_overtime'],
                                 ]);
-                                $salary_archive_emp_attendance->save();
+                                $salary_archive_td_emp_attendance->save();
 
                                 // FOOD
-                                $food_archive_emp_attendance = new FoodArchiveEmpAttendance([
-                                    'food_archive_emp_id' => $food_archive_emp->id,
+                                $food_archive_td_emp_attendance = new FoodArchiveTdEmpAttendance([
+                                    'food_archive_td_emp_id' => $food_archive_td_emp->id,
                                     'food_date' => $attendance['date'],
                                     'total' => $attendance['food'],
                                 ]);
-                                $food_archive_emp_attendance->save();
+                                $food_archive_td_emp_attendance->save();
                             }
                         }
                     }

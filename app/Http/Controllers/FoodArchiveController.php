@@ -2,14 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Utils\Util;
+use App\Models\FoodArchiveTh;
 use App\Utils\ResponseUtil;
 use Illuminate\Http\Request;
-use App\Models\FoodArchive;
-use App\Services\Api\ApiServices;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Session;
-use Illuminate\Support\Facades\Validator;
 
 
 class FoodArchiveController extends Controller
@@ -36,17 +33,15 @@ class FoodArchiveController extends Controller
         try {
             $business_id = Session::get('business_id');
             if (request()->ajax()) {
-                $food_archives = FoodArchive::whereDate('start_date', '<=', $request->start_date)
-                    ->whereDate('end_date', '>=', $request->end_date);
+                $food_archives = FoodArchiveTh::whereBetween('created_at', [$request->start_date, $request->end_date]);
                 if ($request->has('q')) {
                     $search = $request->q;
                     $food_archives = $food_archives->where(function ($q) use ($search) {
-                        $q->where('dept_code', 'LIKE', "%" . $search . "%")->orWhere('dept_name', 'LIKE', "%" . $search . "%")
-                            ->orWhere('total', 'LIKE', "%" . $search . "%");
+                        $q->where('dept_code', 'LIKE', "%" . $search . "%")->orWhere('dept_name', 'LIKE', "%" . $search . "%");
                     });
                 }
                 $food_archives = $food_archives->orderBy('start_date', 'ASC')->orderBy('dept_id', 'ASC')->paginate(10);
-                $render =  view('report.food_archive.table', compact('food_archives'))->render();
+                $render = view('report.food_archive.table', compact('food_archives'))->render();
 
                 return $this->buildRes->RESPONSE_REQ('success', $render, null);
             }
@@ -73,7 +68,7 @@ class FoodArchiveController extends Controller
         }
 
         try {
-            $food_archive = FoodArchive::where('id', $id)->with(['food_archive_emps', 'food_archive_emps.food_archive_emp_attendances'])->first();
+            $food_archive = FoodArchiveTh::where('id', $id)->with(['food_archive_tds', 'food_archive_tds.food_archive_td_emps', 'food_archive_tds.food_archive_td_emps.food_archive_td_emp_attendances'])->first();
             $render =  view('report.food_archive.show', compact('food_archive'))->render();
 
             return $this->buildRes->RESPONSE_REQ('success', $render, null);

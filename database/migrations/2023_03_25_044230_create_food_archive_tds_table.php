@@ -1,0 +1,38 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     *
+     * @return void
+     */
+    public function up()
+    {
+        Schema::create('food_archive_tds', function (Blueprint $table) {
+            $table->increments('id');
+            $table->integer('food_archive_th_id')->unsigned();
+            $table->foreign('food_archive_th_id')->references('id')->on('food_archive_ths')->onDelete('cascade');
+            $table->decimal('total', 22,0)->nullable();
+            $table->integer('created_user')->unsigned();
+            $table->integer('updated_user')->nullable()->unsigned();
+            $table->foreign('created_user')->references('id')->on('users')->onDelete('cascade');
+            $table->foreign('updated_user')->references('id')->on('users')->onDelete('cascade');
+            $table->timestamps();
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     *
+     * @return void
+     */
+    public function down()
+    {
+        Schema::dropIfExists('food_archive_tds');
+    }
+};

@@ -87,11 +87,31 @@
                                 {{ $item['employee']['last_name'] ?? '' }}
                             </p>
                         </div>
+                        <div class="flex items-center gap-2 text-xs">
+                            <div class="flex items-center justify-between gap-2">
+                                <p>Bagian</p>
+                                <p>:</p>
+                            </div>
+                            <p>
+                                {{ $data['department']['dept_name'] ?? '-' }}
+                            </p>
+                        </div>
+                        <div class="flex items-center gap-2 text-xs">
+                            <div class="flex items-center justify-between gap-2">
+                                <p>Tanggal</p>
+                                <p>:</p>
+                            </div>
+                            <p>
+                                {{ Carbon\Carbon::parse($data['start_date'])->format('d-m-Y'); }}
+                                -
+                                {{ Carbon\Carbon::parse($data['end_date'])->format('d-m-Y'); }}
+                            </p>
+                        </div>
                     </div>
                     <hr class="w-full border-1 border-black">
                     <hr class="w-full border-1 border-black">
                     <div class="flex justify-end w-full pt-4">
-                        <div class="flex flex-col max-w-[200px] w-full">
+                        <div class="flex flex-col w-full">
                             <div class="flex items-center justify-between w-full gap-2 text-xs">
                                 <div class="flex items-center justify-between gap-2">
                                     <p>Gaji</p>
@@ -157,15 +177,14 @@
                                     @endif
                                 </p>
                             </div>
-                            <hr class="w-full border-1 border-black my-1">
                             <div class="flex items-center justify-between w-full gap-2 text-xs">
                                 <div class="flex items-center justify-between gap-2">
-                                    <p>Sisa kasbon</p>
+                                    <p>kasbon</p>
                                     <p>:</p>
                                 </div>
                                 <p>
                                     @if (isset($item['remaining_kasbon_pay_value']))
-                                    @convertnorp($item['remaining_kasbon_pay_value'])
+                                    - @convertnorp($item['remaining_kasbon_pay_value'])
                                     @else
                                     -
                                     @endif

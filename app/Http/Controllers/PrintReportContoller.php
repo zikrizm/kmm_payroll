@@ -471,7 +471,7 @@ class PrintReportContoller extends Controller
     }
 
 
-    public function getPayrollAttendanceReport(
+    public function  getPayrollAttendanceReport(
         Carbon $start_date_work_day,
         Carbon $end_date_work_day,
         Carbon $start_date_overtime,
@@ -516,7 +516,7 @@ class PrintReportContoller extends Controller
                     $departmentbios = collect($this->service->get_departments(["page_size" => 999])['data']);
                 }
 
-                $attendances = $this->getMergeAttendance($start_date, $end_date);
+                $attendances = $this->getMergeAttendance($start_date->copy(), $end_date->copy());
                 $attendances_grouping = $attendances->groupBy([
                     fn ($item) => $item['emp'],
                     fn ($item) => Carbon::parse($item['punch_time'])->format('Y-m-d'),
@@ -542,7 +542,6 @@ class PrintReportContoller extends Controller
                     'shiftdays.shiftday_has_timetables'  => fn ($query) => $query->select('id', 'shift_day_id', 'timetable_id'),
                     'shiftdays.shiftday_has_timetables.timetable' => fn ($query) => $query->select('id', 'name', 'check_in', 'check_out', 'check_in_plusmn', 'check_out_plusmn', 'cross_day', 'work_time', 'is_without_break', 'ot_roundone_hr', 'ot_roundhalf_hr', 'ot_period', 'ot_pay', 'duration_count_one_shift', 'duration_ot_limit', 'duration_rice_shift'),
                 ])->get();
-
 
                 if ($attendances_grouping->isNotEmpty()) {
                     foreach ($empbios_grouping_by_dept as $key_dept_id => $empdepts) {
@@ -806,7 +805,7 @@ class PrintReportContoller extends Controller
             $end_date_work_day = null;
             $start_date_overtime = null;
             $end_date_overtime = null;
-            $datas = collect();
+            $datas = [];
             if ($request->has('start_date_work_day') && $request->has('end_date_work_day') && $request->has('start_date_overtime') && $request->has('end_date_overtime')) {
                 $start_date_work_day = Carbon::createFromFormat('d-m-Y', $request['start_date_work_day']);
                 $end_date_work_day = Carbon::createFromFormat('d-m-Y', $request['end_date_work_day']);
@@ -838,6 +837,7 @@ class PrintReportContoller extends Controller
             $deparment_code = null;
             $start_date = null;
             $end_date = null;
+            $datas = [];
             if ($request->has('deparment_code')) {
                 $deparment_code = $request['deparment_code'];
             }

@@ -13,18 +13,10 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('salary_archives', function (Blueprint $table) {
+        Schema::create('salary_archive_tds', function (Blueprint $table) {
             $table->increments('id');
-            $table->integer('business_id')->unsigned();
-            $table->date('start_date');
-            $table->date('end_date');
-            $table->date('start_date_work_day');
-            $table->date('end_date_work_day');
-            $table->date('start_date_overtime');
-            $table->date('end_date_overtime');
-            $table->integer('dept_id');
-            $table->string('dept_code');
-            $table->string('dept_name');
+            $table->integer('salary_archive_th_id')->unsigned();
+            $table->foreign('salary_archive_th_id')->references('id')->on('salary_archive_ths')->onDelete('cascade');
             $table->decimal('total_HK_value', 22,0)->nullable();
             $table->decimal('total_JL_value', 22,0)->nullable();
             $table->decimal('total_kasbon_pay_value', 22,0)->nullable();
@@ -37,7 +29,6 @@ return new class extends Migration
             $table->integer('updated_user')->nullable()->unsigned();
             $table->foreign('created_user')->references('id')->on('users')->onDelete('cascade');
             $table->foreign('updated_user')->references('id')->on('users')->onDelete('cascade');
-            $table->foreign('business_id')->references('id')->on('business')->onDelete('cascade');
             $table->timestamps();
         });
     }
@@ -49,6 +40,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('salary_archives');
+        Schema::dropIfExists('salary_archive_tds');
     }
 };

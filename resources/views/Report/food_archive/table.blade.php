@@ -12,9 +12,6 @@
                 <th class='px-3 py-3 text-left cursor-pointer'>
                     <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Bagian</p>
                 </th>
-                <th class='px-3 py-3 text-left cursor-pointer'>
-                    <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Total</p>
-                </th>
                 <th class='px-3 py-3 text-left text-gray-500 text-xs font-medium'></th>
             </tr>
         </thead>
@@ -38,9 +35,6 @@
                     </td>
                     <td class='px-3 py text-gray-500 text-sm'>
                         {{ $item->dept_name }}
-                    </td>
-                    <td class='px-3 py text-gray-500 text-sm'>
-                        {{ $item->total }}
                     </td>
                     <td class='px-3 py text-gray-500 text-sm'>
                         <button onclick="show('{{ $item->id }}')"

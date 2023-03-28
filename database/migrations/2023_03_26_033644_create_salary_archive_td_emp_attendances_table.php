@@ -13,10 +13,10 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('salary_archive_emp_attendances', function (Blueprint $table) {
+        Schema::create('salary_archive_td_emp_attendances', function (Blueprint $table) {
             $table->increments('id');
-            $table->integer('salary_archive_emp_id')->unsigned();
-            $table->foreign('salary_archive_emp_id')->references('id')->on('salary_archive_emps')->onDelete('cascade');
+            $table->integer('salary_td_emp_id')->unsigned();
+            $table->foreign('salary_td_emp_id')->references('id')->on('salary_archive_td_emps')->onDelete('cascade');
             $table->integer('timetable_id')->nullable()->unsigned();
             $table->foreign('timetable_id')->references('id')->on('timetables')->onDelete('cascade');
             $table->integer('operational_id')->nullable()->unsigned();
@@ -57,6 +57,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('salary_archive_emp_attendances');
+        Schema::dropIfExists('salary_archive_td_emp_attendances');
     }
 };

@@ -644,6 +644,21 @@ hover:bg-gray-50
                             </div>
                         </a>
                         @endcan
+                        @can('salary-archive.view')
+                        <a href="{{ route('salary-archive.index') }}" class="flex items-center justify-between p-2.5 rounded-lg w-full hover:underline hover:decoration-gray-500
+                                            @activemenu('salary-archive')
+bg-gray-100 active
+@else
+hover:bg-gray-50
+@endactivemenu">
+                            <div class="flex items-center gap-2.5">
+                                <div class="space-sub-menu w-5"></div>
+                                <p class="text-sub-menu text-sm font-medium text-gray-600">
+                                    Arsip gaji
+                                </p>
+                            </div>
+                        </a>
+                        @endcan
                         <a href="{{ route('transaction.index') }}" class="flex items-center justify-between p-2.5 rounded-lg w-full hover:underline hover:decoration-gray-500
                                         @activemenu('transaction-report')
 bg-gray-100 active

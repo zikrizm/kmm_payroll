@@ -13,15 +13,15 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('salary_archive_emps', function (Blueprint $table) {
+        Schema::create('salary_archive_td_emps', function (Blueprint $table) {
             $table->increments('id');
             $table->integer('emp_id');
             $table->string('emp_code');
             $table->string('first_name');
             $table->string('last_name')->nullable();
             $table->string('photo')->nullable();
-            $table->integer('salary_archive_id')->unsigned();
-            $table->foreign('salary_archive_id')->references('id')->on('salary_archives')->onDelete('cascade');
+            $table->integer('salary_archive_td_id')->unsigned();
+            $table->foreign('salary_archive_td_id')->references('id')->on('salary_archive_tds')->onDelete('cascade');
             $table->float('HK_value')->nullable();
             $table->float('JL_value')->nullable();
             $table->decimal('kasbon_pay_value', 22,0)->nullable();
@@ -43,6 +43,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('salary_archive_emps');
+        Schema::dropIfExists('salary_archive_td_emps');
     }
 };

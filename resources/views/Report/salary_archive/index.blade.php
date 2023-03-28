@@ -96,87 +96,102 @@
         })
     }
 
-    async function re_calculation(id) {
-        // **
-        // * open modal form ----->
-        // *
-        var res = await ApiService.get_modal('/salary-archive/create', {calculation_id: id});
-        let start_date = $('input[name="selected_date"]').data('daterangepicker').startDate;
-        let end_date = $('input[name="selected_date"]').data('daterangepicker').endDate;
-        $('#kalkulasi').on('click', function(e) {
-            $('.container-modal-calculate').removeClass('w-[440px]');
-            $('.container-modal-calculate').addClass('w-[650px]');
-            $('.close-calculate').hide();
-            $('#content-confirm-calculate').hide();
-            $('#content-loading-calculate').show();
-            $('input[name="date[start_time]"]').val(start_date.format('YYYY-MM-DD'));
-            $('input[name="date[end_time]"]').val(end_date.format('YYYY-MM-DD'));
+    async function re_calculate(id) {
+            // **
+            // * open modal form ----->
+            // *
+            let runAnimation = true , setTimeoutProses;
+            var res = await ApiService.get_modal('/salary-archive/re-calculate', {  salary_id: id});
 
-            let duration = 1000;
-            $('.prosess-cointainer').each(function (index) {
-                let element = $(this);
-                let indexElement = index;
-                let nextElement = element.next();
-                // let nextElement4 = $('.prosess-cointainer').eq(index+4);
-                // let percentElementBeforeLength = 0;
-                // if(index > 0) percentElementBeforeLength = $('.prosess-cointainer').eq(index-1).find('.percent').length;
+            $('#kalkulasi').on('click', function(e) {
+                $('#container-modal-calculate').removeClass('w-[440px]');
+                $('#container-modal-calculate').addClass('w-[650px]');
+                $('#x-icon-close').hide();
+                $('#content-confirm-calculate').hide();
+                $('#content-loading-calculate').show();
+                let duration = 1000;
+                let length = $('.prosess-cointainer').length;
+                $('.prosess-cointainer').each(function (i) {
+                    if(length -1 != i) {
+                        let element = $(this);
+                        let index = i;
+                        let nextElement = element.next();
+                        let nextElementEq = $('.prosess-cointainer').eq(index+6);
 
-                let text_prosses = $(this).find('.text-prosess');
-                text_prosses.each(function (index) {
-                    $(this).prop('Counter',0).delay( index * duration ).animate({
-                        Counter: 100
-                    }, {
-                        duration: duration,
-                        easing: 'swing',
-                        step: function (now) {
-                            // $(this).text(Math.ceil(now));
-                        },
-                        complete: function () {
-                            // $(this).parent().toggle();
-                            // let iconElement = $(this).closest('.container-perdate').find('.icon-date-finish-prosess');
-                            // let dateTextElement = $(this).closest('.container-perdate').find('.proses-date');
-                            // iconElement.toggle();
-                            // dateTextElement.removeClass('text-gray-500');
-                            // dateTextElement.addClass('text-gray-300');
-
-                            // if(percentElement.length -1 == index) {
-                            //     thisElement.find('.prosess-container-perdates').toggle('flex')
-                            //     thisElement.find('.icon-finish-prosess').toggle();
-                            //     thisElement.find('.text-prosess').text('Selesai');
-                            //     if (!thisElement.find('.icon-on-prosess').is(':hidden')) 
-                            //         thisElement.find('.icon-on-prosess').toggle()
-                            //     if (!thisElement.find('.icon-waiting-prosess').is(':hidden')) 
-                            //         thisElement.find('.icon-waiting-prosess').toggle()
-
-                            //     if(nextElement.length){
-                            //         nextElement.find('.prosess-container-perdates').toggle('flex')
-                            //         nextElement.find('.icon-waiting-prosess').toggle();
-                            //         nextElement.find('.icon-on-prosess').toggle();
-                            //         nextElement.find('.text-prosess').text('Dalam proses');
-                            //     }
-
-                            //     let percentNextElementLength = nextElement.find('.percent').length;
-                            //     setTimeout(() => {
-                            //         setTimeout(() => {
-                            //             thisElement.toggle('flex');
-                            //         }, 1000);
-                            //         if(nextElement4.length) {
-                            //             nextElement4.toggle('flex');
-                            //         }
-                            //     }, percentNextElementLength * duration);
-                            // }
-                        }
-                    });
+                        let text_prosses = $(this).find('.text-prosess');
+                        text_prosses.prop('Counter',0).delay( index * duration ).animate({
+                            Counter: 100
+                        }, {
+                            duration: duration,
+                            easing: 'swing',
+                            // step: function (now) { },
+                            step: function (now) { if(runAnimation) $(this).text(Math.ceil(now)+'%'); },
+                            complete: function () {
+                                if(runAnimation) {
+                                    if(length - 6 > index) {
+                                        setTimeoutProses = setTimeout(() => {
+                                            element.toggle('flex');
+                                        }, 1000);
+                                    }
+                                    element.find('.icon-finish-prosess').toggle();
+                                    if (!element.find('.icon-on-prosess').is(':hidden')) 
+                                        element.find('.icon-on-prosess').toggle()
+                                    if (!element.find('.icon-waiting-prosess').is(':hidden')) 
+                                        element.find('.icon-waiting-prosess').toggle()
+                                    element.find('.text-prosess').text('Selesai');
+                                    nextElement.find('.icon-on-prosess').toggle()
+                                    nextElement.find('.icon-waiting-prosess').toggle()
+                                    nextElement.find('.text-prosess').text('Dalam proses');
+                                    nextElementEq.toggle('flex');                       
+                                }
+                            }
+                        });
+                    }
                 });
-            });
-        })
-        // **
-        // * submit form ----->
-        // *
-        var resSubmit = ApiService.submit_form('.submit-calculation-payroll', (data) => { 
-            // onInit( { q: $('.search-data-input').val() });
-        });
-    }
+            })
+
+
+            var resSubmit = ApiService.submit_form('.submit-calculation-payroll', (data) => { 
+                let length = $('.prosess-cointainer').length;
+                runAnimation = false;
+                clearTimeout(setTimeoutProses);
+                $('.prosess-cointainer').hide();
+                $('.prosess-cointainer').each(function (i) {
+                    $(this).find('.text-prosess').stop();
+                    if(length -1 != i) {
+                        // $(this).show();
+                        $(this).find('.icon-finish-prosess').show();
+                        $(this).find('.icon-waiting-prosess').hide()
+                        $(this).find('.icon-on-prosess').hide();
+                        $(this).find('.text-prosess').text('Selesai');
+
+                        if(length - 8 < i) $(this).show();
+                    } else {
+                        $(this).show();
+                        $(this).find('.icon-waiting-prosess').hide()
+                        $(this).find('.icon-on-prosess').show();
+                        $(this).find('.text-prosess').prop('Counter',0).animate({
+                            Counter: 100
+                        }, {
+                            duration: 1000,
+                            easing: 'swing',
+                            step: function (now) { $(this).text(Math.ceil(now)+'%'); },
+                            complete: function () {
+                                $(this).find('.icon-finish-prosess').show();
+                                $(this).find('.icon-waiting-prosess').hide()
+                                $(this).find('.icon-on-prosess').hide();
+                                $(this).find('.text-prosess').text('Selesai');
+                                setTimeout(() => {
+                                    $('#content-loading-calculate').hide();
+                                    $('#content-finish-calculate').show();
+                                }, 1000);
+                            }
+                        });
+                    }
+                });
+                
+            }, { allowLoading: false, allowCloseModal: false});
+        }
 
     async function get_detail_salary_modal(id) {
         // **

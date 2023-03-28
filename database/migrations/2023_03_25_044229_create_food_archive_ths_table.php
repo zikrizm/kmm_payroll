@@ -13,14 +13,13 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('food_archives', function (Blueprint $table) {
+        Schema::create('food_archive_ths', function (Blueprint $table) {
             $table->increments('id');
             $table->date('start_date');
             $table->date('end_date');
             $table->integer('dept_id');
             $table->string('dept_code');
             $table->string('dept_name');
-            $table->decimal('total', 22,0)->nullable();
             $table->timestamps();
         });
     }
@@ -32,6 +31,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('food_archives');
+        Schema::dropIfExists('food_archive_ths');
     }
 };

@@ -13,15 +13,15 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('food_archive_emps', function (Blueprint $table) {
+        Schema::create('food_archive_td_emps', function (Blueprint $table) {
             $table->increments('id');
             $table->integer('emp_id');
             $table->string('emp_code');
             $table->string('first_name');
             $table->string('last_name')->nullable();
             $table->string('photo')->nullable();
-            $table->integer('food_archive_id')->unsigned();
-            $table->foreign('food_archive_id')->references('id')->on('food_archives')->onDelete('cascade');
+            $table->integer('food_archive_td_id')->unsigned();
+            $table->foreign('food_archive_td_id')->references('id')->on('food_archive_tds')->onDelete('cascade');
             $table->decimal('total', 22,0)->nullable();
             $table->timestamps();
         });
@@ -34,6 +34,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('food_archive_emps');
+        Schema::dropIfExists('food_archive_td_emps');
     }
 };

@@ -13,12 +13,12 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('food_archive_emp_attendances', function (Blueprint $table) {
+        Schema::create('food_archive_td_emp_attendances', function (Blueprint $table) {
             $table->increments('id');
             $table->date('food_date');
             $table->decimal('total', 22,0)->nullable();
-            $table->integer('food_archive_emp_id')->unsigned();
-            $table->foreign('food_archive_emp_id')->references('id')->on('food_archive_emps')->onDelete('cascade');
+            $table->integer('food_archive_td_emp_id')->unsigned();
+            $table->foreign('food_archive_td_emp_id')->references('id')->on('food_archive_td_emps')->onDelete('cascade');
             $table->timestamps();
         });
     }
@@ -30,6 +30,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('food_archive_emp_attendances');
+        Schema::dropIfExists('food_archive_td_emp_attendances');
     }
 };
