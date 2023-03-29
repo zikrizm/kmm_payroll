@@ -143,8 +143,8 @@ Route::middleware(['auth'])->group(function () {
 
     // * PRINT
     Route::prefix('/print')->group(function () {
-        Route::get('/payroll_report', 'PrintReportContoller@print_payroll_report')->name('print.payroll_report');
-        Route::get('/card_report', 'PrintReportContoller@print_card_report')->name('print.card_report');
+        Route::get('/payroll-report', 'PrintReportContoller@print_payroll_report')->name('print.payroll_report');
+        Route::get('/card-report', 'PrintReportContoller@print_card_report')->name('print.card_report');
     });
 
     // * TSO.

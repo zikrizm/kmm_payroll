@@ -14,13 +14,24 @@
     </header>
     <hr>
     <div class="flex justify-between gap-2.5">
-        <div class="w-72">
-            {!! FormCustom::input('selected_date', null, [
-            'placeholder' => 'Pilih tanggal arsip',
-            'class' => 'date_input',
-            'readonly' => true,
-            'prefixiconname' => 'calendar',
-            ]) !!}
+        <div class="flex items-center gap-3">
+            <div class="w-72">
+                {!! FormCustom::input('selected_date', null, [
+                'placeholder' => 'Pilih tanggal arsip',
+                'class' => 'date_input',
+                'readonly' => true,
+                'prefixiconname' => 'calendar',
+                ]) !!}
+            </div>
+            <a id="payroll-report"
+                class="flex items-center gap-2.5 text-sm px-4 py-1.5 rounded-lg border text-gray-700 ">
+                <x-icon icon="printer" width=20 height=20 viewBox="20 20" />
+                Cetak semua laporan
+            </a>
+            <a id="card-report" class="flex items-center gap-2.5 text-sm px-4 py-1.5 rounded-lg border text-gray-700 ">
+                <x-icon icon="printer" width=20 height=20 viewBox="20 20" />
+                Cetak semua kartu gaji
+            </a>
         </div>
         <x-ui.search-data placeholder="Cari arsip" url="{{ route('salary-archive.index') }}" />
     </div>
@@ -29,16 +40,33 @@
 
 <script type="application/javascript">
     let dataParams = {};
-
+    var business = {!! json_encode(auth()->user()->business->toArray()) !!};
     window.addEventListener('DOMContentLoaded', (event) => {
-        $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
-        onInit({ 
-            q: $('.search-data-input').val(), 
-            start_date: convertLocalTimezone(moment().startOf('week'), 'YYYY-MM-DD'), 
+        $.ajaxSetup({
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            }
+        });
+        let startOfWeek = moment().startOf('week');
+        let endOfWeek = moment().endOf('week');
+        let startOfWeekSubPending = startOfWeek.clone().subtract(business.pending_day, 'days');
+        let endOfWeekSubPending = endOfWeek.clone().subtract(business.pending_day, 'days');
+
+        $('#card-report').attr('href',
+            `/print/card-report?start_date_work_day=${convertLocalTimezone(startOfWeek, 'DD-MM-YYYY')}&end_date_work_day=${convertLocalTimezone(endOfWeek, 'DD-MM-YYYY')}&start_date_overtime=${convertLocalTimezone(startOfWeekSubPending, 'DD-MM-YYYY')}&end_date_overtime=${convertLocalTimezone(endOfWeekSubPending, 'DD-MM-YYYY')}`
+            );
+        $('#payroll-report').attr('href',
+            `/print/payroll-report?start_date_work_day=${convertLocalTimezone(startOfWeek, 'DD-MM-YYYY')}&end_date_work_day=${convertLocalTimezone(endOfWeek, 'DD-MM-YYYY')}&start_date_overtime=${convertLocalTimezone(startOfWeekSubPending, 'DD-MM-YYYY')}&end_date_overtime=${convertLocalTimezone(endOfWeekSubPending, 'DD-MM-YYYY')}`
+            );
+        onInit({
+            q: $('.search-data-input').val(),
+            start_date: convertLocalTimezone(moment().startOf('week'), 'YYYY-MM-DD'),
             end_date: convertLocalTimezone(moment().endOf('week'), 'YYYY-MM-DD')
         });
         $('input[name="selected_date"]').daterangepicker({
-            locale: { format: 'DD-MM-YYYY' },
+            locale: {
+                format: 'DD-MM-YYYY'
+            },
             startDate: moment().startOf('week'),
             endDate: moment().endOf('week'),
             ranges: {
@@ -47,7 +75,8 @@
                 'Last 7 Days': [moment().subtract(6, 'days'), moment()],
                 'Last 30 Days': [moment().subtract(29, 'days'), moment()],
                 'This Month': [moment().startOf('month'), moment().endOf('month')],
-                'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+                'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1,
+                    'month').endOf('month')]
             },
             alwaysShowCalendars: true,
             showCustomRangeLabel: false,
@@ -55,21 +84,31 @@
             minYear: 2000,
             drops: "auto",
             maxYear: parseInt(moment().format('YYYY'), 10)
-        },function(start, end, label) {
+        }, function (start, end, label) {
             var dateFormat = 'YYYY-MM-DD';
 
+            let startSubPending = start.clone().subtract(business.pending_day, 'days');
+            let endSubPending = end.clone().subtract(business.pending_day, 'days');
+            $('#card-report').attr('href',
+                `/print/card-report?start_date_work_day=${convertLocalTimezone(start, 'DD-MM-YYYY')}&end_date_work_day=${convertLocalTimezone(end, 'DD-MM-YYYY')}&start_date_overtime=${convertLocalTimezone(startSubPending, 'DD-MM-YYYY')}&end_date_overtime=${convertLocalTimezone(endSubPending, 'DD-MM-YYYY')}`
+                );
+            $('#payroll-report').attr('href',
+                `/print/payroll-report?start_date_work_day=${convertLocalTimezone(start, 'DD-MM-YYYY')}&end_date_work_day=${convertLocalTimezone(end, 'DD-MM-YYYY')}&start_date_overtime=${convertLocalTimezone(startSubPending, 'DD-MM-YYYY')}&end_date_overtime=${convertLocalTimezone(endSubPending, 'DD-MM-YYYY')}`
+                );
             delete dataParams.page;
-            onInit({ 
+            onInit({
                 q: $('.search-data-input').val(),
-                start_date: convertLocalTimezone(start, dateFormat), 
+                start_date: convertLocalTimezone(start, dateFormat),
                 end_date: convertLocalTimezone(end, dateFormat)
             });
         });
 
-        $(".search-data-input").on('keyup', debounce(function(e) {
-            if(e.key == 'Shift') return 0;
+        $(".search-data-input").on('keyup', debounce(function (e) {
+            if (e.key == 'Shift') return 0;
             delete dataParams.page;
-            onInit( { q: this.value });
+            onInit({
+                q: this.value
+            });
         }, 250));
     });
 
@@ -77,8 +116,11 @@
         // **
         // * Build data params table ----->
         // *
-        dataParams = { ...dataParams, ...data };
-    
+        dataParams = {
+            ...dataParams,
+            ...data
+        };
+
         // **
         // * get table ----->
         // *
@@ -88,125 +130,142 @@
         // **
         // * pagination table ----->
         // *
-        $('.pagination-button').on('click', function() {
+        $('.pagination-button').on('click', function () {
             var url = new URL($(this).data('pagination-url'));
             var page = url.searchParams.get("page");
-            onInit({page})
+            onInit({
+                page
+            })
         })
     }
 
     async function re_calculation(id) {
-            // **
-            // * open modal form ----->
-            // *
-            let runAnimation = true , setTimeoutProses;
-            var res = await ApiService.get_modal('/salary-archive/re-calculate', {  salary_id: id});
+        // **
+        // * open modal form ----->
+        // *
+        let runAnimation = true,
+            setTimeoutProses;
+        var res = await ApiService.get_modal('/salary-archive/re-calculate', {
+            salary_id: id
+        });
 
-            $('#kalkulasi').on('click', function(e) {
-                $('#container-modal-calculate').removeClass('w-[440px]');
-                $('#container-modal-calculate').addClass('w-[650px]');
-                $('#x-icon-close').hide();
-                $('#content-confirm-calculate').hide();
-                $('#content-loading-calculate').show();
-                let duration = 1000;
+        $('#kalkulasi').on('click', function (e) {
+            $('#container-modal-calculate').removeClass('w-[440px]');
+            $('#container-modal-calculate').addClass('w-[650px]');
+            $('#x-icon-close').hide();
+            $('#content-confirm-calculate').hide();
+            $('#content-loading-calculate').show();
+            let duration = 1000;
+            let length = $('.prosess-cointainer').length;
+            $('.prosess-cointainer').each(function (i) {
+                if (length - 1 != i) {
+                    let element = $(this);
+                    let index = i;
+                    let nextElement = element.next();
+                    let nextElementEq = $('.prosess-cointainer').eq(index + 6);
+
+                    let text_prosses = $(this).find('.text-prosess');
+                    text_prosses.prop('Counter', 0).delay(index * duration).animate({
+                        Counter: 100
+                    }, {
+                        duration: duration,
+                        easing: 'swing',
+                        // step: function (now) { },
+                        step: function (now) {
+                            if (runAnimation) $(this).text(Math.ceil(now) + '%');
+                        },
+                        complete: function () {
+                            if (runAnimation) {
+                                if (length - 6 > index) {
+                                    setTimeoutProses = setTimeout(() => {
+                                        element.toggle('flex');
+                                    }, 1000);
+                                }
+                                element.find('.icon-finish-prosess').toggle();
+                                if (!element.find('.icon-on-prosess').is(':hidden'))
+                                    element.find('.icon-on-prosess').toggle()
+                                if (!element.find('.icon-waiting-prosess').is(
+                                    ':hidden'))
+                                    element.find('.icon-waiting-prosess').toggle()
+                                element.find('.text-prosess').text('Selesai');
+                                nextElement.find('.icon-on-prosess').toggle()
+                                nextElement.find('.icon-waiting-prosess').toggle()
+                                nextElement.find('.text-prosess').text('Dalam proses');
+                                nextElementEq.toggle('flex');
+                            }
+                        }
+                    });
+                }
+            });
+        })
+
+        var resSubmit = ApiService.submit_form('.submit-re-calculation', (_response) => {
+            if (_response.response < 200 || _response.response >= 300) {
+                // * SET NOTIFICATION MESSAGE REQUIRED ----->
+            } else {
                 let length = $('.prosess-cointainer').length;
+                runAnimation = false;
+                clearTimeout(setTimeoutProses);
+                $('.prosess-cointainer').hide();
                 $('.prosess-cointainer').each(function (i) {
-                    if(length -1 != i) {
-                        let element = $(this);
-                        let index = i;
-                        let nextElement = element.next();
-                        let nextElementEq = $('.prosess-cointainer').eq(index+6);
+                    $(this).find('.text-prosess').stop();
+                    if (length - 1 != i) {
+                        // $(this).show();
+                        $(this).find('.icon-finish-prosess').show();
+                        $(this).find('.icon-waiting-prosess').hide()
+                        $(this).find('.icon-on-prosess').hide();
+                        $(this).find('.text-prosess').text('Selesai');
 
-                        let text_prosses = $(this).find('.text-prosess');
-                        text_prosses.prop('Counter',0).delay( index * duration ).animate({
+                        if (length - 8 < i) $(this).show();
+                    } else {
+                        $(this).show();
+                        $(this).find('.icon-waiting-prosess').hide()
+                        $(this).find('.icon-on-prosess').show();
+                        $(this).find('.text-prosess').prop('Counter', 0).animate({
                             Counter: 100
                         }, {
-                            duration: duration,
+                            duration: 1000,
                             easing: 'swing',
-                            // step: function (now) { },
-                            step: function (now) { if(runAnimation) $(this).text(Math.ceil(now)+'%'); },
+                            step: function (now) {
+                                $(this).text(Math.ceil(now) + '%');
+                            },
                             complete: function () {
-                                if(runAnimation) {
-                                    if(length - 6 > index) {
-                                        setTimeoutProses = setTimeout(() => {
-                                            element.toggle('flex');
-                                        }, 1000);
-                                    }
-                                    element.find('.icon-finish-prosess').toggle();
-                                    if (!element.find('.icon-on-prosess').is(':hidden')) 
-                                        element.find('.icon-on-prosess').toggle()
-                                    if (!element.find('.icon-waiting-prosess').is(':hidden')) 
-                                        element.find('.icon-waiting-prosess').toggle()
-                                    element.find('.text-prosess').text('Selesai');
-                                    nextElement.find('.icon-on-prosess').toggle()
-                                    nextElement.find('.icon-waiting-prosess').toggle()
-                                    nextElement.find('.text-prosess').text('Dalam proses');
-                                    nextElementEq.toggle('flex');                       
-                                }
+                                $(this).find('.icon-finish-prosess').show();
+                                $(this).find('.icon-waiting-prosess').hide()
+                                $(this).find('.icon-on-prosess').hide();
+                                $(this).find('.text-prosess').text('Selesai');
+                                setTimeout(() => {
+                                    $('#content-loading-calculate').hide();
+                                    $('#content-finish-calculate').show();
+                                }, 1000);
                             }
                         });
                     }
                 });
-            })
 
-            var resSubmit = ApiService.submit_form('.submit-re-calculation', (_response) => { 
-                if (_response.response < 200 || _response.response >= 300) {
-                    // * SET NOTIFICATION MESSAGE REQUIRED ----->
-                } else {
-                    let length = $('.prosess-cointainer').length;
-                    runAnimation = false;
-                    clearTimeout(setTimeoutProses);
-                    $('.prosess-cointainer').hide();
-                    $('.prosess-cointainer').each(function (i) {
-                        $(this).find('.text-prosess').stop();
-                        if(length -1 != i) {
-                            // $(this).show();
-                            $(this).find('.icon-finish-prosess').show();
-                            $(this).find('.icon-waiting-prosess').hide()
-                            $(this).find('.icon-on-prosess').hide();
-                            $(this).find('.text-prosess').text('Selesai');
-
-                            if(length - 8 < i) $(this).show();
-                        } else {
-                            $(this).show();
-                            $(this).find('.icon-waiting-prosess').hide()
-                            $(this).find('.icon-on-prosess').show();
-                            $(this).find('.text-prosess').prop('Counter',0).animate({
-                                Counter: 100
-                            }, {
-                                duration: 1000,
-                                easing: 'swing',
-                                step: function (now) { $(this).text(Math.ceil(now)+'%'); },
-                                complete: function () {
-                                    $(this).find('.icon-finish-prosess').show();
-                                    $(this).find('.icon-waiting-prosess').hide()
-                                    $(this).find('.icon-on-prosess').hide();
-                                    $(this).find('.text-prosess').text('Selesai');
-                                    setTimeout(() => {
-                                        $('#content-loading-calculate').hide();
-                                        $('#content-finish-calculate').show();
-                                    }, 1000);
-                                }
-                            });
-                        }
-                    });
-
-                    onInit( { q: $('.search-data-input').val() });
-                }
-            }, { allowLoading: false, allowCloseModal: false});
-        }
+                onInit({
+                    q: $('.search-data-input').val()
+                });
+            }
+        }, {
+            allowLoading: false,
+            allowCloseModal: false
+        });
+    }
 
     async function get_detail_salary_modal(id) {
         // **
         // * open modal form ----->
         // *
-        var res = await ApiService.get_modal('/salary-archive/'+id, null);
+        var res = await ApiService.get_modal('/salary-archive/' + id, null);
 
         // **
         // * submit form ----->
         // *
-        var resSubmit = ApiService.submit_form('.submit-user', (data) => { 
-            onInit( { q: $('.search-data-input').val() });
+        var resSubmit = ApiService.submit_form('.submit-user', (data) => {
+            onInit({
+                q: $('.search-data-input').val()
+            });
         });
     }
 
@@ -221,7 +280,7 @@
 
 
     function resetSortTable() {
-        $('.sort-table').each(function(e) {
+        $('.sort-table').each(function (e) {
             $(this).removeClass('active');
             $(this).children('.sort-icon').removeClass('rotate-180');
         })
@@ -235,11 +294,17 @@
         // Reset sort table
         resetSortTable();
         // Build Data sort table
-        let field = { q: $('.search-data-input').val(), };
-        field.sort = { name: sortKey, order: (isActive) ? 'ASC': 'DESC'}
+        let field = {
+            q: $('.search-data-input').val(),
+        };
+        field.sort = {
+            name: sortKey,
+            order: (isActive) ? 'ASC' : 'DESC'
+        }
         console.log(field)
         // Get Data sort table
         onInit(field)
     }
+
 </script>
 @endsection

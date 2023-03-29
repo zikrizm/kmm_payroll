@@ -444,15 +444,16 @@ class EmployeeController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function destroy($employee, Request $request)
+    public function destroy(int $employee, Request $request)
     {
         if (!auth()->user()->can('employee.delete') || !$request->ajax()) {
             abort(403, 'Unauthorized action.');
         }
 
         try {
+            Log::info('JALANKESINI');
             $res = $this->apiService->delete_employee($employee);
-
+            Log::info($res);
             // ** create activity log user
             ActivityLog::created_activity('CRUD employee', 'User ' . auth()->user()->username . ' delete data employee');
             return response()->json($res);

@@ -18,6 +18,7 @@ use App\Models\EmployeeDebt;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use App\Models\EmployeeStatusLb;
+use App\Models\SalaryArchiveTh;
 use App\Services\Api\ApiServices;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
@@ -571,165 +572,161 @@ class PrintReportContoller extends Controller
                             ]);
 
                             $attendance_employee = $attendances_grouping->get($emp['id']);
-                            if (!empty($attendance_employee) && count($attendance_employee)) {
-                                $emplocal = Employee::where('business_id', $business_id)->where('emp_id', $emp['id'])
-                                    ->select('id', 'business_id', 'emp_id', 'emp_code', 'daily_salary', 'payment_period')
-                                    ->first();
+                            $emplocal = Employee::where('business_id', $business_id)->where('emp_id', $emp['id'])
+                                ->select('id', 'business_id', 'emp_id', 'emp_code', 'daily_salary', 'payment_period')
+                                ->first();
 
-                                if (!empty($emplocal)) {
-                                    $kasbon = $this->getEmployeeKasbonPaid($emplocal, $start_date, $end_date);
-                                    $report['kasbon_pay_value'] += $kasbon['kasbon_pay'];
-                                    $report['remaining_kasbon_pay_value'] += $kasbon['remaining_kasbon'];
-                                    $report['tbhn_u_position_pay_value'] += $this->getEmployeeExtraPayPosition($emplocal, $start_date, $end_date);
+                            if (!empty($emplocal)) {
+                                $kasbon = $this->getEmployeeKasbonPaid($emplocal, $start_date, $end_date);
+                                $report['kasbon_pay_value'] += $kasbon['kasbon_pay'];
+                                $report['remaining_kasbon_pay_value'] += $kasbon['remaining_kasbon'];
+                                $report['tbhn_u_position_pay_value'] += $this->getEmployeeExtraPayPosition($emplocal, $start_date, $end_date);
 
-                                    $range_date_count = count($range_dates);
-                                    foreach ($range_dates as $iDate => $range_date) {
-                                        if ($range_date_count - 1 != $iDate) {
-                                            $date = Carbon::parse($range_date['date']);
-                                            $next_date = $date->copy()->addDay();
+                                $range_date_count = count($range_dates);
+                                foreach ($range_dates as $iDate => $range_date) {
+                                    if ($range_date_count - 1 != $iDate) {
+                                        $date = Carbon::parse($range_date['date']);
+                                        $next_date = $date->copy()->addDay();
 
-                                            $attendance_data = [
-                                                'date' => $date->format('Y-m-d'),
-                                                'first_punch' => null,
-                                                'last_punch' => null,
-                                                'JL' => 0,
-                                                'HK' => 0,
+                                        $attendance_data = [
+                                            'date' => $date->format('Y-m-d'),
+                                            'first_punch' => null,
+                                            'last_punch' => null,
+                                            'JL' => 0,
+                                            'HK' => 0,
 
-                                                'value_string' => '',
-                                                'be_one_shift' => 0,
+                                            'value_string' => '',
+                                            'be_one_shift' => 0,
 
-                                                'food' => 0,
-                                                'HK_pay_value' => 0,
-                                                'JL_pay_value' => 0,
-                                                'tbhn_u_libur_pay_value' => 0,
-                                                'timetable' => null,
+                                            'food' => 0,
+                                            'HK_pay_value' => 0,
+                                            'JL_pay_value' => 0,
+                                            'tbhn_u_libur_pay_value' => 0,
+                                            'timetable' => null,
 
-                                                'operational_id' => null,
-                                                'operational_has_timetable_id' => null,
-                                                'operational_plusm_value' => null,
-                                                'operational_status' => null,
-                                                'operational_note' => null,
+                                            'operational_id' => null,
+                                            'operational_has_timetable_id' => null,
+                                            'operational_plusm_value' => null,
+                                            'operational_status' => null,
+                                            'operational_note' => null,
 
-                                                'attendance_tso_id' => null,
+                                            'attendance_tso_id' => null,
 
-                                                'attendance_lb_id' => null,
-                                                'attendance_lb_status' => null,
+                                            'attendance_lb_id' => null,
+                                            'attendance_lb_status' => null,
 
-                                                'is_holiday' => $range_date['is_holiday'],
-                                                'is_addition_date' => $range_date['is_addition_date'],
-                                                'is_counting_salary' => $range_date['is_counting_salary'],
-                                                'is_counting_overtime' => $range_date['is_counting_overtime'],
-                                            ];
+                                            'is_holiday' => $range_date['is_holiday'],
+                                            'is_addition_date' => $range_date['is_addition_date'],
+                                            'is_counting_salary' => $range_date['is_counting_salary'],
+                                            'is_counting_overtime' => $range_date['is_counting_overtime'],
+                                        ];
 
-                                            $attendance_employee_in_dates = collect($attendance_employee[$date->format('Y-m-d')] ?? []);
-                                            if ($attendance_employee_in_dates->isNotEmpty()) {
-                                                $first = $attendance_employee_in_dates->first();
-                                                $last = $attendance_employee_in_dates->last();
-                                                $first_punch = Carbon::parse($first['punch_time']);
-                                                $last_punch = Carbon::parse($last['punch_time']);
-                                                $attendance_data['first_punch'] = $first['punch_time'];
-                                                $attendance_data['last_punch'] = $last['punch_time'];
+                                        $attendance_employee_in_dates = collect($attendance_employee[$date->format('Y-m-d')] ?? []);
+                                        if ($attendance_employee_in_dates->isNotEmpty()) {
+                                            $first = $attendance_employee_in_dates->first();
+                                            $last = $attendance_employee_in_dates->last();
+                                            $first_punch = Carbon::parse($first['punch_time']);
+                                            $last_punch = Carbon::parse($last['punch_time']);
+                                            $attendance_data['first_punch'] = $first['punch_time'];
+                                            $attendance_data['last_punch'] = $last['punch_time'];
 
-                                                $shiftday = $empshift->shiftdays->where('code_day', $date->dayOfWeek)->first();
-                                                if (!empty($shiftday)) {
-                                                    foreach ($shiftday->shiftday_has_timetables as $shiftday_has_timetable) {
-                                                        $timetable = $shiftday_has_timetable->timetable;
-                                                        $check_in = Carbon::parse($date->format('Y-m-d') . $timetable->check_in);
-                                                        $check_out = Carbon::parse($date->format('Y-m-d') . $timetable->check_out);
+                                            $shiftday = $empshift->shiftdays->where('code_day', $date->dayOfWeek)->first();
+                                            if (!empty($shiftday)) {
+                                                foreach ($shiftday->shiftday_has_timetables as $shiftday_has_timetable) {
+                                                    $timetable = $shiftday_has_timetable->timetable;
+                                                    $check_in = Carbon::parse($date->format('Y-m-d') . $timetable->check_in);
+                                                    $check_out = Carbon::parse($date->format('Y-m-d') . $timetable->check_out);
 
-                                                        $check_in_add_plusmn = $check_in->copy()->subMinutes($timetable->check_in_plusmn);
-                                                        $check_in_sub_plusmn = $check_in->copy()->addMinutes($timetable->check_in_plusmn);
+                                                    $check_in_add_plusmn = $check_in->copy()->subMinutes($timetable->check_in_plusmn);
+                                                    $check_in_sub_plusmn = $check_in->copy()->addMinutes($timetable->check_in_plusmn);
 
 
-                                                        if ($first_punch->between($check_in_sub_plusmn, $check_in_add_plusmn)) {
-                                                            $attendance_data['timetable'] = $timetable->toArray();
-                                                            $check_out_plus_duration_ot_limit =  $check_out->copy()->addHours($timetable->duration_ot_limit);
-                                                            // if($date->format('Y-m-d') == '2023-03-22') {
+                                                    if ($first_punch->between($check_in_sub_plusmn, $check_in_add_plusmn)) {
+                                                        $attendance_data['timetable'] = $timetable->toArray();
+                                                        $check_out_plus_duration_ot_limit =  $check_out->copy()->addHours($timetable->duration_ot_limit);
+                                                        // if($date->format('Y-m-d') == '2023-03-22') {
 
-                                                            //     Log::info($check_out_plus_duration_ot_limit);
-                                                            // }
-                                                            $attendance_date_time_cross = collect();
-                                                            $attendance_date_time_uncross = collect();
-                                                            if (!empty($attendance_employee->get($next_date->format('Y-m-d')))) {
-                                                                foreach ($attendance_employee->get($next_date->format('Y-m-d')) as $attendance_emp_next_date) {
-                                                                    $check_in_next_date = Carbon::parse($attendance_emp_next_date['punch_time']);
-                                                                    if ($check_in_next_date->lte($check_out_plus_duration_ot_limit)) {
-                                                                        $attendance_date_time_cross[] = collect($attendance_emp_next_date);
-                                                                    } else {
-                                                                        $attendance_date_time_uncross[] = collect($attendance_emp_next_date);
-                                                                    }
-                                                                }
-
-                                                                if (!empty($attendance_date_time_cross) && $attendance_date_time_cross->isNotEmpty()) {
-                                                                    $attendance_employee[$date->format('Y-m-d')]->push(...$attendance_date_time_cross);
-                                                                    $attendance_employee[$next_date->format('Y-m-d')] = collect($attendance_date_time_uncross);
-                                                                    $last_punch = Carbon::parse($attendance_date_time_cross->last()['punch_time']);
-                                                                    $attendance_data['last_punch'] = $attendance_date_time_cross->last()['punch_time'];
+                                                        //     Log::info($check_out_plus_duration_ot_limit);
+                                                        // }
+                                                        $attendance_date_time_cross = collect();
+                                                        $attendance_date_time_uncross = collect();
+                                                        if (!empty($attendance_employee->get($next_date->format('Y-m-d')))) {
+                                                            foreach ($attendance_employee->get($next_date->format('Y-m-d')) ?? [] as $attendance_emp_next_date) {
+                                                                $check_in_next_date = Carbon::parse($attendance_emp_next_date['punch_time']);
+                                                                if ($check_in_next_date->lte($check_out_plus_duration_ot_limit)) {
+                                                                    $attendance_date_time_cross[] = collect($attendance_emp_next_date);
+                                                                } else {
+                                                                    $attendance_date_time_uncross[] = collect($attendance_emp_next_date);
                                                                 }
                                                             }
 
-                                                            if ($range_date['is_counting_overtime']) {
-                                                                $countingOvertime = $this->countingOvertime($range_date, $first_punch, $last_punch, $timetable, $attendance_employee_in_dates->count());
-                                                                $attendance_data['JL'] += $countingOvertime['JL'];
-                                                                $attendance_data['JL_pay_value'] += $countingOvertime['JL_pay_value'];
-                                                                $attendance_data['be_one_shift'] += $countingOvertime['be_one_shift'];
+                                                            if (!empty($attendance_date_time_cross) && $attendance_date_time_cross->isNotEmpty()) {
+                                                                $attendance_employee[$date->format('Y-m-d')]->push(...$attendance_date_time_cross);
+                                                                $attendance_employee[$next_date->format('Y-m-d')] = collect($attendance_date_time_uncross);
+                                                                $last_punch = Carbon::parse($attendance_date_time_cross->last()['punch_time']);
+                                                                $attendance_data['last_punch'] = $attendance_date_time_cross->last()['punch_time'];
                                                             }
-
-                                                            if ($attendance_employee_in_dates->count() > 1) {
-                                                                $countingSalary = $this->countingSalary($employee_department_local, $range_date, $first_punch, $last_punch, $timetable);
-                                                                $attendance_data['HK'] += $countingSalary['HK'] + $attendance_data['be_one_shift'];
-                                                                $attendance_data['HK_pay_value'] += $countingSalary['HK'] * $emplocal->daily_salary;
-                                                            }
-                                                        } else {
                                                         }
+
+                                                        if ($range_date['is_counting_overtime']) {
+                                                            $countingOvertime = $this->countingOvertime($range_date, $first_punch, $last_punch, $timetable, $attendance_employee_in_dates->count());
+                                                            $attendance_data['JL'] += $countingOvertime['JL'];
+                                                            $attendance_data['JL_pay_value'] += $countingOvertime['JL_pay_value'];
+                                                            $attendance_data['be_one_shift'] += $countingOvertime['be_one_shift'];
+                                                        }
+
+                                                        if ($attendance_employee_in_dates->count() > 1) {
+                                                            $countingSalary = $this->countingSalary($employee_department_local, $range_date, $first_punch, $last_punch, $timetable);
+                                                            $attendance_data['HK'] += $countingSalary['HK'] + $attendance_data['be_one_shift'];
+                                                            $attendance_data['HK_pay_value'] += $countingSalary['HK'] * $emplocal->daily_salary;
+                                                        }
+                                                    } else {
                                                     }
-                                                } else {
-                                                    // MASUKK KESINI KLO-KLO DATA SHIFTNYA BLOM DI INPUT
                                                 }
                                             } else {
-                                                if ($range_date['is_holiday'] && $employee_department_local->still_paid) {
-                                                    $attendance_data['HK']++;
-                                                    $attendance_data['HK_pay_value'] += $attendance_data['HK'] * $emplocal->daily_salary;
-                                                }
-                                                // MASUKK KESINI KLO ABSENSI USER DI TANGGAL INI GA ADA
-                                            }
-
-                                            $operational_date = $empoperationals->where('date', $date->format('Y-m-d'))->first();
-                                            if (!empty($operational_date)) {
-                                                $attendance_data = $this->checkAttendaceOperational($date, $operational_date, $attendance_data);
-                                            } else {
-                                                // MASUKK KESINI KLO OPERATIONAL NYA GA ADA
-                                            }
-
-                                            $attendance_tso = AttendanceTso::where('tso_date', $date->format('Y-m-d'))->where('emp_id', $emp['id'])->first();
-                                            if (!empty($attendance_tso)) {
-                                                $attendance_data['operational_status'] = 'valid';
-                                                $attendance_data['operational_node'] = 'kehadiran karyawan telah Disetujui';
-                                                $attendance_data['attendance_tso_id'] = $attendance_tso->id;
-                                            }
-
-                                            $attendance_data  = $this->checkAttendancLbStatus($date, $emp['id'], $attendance_data);
-                                            if ($attendance_data['attendance_lb_status'] == 'accept') {
-                                                $attendance_data['tbhn_u_libur_pay_value'] += $employee_department_local->sitting_money ?? 0;
-                                            }
-
-                                            if ($range_date['is_addition_date']) {
-                                                // INI CUMA TANGGAL TAMBAHAN AJA SUPAYA BISA AMBIL DATA DI HARI SETELAHNYA
-                                                // UNTUK AMBIL DATA LEMBURNYA JIKA GANTI HARI
-                                            } else {
-                                                $attendance_data = $this->buildValueHtml($attendance_data);
-                                                $attendances->push(collect($attendance_data));
+                                                // MASUKK KESINI KLO-KLO DATA SHIFTNYA BLOM DI INPUT
                                             }
                                         } else {
+                                            if ($range_date['is_holiday'] && $employee_department_local->still_paid) {
+                                                $attendance_data['HK']++;
+                                                $attendance_data['HK_pay_value'] += $attendance_data['HK'] * $emplocal->daily_salary;
+                                            }
+                                            // MASUKK KESINI KLO ABSENSI USER DI TANGGAL INI GA ADA
+                                        }
+
+                                        $operational_date = $empoperationals->where('date', $date->format('Y-m-d'))->first();
+                                        if (!empty($operational_date)) {
+                                            $attendance_data = $this->checkAttendaceOperational($date, $operational_date, $attendance_data);
+                                        } else {
+                                            // MASUKK KESINI KLO OPERATIONAL NYA GA ADA
+                                        }
+
+                                        $attendance_tso = AttendanceTso::where('tso_date', $date->format('Y-m-d'))->where('emp_id', $emp['id'])->first();
+                                        if (!empty($attendance_tso)) {
+                                            $attendance_data['operational_status'] = 'valid';
+                                            $attendance_data['operational_node'] = 'kehadiran karyawan telah Disetujui';
+                                            $attendance_data['attendance_tso_id'] = $attendance_tso->id;
+                                        }
+
+                                        $attendance_data  = $this->checkAttendancLbStatus($date, $emp['id'], $attendance_data);
+                                        if ($attendance_data['attendance_lb_status'] == 'accept') {
+                                            $attendance_data['tbhn_u_libur_pay_value'] += $employee_department_local->sitting_money ?? 0;
+                                        }
+
+                                        if ($range_date['is_addition_date']) {
                                             // INI CUMA TANGGAL TAMBAHAN AJA SUPAYA BISA AMBIL DATA DI HARI SETELAHNYA
                                             // UNTUK AMBIL DATA LEMBURNYA JIKA GANTI HARI
+                                        } else {
+                                            $attendance_data = $this->buildValueHtml($attendance_data);
+                                            $attendances->push(collect($attendance_data));
                                         }
+                                    } else {
+                                        // INI CUMA TANGGAL TAMBAHAN AJA SUPAYA BISA AMBIL DATA DI HARI SETELAHNYA
+                                        // UNTUK AMBIL DATA LEMBURNYA JIKA GANTI HARI
                                     }
-                                } else {
-                                    // MASUKK KESINI JIKA USER BIOS TIDAK ADA DI LOCAL
                                 }
                             } else {
-                                // MASUKK KESINI KLO ABSENSI USER NYA GA ADA
+                                // MASUKK KESINI JIKA USER BIOS TIDAK ADA DI LOCAL
                             }
                             foreach ($attendances as $attendance) {
                                 $report['HK_value'] += $attendance['HK'];
@@ -801,27 +798,50 @@ class PrintReportContoller extends Controller
     {
         Log::info('[' . request()->route()->getName() . ']::GET');
         try {
+            $salary_archive_ths = null;
             $start_date_work_day = null;
             $end_date_work_day = null;
             $start_date_overtime = null;
             $end_date_overtime = null;
-            $datas = [];
+            $business_id = Session::get('business_id');
+            $business = Business::where('id', $business_id)->select('id', 'pending_day')->first();
+
             if ($request->has('start_date_work_day') && $request->has('end_date_work_day') && $request->has('start_date_overtime') && $request->has('end_date_overtime')) {
                 $start_date_work_day = Carbon::createFromFormat('d-m-Y', $request['start_date_work_day']);
                 $end_date_work_day = Carbon::createFromFormat('d-m-Y', $request['end_date_work_day']);
                 $start_date_overtime = Carbon::createFromFormat('d-m-Y', $request['start_date_overtime']);
                 $end_date_overtime = Carbon::createFromFormat('d-m-Y', $request['end_date_overtime']);
-                $datas = $this->getPayrollAttendanceReport(
-                    $start_date_work_day,
-                    $end_date_work_day,
-                    $start_date_overtime,
-                    $end_date_overtime,
-                    $request['deparment_code'],
+                Log::info($start_date_work_day);
+                Log::info($end_date_work_day);
+                Log::info($start_date_overtime);
+                Log::info($end_date_overtime);
+                $salary_archive_ths = SalaryArchiveTh::whereDate('start_date_work_day', $start_date_work_day->format('Y-m-d'))
+                    ->whereDate('end_date_work_day', $end_date_work_day->format('Y-m-d'))
+                    ->whereDate('start_date_overtime', $start_date_overtime->format('Y-m-d'))
+                    ->whereDate('end_date_overtime', $end_date_overtime->format('Y-m-d'));
+
+                if ($request->has('calculation_salary_archive_id')) {
+                    $calculation_salary_archive_id = $request->calculation_salary_archive_id;
+                    $salary_archive_ths = $salary_archive_ths->with(['salary_archive_tds' => fn ($query) => $query->where('id', $calculation_salary_archive_id)])->get();
+                } else {
+                    $salary_archive_ths = $salary_archive_ths->with(['salary_archive_tds'])->get();
+                }
+
+                $range_dates = $this->getRangeDate(
+                    $business,
+                    $start_date_work_day->copy()->addDay(),
+                    $end_date_work_day->copy()->subDay(),
+                    $start_date_overtime->copy()->addDay(),
+                    $end_date_overtime->copy()->subDay()
                 );
 
-                return view('print.payroll_report', compact('start_date_work_day', 'end_date_work_day', 'start_date_overtime', 'end_date_overtime', 'datas'));
+                foreach ($salary_archive_ths as $key => $item) {
+                    $item['range_dates'] = $range_dates;
+                }
+
+                return view('print.payroll_report', compact('start_date_work_day','end_date_work_day', 'start_date_overtime', 'end_date_overtime','salary_archive_ths'));
             } else {
-                return view('print.payroll_report', compact('start_date_work_day', 'end_date_work_day', 'start_date_overtime', 'end_date_overtime', 'datas'));
+                return view('print.payroll_report', compact('start_date_work_day','end_date_work_day', 'start_date_overtime', 'end_date_overtime','salary_archive_ths'));
             }
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
@@ -834,32 +854,75 @@ class PrintReportContoller extends Controller
     {
         Log::info('[' . request()->route()->getName() . ']::GET');
         try {
-            $deparment_code = null;
-            $start_date = null;
-            $end_date = null;
-            $datas = [];
-            if ($request->has('deparment_code')) {
-                $deparment_code = $request['deparment_code'];
-            }
-            if ($request->has('start_date') && $request->has('end_date')) {
-                $start_date = Carbon::createFromFormat('d-m-Y', $request['start_date']);
-                $end_date = Carbon::createFromFormat('d-m-Y', $request['end_date']);
-                $start_date_work_day = Carbon::createFromFormat('d-m-Y', $request['start_date']);
-                $end_date_work_day = Carbon::createFromFormat('d-m-Y', $request['end_date']);
-                $start_date_overtime = Carbon::createFromFormat('d-m-Y', $request['start_date']);
-                $end_date_overtime = Carbon::createFromFormat('d-m-Y', $request['end_date']);
+            // $deparment_code = null;
+            // $start_date = null;
+            // $end_date = null;
+            // $datas = [];
+            // if ($request->has('deparment_code')) {
+            //     $deparment_code = $request['deparment_code'];
+            // }
+            // if ($request->has('start_date') && $request->has('end_date')) {
+            //     $start_date = Carbon::createFromFormat('d-m-Y', $request['start_date']);
+            //     $end_date = Carbon::createFromFormat('d-m-Y', $request['end_date']);
+            //     $start_date_work_day = Carbon::createFromFormat('d-m-Y', $request['start_date']);
+            //     $end_date_work_day = Carbon::createFromFormat('d-m-Y', $request['end_date']);
+            //     $start_date_overtime = Carbon::createFromFormat('d-m-Y', $request['start_date']);
+            //     $end_date_overtime = Carbon::createFromFormat('d-m-Y', $request['end_date']);
 
-                $datas = $this->getPayrollAttendanceReport(
-                    $start_date_work_day,
-                    $end_date_work_day,
-                    $start_date_overtime,
-                    $end_date_overtime,
-                    $deparment_code,
-                );
+            //     $datas = $this->getPayrollAttendanceReport(
+            //         $start_date_work_day,
+            //         $end_date_work_day,
+            //         $start_date_overtime,
+            //         $end_date_overtime,
+            //         $deparment_code,
+            //     );
 
-                return view('print.card_report', compact('start_date', 'end_date', 'datas'));
+            //     return view('print.card_report', compact('start_date', 'end_date', 'datas'));
+            // } else {
+            //     return view('print.card_report', compact('start_date', 'end_date'));
+            // }
+
+            $salary_archive_ths = null;
+            $start_date_work_day = null;
+            $end_date_work_day = null;
+            $start_date_overtime = null;
+            $end_date_overtime = null;
+            $business_id = Session::get('business_id');
+            $business = Business::where('id', $business_id)->select('id', 'pending_day')->first();
+
+            if ($request->has('start_date_work_day') && $request->has('end_date_work_day') && $request->has('start_date_overtime') && $request->has('end_date_overtime')) {
+                $start_date_work_day = Carbon::createFromFormat('d-m-Y', $request['start_date_work_day']);
+                $end_date_work_day = Carbon::createFromFormat('d-m-Y', $request['end_date_work_day']);
+                $start_date_overtime = Carbon::createFromFormat('d-m-Y', $request['start_date_overtime']);
+                $end_date_overtime = Carbon::createFromFormat('d-m-Y', $request['end_date_overtime']);
+
+                $salary_archive_ths = SalaryArchiveTh::whereDate('start_date_work_day', $start_date_work_day)
+                    ->whereDate('end_date_work_day', $end_date_work_day)
+                    ->whereDate('start_date_overtime', $start_date_overtime)
+                    ->whereDate('end_date_overtime', $end_date_overtime);
+
+                if ($request->has('calculation_salary_archive_id')) {
+                    $calculation_salary_archive_id = $request->calculation_salary_archive_id;
+                    $salary_archive_ths = $salary_archive_ths->with(['salary_archive_tds' => fn ($query) => $query->where('id', $calculation_salary_archive_id)])->get();
+                } else {
+                    $salary_archive_ths = $salary_archive_ths->with(['salary_archive_tds'])->get();
+                }
+
+                // $range_dates = $this->getRangeDate(
+                //     $business,
+                //     $start_date_work_day->copy()->addDay(),
+                //     $end_date_work_day->copy()->subDay(),
+                //     $start_date_overtime->copy()->addDay(),
+                //     $end_date_overtime->copy()->subDay()
+                // );
+
+                // foreach ($salary_archive_ths as $key => $item) {
+                //     $item['range_dates'] = $range_dates;
+                // }
+
+                return view('print.card_report', compact('start_date_work_day','end_date_work_day', 'start_date_overtime', 'end_date_overtime','salary_archive_ths'));
             } else {
-                return view('print.card_report', compact('start_date', 'end_date'));
+                return view('print.card_report', compact('start_date_work_day','end_date_work_day', 'start_date_overtime', 'end_date_overtime','salary_archive_ths'));
             }
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());

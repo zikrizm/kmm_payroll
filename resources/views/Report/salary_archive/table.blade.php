@@ -71,25 +71,19 @@
                                                     {{ date('d-m-Y', strtotime($salary_archive_td->created_at)) }}
                                                 </p>
                                                 <p class="truncate">
-                                                    {{Carbon\Carbon::parse($salary_archive_td->created_at)->timezone('Asia/Jakarta')->format('H:i:s')
+                                                    {{
+                                                        Carbon\Carbon::parse($salary_archive_td->created_at)->timezone('Asia/Jakarta')->format('H:i:s')
                                                     }}
                                                 </p>
                                             </div>
                                         </div>
                                     </td>
                                     <td class='px-3 py-1'>
-                                        <div class="flex items-center justify-end gap-2">
-                                            {{-- <button onclick="get_detail_salary_modal('{{ $item->id }}')"
-                                                class="text-gray-500 flex justify-center items-center gap-2 border rounded-lg shadow px-2.5 py-1.5">
-                                                <x-icon icon="detail" width=16 height=16 viewBox="20 20" />
-                                                <p class="text-xs">Detail</p>
-                                            </button> --}}
-                                            <button onclick="get_detail_salary_modal('{{ $item->id }}')"
-                                                class="text-gray-500 flex justify-center items-center gap-2 border rounded-lg shadow px-2.5 py-1.5">
-                                                <x-icon icon="printer" width=16 height=16 viewBox="20 20" />
-                                                <p class="text-xs">Cetak</p>
-                                            </button>
-                                        </div>
+                                        <a href="/print/payroll-report?start_date_work_day={{ Carbon\Carbon::parse($item->start_date_work_day)->format('d-m-Y')}}&end_date_work_day={{ Carbon\Carbon::parse($item->end_date_work_day)->format('d-m-Y') }}&start_date_overtime={{ Carbon\Carbon::parse($item->start_date_overtime)->format('d-m-Y') }}&end_date_overtime={{ Carbon\Carbon::parse($item->end_date_overtime)->format('d-m-Y') }}&calculation_salary_archive_id={{ $salary_archive_td->id }}"
+                                            class="text-gray-500 flex justify-center items-center gap-2 border rounded-lg shadow px-2.5 py-1.5">
+                                            <x-icon icon="printer" width=16 height=16 viewBox="20 20" />
+                                            <p class="text-xs">Cetak</p>
+                                        </a>
                                     </td>
                                 </tr>
                             </tbody>

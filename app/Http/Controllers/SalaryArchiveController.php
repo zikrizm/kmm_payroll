@@ -48,7 +48,7 @@ class SalaryArchiveController extends Controller
             Log::info($request);
             $business_id = Session::get('business_id');
             if (request()->ajax()) {
-                $salary_archives = SalaryArchiveTh::where('business_id', $business_id)->whereBetween('created_at', [$request->start_date, $request->end_date]);
+                $salary_archives = SalaryArchiveTh::where('business_id', $business_id)->whereDate('start_date_work_day', '<=', $request->start_date)->whereDate('end_date_work_day', '>=', $request->end_date);
 
                 if ($request->has('q')) {
                     $search = $request->q;
