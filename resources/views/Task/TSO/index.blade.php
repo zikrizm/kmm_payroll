@@ -56,7 +56,9 @@
             <x-ui.search-data placeholder="Cari kehadiran" />
         </div>
     </header>
-    <div class="table-content"></div>
+    <div class="table-content">
+        @include('task.tso.table')
+    </div>
 </div>
 
 <script type="application/javascript">
@@ -154,8 +156,18 @@
             ...dataParams,
             ...data
         };
-        var res = await ApiService.get_table("{{ route('TSO.index') }}", dataParams);
-        $('.table-content').html(res);
+        console.log(dataParams);
+        var _response = await ApiService.post_data('GET', "{{ route('TSO.index') }}", dataParams);
+        if (_response.response < 200 || _response.response >= 300) {
+            // * SHOW NOTIFICATION ----->
+        } else {
+            _response.data.forEach((element, i) => {
+                $('#tbody-tso').append(elementHTML(element, i));
+            });
+        }
+
+        console.log(_response);
+        // $('.table-content').html(res);
         // $('.table-tso .select-all-card').off('change');
         // $('.table-tso .select-all-card').on('change', function (e) {
         //     var showApproveAllTSO = false,
@@ -254,24 +266,24 @@
     function selectAllAttendance(event) {
         if ($(event).is(':checked')) {
             $('[data-checkbox-tso-item]').prop('checked', true);
-            buildSelectedAttendance();
-            if (selectedListAttendanceTso.length) {
-                if ($('#approved-all-tso').is(':hidden')) {
-                    $('#approved-all-tso').toggle();
-                }
-            }
-            if (selectedListAttendanceLb.length && selectedListAttendanceLb.findIndex((e) => e.lb_status == 'accept') !=
-                -1) {
-                if ($('#accept-all-lb').is(':hidden')) {
-                    $('#accept-all-lb').toggle();
-                }
-            }
-            if (selectedListAttendanceLb.length && selectedListAttendanceLb.findIndex((e) => e.lb_status == 'cancel') !=
-                -1) {
-                if ($('#cancel-all-lb').is(':hidden')) {
-                    $('#cancel-all-lb').toggle();
-                }
-            }
+            // buildSelectedAttendance();
+            // if (selectedListAttendanceTso.length) {
+            //     if ($('#approved-all-tso').is(':hidden')) {
+            //         $('#approved-all-tso').toggle();
+            //     }
+            // }
+            // if (selectedListAttendanceLb.length && selectedListAttendanceLb.findIndex((e) => e.lb_status == 'accept') !=
+            //     -1) {
+            //     if ($('#accept-all-lb').is(':hidden')) {
+            //         $('#accept-all-lb').toggle();
+            //     }
+            // }
+            // if (selectedListAttendanceLb.length && selectedListAttendanceLb.findIndex((e) => e.lb_status == 'cancel') !=
+            //     -1) {
+            //     if ($('#cancel-all-lb').is(':hidden')) {
+            //         $('#cancel-all-lb').toggle();
+            //     }
+            // }
         } else {
             selectedListAttendanceTso = [];
             selectedListAttendanceLb = [];
@@ -331,9 +343,6 @@
             var tempListLb = selectedListAttendanceLb.filter((e) => {
                 e.lb_status == 'type'
             });
-
-
-
         }
     }
 
@@ -494,6 +503,130 @@
 
     //     }
     // }
+
+    function elementHTMLStatus(element) {
+        let html = '';
+        if (element.attendance_tso_id || element.operational_status == 'valid') {
+            html += `<x-icon icon="check" class="text-green-600" width=12 height=12 viewBox="20 20" />`;
+        } else {
+            if (element.attendance_lb_status == 'accept') {
+                html += '<p class="text-gray-500">LB</p>';
+            }
+            if (element.operational_status == 'invalid') {
+                html += `<x-icon icon="x" class="text-red-500" width=12 height=12 viewBox="20 20" />`;
+            }
+            if (element.operational_plusm_value)
+                html += `<p class="text-gray-500">${ element.operational_plusm_value}</p>`;
+        }
+
+        return html;
+    }
+    function elementHTMLAction(element) {
+        let html = '';
+        if (element.attendance_lb_id && element.attendance_lb_status == 'cancel') {
+            html += `<button disabled
+                class="truncate flex items-center gap-2.5 px-2 py-1 text-gray-500 text-sm font-medium flex items-center border border-gray-200 shadow-sm rounded-lg cursor-not-allowed"
+                style="opacity: 0.5;">
+                <x-icon icon="x" width=16 height=16 viewBox="20 20" />
+                Tidak dapat LB
+            </button>`;
+        }  else if(element.attendance_lb_id && element.attendance_lb_status == 'cancel') {
+            html += `<button disabled
+                class="truncate flex items-center gap-2.5 px-2 py-1 text-gray-500 text-sm font-medium flex items-center border border-gray-200 shadow-sm rounded-lg cursor-not-allowed"
+                style="opacity: 0.5;">
+                <x-icon icon="check" width=16 height=16 viewBox="20 20" />
+                Dapat LB
+            </button>`;
+        } else if(element.attendance_lb_status == 'accept') {
+            html += ` <button
+                class="truncate flex items-center gap-2.5 px-2 py-1 text-gray-500 text-sm font-medium flex items-center border border-gray-200 shadow-sm rounded-lg ">
+                <input type="hidden" name="action" value="cancel-lb">
+                <x-icon icon="x" width=16 height=16 viewBox="20 20" />
+                Tidak dapat LB
+            </button>`;
+        } else if(element.first_punch) {
+            html += `<button
+                class="truncate flex items-center gap-2.5 px-2 py-1 text-gray-500 text-sm font-medium flex items-center border border-gray-200 shadow-sm rounded-lg ">
+                <input type="hidden" name="action" value="accept-lb">
+                <x-icon icon="check" width=16 height=16 viewBox="20 20" />
+                Dapat LB
+            </button>`;
+        }
+
+        if (element.attendance_tso_id) {
+            html += `<button disabled
+                class="truncate flex items-center gap-2.5 px-2 py-1 text-gray-500 text-sm font-medium flex items-center border border-gray-200 shadow-sm rounded-lg cursor-not-allowed"
+                style="opacity: 0.5;">
+                <x-icon icon="check" width=16 height=16 viewBox="20 20" />
+                Disetujui
+            </button>`;
+        } else {
+            html += `<button
+                class="truncate flex items-center gap-2.5 px-2 py-1 text-gray-500 text-sm font-medium flex items-center border border-gray-200 shadow-sm rounded-lg ">
+                <input type="hidden" name="action" value="approved-tso">
+                <x-icon icon="check" width=16 height=16 viewBox="20 20" />
+                Disetujui
+            </button>`;
+        }
+
+        return html;
+    }
+
+    function elementHTML(element, i) {
+        return `<tr class='hover:bg-gray-50 border-b border-gray-200' data-tso-item>
+            <td class='text-left'>
+                <div class="flex items-center">
+                    <div class="pl-4 py-2">
+                    </div>
+                    <div class="flex-1 flex gap-3 items-center pl-6 pr-3 py-3">
+                        <div
+                            class="flex gap-3 items-center text-sm ${element.is_holiday ? 'text-red-500' :'text-gray-500'}">
+                            <x-icon icon="calendar" width=18 height=18 viewBox="20 20" />
+                            <p class="flex truncate items-center text-sm">
+                                ${moment(element.date).format('DD-MM-YYYY')}
+                            </p>
+                        </div>
+                        <div
+                            class="border-l-2 pl-2 flex items-center gap-1 justify-around flex-1 text-sm text-gray-500">
+                            <div class="flex items-center justify-center gap-2">
+                                ${element.first_punch? moment(element.first_punch).local().format('HH:mm') : '-'}
+                            </div>
+                            ${element.last_punch ? '<p>-</p>' : ''}
+                            <div class="flex items-center justify-center gap-2">
+                                ${element.last_punch? moment(element.first_punch).local().format('HH:mm') : '-'}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </td>
+            <td class='px-3 py-3 text-gray-500 text-sm'>
+                <p class="text-gray-500 text-sm truncate">
+                    ${element.employee.first_name ?? '-'} ${element.employee.last_name ?? ''}
+                </p>
+            </td>
+            <td class='px-3 py-3 text-gray-500 text-sm'>
+                <p class="text-gray-500 text-sm truncate">
+                    ${element.employee.department.dept_name ?? '-'}
+                </p>
+            </td>
+            <td class='px-3 py-3 text-gray-500 text-sm'>
+                ${element.timetable?.name ?? '-'}
+            </td>
+            <td class='px-3 py-3 text-gray-500 text-sm min-w-[240px]'>
+                ${element.operational_note}
+            </td>
+            <td class='px-3 py-3 text-gray-500 text-sm'>
+                <div class="flex items-center justify-center gap-1">
+                    ${elementHTMLStatus(element)}
+                </div>
+            </td>
+            <td class='px-3 py-3'>
+                <div class="flex justify-center items-center gap-2.5 w-full">
+                    ${elementHTMLAction(element)}
+                </div>
+            </td>
+        </tr>`;
+    }
 
 </script>
 @endsection

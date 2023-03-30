@@ -7,6 +7,14 @@ class Api extends NetworkUtils {
 
         }
     };
+    async post_data(method, url, data) {
+        try {
+            let _response = await this.emitter(method, url, data, {});
+            return _response;
+        } catch (error) {
+            console.log('[ERORR]', error);
+        }
+    };
     async get_table(url, data) {
         try {
             let _response = await this.emitter('GET', url, data, {})

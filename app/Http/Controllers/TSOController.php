@@ -107,13 +107,11 @@ class TSOController extends Controller
                         }
                     }
 
-                    Log::info($attendance_tsos);
-                    $render = view('task.tso.table', compact('attendance_tsos', 'page_size'))->render();
-                    return $this->buildRes->RESPONSE_REQ('success', $render, null);
+                    return $this->buildRes->RESPONSE_REQ('success', $attendance_tsos, null);
                 }
             }
 
-            $department_bios = collect($this->apiService->get_departments(['page_size' => 999])['data']);
+            $department_bios = collect($this->service->get_departments(['page_size' => 999])['data']);
             return view('task.tso.index', compact('department_bios'));
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
