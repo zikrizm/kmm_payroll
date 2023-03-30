@@ -150,8 +150,9 @@ Route::middleware(['auth'])->group(function () {
     // * TSO.
     Route::prefix('/TSO')->group(function () {
         Route::get('/', 'TSOController@index')->name('TSO.index');
-        Route::get('/approved', 'TSOController@approved_tso')->name('TSO.approved');
-        Route::post('/approved', 'TSOController@save_approved_tso')->name('TSO.save-approve');
+        Route::post('/approve', 'TSOController@store_approve_tso')->name('TSO.store.approve');
+        Route::post('/cancel-approve/{id}', 'TSOController@destroy_approve_tso')->name('TSO.destroy.approve');
+        
         Route::get('/set-status-lb', 'TSOController@set_status_lb')->name('TSO.set-starus-lb');
         Route::post('/set-status-lb', 'TSOController@save_set_status_lb')->name('TSO.save-set-starus-lb');
     });

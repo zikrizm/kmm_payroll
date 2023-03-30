@@ -225,7 +225,7 @@
                                 <td colspan="{{ count($salary_archive_th['range_dates']) + 3 }}"></td>
                                 <td class='border border-black px-1 py-0.5 text-[8px]'>
                                     <p class="truncate text-center">{{
-                                        $salary_archive_td->total_HK_value ?? 0 }}</p>
+                                        $salary_archive_td->total_HJ_value ?? 0 }}</p>
                                 </td>
                                 <td class='border border-black px-1 py-0.5 text-[8px]'>
                                     <p class="truncate text-right">

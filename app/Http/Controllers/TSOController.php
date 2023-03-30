@@ -83,7 +83,8 @@ class TSOController extends Controller
                     foreach ($datas as $data) {
                         foreach ($data['attendance_reports'] as $report) {
                             foreach ($report['attendances'] as $attendance) {
-                                if ($attendance['operational_status'] == 'invalid' || $attendance['attendance_lb_status'] == 'accept') {
+                                // || $attendance['attendance_lb_status'] == 'accept'
+                                if ($attendance['attendance_tso_id'] || $attendance['operational_status'] == 'invalid') {
                                     $attendance_tsos->push([
                                         'employee' => $report['employee'],
                                         'timetable' => $attendance['timetable'],
@@ -120,7 +121,7 @@ class TSOController extends Controller
         }
     }
 
-    public function tso_store(Request $request)
+    public function store_approve_tso(Request $request)
     {
         // if (!auth()->user()->can('attendance-tso.approved') || !request()->ajax()) {
         //     abort(403, 'Unauthorized action.');
@@ -128,22 +129,22 @@ class TSOController extends Controller
 
         try {
             $validator = Validator::make($request->all(), [
-                'tso.*.tso_date' => 'required',
+                'tso.*.tso_date' => 'required|date_format:Y-m-d',
                 'tso.*.emp_id' => 'required',
                 'tso.*.dept_id' => 'required',
-                'tso.*.first_punch' => 'required',
-                'tso.*.last_punch' => 'required',
+                'tso.*.first_punch' => 'nullable|date_format:Y-m-d H:i:s',
+                'tso.*.last_punch' => 'nullable|date_format:Y-m-d H:i:s',
             ]);
             if ($validator->fails()) {
                 return $this->buildRes->RESPONSE_REQ('error', null, $validator->errors());
             } else {
                 foreach ($request['tso'] as $item) {
-                    $employee = $this->service->read_employee( $item['emp_id']);
-                    $department = $this->service->read_department( $item['dept_id']);
+                    $employee = $this->service->read_employee($item['emp_id']);
+                    $department = $this->service->read_department($item['dept_id']);
                     $attendance_tso = new AttendanceTso([
                         'tso_date' => Carbon::parse($item['tso_date'])->format('Y-m-d'),
-                        'emp_id' => $item['emp_id'],
-                        'emp_code' => $item['emp_code'],
+                        'emp_id' => $employee['id'],
+                        'emp_code' => $employee['emp_code'],
                         'first_name' => $employee['first_name'],
                         'last_name' => $employee['last_name'],
                         'photo' => $employee['photo'],
@@ -162,6 +163,28 @@ class TSOController extends Controller
                 // ** create activity log user
                 ActivityLog::created_activity('Approved attendance', 'User ' . auth()->user()->username . ' approved TSO (tidak sesuai operasional)');
                 return $this->buildRes->RESPONSE_REQ('success', null,  ['success' => ['Approved TSO succesfully']]);
+            }
+        } catch (\Exception $e) {
+            Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
+
+            return $this->buildRes->RESPONSE_REQ('error', null, ['error' => 'something wrong']);
+        }
+    }
+    public function destroy_approve_tso($id, Request $request)
+    {
+        // if (!auth()->user()->can('attendance-tso.approved') || !request()->ajax()) {
+        //     abort(403, 'Unauthorized action.');
+        // }
+
+        try {
+            $attendance_tso = AttendanceTso::where('id', $id)->first();
+            if (!empty($attendance_tso)) {
+                $attendance_tso->delete();
+
+                // ** create activity log user
+                ActivityLog::created_activity('Approved attendance', 'User ' . auth()->user()->username . ' approved TSO (tidak sesuai operasional) di batalkan');
+                return $this->buildRes->RESPONSE_REQ('success', null,  ['success' => ['Cancel approved TSO succesfully']]);
+            } else {
             }
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
@@ -189,8 +212,8 @@ class TSOController extends Controller
                 return $this->buildRes->RESPONSE_REQ('error', null, $validator->errors());
             } else {
                 foreach ($request['lb'] as $item) {
-                    $employee = $this->service->read_employee( $item['emp_id']);
-                    $department = $this->service->read_department( $item['dept_id']);
+                    $employee = $this->service->read_employee($item['emp_id']);
+                    $department = $this->service->read_department($item['dept_id']);
                     $attendance_lb = new AttendanceLb([
                         'lb_date' => Carbon::parse($item['lb_date'])->format('Y-m-d'),
                         'lb_status' => $item['lb_status'],

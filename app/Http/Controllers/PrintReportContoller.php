@@ -811,10 +811,6 @@ class PrintReportContoller extends Controller
                 $end_date_work_day = Carbon::createFromFormat('d-m-Y', $request['end_date_work_day']);
                 $start_date_overtime = Carbon::createFromFormat('d-m-Y', $request['start_date_overtime']);
                 $end_date_overtime = Carbon::createFromFormat('d-m-Y', $request['end_date_overtime']);
-                Log::info($start_date_work_day);
-                Log::info($end_date_work_day);
-                Log::info($start_date_overtime);
-                Log::info($end_date_overtime);
                 $salary_archive_ths = SalaryArchiveTh::whereDate('start_date_work_day', $start_date_work_day->format('Y-m-d'))
                     ->whereDate('end_date_work_day', $end_date_work_day->format('Y-m-d'))
                     ->whereDate('start_date_overtime', $start_date_overtime->format('Y-m-d'))

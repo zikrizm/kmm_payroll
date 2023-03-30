@@ -451,10 +451,9 @@ class EmployeeController extends Controller
         }
 
         try {
-            Log::info('JALANKESINI');
             $res = $this->apiService->delete_employee($employee);
-            Log::info($res);
-            // ** create activity log user
+            Employee::where('id', $employee)->delete();
+            // // ** create activity log user
             ActivityLog::created_activity('CRUD employee', 'User ' . auth()->user()->username . ' delete data employee');
             return response()->json($res);
         } catch (\Exception $e) {

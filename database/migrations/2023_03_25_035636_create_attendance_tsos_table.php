@@ -31,6 +31,7 @@ return new class extends Migration
             $table->foreign('operational_id')->references('id')->on('operationals')->onDelete('cascade');
             $table->integer('timetable_id')->nullable()->unsigned();
             $table->foreign('timetable_id')->references('id')->on('timetables')->onDelete('cascade');
+            $table->timestamps();
         });
     }
 

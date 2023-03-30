@@ -132,6 +132,11 @@
     let minSteps = 6, maxSteps = 60, timeBetweenSteps = 100, bytesPerStep = 1000;
 
     window.addEventListener('DOMContentLoaded', (event) => {
+        $.ajaxSetup({
+  headers: {
+    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+  }
+});
         // var dropzone = new Dropzone('#upload_csv', {
         //     url: "{{ route('employee.uploadCSV-store') }}", 
         //     headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},

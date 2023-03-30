@@ -31,14 +31,21 @@
                     </select>
                     <label class="font-normal text-xs text-red-500 xs/max:text-xs parent_dept hint-text"></label>
                 </section>
-                <div id="approved-all-tso" class="hidden">
-                    <button onclick="approvedAllTso()"
+                <div id="approve-all-tso" class="hidden">
+                    <button onclick="approve_all_tso()"
                         class="mb-1 flex items-center gap-2.5 px-4 py-[7px] text-gray-500 text-sm font-medium border border-gray-200 shadow-sm rounded-lg">
                         <x-icon icon="check" width=18 height=18 viewBox="20 20" />
-                        <p class="truncate">Disetujui semua</p>
+                        <p class="truncate">Setujui semua</p>
                     </button>
                 </div>
-                <div id="cancel-all-lb" class="hidden">
+                <div id="cancel-approve-all-tso" class="hidden">
+                    <button onclick="cancel_approve_all_tso()"
+                        class="mb-1 flex items-center gap-2.5 px-4 py-[7px] text-gray-500 text-sm font-medium border border-gray-200 shadow-sm rounded-lg">
+                        <x-icon icon="check" width=18 height=18 viewBox="20 20" />
+                        <p class="truncate">Batal setujui semua</p>
+                    </button>
+                </div>
+                {{-- <div id="cancel-all-lb" class="hidden">
                     <button onclick="changeAllStatusLb('cancel')"
                         class="mb-1 flex items-center gap-2.5 px-4 py-[7px] text-gray-500 text-sm font-medium border border-gray-200 shadow-sm rounded-lg">
                         <x-icon icon="x" width=18 height=18 viewBox="20 20" />
@@ -51,7 +58,7 @@
                         <x-icon icon="check" width=18 height=18 viewBox="20 20" />
                         <p class="truncate">Dapat LB semua</p>
                     </button>
-                </div>
+                </div> --}}
             </div>
             <x-ui.search-data placeholder="Cari kehadiran" />
         </div>
@@ -60,9 +67,57 @@
         @include('task.tso.table')
     </div>
 </div>
+{{-- <div class="flex justify-center items-center fixed inset-0 min-h-screen duration-300  main-modal"
+    aria-labelledby="modal-title" role="dialog" aria-modal="true" style="z-index: 99">
+    <div class="fixed inset-0 bg-gray-500 bg-opacity-50 transition-opacity inner-modal" aria-hidden="true"></div>
+
+    <div class="flex justify-center items-center w-full h-full z-10 relative">
+        <div class="content-main-modal  bg-white max-h-[95vh] overflow-y-auto overflow-x-hidden relative rounded-lg">
+            <section
+                class="flex flex-col gap-8 pt-4 w-[375px] bg-white max-h-[95vh] overflow-y-auto overflow-x-hidden relative rounded-lg">
+                <header class="px-4 flex flex-col gap-5 pt-4 xs/max:gap-3 relative">
+                    <button
+                        class="absolute top-[-5px] right-3 xs/max:top-[-6px] modal-close hover:bg-gray-100 text-red rounded p-2">
+                        <x-icon icon="x" width=16 height=16 viewBox="20 20" />
+                    </button>
+                    <div class="flex flex-col gap-1">
+                        <div class="flex items-start gap-2">
+                            <div
+                                class="rounded-full bg-violet-100 p-1.5 border-[4px] border-violet-50 box-border mr-2 text-violet-800">
+                                <x-icon icon="activity" width=18 height=18 viewBox="20 20" />
+                            </div>
+                            <div>
+                                <p class="text-xl font-semibold text-gray-900">Detail dari TSO</p>
+                                <p class="text-sm font-normal text-gray-500 xs/max:text-xs">
+                                    Informasi tentang detail absensi karyawan yang tidak sesuai.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <hr>
+                </header>
+                <div>
+                    <main class="px-4 flex flex-col gap-2.5 xs/max:gap-3 mb-8">
+
+                    </main>
+                    <hr>
+                    <footer class="flex justify-end items-center gap-3 p-4  pb-6">
+                        <button type="reset"
+                            class="modal-close shadow text-gray-500 bg-white hover:bg-gray-100 focus:ring-2 focus:ring-gray-300 rounded-lg xs/max:rounded-md border border-gray-200 text-sm xs/max:text-xs font-medium xs/max:px-4 px-6 xs/max:py-1.5 py-2 hover:text-gray-900 focus:z-10">
+                            Cancel</button>
+                        <button type="submit"
+                            class="text-white shadow bg-violet-600 hover:bg-violet-700 focus:ring-2 focus:ring-violet-700 font-medium rounded-lg xs/max:rounded-md text-sm xs/max:text-xs inline-flex items-center xs/max:px-4 px-6 xs/max:py-1.5 py-2 text-center">Ya,
+                            setujui</button>
+                    </footer>
+                </div>
+            </section>
+        </div>
+    </div>
+</div> --}}
 
 <script type="application/javascript">
     let dataParams = {};
+    var attendanceTSODatas = [];
 
     window.addEventListener('DOMContentLoaded', (event) => {
         $.ajaxSetup({
@@ -106,25 +161,25 @@
             });
         });
 
-        $('.select2-department').select2({
-            minimumResultsForSearch: -1
-        });
-        $('.select2-department').show();
-        $('.select2-department').on('select2:select', function (e) {
-            delete dataParams.page;
+        // $('.select2-department').select2({
+        //     minimumResultsForSearch: -1
+        // });
+        // $('.select2-department').show();
+        // $('.select2-department').on('select2:select', function (e) {
+        //     delete dataParams.page;
 
-            get_table({
-                department_id: this.value
-            });
-        });
+        //     get_table({
+        //         department_id: this.value
+        //     });
+        // });
 
-        $(".search-data-input").on('keyup', debounce(function (e) {
-            if (e.key == 'Shift') return 0;
-            delete dataParams.page;
-            get_table({
-                q: this.value
-            });
-        }, 250));
+        // $(".search-data-input").on('keyup', debounce(function (e) {
+        //     if (e.key == 'Shift') return 0;
+        //     delete dataParams.page;
+        //     get_table({
+        //         q: this.value
+        //     });
+        // }, 250));
 
         // $('*[data-ref-class-content]').on('click', function(e) {
         //     let _idContent = $(this).data('ref-class-content');
@@ -151,22 +206,24 @@
     });
 
     async function get_table(data) {
-        $('#loading-block-document').show();
         dataParams = {
             ...dataParams,
             ...data
         };
-        console.log(dataParams);
+        $('#loading-block-document').show();
         var _response = await ApiService.post_data('GET', "{{ route('TSO.index') }}", dataParams);
+        $('#loading-block-document').hide();
         if (_response.response < 200 || _response.response >= 300) {
             // * SHOW NOTIFICATION ----->
         } else {
-            _response.data.forEach((element, i) => {
+            attendanceTSODatas = _response.data;
+
+            $('#tbody-tso').empty();
+            attendanceTSODatas.forEach((element, i) => {
                 $('#tbody-tso').append(elementHTML(element, i));
             });
         }
 
-        console.log(_response);
         // $('.table-content').html(res);
         // $('.table-tso .select-all-card').off('change');
         // $('.table-tso .select-all-card').on('change', function (e) {
@@ -236,27 +293,26 @@
         //         if (showNotGivenAllLB) $('#cancel-all-lb').toggle();
         //     }
         // });
-        $('#loading-block-document').hide();
-        $('.select2-page').select2({
-            minimumResultsForSearch: -1
-        });
-        $('.select2-page').on('select2:select', function (e) {
-            delete dataParams.page;
+        // $('.select2-page').select2({
+        //     minimumResultsForSearch: -1
+        // });
+        // $('.select2-page').on('select2:select', function (e) {
+        //     delete dataParams.page;
 
-            get_table({
-                page_size: $(this).val()
-            })
-        });
+        //     get_table({
+        //         page_size: $(this).val()
+        //     })
+        // });
 
-        // **
-        // * pagination table ----->
-        // *
-        $('.pagination-button').on('click', function () {
-            get_table({
-                ...dataParams,
-                page: parseInt($(this).data('pagination-page'))
-            })
-        })
+        // // **
+        // // * pagination table ----->
+        // // *
+        // $('.pagination-button').on('click', function () {
+        //     get_table({
+        //         ...dataParams,
+        //         page: parseInt($(this).data('pagination-page'))
+        //     })
+        // })
 
     }
 
@@ -266,32 +322,31 @@
     function selectAllAttendance(event) {
         if ($(event).is(':checked')) {
             $('[data-checkbox-tso-item]').prop('checked', true);
-            // buildSelectedAttendance();
-            // if (selectedListAttendanceTso.length) {
-            //     if ($('#approved-all-tso').is(':hidden')) {
-            //         $('#approved-all-tso').toggle();
-            //     }
-            // }
-            // if (selectedListAttendanceLb.length && selectedListAttendanceLb.findIndex((e) => e.lb_status == 'accept') !=
-            //     -1) {
-            //     if ($('#accept-all-lb').is(':hidden')) {
-            //         $('#accept-all-lb').toggle();
-            //     }
-            // }
-            // if (selectedListAttendanceLb.length && selectedListAttendanceLb.findIndex((e) => e.lb_status == 'cancel') !=
-            //     -1) {
-            //     if ($('#cancel-all-lb').is(':hidden')) {
-            //         $('#cancel-all-lb').toggle();
-            //     }
-            // }
+            $('[data-checkbox-tso-item]').closest('[data-tso-item]').addClass('bg-gray-50');
+            $('#approve-all-tso').removeClass('hidden');
         } else {
-            selectedListAttendanceTso = [];
-            selectedListAttendanceLb = [];
+            $('#approve-all-tso').addClass('hidden');
             $('[data-checkbox-tso-item]').prop('checked', false);
+            $('[data-checkbox-tso-item]').closest('[data-tso-item]').removeClass('bg-gray-50');
+
         }
     }
 
-    function selectAttendance(event) {}
+    function selectAttendance(event) {
+        var isChecked = false;
+        $(event).closest('[data-tso-item]').toggleClass('bg-gray-50');
+        $('[data-tso-item]').each(function (e) {
+            if ($(this).find('[data-checkbox-tso-item]').is(':checked')) {
+                isChecked = true;
+            }
+        });
+
+        if (isChecked) {
+            $('#approve-all-tso').removeClass('hidden');
+        } else {
+            $('#approve-all-tso').addClass('hidden');
+        }
+    }
 
     function buildSelectedAttendance() {
         $('[data-tso-item]').each(function (e) {
@@ -303,38 +358,38 @@
             var last_punch = $(this).find('input[name="last_punch"]').val();
             var operational_id = $(this).find('input[name="operational_id"]').val();
             var timetable_id = $(this).find('input[name="timetable_id"]').val();
-            selectedListAttendanceTso = [];
-            selectedListAttendanceLb = [];
+            // selectedListAttendanceTso = [];
+            // selectedListAttendanceLb = [];
 
-            if ($(this).find('[data-checkbox-tso-item]').is(':checked')) {
-                if (action == 'approved-tso') {
-                    selectedListAttendanceTso.push({
-                        emp_id: emp_id,
-                        dept_id: dept_id,
-                        tso_date: date,
-                        first_punch: first_punch,
-                        last_punch: last_punch,
-                        operational_id: operational_id,
-                        note: operational_note,
-                        timetable_id: timetable_id,
-                    });
-                } else {
-                    selectedListAttendanceLb.push({
-                        emp_id: emp_id,
-                        dept_id: dept_id,
-                        dept_id: dept_id,
-                        lb_date: date,
-                        lb_status: (action == 'accept-lb') ? 'accept' : 'cancel',
-                        first_punch: first_punch,
-                        last_punch: last_punch,
-                        operational_id: operational_id,
-                        note: operational_note,
-                        timetable_id: timetable_id,
-                    });
-                }
-            } else {
-                //
-            }
+            // if ($(this).find('[data-checkbox-tso-item]').is(':checked')) {
+            //     if (action == 'approved-tso') {
+            //         selectedListAttendanceTso.push({
+            //             emp_id: emp_id,
+            //             dept_id: dept_id,
+            //             tso_date: date,
+            //             first_punch: first_punch,
+            //             last_punch: last_punch,
+            //             operational_id: operational_id,
+            //             note: operational_note,
+            //             timetable_id: timetable_id,
+            //         });
+            //     } else {
+            //         selectedListAttendanceLb.push({
+            //             emp_id: emp_id,
+            //             dept_id: dept_id,
+            //             dept_id: dept_id,
+            //             lb_date: date,
+            //             lb_status: (action == 'accept-lb') ? 'accept' : 'cancel',
+            //             first_punch: first_punch,
+            //             last_punch: last_punch,
+            //             operational_id: operational_id,
+            //             note: operational_note,
+            //             timetable_id: timetable_id,
+            //         });
+            //     }
+            // } else {
+            //     //
+            // }
         });
     }
 
@@ -504,6 +559,94 @@
     //     }
     // }
 
+    async function approve_all_tso() {
+        var tso = [];
+        $('[data-tso-item]').each(function (e) {
+            if ($(this).find('[data-checkbox-tso-item]').is(':checked')) {
+                var action = $(this).find('input[name="action"]').val();
+                var emp_id = $(this).find('input[name="emp_id"]').val();
+                var dept_id = $(this).find('input[name="dept_id"]').val();
+                var date = $(this).find('input[name="date"]').val();
+                var first_punch = $(this).find('input[name="first_punch"]').val();
+                var last_punch = $(this).find('input[name="last_punch"]').val();
+                var operational_id = $(this).find('input[name="operational_id"]').val();
+                var operational_note = $(this).find('input[name="operational_note"]').val();
+                var timetable_id = $(this).find('input[name="timetable_id"]').val();
+                console.log(typeof timetable_id);
+                tso.push({
+                    emp_id: parseInt(emp_id),
+                    dept_id: parseInt(dept_id),
+                    tso_date: date,
+                    first_punch: (first_punch && first_punch != 'undefined' && first_punch != 'null') ? first_punch : null,
+                    last_punch: (last_punch && last_punch != 'undefined' && last_punch != 'null') ? last_punch : null,
+                    timetable_id: (timetable_id && timetable_id != 'undefined' && timetable_id != 'null') ? parseInt(timetable_id) : null,
+                    operational_id: (operational_id && operational_id != 'undefined' && operational_id != 'null') ? parseInt(operational_id) : null,
+                    note: operational_note,
+                });
+            }
+        });
+
+        console.log(tso);
+        $('#loading-block-document').show();
+        var _response = await ApiService.post_data('POST', "{{ route('TSO.store.approve') }}", {tso: tso});
+        $('#loading-block-document').hide();
+
+        console.log(_response);
+        if (_response.response < 200 || _response.response >= 300) {
+            // * SHOW NOTIFICATION ----->
+        } else {
+            get_table({});
+        }
+
+    }
+
+    async function approve_tso(event) {
+        var tso = [];
+        var node = $(event).closest('[data-tso-item]');
+        var action = node.find('input[name="action"]').val();
+        var emp_id = node.find('input[name="emp_id"]').val();
+        var dept_id = node.find('input[name="dept_id"]').val();
+        var date = node.find('input[name="date"]').val();
+        var first_punch = node.find('input[name="first_punch"]').val();
+        var last_punch = node.find('input[name="last_punch"]').val();
+        var operational_id = node.find('input[name="operational_id"]').val();
+        var operational_note = node.find('input[name="operational_note"]').val();
+        var timetable_id = node.find('input[name="timetable_id"]').val();
+        tso.push({
+            emp_id: parseInt(emp_id),
+            dept_id: parseInt(dept_id),
+            tso_date: date,
+            first_punch: (first_punch && first_punch != 'undefined' && first_punch != 'null') ? first_punch : null,
+            last_punch: (last_punch && last_punch != 'undefined' && last_punch != 'null') ? last_punch : null,
+            timetable_id: (timetable_id && timetable_id != 'undefined' && timetable_id != 'null') ? parseInt(timetable_id) : null,
+            operational_id: (operational_id && operational_id != 'undefined' && operational_id != 'null') ? parseInt(operational_id) : null,
+            note: operational_note,
+        });
+
+        $('#loading-block-document').show();
+        var _response = await ApiService.post_data('POST', "{{ route('TSO.store.approve') }}", {tso: tso});
+        $('#loading-block-document').hide();
+
+        console.log(_response);
+        if (_response.response < 200 || _response.response >= 300) {
+            // * SHOW NOTIFICATION ----->
+        } else {
+            get_table({});
+        }
+    }
+    async function cancel_approve_tso(id) {
+        $('#loading-block-document').show();
+        var _response = await ApiService.post_data('POST', "/TSO/cancel-approve/"+id, null);
+        $('#loading-block-document').hide();
+
+        console.log(_response);
+        if (_response.response < 200 || _response.response >= 300) {
+            // * SHOW NOTIFICATION ----->
+        } else {
+            get_table({});
+        }
+    }
+
     function elementHTMLStatus(element) {
         let html = '';
         if (element.attendance_tso_id || element.operational_status == 'valid') {
@@ -521,51 +664,20 @@
 
         return html;
     }
+
     function elementHTMLAction(element) {
         let html = '';
-        if (element.attendance_lb_id && element.attendance_lb_status == 'cancel') {
-            html += `<button disabled
-                class="truncate flex items-center gap-2.5 px-2 py-1 text-gray-500 text-sm font-medium flex items-center border border-gray-200 shadow-sm rounded-lg cursor-not-allowed"
-                style="opacity: 0.5;">
-                <x-icon icon="x" width=16 height=16 viewBox="20 20" />
-                Tidak dapat LB
-            </button>`;
-        }  else if(element.attendance_lb_id && element.attendance_lb_status == 'cancel') {
-            html += `<button disabled
-                class="truncate flex items-center gap-2.5 px-2 py-1 text-gray-500 text-sm font-medium flex items-center border border-gray-200 shadow-sm rounded-lg cursor-not-allowed"
-                style="opacity: 0.5;">
-                <x-icon icon="check" width=16 height=16 viewBox="20 20" />
-                Dapat LB
-            </button>`;
-        } else if(element.attendance_lb_status == 'accept') {
-            html += ` <button
-                class="truncate flex items-center gap-2.5 px-2 py-1 text-gray-500 text-sm font-medium flex items-center border border-gray-200 shadow-sm rounded-lg ">
-                <input type="hidden" name="action" value="cancel-lb">
-                <x-icon icon="x" width=16 height=16 viewBox="20 20" />
-                Tidak dapat LB
-            </button>`;
-        } else if(element.first_punch) {
-            html += `<button
-                class="truncate flex items-center gap-2.5 px-2 py-1 text-gray-500 text-sm font-medium flex items-center border border-gray-200 shadow-sm rounded-lg ">
-                <input type="hidden" name="action" value="accept-lb">
-                <x-icon icon="check" width=16 height=16 viewBox="20 20" />
-                Dapat LB
-            </button>`;
-        }
-
         if (element.attendance_tso_id) {
-            html += `<button disabled
-                class="truncate flex items-center gap-2.5 px-2 py-1 text-gray-500 text-sm font-medium flex items-center border border-gray-200 shadow-sm rounded-lg cursor-not-allowed"
-                style="opacity: 0.5;">
+            html += `<button onclick="cancel_approve_tso('${element.attendance_tso_id}')"
+                class="truncate flex items-center gap-2.5 px-2 py-1 text-gray-500 text-sm font-medium flex items-center border border-gray-200 shadow-sm rounded-lg">
                 <x-icon icon="check" width=16 height=16 viewBox="20 20" />
-                Disetujui
+                Batal setujui
             </button>`;
         } else {
-            html += `<button
-                class="truncate flex items-center gap-2.5 px-2 py-1 text-gray-500 text-sm font-medium flex items-center border border-gray-200 shadow-sm rounded-lg ">
-                <input type="hidden" name="action" value="approved-tso">
+            html += `<button onclick="approve_tso(this)"
+                class="truncate flex items-center gap-2.5 px-2 py-1 text-gray-500 text-sm font-medium flex items-center border border-gray-200 shadow-sm rounded-lg">
                 <x-icon icon="check" width=16 height=16 viewBox="20 20" />
-                Disetujui
+                Setujui
             </button>`;
         }
 
@@ -577,6 +689,31 @@
             <td class='text-left'>
                 <div class="flex items-center">
                     <div class="pl-4 py-2">
+                        ${
+                           (element.attendance_tso_id) 
+                           ? '<span class="min-h-[16px] min-w-[16px] w-4 h-4 block"></span>' 
+                           : ` <input type="hidden" name="emp_id" value="${element.employee.id}">
+                            <input type="hidden" name="dept_id" value="${element.employee.department.id}">
+                            <input type="hidden" name="date" value="${element.date}">
+                            <input type="hidden" name="first_punch" value="${element.first_punch}">
+                            <input type="hidden" name="last_punch" value="${element.last_punch}">
+                            <input type="hidden" name="operational_id" value="${element.operational_id}">
+                            <input type="hidden" name="operational_note" value="${element.operational_note}">
+                            <input type="hidden" name="timetable_id" value="${element.timetable?.id}">
+                            <div class="flex items-center justify-center relative">
+                                <input type='checkbox' onchange="selectAttendance(this)" data-checkbox-tso-item
+                                    class="min-h-[16px] min-w-[16px] w-4 h-4 opacity-0 z-10 peer cursor-pointer" />
+                                <span
+                                    class="absolute min-h-[16px] min-w-[16px] w-4 h-4 border border-gray-300 rounded cursor-pointer
+                                    flex items-center justify-center peer-checked:border-violet-600 invisible peer-checked:visible">
+                                    <x-icon icon="check" width=12 height=12 viewBox="20 20" />
+                                </span>
+                                <span class="absolute min-h-[16px] min-w-[16px] w-4 h-4 border border-gray-300 rounded
+                                        visible peer-checked:invisible cursor-pointer">
+                                </span>
+                            </div>
+                           `
+                        }
                     </div>
                     <div class="flex-1 flex gap-3 items-center pl-6 pr-3 py-3">
                         <div
@@ -593,7 +730,7 @@
                             </div>
                             ${element.last_punch ? '<p>-</p>' : ''}
                             <div class="flex items-center justify-center gap-2">
-                                ${element.last_punch? moment(element.first_punch).local().format('HH:mm') : '-'}
+                                ${element.last_punch? moment(element.last_punch).local().format('HH:mm') : '-'}
                             </div>
                         </div>
                     </div>
@@ -609,7 +746,7 @@
                     ${element.employee.department.dept_name ?? '-'}
                 </p>
             </td>
-            <td class='px-3 py-3 text-gray-500 text-sm'>
+            <td class='px-3 py-3 text-gray-500 text-sm truncate'>
                 ${element.timetable?.name ?? '-'}
             </td>
             <td class='px-3 py-3 text-gray-500 text-sm min-w-[240px]'>
@@ -622,7 +759,7 @@
             </td>
             <td class='px-3 py-3'>
                 <div class="flex justify-center items-center gap-2.5 w-full">
-                    ${elementHTMLAction(element)}
+                   ${elementHTMLAction(element)}
                 </div>
             </td>
         </tr>`;

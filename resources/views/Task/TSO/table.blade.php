@@ -31,7 +31,7 @@
                     <th class='px-3 py-3 text-left'>
                         <p class="text-xs font-medium text-gray-500 truncate">Bagian</p>
                     </th>
-                    <th class='px-3 py-3 text-center'>
+                    <th class='px-3 py-3 text-left'>
                         <p class="text-xs font-medium text-gray-500 truncate">Shift</p>
                     </th>
                     <th class='px-3 py-3 text-left'>
