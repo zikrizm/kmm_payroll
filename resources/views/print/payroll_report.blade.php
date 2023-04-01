@@ -143,7 +143,8 @@
                                     {{ $key + 1 }}
                                 </td>
                                 <td class='border border-black px-1 py-0.5 text-[8px]'>
-                                    <p class="truncate">
+                                    <p
+                                        class="truncate {{ isset($salary_archive_td->total_tbhn_u_position_pay_value) && $salary_archive_td->total_tbhn_u_position_pay_value != 0 ? 'text-gray-500' : '' }}">
                                         {{ $item->first_name ?? '-' }}
                                         {{ $item->last_name ?? '' }}
                                     </p>
@@ -166,7 +167,7 @@
                                 </td>
                                 <td class='border border-black px-1 py-0.5 text-[8px]'>
                                     <p class="truncate text-right">
-                                        @if (isset($item->salary_pay_value))
+                                        @if (isset($item->salary_pay_value) && $item->salary_pay_value != 0)
                                         @convertnorp($item->salary_pay_value)
                                         @else
                                         -
@@ -175,8 +176,8 @@
                                 </td>
                                 <td class='border border-black px-1 py-0.5 text-[8px]'>
                                     <p class="truncate text-right">
-                                        @if (isset($item->kasbon_pay_value))
-                                        @convertnorp($item->kasbon_pay_value)
+                                        @if (isset($item->kasbon_pay_value) && $item->kasbon_pay_value != 0)
+                                        (@convertnorp($item->kasbon_pay_value))
                                         @else
                                         -
                                         @endif
@@ -184,7 +185,7 @@
                                 </td>
                                 <td class='border border-black px-1 py-0.5 text-[8px]'>
                                     <p class="truncate text-right">
-                                        @if (isset($item->overtime_pay_value))
+                                        @if (isset($item->overtime_pay_value) && $item->overtime_pay_value != 0)
                                         @convertnorp($item->overtime_pay_value)
                                         @else
                                         -
@@ -193,16 +194,17 @@
                                 </td>
                                 <td class='border border-black px-1 py-0.5 text-[8px]'>
                                     <p class="truncate text-right">
-                                        @if (isset($item->tbhn_u_libur_pay_value))
+                                        @if (isset($item->tbhn_u_libur_pay_value) && $item->tbhn_u_libur_pay_value != 0)
                                         @convertnorp($item->tbhn_u_libur_pay_value)
                                         @else
                                         -
                                         @endif
                                     </p>
                                 </td>
-                                <td class='border border-black px-1 py-0.5 text-[8px]'>
+                                <td class="border border-black px-1 py-0.5 text-[8px] {{ isset($item->tbhn_u_position_pay_value) && $item->tbhn_u_position_pay_value != 0 ? '
+                                    bg-gray-200 grand-total-bg-color' : '' }}">
                                     <p class="truncate text-right">
-                                        @if (isset($item->tbhn_u_position_pay_value))
+                                        @if (isset($item->tbhn_u_position_pay_value) && $item->tbhn_u_position_pay_value != 0)
                                         @convertnorp($item->tbhn_u_position_pay_value)
                                         @else
                                         -
@@ -238,8 +240,9 @@
                                 </td>
                                 <td class='border border-black px-1 py-0.5 text-[8px]'>
                                     <p class="truncate text-right">
-                                        @if (isset($salary_archive_td->total_kasbon_pay_value))
-                                        @convertnorp($salary_archive_td->total_kasbon_pay_value)
+                                        @if (isset($salary_archive_td->total_kasbon_pay_value) &&
+                                        $salary_archive_td->total_kasbon_pay_value != 0)
+                                        (@convertnorp($salary_archive_td->total_kasbon_pay_value))
                                         @else
                                         -
                                         @endif
@@ -247,7 +250,8 @@
                                 </td>
                                 <td class='border border-black px-1 py-0.5 text-[8px]'>
                                     <p class="truncate text-right">
-                                        @if (isset($salary_archive_td->total_overtime_pay_value))
+                                        @if (isset($salary_archive_td->total_overtime_pay_value) &&
+                                        $salary_archive_td->total_overtime_pay_value != 0)
                                         @convertnorp($salary_archive_td->total_overtime_pay_value)
                                         @else
                                         -
@@ -256,7 +260,7 @@
                                 </td>
                                 <td class='border border-black px-1 py-0.5 text-[8px]'>
                                     <p class="truncate text-right">
-                                        @if (isset($salary_archive_td->total_tbhn_u_libur_pay_value))
+                                        @if (isset($salary_archive_td->total_tbhn_u_libur_pay_value) && $salary_archive_td->total_tbhn_u_libur_pay_value != 0)
                                         @convertnorp($salary_archive_td->total_tbhn_u_libur_pay_value)
                                         @else
                                         -
@@ -265,7 +269,7 @@
                                 </td>
                                 <td class='border border-black px-1 py-0.5 text-[8px]'>
                                     <p class="truncate text-right">
-                                        @if (isset($salary_archive_td->total_tbhn_u_position_pay_value))
+                                        @if (isset($salary_archive_td->total_tbhn_u_position_pay_value) && $salary_archive_td->total_tbhn_u_position_pay_value != 0)
                                         @convertnorp($salary_archive_td->total_tbhn_u_position_pay_value)
                                         @else
                                         -
@@ -281,6 +285,9 @@
                                         @endif
                                     </p>
                                 </td>
+                            </tr>
+                            <tr class="">
+                                <td class="py-1" colspan="{{ count($salary_archive_th['range_dates']) + 10 }}">
                             </tr>
                             <tr class='border-black'>
                                 <td colspan="{{ count($salary_archive_th['range_dates']) + 8 }}">
@@ -381,7 +388,8 @@ empty($end_date_overtime))
         </span>
         <div class="text-left">
             <p class="text-2xl font-semibold">Laporan tidak ada</p>
-            <p>Belom ada laporan payroll di Tanggal ({{ $start_date_work_day->format('d/m/Y') }} - {{ $end_date_work_day->format('d/m/Y') }}) <br> karena laporan belum ada yang ter-kalkulasi</p>
+            <p>Belom ada laporan payroll di Tanggal ({{ $start_date_work_day->format('d/m/Y') }} - {{
+                $end_date_work_day->format('d/m/Y') }}) <br> karena laporan belum ada yang ter-kalkulasi</p>
         </div>
     </div>
 </div>

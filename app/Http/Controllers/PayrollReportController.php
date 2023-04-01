@@ -4,19 +4,21 @@ namespace App\Http\Controllers;
 
 use App\Utils\Util;
 use App\Models\Business;
-use App\Models\FoodArchiveTd;
-use App\Models\FoodArchiveTdEmp;
-use App\Models\FoodArchiveTdEmpAttendance;
-use App\Models\FoodArchiveTh;
 use App\Utils\ResponseUtil;
+use App\Models\EmployeeDebt;
 use Illuminate\Http\Request;
+use App\Models\FoodArchiveTd;
+use App\Models\FoodArchiveTh;
 use Illuminate\Support\Carbon;
+use App\Models\EmployeeDebtPay;
 use App\Models\SalaryArchiveTd;
 use App\Models\SalaryArchiveTh;
+use App\Models\FoodArchiveTdEmp;
 use App\Services\Api\ApiServices;
 use App\Models\SalaryArchiveTdEmp;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Session;
+use App\Models\FoodArchiveTdEmpAttendance;
 use App\Models\SalaryArchiveTdEmpAttendance;
 
 class PayrollReportController extends Controller
@@ -165,8 +167,10 @@ class PayrollReportController extends Controller
                     foreach ($datas as $data) {
 
                         // SALARY
+                        $is_recalculate = false;
                         $salary_archive_th = SalaryArchiveTh::whereDate('start_date_work_day', $data['start_date_work_day'],)->whereDate('end_date_work_day', $data['end_date_work_day'])->where('dept_id', $data['department']['id'])->first();
                         if (empty($salary_archive_th)) {
+                            $is_recalculate = false;
                             $salary_archive_th = new SalaryArchiveTh([
                                 'business_id' => $business_id,
                                 'start_date' => $data['start_date'],
@@ -180,6 +184,8 @@ class PayrollReportController extends Controller
                                 'dept_name' =>  $data['department']['dept_name'],
                             ]);
                             $salary_archive_th->save();
+                        } else {
+                            $is_recalculate = true;
                         }
 
                         $salary_archive_td = new SalaryArchiveTd([
@@ -240,6 +246,31 @@ class PayrollReportController extends Controller
                             ]);
                             $salary_archive_td_emp->save();
 
+                            if (!$is_recalculate) {
+                                $kasbons = EmployeeDebt::where('business_id', $business_id)
+                                    ->where('paid', 0)
+                                    ->where('emp_id', $report['employee']['id'])
+                                    ->whereDate('date', '>= ', $data['start_date'])
+                                    ->whereDate('date', '<= ',  $data['end_date'])->get();
+
+                                    Log::info($kasbons);
+                                if($kasbons->count()) {
+                                    $pay = $report['kasbon_pay_value'] / $kasbons->count();
+                                    foreach ($kasbons as $kasbon) {
+                                        $kasbon_pay = new EmployeeDebtPay([
+                                            'employee_debt_id' => $kasbon->id,
+                                            'debt_payment_date' => new Carbon(),
+                                            'payment' => $pay,
+                                            'created_user' => auth()->user()->id,
+                                            'updated_user' => auth()->user()->id,
+                                        ]);
+    
+                                        $kasbon_pay->save();
+                                    }
+                                }
+                                
+                            }
+                            
                             // FOOD
                             $food_archive_td_emp = new FoodArchiveTdEmp([
                                 'food_archive_td_id' => $food_archive_td->id,

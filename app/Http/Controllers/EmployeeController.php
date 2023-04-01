@@ -489,8 +489,10 @@ class EmployeeController extends Controller
     }
     public function employee_request_position(Request $request)
     {
+        Log::info($request);
         if (!$request->ajax()) abort(403, 'Unauthorized action.');
         if ($request->has('q') && !empty($request->input('q'))) {
+
             $emp_filter = [];
 
             if ($request->has('date') && !empty($request->input('date'))) {

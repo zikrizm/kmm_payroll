@@ -15,6 +15,9 @@ try {
     window.jQuery = window.$ = $;
 } catch (e) { }
 
+import moment from 'moment';
+window.moment = moment;
+
 import Echo from 'laravel-echo';
 import Pusher from 'pusher-js';
  

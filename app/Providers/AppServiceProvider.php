@@ -31,6 +31,16 @@ class AppServiceProvider extends ServiceProvider
             return config('constants.api_zkteco') . $url;
         });
 
+        Blade::directive('navigationIsShow', function (string $key) {
+            Log::info(gettype($key) . ' key ' . $key);
+        });
+        Blade::directive('navigationIsMini', function (string $key) {
+            Log::info(gettype($key) . ' key ' . $key);
+        });
+        Blade::directive('navigationIsActive', function (string $key) {
+            Log::info(gettype($key) . ' key ' . $key);
+        });
+
         Blade::if('activemenu', function ($menu) {
             $is_active = '';
             $segment_first = request()->segment(1);

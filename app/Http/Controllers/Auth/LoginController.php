@@ -77,6 +77,7 @@ class LoginController extends Controller
         // $res = $this->apiService->get_token_zkteco();
         // Session::put('token_zkteco', $res['token']);
         Session::put('business_id', $user->business->id);
+        return redirect('/');
         // try {
         //     $is_error_message = [];
         //     $res = $this->apiService->get_token_zkteco();

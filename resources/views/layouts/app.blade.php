@@ -27,7 +27,6 @@
     </style>
     <!-- Styling -->
     <link href="{{ asset('plugins/Daterangepicker/daterangepicker.css') }}" rel="stylesheet">
-    <link href="{{ asset('plugins/Timepicker/timepicker.css') }}" rel="stylesheet">
 
     <!-- Scripts -->
     @vite([
@@ -38,19 +37,13 @@
     'resources/plugins/Toastr/toastr.js',
     'resources/plugins/Dropzone/dropzone.css',
     'resources/plugins/Dropzone/dropzone.js',
-    'resources/plugins/Jquery-validate/jquery-validate.js',
-    'resources/plugins/Jquery-validate/additional-methods.js',
-    // 'resources/plugins/TwElements/css/index.min.css',
-    // 'resources/plugins/TwElements/js/index.min.js',
     'resources/css/app.css',
     'resources/css/custom.css',
     ])
 
     <script src="{{ asset('plugins/JIC/JIC.js') }}" type="text/javascript"></script>
-    <script src="{{ asset('plugins/Moment/moment.js') }}" type="text/javascript"></script>
     <script src="{{ asset('plugins/AutoNumeric/autoNumeric.js') }}" type="text/javascript"></script>
     <script src="{{ asset('plugins/Daterangepicker/daterangepicker.js') }}" type="module"></script>
-    <script src="{{ asset('plugins/Timepicker/timepicker.js') }}" type="module"></script>
     <script src="{{ asset('plugins/Jquery-cookie/jquery-cookie.js') }}" type="module"></script>
     <script src="{{ asset('js/Ui/DropdownSelect2.js') }}" type="text/javascript"></script>
     <script src="{{ asset('js/Remote/networkUtils.js') }}"></script>
@@ -73,25 +66,6 @@
             </p>
         </div>
     </div>
-    {{-- <button class="flex item-center gap-3 px-4 py-2.5">
-        <span class="min-h-[14px] min-w-[14px] w-3.5 h-3.5 border border-gray-400 rounded"></span>
-        <p class="text-xs text-gray-500 font-medium">Unselect All</p>
-    </button>
-    <button class="flex item-center gap-3 px-4 py-2.5">
-        <x-icon icon="check" class="text-gray-500" width=16 height=16 viewBox="20 20" />
-        <p class="text-xs text-gray-500 font-medium">Disetujui semua</p>
-    </button>
-    <button class="flex item-center gap-3 px-4 py-2.5">
-        <x-icon icon="copy" class="text-gray-500" width=16 height=16 viewBox="20 20" />
-        <p class="text-xs text-gray-500 font-medium">Duplikat</p>
-    </button>
-    <button class="flex item-center gap-3 px-4 py-2.5 border-t border-t-gray-200">
-        <x-icon icon="trash-2" class="text-red-400" width=16 height=16 viewBox="20 20" />
-        <p class="text-xs text-gray-500 font-medium">Hapus semua</p>
-    </button> --}}
-    {{-- <div id="loading-line"
-        class="duration-1000 w-0 h-[3px] rounded hidden bg-black absolute top-0 bg-gradient-to-r from-violet-300 to-violet-700 ">
-    </div> --}}
     <div id="dropdown-menu"
         class="hidden absolute border border-gray-200 backdrop-blur-[3px] rounded-xl shadow-sm p-1.5 bg-transparent z-[999]">
     </div>
@@ -110,7 +84,8 @@
             </div>
         </div>
     </div> --}}
-
+    {{-- @navigationIsActive(tess) --}}
+    
     <div class="w-full h-screen flex overflow-hidden">
         @if (request()->segment(1) != 'print' && request()->segment(2) != 'register' && request()->segment(1) !=
         'employee-photo')
@@ -532,7 +507,7 @@ hover:bg-gray-50
                             </div>
                         </a>
                         @endcan
-                        @can('request-task.view')
+                        {{-- @can('request-task.view')
                         <a href="{{ route('request-task.index') }}" class="flex items-center justify-between p-2.5 rounded-lg w-full hover:underline hover:decoration-gray-500 
                                     @activemenu('request-task')
 bg-gray-100 active
@@ -545,7 +520,7 @@ hover:bg-gray-50
                                     Penugasan</p>
                             </div>
                         </a>
-                        @endcan
+                        @endcan --}}
                     </div>
                     @endcanany
 
@@ -731,11 +706,6 @@ hover:bg-gray-50
 @stack('script')
 <script type="module">
     Dropzone.autoDiscover = false;
-    Echo.channel(`hello`)
-        .listen('HelloEvent', (e) => {
-            console.log(e);
-        });
-
 </script>
 <script type="application/javascript">
     const API = "{{ config('constants.api') }}";

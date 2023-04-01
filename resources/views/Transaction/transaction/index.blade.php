@@ -113,7 +113,7 @@
         // *
         var URL = (id) ? '/transaction/' + id + '/edit' : '/transaction/create';
         var res = await ApiService.get_modal(URL, null);
-        $('.select2').select2();
+        $('.select2-form').select2();
         select2_employee();
         $('input[name="punch_time"]').daterangepicker({
             locale: { format: 'YYYY-MM-DD HH:mm:ss', cancelLabel: 'Clear' },

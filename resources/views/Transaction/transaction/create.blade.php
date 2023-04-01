@@ -43,7 +43,7 @@
                 </section>
                 <section class="flex flex-col gap-1">
                     <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Status absen*</label>
-                    <select class="select2" name="punch_state">
+                    <select class="select2-form" name="punch_state">
                         <option value="" disabled selected>Silahkan Pilih</option>
                         <option value="1">Check In</option>
                         <option value="2">Check Out</option>

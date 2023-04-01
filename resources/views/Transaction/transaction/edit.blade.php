@@ -48,7 +48,7 @@
                             </section>
                             <section class="flex flex-col gap-1 w-full">
                                 <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Department*</label>
-                                <select class="select2" name="department">
+                                <select class="select2-form" name="department">
                                     <option value="" disabled selected>Silahkan Pilih</option>
                                     @foreach ($departments['data'] as $item)
                                     <option value="{{ $item['id'] }}" {{ (!empty($emp['department'])
@@ -61,7 +61,7 @@
                             </section>
                             <section class="flex flex-col gap-1 w-full">
                                 <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Position</label>
-                                <select class="select2" name="position">
+                                <select class="select2-form" name="position">
                                     <option value="" disabled selected>Silahkan Pilih</option>
                                     @foreach ($positions['data'] as $item)
                                     <option value="{{ $item['id'] }}" {{ (!empty($emp['position'])
@@ -74,7 +74,7 @@
                             </section>
                             <section class="flex flex-col gap-1 w-full">
                                 <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Employment type</label>
-                                <select class="select2" name="emp_type">
+                                <select class="select2-form" name="emp_type">
                                     <option value="" disabled selected>Silahkan Pilih</option>
                                     <option value="1" {{ $emp['emp_type']==1 ? 'selected' : '' }}>Official</option>
                                     <option value="2" {{ $emp['emp_type']==2 ? 'selected' : '' }}>Temporary
@@ -107,7 +107,7 @@
                             </div>
                             <section class="flex flex-col gap-1 flex-1">
                                 <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Area*</label>
-                                <select class="select2" name="area[]" multiple="multiple">
+                                <select class="select2-form" name="area[]" multiple="multiple">
                                     <option value="all" {{ empty($emp['area']) ? 'selected' : '' }}>
                                         Select all
                                     </option>
