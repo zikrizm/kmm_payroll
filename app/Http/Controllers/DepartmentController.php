@@ -40,13 +40,15 @@ class DepartmentController extends Controller
             if (request()->ajax()) {
                 $order = null;
                 $filter = [];
+                $page= 1;
 
                 if ($request->has('q')) {
                     $filter['department_icontains'] = $request->q;
                 }
 
-                if ($request->has('page')) {
+                if ($request->has('page') && !empty($request->page)) {
                     $filter['page'] = $request->page;
+                    $page = $request->page;
                 }
 
                 if ($request->has('sort')) {
@@ -64,7 +66,7 @@ class DepartmentController extends Controller
                     }
                 }
 
-                $render =  view('Organization.department.table', compact('departments', 'order'))->render();
+                $render =  view('Organization.department.table', compact('departments', 'order', 'page'))->render();
                 return $this->buildRes->RESPONSE_REQ('success', $render, null);
             }
 

@@ -599,7 +599,7 @@ class EmployeeController extends Controller
 
                             if ($res['status'] == 'success') {
                                 // ** Add employee for local if not exist 
-                                $employee = Employee::updateOrCreate(["emp_code" => (string)$value['emp_code']], [
+                                Employee::updateOrCreate(["emp_code" => (string)$value['emp_code']], [
                                     'business_id' => $business_id,
                                     'emp_id' => $res['data']['id'],
                                     "emp_code" => $value['emp_code'],
@@ -618,7 +618,7 @@ class EmployeeController extends Controller
                         } else {
                             // ** Add employee for local if not exist 
                             $emp_exist = $employees[$key];
-                            $employee = Employee::updateOrCreate(["emp_code" => (string)$value['emp_code']], [
+                            Employee::updateOrCreate(["emp_code" => (string)$value['emp_code']], [
                                 'business_id' => $business_id,
                                 'emp_id' => $emp_exist['id'],
                                 "emp_code" => $value['emp_code'],

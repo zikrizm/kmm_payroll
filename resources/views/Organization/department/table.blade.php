@@ -80,7 +80,6 @@
         </tbody>
     </table>
     <footer class='flex justify-between items-center px-6 pt-3 pb-4'>
-        @php $page = 1; @endphp
         <p class='text-gray-700 text-xs'>
             Page <span> {{ $page }} </span> of <span>{{ ceil(($departments['count'] ?? 0) / 10) }}</span>
         </p>
@@ -88,7 +87,8 @@
             @if (!empty($departments['previous']))
             <button data-pagination-url="{{ $departments['previous'] }}"
                 class='pagination-button px-3.5 py-2 border border-gray-300 rounded-lg text-xs hover:bg-gray-50'>Previous</button>
-            @elseif (!empty($departments['next']))
+            @endif
+            @if (!empty($departments['next']))
             <button data-pagination-url="{{ $departments['next'] }}"
                 class='pagination-button px-3.5 py-2 border border-gray-300 rounded-lg text-xs hover:bg-gray-50'>Next</button>
             @endif
