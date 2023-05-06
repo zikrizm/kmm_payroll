@@ -85,7 +85,7 @@
         </div>
     </div> --}}
     {{-- @navigationIsActive(tess) --}}
-    
+
     <div class="w-full h-screen flex overflow-hidden">
         @if (request()->segment(1) != 'print' && request()->segment(2) != 'register' && request()->segment(1) !=
         'employee-photo')
@@ -107,8 +107,12 @@
             class="{{ $is_mini ? 'w-[82px]' : 'is-full-size w-[260px]' }} h-full bg-white border-r border-gray-200 flex flex-col justify-between gap-4 px-3 overflow-auto no-scrollbar">
             <div class="flex-1">
                 <header class="h-32 w-full flex items-center justify-center flex-col gap-1">
-                    <div class="text-gray-700 w-10 h-10 rounded-full overflow-hidden">
+                    <div class="flex items-center justify-center text-gray-700 w-10 h-10 rounded-full overflow-hidden">
+                        @if (!empty(Auth::user()->business->logo))
                         <img src="{{ Auth::user()->business->logo }}" alt="" class="w-full h-full object-cover">
+                        @else
+                        <x-icon class="text-gray-500" icon="camera" width=25 height=25 viewBox="20 20" />
+                        @endif
                     </div>
                     <p class="text-gray-700 font-medium name-business {{ $is_mini ? 'hidden' : '' }}">
                         {{ Auth::user()->business->name }}</p>
@@ -680,7 +684,8 @@ hover:bg-gray-50
                         @if (!empty(Auth::user()->photo))
                         <img src="{{ Auth::user()->photo }}" alt="" class="w-full h-full object-cover">
                         @else
-                        <img src="@zkPhoto(files / nophoto . gif)" alt="" class="w-full h-full object-cover">
+                        <img src="{{config('constants.api_zkteco')}}/files/nophoto.gif" alt=""
+                            class="w-full h-full object-cover">
                         @endif
                     </div>
                     <div class="flex flex-col justify-center text-sm">

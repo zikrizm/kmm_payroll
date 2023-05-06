@@ -72,16 +72,12 @@ class EmployeePhotoController extends Controller
         try {
             $validator = Validator::make($request->all(), $this->rules());
 
-            Log::info($request);
             if ($validator->fails()) {
-                Log::info('kesini');
                 return $this->buildRes->RESPONSE_REQ('error', null, $validator->errors());
             } else {
                 $emp_data_photo = $request->only(['user_capture', 'employee_code', 'remark']);
                 $emp_data_photo['csrfmiddlewaretoken'] = $this->apiService->get_csrfmiddlewaretoken();
-                Log::info($emp_data_photo);
                 $res = $this->apiService->update_employee_photo($emp_data_photo);
-                Log::info($res);
                 if ($res['ret']) {
                     return $this->buildRes->RESPONSE_REQ('error', null, ['error' => $res['message']]);
                 } else {
@@ -105,6 +101,27 @@ class EmployeePhotoController extends Controller
     {
         if (!auth()->user()->can('employee-photo.view')) {
             abort(403, 'Unauthorized action.');
+        }
+    }
+
+
+    /**
+     * Display the specified resource.
+     *
+     * @param  $employee
+     * @return \Illuminate\Http\Response
+     */
+    public function detail($employee)
+    {
+        if (!auth()->user()->can('employee-photo.view')) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $employee = $this->apiService->get_employees(['emp_code' => $employee]);
+        if (!empty($employee['data'])) {
+            return $this->buildRes->RESPONSE_REQ('success', $employee['data'][0], null);
+        } else {
+            return $this->buildRes->RESPONSE_REQ('success', null, null);
         }
     }
 

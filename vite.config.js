@@ -19,13 +19,4 @@ export default defineConfig({
             refresh: true,
         }),
     ],
-    // server: {
-    //     host: 'kmm.com'
-    //   }
-    // server: {
-    //     hmr: {
-    //         host: 'localhost',
-    //         port: 8080
-    //     },
-    // }
 });

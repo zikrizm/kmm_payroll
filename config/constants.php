@@ -10,8 +10,8 @@ return [
     */
     'api_zkteco' => 'http://localhost:8000',
     'api' => 'http://localhost/',
-    // 'api_zkteco' => 'http://192.168.2.4:8000',
-    // 'api' => 'http://192.168.2.4/',
+    // 'api_zkteco' => 'http://192.168.2.21:8000',
+    // 'api' => 'http://192.168.2.21/',
     'langs' => [
         'en' => ['full_name' => 'English', 'short_name' => 'English'],
         'es' => ['full_name' => 'Spanish - Español', 'short_name' => 'Spanish'],

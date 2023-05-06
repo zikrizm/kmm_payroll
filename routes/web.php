@@ -63,6 +63,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/employee-csv', 'EmployeeController@uploadCSV_store')->name('employee.uploadCSV-store');
     // * employee photo
     Route::get('/employee-photo', 'EmployeePhotoController@index')->name('employee-photo.index');
+    Route::get('/employee-detail/{employee}', 'EmployeePhotoController@detail')->name('employee-photo.detail');
     Route::post('/employee-photo', 'EmployeePhotoController@store')->name('employee-photo.store');
     // * kasbon
     Route::resource('kasbon', 'KasbonController', ['except' => ['update']]);
