@@ -45,7 +45,7 @@
                                     <img src="@zkPhoto({{ $emp->employee->photo }})" alt=""
                                         class="w-full h-full object-cover">
                                     @else
-                                    <img src="@zkPhoto(files/nophoto.gif)" alt="" class="w-full h-full object-cover">
+                                    <img src="{{config('constants.api_zkteco')}}/files/nophoto.gif" alt="" class="w-full h-full object-cover">
                                     @endif
                                 </div>
                                 @endforeach

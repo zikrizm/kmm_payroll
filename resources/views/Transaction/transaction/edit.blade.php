@@ -130,7 +130,7 @@
                                     <img src="@zkPhoto({{ $emp['photo'] }})"
                                         class='object-cover h-full w-full overflow-hidden' id="photo_preview">
                                     @else
-                                    <img src='@zkPhoto(files/nophoto.gif)'
+                                    <img src="{{config('constants.api_zkteco')}}/files/nophoto.gif"
                                         class='object-cover h-full w-full overflow-hidden' id="photo_preview">
                                     @endif
                                 </span>

@@ -13,7 +13,7 @@
                         @if (!empty($item['employee']['photo']))
                         <img class="w-full h-full object-cover" src="@zkPhoto({{ $item['employee']['photo'] }})" alt="">
                         @else
-                        <img class="w-full h-full object-cover" src="@zkPhoto(files/nophoto.gif)" alt="">
+                        <img class="w-full h-full object-cover" src="{{config('constants.api_zkteco')}}/files/nophoto.gif" alt="">
                         @endif
                     </div>
                     <hr class="w-10 border-[1.5px] bg-black rounded ">

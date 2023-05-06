@@ -81,7 +81,7 @@
                                         onchange="loadPic('#photo', 'photo_preview', '#remove-img')" />
                                     <span class='cursor-pointer flex w-32 h-32 border border-dashed p-2'>
                                         @if (empty($employee["photo"]))
-                                        <img src='@zkPhoto(files/nophoto.gif)' class='object-cover h-full w-full overflow-hidden'
+                                        <img src="{{config('constants.api_zkteco')}}/files/nophoto.gif" class='object-cover h-full w-full overflow-hidden'
                                             id="photo_preview">
                                         @else
                                         <img src='@zkPhoto({{ $employee["photo"] }})'

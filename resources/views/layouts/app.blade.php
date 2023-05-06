@@ -34,7 +34,6 @@
     'resources/plugins/Select2/css/select2.css',
     'resources/plugins/Select2/js/select2.full.min.js',
     'resources/plugins/Toastr/toastr.css',
-    'resources/plugins/Toastr/toastr.js',
     'resources/plugins/Dropzone/dropzone.css',
     'resources/plugins/Dropzone/dropzone.js',
     'resources/css/app.css',
@@ -43,6 +42,7 @@
 
     <script src="{{ asset('plugins/JIC/JIC.js') }}" type="text/javascript"></script>
     <script src="{{ asset('plugins/AutoNumeric/autoNumeric.js') }}" type="text/javascript"></script>
+    <script src="{{ asset('plugins/Toastr/toastr.js') }}" type="module"></script>
     <script src="{{ asset('plugins/Daterangepicker/daterangepicker.js') }}" type="module"></script>
     <script src="{{ asset('plugins/Jquery-cookie/jquery-cookie.js') }}" type="module"></script>
     <script src="{{ asset('js/Ui/DropdownSelect2.js') }}" type="text/javascript"></script>
@@ -708,7 +708,7 @@ hover:bg-gray-50
     Dropzone.autoDiscover = false;
 </script>
 <script type="application/javascript">
-    const API = "{{ config('constants.api') }}";
+    const API = "{{ config('constants.api_zkteco') }}";
     window.addEventListener('DOMContentLoaded', (event) => {
         // $(document).ajaxSend(function(event, request, settings) {
         //     console.log('send')

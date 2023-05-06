@@ -78,7 +78,7 @@
                                         class="hidden" type="file"
                                         onchange="loadPic('#photo', 'photo_preview', '#remove-img')" />
                                     <span class='cursor-pointer flex w-32 h-32 border border-dashed p-2'>
-                                        <img src='@zkPhoto(files/nophoto.gif)'
+                                        <img src="{{config('constants.api_zkteco')}}/files/nophoto.gif"
                                             class='object-cover h-full w-full overflow-hidden' id="photo_preview">
                                     </span>
                                 </label>

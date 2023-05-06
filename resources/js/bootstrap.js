@@ -15,6 +15,9 @@ try {
     window.jQuery = window.$ = $;
 } catch (e) { }
 
+import select2 from 'select2';
+select2();
+
 import moment from 'moment';
 window.moment = moment;
 
