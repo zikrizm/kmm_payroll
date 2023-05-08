@@ -31,7 +31,6 @@
             position: absolute;
             z-index: 1;
         }
-
     </style>
     <form action="{{ route('employee-photo.store') }}" method="POST"
         class="employee-photo-submit w-full max-w-[320px] ">
@@ -42,7 +41,7 @@
                 <p class="text-3xl font-medium truncate w-[320px]">{{ Auth::user()->business->name }}</p>
                 <p class="text-sm text-gray-500 font-normal truncate">Di sini untuk mengunggah foto karyawan.</p>
             </div>
-            <section>
+            <section class="text-center flex flex-col gap-2">
                 <label for="contained-button-file" class="flex items-center cursor-pointer">
                     <input name="user_capture" accept="image/*" id="contained-button-file" class="hidden" type="file"
                         onchange="loadPic('#photo', 'photo_preview', '#remove-img')" />
@@ -54,6 +53,7 @@
                         <img src="" class='object-cover w-full h-full hidden' id="photo_preview">
                     </div>
                 </label>
+                <p class="text-gray-600 text-sm hidden" id="emp-name"></p>
             </section>
             <div class="flex flex-col gap-2 w-full">
                 <section class="flex flex-col gap-1">
@@ -115,6 +115,7 @@
                 $('#photo_preview').attr('src', '');
                 $('#photo_preview').addClass('hidden');
                 $('.icon-default-image').removeClass('hidden');
+                $('#emp-name').text('')
                 $('#check').hide();
                 $('#not-exist').hide();
             }
@@ -124,12 +125,13 @@
         $('input[name="employee_code"]').on('keyup', async function (e) {
             var res = await ApiService.post_data('GET', '/employee-detail/' + $(
                 'input[name="employee_code"]').val());
-            if (res && res.data) {
+                if (res && res.data) {
+                $('#emp-name').text(res.data.first_name)
                 $('#check').show();
-                $('.tooltiptext').text(res.data.first_name)
                 $('#not-exist').hide();
             } else {
                 $('#check').hide();
+                $('#emp_name').text('')
                 $('#not-exist').show();
             }
 
