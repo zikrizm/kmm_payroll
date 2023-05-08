@@ -112,8 +112,7 @@
         var resSubmit = await ApiService.submit_form('.employee-photo-submit', (data) => {
             if (data.status == 'success') {
                 $('.employee-photo-submit').trigger("reset");
-                $('#photo_preview').attr('src', '');
-                $('#photo_preview').addClass('hidden');
+                $('#photo_preview').addClass('hidden').attr('src', '');
                 $('.icon-default-image').removeClass('hidden');
                 $('#emp-name').text('')
                 $('#check').hide();
@@ -126,12 +125,16 @@
             var res = await ApiService.post_data('GET', '/employee-detail/' + $(
                 'input[name="employee_code"]').val());
                 if (res && res.data) {
-                $('#emp-name').text(res.data.first_name)
+                $('#emp-name').text(res.data.first_name);
+                $('.icon-default-image').addClass('hidden');
+                $('#photo_preview').removeClass('hidden').attr('src', res.data.photo);
                 $('#check').show();
                 $('#not-exist').hide();
             } else {
                 $('#check').hide();
-                $('#emp_name').text('')
+                $('#emp_name').text('');
+                $('.icon-default-image').removeClass('hidden');
+                $('#photo_preview').addClass('hidden').attr('src', '')
                 $('#not-exist').show();
             }
 
