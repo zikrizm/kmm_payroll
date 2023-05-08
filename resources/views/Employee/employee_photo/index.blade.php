@@ -31,6 +31,7 @@
             position: absolute;
             z-index: 1;
         }
+
     </style>
     <form action="{{ route('employee-photo.store') }}" method="POST"
         class="employee-photo-submit w-full max-w-[320px] ">
@@ -39,7 +40,7 @@
         <main class="rounded-xl flex flex-col items-center gap-12 border py-6 px-4 shadow-lg bg-white relative">
             <div class="absolute top-[-70px] text-center">
                 <p class="text-3xl font-medium truncate w-[320px]">{{ Auth::user()->business->name }}</p>
-                <p class="text-sm text-gray-500 font-normal truncate">Here to upload employee photo.</p>
+                <p class="text-sm text-gray-500 font-normal truncate">Di sini untuk mengunggah foto karyawan.</p>
             </div>
             <section>
                 <label for="contained-button-file" class="flex items-center cursor-pointer">
@@ -56,11 +57,11 @@
             </section>
             <div class="flex flex-col gap-2 w-full">
                 <section class="flex flex-col gap-1">
-                    <label class="font-normal text-sm text-gray-500">Employee code*</label>
+                    <label class="font-normal text-sm text-gray-500">Kode Karyawan*</label>
                     <div class="relative flex items-center">
                         <div class="w-full">
                             {!! FormCustom::input('employee_code', null,
-                            [ "placeholder" => 'Enter new your employee code'])
+                            [ "placeholder" => 'Masukkan kode karyawan'])
                             !!}
                         </div>
                         <div class="absolute right-[10px] top-[10px] hidden" id="check">
@@ -71,7 +72,16 @@
                                         <x-icon icon="check" width=12 height=12 viewBox="20 20" />
                                     </span>
                                 </div>
-                                <span class="tooltiptext text-xs">-</span>
+                            </div>
+                        </div>
+                        <div class="absolute right-[10px] top-[10px] hidden" id="not-exist">
+                            <div class="tooltip">
+                                <div
+                                    class="rounded-full h-4 w-4 bg-red-500 flex items-center justify-center text-center">
+                                    <span class="text-white">
+                                        <x-icon icon="x" width=12 height=12 viewBox="20 20" />
+                                    </span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -80,7 +90,7 @@
                 <footer class="flex flex-col gap-6 items-center w-full mt-2">
                     <button type="submit"
                         class="flex items-center justify-center gap-2 shadow-xs rounded-lg h-9 px-3 text-white font-normal flex items-center bg-violet-600 w-full">
-                        Done
+                        Simpan
                     </button>
                 </footer>
             </div>
@@ -90,31 +100,41 @@
 
 <script type="application/javascript">
     window.addEventListener('DOMContentLoaded', async (event) => {
-        $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
+        $.ajaxSetup({
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            }
+        });
 
         // **
         // * submit form ----->
         // *
         var resSubmit = await ApiService.submit_form('.employee-photo-submit', (data) => {
-            if(data.status == 'success') {
+            if (data.status == 'success') {
                 $('.employee-photo-submit').trigger("reset");
                 $('#photo_preview').attr('src', '');
                 $('#photo_preview').addClass('hidden');
                 $('.icon-default-image').removeClass('hidden');
+                $('#check').hide();
+                $('#not-exist').hide();
             }
         });
 
 
-        $('input[name="employee_code"]').on('keyup',async function(e) {
-           var res = await ApiService.post_data('GET', '/employee-detail/'+$('input[name="employee_code"]').val());
-           if(res && res.data) {
-            $('#check').show();
-            $('.tooltiptext').text(res.data.first_name)
-           }else {
+        $('input[name="employee_code"]').on('keyup', async function (e) {
+            var res = await ApiService.post_data('GET', '/employee-detail/' + $(
+                'input[name="employee_code"]').val());
+            if (res && res.data) {
+                $('#check').show();
+                $('.tooltiptext').text(res.data.first_name)
+                $('#not-exist').hide();
+            } else {
                 $('#check').hide();
-           }
-            
+                $('#not-exist').show();
+            }
+
         });
     });
+
 </script>
 @endsection
