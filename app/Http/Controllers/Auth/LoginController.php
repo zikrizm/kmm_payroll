@@ -76,8 +76,14 @@ class LoginController extends Controller
 
         // $res = $this->apiService->get_token_zkteco();
         // Session::put('token_zkteco', $res['token']);
-        Session::put('business_id', $user->business->id);
-        return redirect('/');
+        // $permissionNames = $user->getAllPermissions();
+
+        // if (count($permissionNames) == 2 && $permissionNames[0]['name'] == 'employee-photo.view' && $permissionNames[1]['name'] == 'employee-photo.create') {
+        //     return redirect('/employee-photo');
+        // }
+        // Log::info($permissionNames);
+        // Session::put('business_id', $user->business->id);
+        // return redirect('/');
         // try {
         //     $is_error_message = [];
         //     $res = $this->apiService->get_token_zkteco();

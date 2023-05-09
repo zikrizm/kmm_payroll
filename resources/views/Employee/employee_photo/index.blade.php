@@ -31,6 +31,7 @@
             position: absolute;
             z-index: 1;
         }
+
     </style>
     <form action="{{ route('employee-photo.store') }}" method="POST"
         class="employee-photo-submit w-full max-w-[320px] ">
@@ -122,21 +123,28 @@
 
 
         $('input[name="employee_code"]').on('keyup', async function (e) {
-            var res = await ApiService.post_data('GET', '/employee-detail/' + $(
-                'input[name="employee_code"]').val());
+            if ($('input[name="employee_code"]').val()) {
+                var res = await ApiService.post_data('GET', '/employee-detail/' + $(
+                    'input[name="employee_code"]').val());
                 if (res && res.data) {
-                $('#emp-name').text(res.data.first_name);
-                $('.icon-default-image').addClass('hidden');
-                $('#photo_preview').removeClass('hidden').attr('src', res.data.photo);
-                $('#check').show();
-                $('#not-exist').hide();
+                    $('#emp-name').text(res.data.first_name);
+                    $('.icon-default-image').addClass('hidden');
+                    $('#photo_preview').removeClass('hidden').attr('src', res.data.photo);
+                    $('#check').show();
+                    $('#not-exist').hide();
+                } else {
+                    $('#check').hide();
+                    $('#emp_name').text('');
+                    $('.icon-default-image').removeClass('hidden');
+                    $('#photo_preview').addClass('hidden').attr('src', '')
+                    $('#not-exist').show();
+                }
             } else {
+                $('#emp-name').text('')
                 $('#check').hide();
-                $('#emp_name').text('');
-                $('.icon-default-image').removeClass('hidden');
-                $('#photo_preview').addClass('hidden').attr('src', '')
-                $('#not-exist').show();
+                $('#not-exist').hide();
             }
+
 
         });
     });

@@ -1,7 +1,7 @@
 @extends('layouts.app')
 @section('content')
 <div class="w-full h-full flex justify-center items-center relative">
-    <div class="absolute top-4 right-4">
+    {{-- <div class="absolute top-4 right-4">
         <a href="{{ route('business.index.register') }}">
             <button
                 class="flex items-center gap-2.5 py-1 px-1.5 border rounded text-sm font-normal text-gray-700 hover:bg-gray-100">
@@ -9,7 +9,7 @@
                 Register business now
             </button>
         </a>
-    </div>
+    </div> --}}
     <div
         class="w-full rounded-xl border-2 relative border-gray-300 bg-white pb-4 overlow-hidden shadow-md  w-full max-w-[385px]">
         <div class="bg-violet-600 w-full text-center py-1 rounded-t-[10px]">
@@ -20,8 +20,8 @@
                 @csrf
                 <div class="px-4 flex flex-col gap-2">
                     <section class="flex flex-col gap-1">
-                        <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Username*</label>
-                        {!! FormCustom::input('username', null, ['placeholder' => 'Enter new your username','required' => true]) !!}
+                        <label class="font-normal text-sm text-gray-500">Nama Pengguna*</label>
+                        {!! FormCustom::input('username', null, ['placeholder' => 'Masukkan Nama Pengguna','required' => true]) !!}
                     </section>
                     @error('username')
                     <span class="invalid-feedback text-red-500 text-xs" role="alert">
@@ -29,8 +29,8 @@
                     </span>
                     @enderror
                     <section class="flex flex-col gap-1">
-                        <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Password*</label>
-                        {!! FormCustom::input('password', null, ['placeholder' => 'Enter new your password', 'type' => 'password', 'required' => true]) !!}
+                        <label class="font-normal text-sm text-gray-500">Password*</label>
+                        {!! FormCustom::input('password', null, ['placeholder' => 'Masukkan Password', 'type' => 'password', 'required' => true]) !!}
                     </section>
                     @error('password')
                     <span class="invalid-feedback text-red-500 text-xs" role="alert">
@@ -41,7 +41,7 @@
                         <input class="accent-violet-500" type="checkbox" name="remember" id="remember" {{ old('remember')
                             ? 'checked' : '' }}>
                         <label class="text-sm text-gray-500" for="remember">
-                            {{ __('Remember Me') }}
+                            {{ __('Ingat Saya') }}
                         </label>
                     </div>
                 </div>

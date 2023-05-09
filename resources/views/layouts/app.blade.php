@@ -86,7 +86,7 @@
     </div> --}}
     {{-- @navigationIsActive(tess) --}}
 
-    <div class="w-full h-screen flex overflow-hidden">
+    <div class="w-full h-screen flex overflow-auto">
         @if (request()->segment(1) != 'print' && request()->segment(2) != 'register' && request()->segment(1) !=
         'employee-photo')
         @if (Auth::user())

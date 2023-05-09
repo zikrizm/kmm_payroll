@@ -19,4 +19,7 @@ export default defineConfig({
             refresh: true,
         }),
     ],
+    server: {
+        host: '192.168.2.9'
+    }
 });
