@@ -130,7 +130,7 @@
                     $('#emp-name').text(res.data.first_name);
                     if(res.data.photo) {
                         $('.icon-default-image').addClass('hidden');
-                        $('#photo_preview').removeClass('hidden').attr('src', res.data.photo);
+                        $('#photo_preview').removeClass('hidden').attr('src', API+res.data.photo);
                     } else {
                         $('.icon-default-image').removeClass('hidden');
                         $('#photo_preview').addClass('hidden').attr('src', '');
