@@ -140,7 +140,7 @@
                     $('#not-exist').hide();
                 } else {
                     $('#check').hide();
-                    $('#emp_name').text('');
+                    $('#emp-name').text('');
                     $('.icon-default-image').removeClass('hidden');
                     $('#photo_preview').addClass('hidden').attr('src', '')
                     $('#not-exist').show();
