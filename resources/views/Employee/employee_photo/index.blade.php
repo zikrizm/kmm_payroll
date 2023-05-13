@@ -54,7 +54,7 @@
                         <img src="" class='object-cover w-full h-full hidden' id="photo_preview">
                     </div>
                 </label>
-                <p class="text-gray-600 text-sm hidden" id="emp-name"></p>
+                <p class="text-gray-600 text-sm" id="emp-name"></p>
             </section>
             <div class="flex flex-col gap-2 w-full">
                 <section class="flex flex-col gap-1">
@@ -128,8 +128,14 @@
                     'input[name="employee_code"]').val());
                 if (res && res.data) {
                     $('#emp-name').text(res.data.first_name);
-                    $('.icon-default-image').addClass('hidden');
-                    $('#photo_preview').removeClass('hidden').attr('src', res.data.photo);
+                    if(res.data.photo) {
+                        $('.icon-default-image').addClass('hidden');
+                        $('#photo_preview').removeClass('hidden').attr('src', res.data.photo);
+                    } else {
+                        $('.icon-default-image').removeClass('hidden');
+                        $('#photo_preview').addClass('hidden').attr('src', '');
+                    }
+                    
                     $('#check').show();
                     $('#not-exist').hide();
                 } else {
