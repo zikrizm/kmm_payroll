@@ -74,6 +74,8 @@ class LoginController extends Controller
             return redirect('/login');
         }
 
+        Session::put('business_id', $user->business->id);
+
         // $res = $this->apiService->get_token_zkteco();
         // Session::put('token_zkteco', $res['token']);
         // $permissionNames = $user->getAllPermissions();
@@ -82,7 +84,6 @@ class LoginController extends Controller
         //     return redirect('/employee-photo');
         // }
         // Log::info($permissionNames);
-        // Session::put('business_id', $user->business->id);
         // return redirect('/');
         // try {
         //     $is_error_message = [];
