@@ -4,7 +4,7 @@
 <style></style>
 @endsection
 @section('content')
-<div class="flex items-center justify-center flex-1 h-full overflow-auto bg-gray-50  px-8 xs/max:px-4 pt-8 pb-12">
+<div class="flex flex-col gap-2 items-center justify-center flex-1 h-full overflow-auto bg-gray-50  px-8 xs/max:px-4 pt-8 pb-12">
     <style>
         /* Tooltip container */
         .tooltip {
@@ -97,6 +97,14 @@
             </div>
         </main>
     </form>
+    <div>
+        <form action="{{ route('logout') }}">
+            {{ csrf_field() }}
+            <button class="text-gray-500 cursor-pointer">
+                <p class="text-gray-500 runcate text-xs">Logout</p>
+            </button>
+        </form>
+    </div>
 </div>
 
 <script type="application/javascript">

@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use App\Utils\BusinessUtil;
 use App\Utils\ResponseUtil;
 use App\Utils\ZktecoConfig;
 use Illuminate\Http\Request;
 use App\Services\Api\ApiServices;
+use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
@@ -40,7 +42,10 @@ class HomeController extends Controller
     {
 
         try {
-            // $tess = (new ZktecoConfig());
+            if(count(auth()->user()->getAllPermissions()) == 2 && auth()->user()->hasAnyPermission(['employee-photo.view', 'employee-photo.create'])) {
+                return redirect()->route('employee-photo.index');
+            }
+
             return view('home.index');
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
@@ -53,7 +58,8 @@ class HomeController extends Controller
         try {
             $res = $this->apiService->get_token_zkteco();
             $token = $res['data']['token'];
-            
+            // $token = null;
+
             Session::put('token_zkteco', $token);
             return $this->buildRes->RESPONSE_REQ('success', $token, ['success' => 'Get token zkteco succesfully']);
         } catch (\Exception $e) {
