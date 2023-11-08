@@ -456,5 +456,9 @@
             onInit($('.search-data-input').val());
         })
     }
+
+    function unBlockInputEmpCode(e) {
+        $(e).find('input[name=emp_code]').attr('readonly', false).removeClass('cursor-not-allowed text-gray-300').addClass('focus:shadow-xs/focused(4px-primary) focus:border-violet-300')
+    }
 </script>
 @endsection
