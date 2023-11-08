@@ -36,10 +36,10 @@
                             <div class="flex items-center">
                                 <div class="flex gap-3 items-center py">
                                     @if (empty($employee["photo"]))
-                                    <img src="@zkPhoto({{ $employee[" photo"] }})" alt=""
+                                    <img src="{{config('constants.api_zkteco')}}{{ $employee['photo'] }}" alt=""
                                         class="w-8 object-cover h-8 min-w-[32px] min-h-[32px] rounded-full">
                                     @else
-                                    <img src="@zkPhoto(files / nophoto . gif)" alt=""
+                                    <img src="{{config('constants.api_zkteco')}}/files/nophoto.gif" alt=""
                                         class="w-8 object-cover h-8 min-w-[32px] min-h-[32px] rounded-full">
                                     @endif
                                     <div>

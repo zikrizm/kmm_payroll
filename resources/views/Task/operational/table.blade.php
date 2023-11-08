@@ -42,7 +42,7 @@
                                 @foreach ($item_task->request_task_has_emps as $key => $emp)
                                 <div class='rounded-full border-white bg-white border-[1.5px] h-[18px] w-[18px] overflow-hidden'>
                                     @if (!empty($emp->employee->photo))
-                                    <img src="@zkPhoto({{ $emp->employee->photo }})" alt=""
+                                    <img src="{{config('constants.api_zkteco')}}{{ $emp->employee->photo }}" alt=""
                                         class="w-full h-full object-cover">
                                     @else
                                     <img src="{{config('constants.api_zkteco')}}/files/nophoto.gif" alt="" class="w-full h-full object-cover">

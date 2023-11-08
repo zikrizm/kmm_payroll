@@ -10,6 +10,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use App\Providers\RouteServiceProvider;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
 
 class LoginController extends Controller
@@ -73,6 +74,11 @@ class LoginController extends Controller
             Auth::logout();
             return redirect('/login');
         }
+
+        // Config::set('constants.api_zkteco','http://'. request()->getHost().':8000');
+        // Config::set('constants.api','http://'. request()->getHost().':8000');
+        // Log::info('config = '.Config::get('constants.api_zkteco'));
+        // Log::info('config = '.Config::get('constants.api'));
 
         Session::put('business_id', $user->business->id);
 

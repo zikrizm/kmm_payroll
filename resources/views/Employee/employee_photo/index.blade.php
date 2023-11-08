@@ -136,12 +136,14 @@
                     'input[name="employee_code"]').val());
                 if (res && res.data) {
                     $('#emp-name').text(res.data.first_name);
-                    if(res.data.photo) {
-                        $('.icon-default-image').addClass('hidden');
-                        $('#photo_preview').removeClass('hidden').attr('src', API+res.data.photo);
-                    } else {
-                        $('.icon-default-image').removeClass('hidden');
-                        $('#photo_preview').addClass('hidden').attr('src', '');
+                    if( document.getElementById("contained-button-file").files.length == 0 ){
+                        if(res.data.photo) {
+                            $('.icon-default-image').addClass('hidden');
+                            $('#photo_preview').removeClass('hidden').attr('src', API+res.data.photo);
+                        } else {
+                            $('.icon-default-image').removeClass('hidden');
+                            $('#photo_preview').addClass('hidden').attr('src', '');
+                        }
                     }
                     
                     $('#check').show();
@@ -149,11 +151,18 @@
                 } else {
                     $('#check').hide();
                     $('#emp-name').text('');
-                    $('.icon-default-image').removeClass('hidden');
-                    $('#photo_preview').addClass('hidden').attr('src', '')
+                    if( document.getElementById("contained-button-file").files.length == 0 ){
+                        $('.icon-default-image').removeClass('hidden');
+                        $('#photo_preview').addClass('hidden').attr('src', '')
+                    }
+                    
                     $('#not-exist').show();
                 }
             } else {
+                if( document.getElementById("contained-button-file").files.length == 0 ){
+                    $('.icon-default-image').removeClass('hidden');
+                    $('#photo_preview').addClass('hidden').attr('src', '')
+                }
                 $('#emp-name').text('')
                 $('#check').hide();
                 $('#not-exist').hide();

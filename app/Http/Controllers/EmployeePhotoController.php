@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Log;
 use App\Exceptions\ResponseExeception;
 use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Session;
 
 class EmployeePhotoController extends Controller
 {
@@ -34,7 +35,11 @@ class EmployeePhotoController extends Controller
         }
 
         try {
+            $res = $this->apiService->get_token_zkteco();
+            $token = $res['data']['token'];
+            // $token = null;
 
+            Session::put('token_zkteco', $token);
             return view('Employee.employee_photo.index');
         } catch (ResponseExeception $e) {
             return $this->buildRes->RESPONSE_REQ('error', null, $e->getMessages());

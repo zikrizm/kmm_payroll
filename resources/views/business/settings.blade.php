@@ -153,15 +153,15 @@
                                     <div class="flex items-center">
                                         <div class="flex gap-3 items-center px-3 py">
                                             @if (!empty($item['photo']))
-                                            <img src="@zkPhoto({{ $item['photo'] }})" alt=""
+                                            <img src="{{config('constants.api_zkteco')}}{{ $item['photo'] }}" alt=""
                                                 class="w-8 object-cover h-8 min-w-[32px] min-h-[32px] rounded-full">
                                             @else
-                                            <img src="@zkPhoto(files / nophoto . gif)" alt=""
+                                            <img src="{{config('constants.api_zkteco')}}/files/nophoto.gif" alt=""
                                                 class="w-8 object-cover h-8 min-w-[32px] min-h-[32px] rounded-full">
                                             @endif
                                             <div>
                                                 <p class="text-gray-900 text-sm font-medium truncate sm/max:w-12">
-                                                    {{ $item['first_name'] ?? '' }} {{ $item['last_name'] ?? '' }}
+                                                    {{ $item['first_name'] ?? '' }} {{ $item['last_name'[]] ?? '' }}
                                                 </p>
                                                 <p class="text-gray-500 text-sm font-normal truncate sm/max:w-12">
                                                     {{ $item['email'] }}

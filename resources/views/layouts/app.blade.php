@@ -662,7 +662,7 @@ hover:bg-gray-50
                         @if (!empty(Auth::user()->photo))
                         <img src="{{ Auth::user()->photo }}" alt="" class="w-full h-full object-cover">
                         @else
-                        <img src="@zkPhoto(files / nophoto . gif)" alt="" class="w-full h-full object-cover">
+                        <img src="{{config('constants.api_zkteco')}}/files/nophoto.gif" alt="" class="w-full h-full object-cover">
                         @endif
                     </div>
                     <div class="flex flex-col items-center justify-center">
