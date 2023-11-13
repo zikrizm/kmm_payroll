@@ -54,8 +54,8 @@ class AttendanceReportCardController extends Controller
 
                 $business = Business::where('id', $business_id)->select('id', 'pending_day')->first();
                 if ($request->has('start_date') && $request->has('end_date')) {
-                    // $start_date = Carbon::createFromFormat('d-m-Y', $request['start_date']);
-                    // $end_date = Carbon::createFromFormat('d-m-Y', $request['end_date']);
+                    $start_date = Carbon::createFromFormat('d-m-Y', $request['start_date']);
+                    $end_date = Carbon::createFromFormat('d-m-Y', $request['end_date']);
 
                     // $start_date_work_day = Carbon::createFromFormat('d-m-Y', $request['start_date']);
                     // $end_date_work_day = Carbon::createFromFormat('d-m-Y', $request['end_date']);
