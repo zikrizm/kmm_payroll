@@ -138,25 +138,22 @@
                             @endif
                         </td>
                         <td class='text-xs border text-gray-500 text-center'>
-                            @if (!empty($attendance['timetable']))
                             <div class="flex items-center justify-between gap-1">
-                                <div class="flex justify-center flex-1">
-                                    <div class="flex relative w-max">
-                                        <p class="text-[10px]">{{ $attendance['timetable']['name'] ?? '-' }}</p>
-                                        {{-- @if (!empty($item_report['timetable']['cross_day']))
-                                        <p class="text-[9px] text-violet-600 mt-[-4px]">+{{
-                                            $item_report['timetable']['cross_day'] ?? '' }}</p>
-                                        @endif --}}
+                                <div class="flex justify-center text-center flex-1 overflow-hidden">
+                                    @if (!empty($attendance['timetable']))
+                                    <div class="flex relative">
+                                        <p class="text-[10px] truncate">{{ $attendance['timetable']['name'] ?? '-' }}</p>
                                     </div>
+                                    @else
+                                    -
+                                    @endif
                                 </div>
-                                <div class="w-7 pl-0.5 flex justify-center bg-gray-100 text-gray-700">
+                                <div class="flex justify-center bg-gray-100 text-gray-700">
                                     <p class="text-[9px]">{{ !empty($attendance['value_string']) ?
                                         '( '.$attendance['value_string'].' )' : '' }}</p>
                                 </div>
                             </div>
-                            @else
-                            -
-                            @endif
+
                         </td>
                         <td class='text-xs border text-gray-500 text-center w-14'>
                             {{ $attendance['JL'] ?? '-' }}
