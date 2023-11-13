@@ -80,7 +80,7 @@ class AttendanceReportCardController extends Controller
                 return;
             }
 
-            $department_bios = $this->apiService->get_departments(["page_size" => 999]);
+            $department_bios = $this->apiService->get_departments(["page_size" => 999])['data'];
             return  view('Report.attendance_card.index', compact('department_bios'));
             // $dept_bios = $this->apiService->get_departments(["page_size" => 999]);
             // return  view('Report.attendance_card.index', compact('dept_bios'));

@@ -28,7 +28,7 @@
             <section class="flex flex-col gap-1 w-72">
                 <select class="select2-dept hidden" name="dept">
                     <option value="">Semua bagian</option>
-                    @foreach ($department_bios['data'] as $department)
+                    @foreach ($department_bios ?? [] as $department)
                     <option value="{{ $department['dept_code'] }}" @selected($department_bios->first()['dept_code'] ==
                         $department['id'])>{{ $department['dept_name'] }}</option>
                     @endforeach
