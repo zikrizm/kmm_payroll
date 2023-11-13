@@ -138,17 +138,15 @@
                             @endif
                         </td>
                         <td class='text-xs border text-gray-500 text-center'>
-                            <div class="flex items-center justify-between gap-1">
+                            <div class="relative flex items-center justify-between gap-1">
                                 <div class="flex justify-center text-center flex-1 overflow-hidden">
                                     @if (!empty($attendance['timetable']))
-                                    <div class="flex relative">
-                                        <p class="text-[10px] truncate">{{ $attendance['timetable']['name'] ?? '-' }}</p>
-                                    </div>
+                                    <p class="text-[10px] truncate">{{ $attendance['timetable']['name'] ?? '-' }}</p>
                                     @else
                                     -
                                     @endif
                                 </div>
-                                <div class="flex justify-center bg-gray-100 text-gray-700">
+                                <div class="absolute right-0 flex justify-center bg-gray-100 text-gray-700">
                                     <p class="text-[9px]">{{ !empty($attendance['value_string']) ?
                                         '( '.$attendance['value_string'].' )' : '' }}</p>
                                 </div>
