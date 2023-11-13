@@ -59,8 +59,10 @@ class AttendanceReportController extends Controller
                     $end_time = Carbon::parse($request->attendance_report_date['end_time']);
                     $filter['start_time'] = $start_time->hour(0)->minute(0)->second(0)->format('Y-m-d H:i:s');
                     $filter['end_time'] = $end_time->addHours(1)->hour(23)->minute(59)->second(59)->format('Y-m-d H:i:s');
-                    $attenDBs = Transaction::whereBetween('punch_time', [$filter['start_time'], $filter['end_time']])->get();
-
+                    // $attenDBs = Transaction::whereBetween('punch_time', [$filter['start_time'], $filter['end_time']])->get();
+                    $attenDBs = Transaction::whereBetween('punch_time', [$filter['start_time'], $filter['end_time']])
+                        ->orderBy('punch_time', 'desc')
+                        ->get();
                 }
 
                 // $atten_count = $this->apiService->get_transactions($filter)['count'];
@@ -68,6 +70,7 @@ class AttendanceReportController extends Controller
                 // $attens = collect($this->apiService->get_transactions($filter)['data']);
                 $atten_bio_count = $this->apiService->get_transactions($filter)['count'];
                 $atten_bios = collect($this->apiService->get_transactions(array_merge(['page_size' => $atten_bio_count], $filter))['data']);
+                Log::info($atten_bios);
                 foreach ($attenDBs as $key => $value) {
                     $value['id'] = $value['emp'];
                     $atten_bios[] = $value->toArray();
