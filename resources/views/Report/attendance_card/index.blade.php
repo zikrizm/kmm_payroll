@@ -60,9 +60,10 @@
             });
 
             onInit({
-                start_date: convertLocalTimezone( moment().startOf('week'), 'YYYY-MM-DD HH:mm:ss'), 
-                end_date: convertLocalTimezone(moment().endOf('week'), 'YYYY-MM-DD HH:mm:ss')
-                
+                q: $('.search-data-input').val(),
+                start_date: convertLocalTimezone( moment().startOf('week'), 'YYYY-MM-DD'), 
+                end_date: convertLocalTimezone(moment().endOf('week'), 'YYYY-MM-DD')
+
                 // date: { 
                 //     start_time: convertLocalTimezone( moment().startOf('week'), 'YYYY-MM-DD HH:mm:ss'), 
                 //     end_time: convertLocalTimezone(moment().endOf('week'), 'YYYY-MM-DD HH:mm:ss')
@@ -88,7 +89,8 @@
                 drops: "auto",
                 maxYear: parseInt(moment().format('YYYY'), 10)
             },function(start, end, label) {
-                var dateFormat = 'YYYY-MM-DD HH:mm:ss';
+                var dateFormat = 'YYYY-MM-DD';
+                // var dateFormat = 'YYYY-MM-DD HH:mm:ss';
 
                 delete dataParams.page;
                 onInit({ 
