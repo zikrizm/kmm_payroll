@@ -40,8 +40,8 @@
                         </td>
                         <td class="align-middle">
                             <p class="text-gray-500 text-xs text-middle mt-0.5">
-                                {{ date('d-m-Y', strtotime($item['start_time'])) }} -
-                                {{ date('d-m-Y', strtotime($item['end_time'])) }}
+                                {{ date('d-m-Y', strtotime($item['start_date'])) }} -
+                                {{ date('d-m-Y', strtotime($item['end_date'])) }}
                         </td>
                     </tr>
                 </table>
