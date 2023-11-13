@@ -40,8 +40,8 @@
                         </td>
                         <td class="align-middle">
                             <p class="text-gray-500 text-xs text-middle mt-0.5">
-                                {{ date('d-m-Y', strtotime($item['start_date'])) }} -
-                                {{ date('d-m-Y', strtotime($item['end_date'])) }}
+                                {{ date('d-m-Y', strtotime($data['start_date'])) }} -
+                                {{ date('d-m-Y', strtotime($data['end_date'])) }}
                         </td>
                     </tr>
                 </table>
@@ -85,7 +85,7 @@
                         </td>
                         <td class="align-middle">
                             <p class="text-gray-500 text-xs text-middle mt-0.5">
-                                {{ $item['department']['dept_name'] ?? '-' }}
+                                {{ $data['department']['dept_name'] ?? '-' }}
                             </p>
                         </td>
                     </tr>
