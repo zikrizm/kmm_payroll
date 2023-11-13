@@ -27,9 +27,10 @@
             </div>
             <section class="flex flex-col gap-1 w-72">
                 <select class="select2-dept hidden" name="dept">
-                    <option value="all" selected>All bagian</option>
-                    @foreach ($dept_bios['data'] as $item)
-                    <option value="{{ $item['dept_code'] }}">{{ $item['dept_name'] }}</option>
+                    <option value="">Semua bagian</option>
+                    @foreach ($department_bios['data'] as $department)
+                    <option value="{{ $department['dept_code'] }}" @selected($department_bios->first()['dept_code'] ==
+                        $department['id'])>{{ $department['dept_name'] }}</option>
                     @endforeach
                 </select>
                 <label class="font-normal text-xs text-red-500 xs/max:text-xs parent_dept hint-text"></label>
