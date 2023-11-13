@@ -29,7 +29,7 @@
                 <select class="select2-dept hidden" name="dept">
                     <option value="all" selected>All bagian</option>
                     @foreach ($dept_bios['data'] as $item)
-                    <option value="{{ $item['id'] }}">{{ $item['dept_name'] }}</option>
+                    <option value="{{ $item['dept_code'] }}">{{ $item['dept_name'] }}</option>
                     @endforeach
                 </select>
                 <label class="font-normal text-xs text-red-500 xs/max:text-xs parent_dept hint-text"></label>
@@ -55,7 +55,8 @@
             $('.select2-dept').on('select2:select', function (e) {
                 delete dataParams.page;
 
-                onInit({dept_id: $(this).val()})
+                onInit({department_code: $(this).val()})
+                // onInit({dept_id: $(this).val()})
             });
 
             onInit({
@@ -88,10 +89,12 @@
 
                 delete dataParams.page;
                 onInit({ 
-                    date: { 
-                        start_time: convertLocalTimezone(start, dateFormat), 
-                        end_time: convertLocalTimezone(end, dateFormat)
-                    } 
+                    start_date: convertLocalTimezone(start, dateFormat),
+                    end_date: convertLocalTimezone(end, dateFormat)
+                    // date: { 
+                    //     start_time: convertLocalTimezone(start, dateFormat), 
+                    //     end_time: convertLocalTimezone(end, dateFormat)
+                    // } 
                 });
             });
 
