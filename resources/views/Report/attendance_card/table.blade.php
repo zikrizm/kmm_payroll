@@ -39,9 +39,9 @@
                             </table>
                         </td>
                         <td class="align-middle">
-                            {{-- <p class="text-gray-500 text-xs text-middle mt-0.5">
-                                {{ date('d-m-Y', strtotime($item['range_date']['start_time'])) }} -
-                                {{ date('d-m-Y', strtotime($item['range_date']['end_time'])) }} --}}
+                            <p class="text-gray-500 text-xs text-middle mt-0.5">
+                                {{ date('d-m-Y', strtotime($item['start_time'])) }} -
+                                {{ date('d-m-Y', strtotime($item['end_time'])) }}
                         </td>
                     </tr>
                 </table>
@@ -85,7 +85,7 @@
                         </td>
                         <td class="align-middle">
                             <p class="text-gray-500 text-xs text-middle mt-0.5">
-                                {{-- {{ $item['employee']['department']['dept_name'] ?? '-' }} --}}
+                                {{ $item['department']['dept_name'] ?? '-' }}
                             </p>
                         </td>
                     </tr>
