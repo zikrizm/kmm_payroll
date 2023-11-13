@@ -146,10 +146,10 @@
                                     -
                                     @endif
                                 </div>
-                                <div class="absolute right-0 flex justify-center bg-gray-100 text-gray-700">
+                                {{-- <div class="absolute right-0 flex justify-center bg-gray-100 text-gray-700">
                                     <p class="text-[9px]">{{ !empty($attendance['value_string']) ?
                                         '( '.$attendance['value_string'].' )' : '' }}</p>
-                                </div>
+                                </div> --}}
                             </div>
 
                         </td>
