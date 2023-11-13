@@ -62,6 +62,7 @@
 
             onInit({
                 q: $('.search-data-input').val(),
+                department_code: $(this).val(),
                 start_date: convertLocalTimezone( moment().startOf('week'), 'DD-MM-YYYY'), 
                 end_date: convertLocalTimezone(moment().endOf('week'), 'DD-MM-YYYY')
 
