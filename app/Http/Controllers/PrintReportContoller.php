@@ -628,7 +628,7 @@ class PrintReportContoller extends Controller
                                             $first_punch = Carbon::parse($first['punch_time']);
                                             $last_punch = Carbon::parse($last['punch_time']);
                                             $attendance_data['first_punch'] = $first['punch_time'];
-                                            $attendance_data['last_punch'] = $last['punch_time'];
+                                            $attendance_data['last_punch'] =count($attendance_employee_in_dates) >=2? $last['punch_time']: null;
 
                                             if (!empty($empshift)) {
                                                 $shiftday = $empshift->shiftdays->where('code_day', $date->dayOfWeek)->first();
