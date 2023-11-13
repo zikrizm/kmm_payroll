@@ -73,7 +73,6 @@ class PayrollReportController extends Controller
                         $end_date_overtime,
                         $request['department_code'],
                     );
-                    Log::info($datas);
 
                     $render = view('report.payroll_report.table', compact('datas', 'start_date_work_day', 'end_date_work_day', 'start_date_overtime', 'end_date_overtime'))->render();
                     return $this->buildRes->RESPONSE_REQ('success', $render, null);
