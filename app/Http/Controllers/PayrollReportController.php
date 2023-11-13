@@ -53,7 +53,7 @@ class PayrollReportController extends Controller
                 $datas = collect([]);
                 $start_date = null;
                 $end_date = null;
-
+                Log::info($request);
                 $business_id = Session::get('business_id');
                 $business = Business::where('id', $business_id)->select('id', 'pending_day')->first();
 
