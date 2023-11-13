@@ -150,8 +150,8 @@
                                     </div>
                                 </div>
                                 <div class="w-7 pl-0.5 flex justify-center bg-gray-100 text-gray-700">
-                                    {{-- <p class="text-[9px]">{{ !empty($item_report['timetable']['per_day']) ?
-                                        '( '.$item_report['timetable']['per_day'].' )' : '' }}</p> --}}
+                                    <p class="text-[9px]">{{ !empty($attendance['value_string']) ?
+                                        '( '.$attendance['value_string'].' )' : '' }}</p>
                                 </div>
                             </div>
                             @else
