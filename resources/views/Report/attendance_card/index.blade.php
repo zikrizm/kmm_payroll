@@ -60,10 +60,13 @@
             });
 
             onInit({
-                date: { 
-                    start_time: convertLocalTimezone( moment().startOf('week'), 'YYYY-MM-DD HH:mm:ss'), 
-                    end_time: convertLocalTimezone(moment().endOf('week'), 'YYYY-MM-DD HH:mm:ss')
-                }
+                start_date: convertLocalTimezone( moment().startOf('week'), 'YYYY-MM-DD HH:mm:ss'), 
+                end_date: convertLocalTimezone(moment().endOf('week'), 'YYYY-MM-DD HH:mm:ss')
+                
+                // date: { 
+                //     start_time: convertLocalTimezone( moment().startOf('week'), 'YYYY-MM-DD HH:mm:ss'), 
+                //     end_time: convertLocalTimezone(moment().endOf('week'), 'YYYY-MM-DD HH:mm:ss')
+                // }
             });
 
             $('input[name="date"]').daterangepicker({
