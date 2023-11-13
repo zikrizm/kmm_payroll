@@ -110,10 +110,10 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach ($item['attendances'] as $key => $attendance)
+                        {{-- @foreach ($item['attendances'] as $key => $attendance)
                         <tr class='hover:bg-gray-50 border '>
                         </tr>
-                        @endforeach
+                        @endforeach --}}
                         <tr class='hover:bg-gray-50'>
                             <td class='text-xs text-center'>
                             </td>

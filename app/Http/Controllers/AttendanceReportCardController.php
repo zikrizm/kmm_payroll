@@ -82,8 +82,6 @@ class AttendanceReportCardController extends Controller
 
             $department_bios = collect($this->service->get_departments(['page_size' => 999])['data']);
             return  view('Report.attendance_card.index', compact('department_bios'));
-            // $dept_bios = $this->apiService->get_departments(["page_size" => 999]);
-            // return  view('Report.attendance_card.index', compact('dept_bios'));
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
 
