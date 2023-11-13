@@ -622,7 +622,7 @@ class PrintReportContoller extends Controller
                                         ];
 
                                         $attendance_employee_in_dates = collect($attendance_employee[$date->format('Y-m-d')] ?? []);
-                                        if ($attendance_employee_in_dates->isNotEmpty()) {
+                                        if ($attendance_employee_in_dates->isNotEmpty() && count($attendance_employee_in_dates) >= 2) {
                                             $first = $attendance_employee_in_dates->first();
                                             $last = $attendance_employee_in_dates->last();
                                             $first_punch = Carbon::parse($first['punch_time']);
