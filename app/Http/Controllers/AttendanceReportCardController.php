@@ -22,13 +22,13 @@ use Illuminate\Support\Facades\Validator;
 
 class AttendanceReportCardController extends Controller
 {
-    private $apiService;
+    private $service;
     private $buildRes;
     private $util;
 
-    public function __construct(ApiServices $apiService, Util $util, ResponseUtil $buildRes)
+    public function __construct(ApiServices $service, Util $util, ResponseUtil $buildRes)
     {
-        $this->apiService = $apiService;
+        $this->service = $service;
         $this->buildRes = $buildRes;
         $this->util = $util;
     }
@@ -80,7 +80,7 @@ class AttendanceReportCardController extends Controller
                 return;
             }
 
-            $department_bios = $this->apiService->get_departments(["page_size" => 999])['data'];
+            $department_bios = collect($this->service->get_departments(['page_size' => 999])['data']);
             return  view('Report.attendance_card.index', compact('department_bios'));
             // $dept_bios = $this->apiService->get_departments(["page_size" => 999]);
             // return  view('Report.attendance_card.index', compact('dept_bios'));
