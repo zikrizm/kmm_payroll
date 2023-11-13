@@ -308,16 +308,25 @@ class ShiftController extends Controller
         $onlyParentDept = [];
 
         foreach ($departments['data'] as $department) {
-            if (empty($department['parent_dept'])) {
-                if (count($shifts) != 0) {
-                    $first = $shifts->firstWhere('dept_id', $department['id']);
-                    if (empty($first)) {
-                        $onlyParentDept[] = $department;
-                    }
-                } else {
+            if (count($shifts) != 0) {
+                $first = $shifts->firstWhere('dept_id', $department['id']);
+                if (empty($first)) {
                     $onlyParentDept[] = $department;
                 }
+            } else {
+                $onlyParentDept[] = $department;
             }
+
+            // if (empty($department['parent_dept'])) {
+            //     if (count($shifts) != 0) {
+            //         $first = $shifts->firstWhere('dept_id', $department['id']);
+            //         if (empty($first)) {
+            //             $onlyParentDept[] = $department;
+            //         }
+            //     } else {
+            //         $onlyParentDept[] = $department;
+            //     }
+            // }
         }
 
         return $onlyParentDept;

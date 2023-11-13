@@ -45,10 +45,12 @@
                 <div id="basic-info-content" class="flex flex-col gap-2.5 ">
                     <div class="flex items-center gap-4 w-full">
                         <div class="flex flex-col gap-2.5 flex-1">
-                            <section class="flex flex-col gap-1" ondblclick="unBlockInputEmpCode(this)">
+                            <section class="flex flex-col gap-1">
                                 <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Kode karyawan*</label>
-                                {!! FormCustom::input('emp_code', $employee['emp_code'],
-                                ['placeholder' => 'Masukkan kode karyawan', 'block_input' => true]) !!}
+                                <div ondblclick="unBlockInputEmpCode(this)">
+                                    {!! FormCustom::input('emp_code', $employee['emp_code'],
+                                    ['placeholder' => 'Masukkan kode karyawan', 'block_input' => true]) !!}
+                                </div>
                             </section>
                             <div class="flex items-start gap-4 w-full">
                                 <section class="flex flex-col gap-1 flex-1">
@@ -81,8 +83,8 @@
                                         onchange="loadPic('#photo', 'photo_preview', '#remove-img')" />
                                     <span class='cursor-pointer flex w-32 h-32 border border-dashed p-2'>
                                         @if (empty($employee["photo"]))
-                                        <img src="{{config('constants.api_zkteco')}}/files/nophoto.gif" class='object-cover h-full w-full overflow-hidden'
-                                            id="photo_preview">
+                                        <img src="{{config('constants.api_zkteco')}}/files/nophoto.gif"
+                                            class='object-cover h-full w-full overflow-hidden' id="photo_preview">
                                         @else
                                         <img src="{{config('constants.api_zkteco')}}{{ $employee['photo'] }}"
                                             class='object-cover h-full w-full overflow-hidden' id="photo_preview">
