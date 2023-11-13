@@ -523,6 +523,7 @@ class PrintReportContoller extends Controller
                     fn ($item) => Carbon::parse($item['punch_time'])->format('Y-m-d'),
                 ]);
 
+                Log::info($department_query);
                 $empbios = $this->getEmployee($department_query);
                 $empbios_grouping_by_dept = $empbios->groupBy([fn ($item) => $item['department']['id']]);
 
