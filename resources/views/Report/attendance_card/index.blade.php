@@ -61,8 +61,8 @@
 
             onInit({
                 q: $('.search-data-input').val(),
-                start_date: convertLocalTimezone( moment().startOf('week'), 'YYYY-MM-DD'), 
-                end_date: convertLocalTimezone(moment().endOf('week'), 'YYYY-MM-DD')
+                start_date: convertLocalTimezone( moment().startOf('week'), 'DD-MM-YYYY'), 
+                end_date: convertLocalTimezone(moment().endOf('week'), 'DD-MM-YYYY')
 
                 // date: { 
                 //     start_time: convertLocalTimezone( moment().startOf('week'), 'YYYY-MM-DD HH:mm:ss'), 
@@ -89,7 +89,7 @@
                 drops: "auto",
                 maxYear: parseInt(moment().format('YYYY'), 10)
             },function(start, end, label) {
-                var dateFormat = 'YYYY-MM-DD';
+                var dateFormat = 'DD-MM-YYYY';
                 // var dateFormat = 'YYYY-MM-DD HH:mm:ss';
 
                 delete dataParams.page;
