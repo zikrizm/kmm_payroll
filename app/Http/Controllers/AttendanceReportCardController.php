@@ -51,7 +51,7 @@ class AttendanceReportCardController extends Controller
                 $datas = collect([]);
                 $start_date = null;
                 $end_date = null;
-                
+
                 $business = Business::where('id', $business_id)->select('id', 'pending_day')->first();
                 if ($request->has('start_date') && $request->has('end_date')) {
                     $start_date = Carbon::createFromFormat('d-m-Y', $request['start_date']);
@@ -62,15 +62,15 @@ class AttendanceReportCardController extends Controller
                     $start_date_overtime = Carbon::createFromFormat('d-m-Y', $request['start_date'])->subDays($business->pending_day);
                     $end_date_overtime = Carbon::createFromFormat('d-m-Y', $request['end_date'])->subDays($business->pending_day);
 
-                    $datas = app(PrintReportContoller::class)->getPayrollAttendanceReport(
-                        $start_date_work_day,
-                        $end_date_work_day,
-                        $start_date_overtime,
-                        $end_date_overtime,
-                        $request['department_code'],
-                    );
+                    // $datas = app(PrintReportContoller::class)->getPayrollAttendanceReport(
+                    //     $start_date_work_day,
+                    //     $end_date_work_day,
+                    //     $start_date_overtime,
+                    //     $end_date_overtime,
+                    //     $request['department_code'],
+                    // );
 
-                    Log::info($datas);
+                    // Log::info($datas);
                     // $render =  view('Report.attendance_card.table', compact('datas'))->render();
                     // return $this->buildRes->RESPONSE_REQ('success', $render, null);
                 } else {
