@@ -76,8 +76,6 @@ class AttendanceReportCardController extends Controller
                     $render =  view('Report.attendance_card.table', compact('datas'))->render();
                     return $this->buildRes->RESPONSE_REQ('success', $render, null);
                 }
-
-                return;
             }
 
             $department_bios = collect($this->service->get_departments(['page_size' => 999])['data']);

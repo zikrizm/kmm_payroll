@@ -69,7 +69,8 @@ class AttendanceReportController extends Controller
                 // $filter['page_size'] = $atten_count;
                 // $attens = collect($this->apiService->get_transactions($filter)['data']);
                 $atten_bio_count = $this->apiService->get_transactions($filter)['count'];
-                $atten_bios = collect($this->apiService->get_transactions(array_merge(['page_size' => $atten_bio_count], $filter))['data']);
+                $atten_datas = $this->apiService->get_transactions(array_merge(['page_size' => $atten_bio_count], $filter));
+                $atten_bios = !empty($atten_datas['data'])? collect($atten_datas['data']):collect();
                 foreach ($attenDBs as $key => $value) {
                     $value['id'] = $value['emp'];
                     $atten_bios[] = $value->toArray();

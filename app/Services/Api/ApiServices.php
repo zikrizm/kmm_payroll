@@ -295,6 +295,7 @@ class ApiServices extends NetworkUtils
             'employee' => $data['employee'] ?? null,
             'reason' => $data['reason'] ?? null,
         ];
+        Log::info($data);
         $res = $this->emitter('POST', "/personnel/api/resigns/", $data);
         if ($res['response'] < 200 || $res['response'] >= 300) {
             // return $res;
@@ -671,7 +672,7 @@ class ApiServices extends NetworkUtils
         if ($res['response'] < 200 || $res['response'] >= 300) {
             // throw new ResponseExeception($res['msg']);
         } else {
-            return $res['data'];
+            return !empty($res['data']) ? $res['data'] : [];
         }
     }
 

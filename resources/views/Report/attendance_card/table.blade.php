@@ -129,9 +129,6 @@
                             @if (!empty($attendance['last_punch']))
                             <div class="relative">
                                 {{ date('H:i', strtotime($attendance['last_punch'])) }}
-                                {{-- <span class="absolute text-[8px] text-violet-600 top-[-5px]">
-                                    {{ $attendance['is_diff_day'] ? '+1' : '' }}
-                                </span> --}}
                             </div>
                             @else
                             -
@@ -146,20 +143,11 @@
                                     -
                                     @endif
                                 </div>
-                                {{-- <div class="absolute right-0 flex justify-center bg-gray-100 text-gray-700">
-                                    <p class="text-[9px]">{{ !empty($attendance['value_string']) ?
-                                        '( '.$attendance['value_string'].' )' : '' }}</p>
-                                </div> --}}
                             </div>
 
                         </td>
                         <td class='text-xs border text-gray-500 text-center w-14'>
                             {{ $attendance['JL'] ?? '-' }}
-                            {{-- @php
-                            $overtime = ($item_report['timetable']['overtime'] ?? 0) +
-                            ($item_report['timetable']['early_check_in'] ?? 0);
-                            @endphp
-                            {{ !empty($item_report['timetable']['per_day'])? $overtime: '-' }} --}}
                         </td>
                     </tr>
                     @endforeach

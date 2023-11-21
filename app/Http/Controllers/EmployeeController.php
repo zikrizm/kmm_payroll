@@ -409,6 +409,7 @@ class EmployeeController extends Controller
                         $resPhoto = app('App\Http\Controllers\EmployeePhotoController')->store($request);
                         if ($resPhoto['status'] == 'error') {
                             $msg_text = $resPhoto['msg']['error'];
+                            Log::info($resPhoto);
                             if (str_contains(strtolower($msg_text), 'invalid photo') || str_contains(strtolower($msg_text), 'cannot write mode')) {
                                 $resPhoto['msg']['user_capture'] = [$msg_text];
                                 unset($resPhoto['msg']['error']);

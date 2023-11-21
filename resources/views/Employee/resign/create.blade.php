@@ -57,8 +57,8 @@
                     <section class="flex flex-col gap-1 flex-1 w-1/2">
                         <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Kehadiran*</label>
                         <select class="select2" name="disableatt">
-                            <option value="True" selected>Enable</option>
-                            <option value="False">Disable</option>
+                            <option value="true" selected>Enable</option>
+                            <option value="false">Disable</option>
                         </select>
                         <label class="font-normal text-xs text-red-500 xs/max:text-xs gender hint-text"></label>
                     </section>

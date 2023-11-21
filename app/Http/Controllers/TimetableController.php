@@ -131,8 +131,8 @@ class TimetableController extends Controller
                 $timetable_data['work_time'] = $check_in->diffInMinutes($check_out);
 
                 if (!empty($request->input('is_ot_rounding'))) {
-                    $timetable_data['ot_roundone_hr'] = 40;
-                    $timetable_data['ot_roundhalf_hr'] = 20;
+                    $timetable_data['ot_roundone_hr'] = !empty($timetable_data['ot_roundone_hr']) ? $timetable_data['ot_roundone_hr']:40;
+                    $timetable_data['ot_roundhalf_hr'] = !empty($timetable_data['ot_roundhalf_hr']) ? $timetable_data['ot_roundhalf_hr']:20;
                 } else {
                     $timetable_data['ot_roundone_hr'] = null;
                     $timetable_data['ot_roundhalf_hr'] = null;
@@ -253,8 +253,8 @@ class TimetableController extends Controller
                 $timetable_data['work_time'] = $check_in->diffInMinutes($check_out);
 
                 if (!empty($request->input('is_ot_rounding'))) {
-                    $timetable_data['ot_roundone_hr'] = 40;
-                    $timetable_data['ot_roundhalf_hr'] = 20;
+                    $timetable_data['ot_roundone_hr'] = !empty($timetable_data['ot_roundone_hr']) ? $timetable_data['ot_roundone_hr']:40;
+                    $timetable_data['ot_roundhalf_hr'] = !empty($timetable_data['ot_roundhalf_hr']) ? $timetable_data['ot_roundhalf_hr']:20;
                 } else {
                     $timetable_data['ot_roundone_hr'] = null;
                     $timetable_data['ot_roundhalf_hr'] = null;

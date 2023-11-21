@@ -9,6 +9,7 @@ use App\Services\Api\ApiServices;
 use Illuminate\Support\Facades\Log;
 use App\Exceptions\ResponseExeception;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Carbon;
 
 class ResignController extends Controller
 {
@@ -107,6 +108,12 @@ class ResignController extends Controller
                 return $this->buildRes->RESPONSE_REQ('error', null, $validator->errors());
             } else {
                 $resign_data = $request->only(['employee', 'resign_date', 'resign_type', 'disableatt']);
+                $resign_date = Carbon::createFromFormat('d-m-Y', $resign_data['resign_date']);
+
+                $resign_data['resign_date'] =  $resign_date->format('Y-m-d');
+                $resign_data['employee'] =  (int)$resign_data['employee'];
+                $resign_data['resign_type'] =  (int)$resign_data['resign_type'];
+                $resign_data['disableatt'] =  $resign_data['disableatt'] == 'true' ? true : false;
                 $res = $this->apiService->create_resign($resign_data);
 
                 // ** create activity log user

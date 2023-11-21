@@ -86,7 +86,8 @@
                 });
             });
 
-            $('.select2-department').select2({ minimumResultsForSearch: -1 });  
+            // $('.select2-department').select2({ minimumResultsForSearch: -1 });  
+            $('.select2-department').select2();  
             $('.select2-department').show();
             $('.select2-department').on('select2:select', function (e) {
                 delete dataParams.page;

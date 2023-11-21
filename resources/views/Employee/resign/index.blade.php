@@ -1,36 +1,41 @@
 @extends('layouts.app')
 @section('title', 'User')
 @section('css')
-<style></style>
+    <style></style>
 @endsection
 @section('content')
-<div class="flex flex-col gap-6 flex-1 h-full overflow-auto bg-white px-8 pt-8 pb-12">
-    <header class="flex justify-between items-start">
-        <div class="flex flex-col gap-1">
-            <p class="text-3xl font-medium text-gray-900">Pengunduran Diri Karyawan</p>
-            <p class="text-base font-normal text-gray-500">Pengaturan pengunduran diri karyawan.</p>
-        </div>
-        <div class="">
-            <button onclick="get_modal()" class="flex items-center gap-2.5 px-4 py-2 text-gray-500 text-sm font-medium 
+    <div class="flex flex-col gap-6 flex-1 h-full overflow-auto bg-white px-8 pt-8 pb-12">
+        <header class="flex justify-between items-start">
+            <div class="flex flex-col gap-1">
+                <p class="text-3xl font-medium text-gray-900">Pengunduran Diri Karyawan</p>
+                <p class="text-base font-normal text-gray-500">Pengaturan pengunduran diri karyawan.</p>
+            </div>
+            <div class="">
+                <button onclick="get_modal()"
+                    class="flex items-center gap-2.5 px-4 py-2 text-gray-500 text-sm font-medium 
                 flex items-center border border-gray-200 shadow-sm rounded-lg">
-                <x-icon icon="plus" width=18 height=18 viewBox="20 20" />
-                Add pengunduran
-            </button>
+                    <x-icon icon="plus" width=18 height=18 viewBox="20 20" />
+                    Add pengunduran
+                </button>
+            </div>
+        </header>
+        <hr>
+        <div class="flex justify-between">
+            <div class="w-52">
+                {!! FormCustom::input('resign_date', null, [
+                    'placeholder' => 'Select resign date',
+                    'class' => 'date_input',
+                    'readonly' => true,
+                    'prefixiconname' => 'calendar',
+                ]) !!}
+            </div>
+            <x-ui.search-data placeholder="Search for resign" url="{{ route('resign.index') }}" />
         </div>
-    </header>
-    <hr>
-    <div class="flex justify-between">
-        <div class="w-52">
-            {!! FormCustom::input('resign_date', null, [ 'placeholder' => 'Select resign date',
-            'class' => 'date_input', 'readonly' => true, 'prefixiconname' => 'calendar' ]) !!}
-        </div>
-        <x-ui.search-data placeholder="Search for resign" url="{{ route('resign.index') }}" />
+        <div class="table-content"></div>
+        <x-ui.confirm-modal class="submit-delete-resign"></x-ui.confirm-modal>
     </div>
-    <div class="table-content"></div>
-    <x-ui.confirm-modal class="submit-delete-resign"></x-ui.confirm-modal>
-</div>
 
-<script type="application/javascript">
+    <script type="application/javascript">
     let dataParams = {};
 
     window.addEventListener('DOMContentLoaded', (event) => {
@@ -38,10 +43,12 @@
 
         onInit({ 
             q: $('.search-data-input').val(),
-            date: { 
-                start_date: convertLocalTimezone(moment().startOf("month").toDate(), 'YYYY-MM-DD'), 
-                end_date: convertLocalTimezone(moment().endOf("month").toDate(), 'YYYY-MM-DD')
-            }
+            resign_date: convertLocalTimezone(moment().now(), 'YYYY-MM-DD') 
+
+            // date: { 
+            //     start_date: convertLocalTimezone(moment().startOf("month").toDate(), 'YYYY-MM-DD'), 
+            //     end_date: convertLocalTimezone(moment().endOf("month").toDate(), 'YYYY-MM-DD')
+            // }
         });
 
         $('input[name="resign_date"]').daterangepicker({
@@ -62,15 +69,11 @@
             drops: "auto",
             maxYear: parseInt(moment().format('YYYY'), 10)
         },function(start, end, label) {
-            var dateFormat = 'YYYY-MM-DD HH:mm:ss';
-
+            var dateFormat = 'YYYY-MM-DD';
             $('.search-data-input').val('');
             delete dataParams.page;
             onInit({ 
-                date: { 
-                    start_time: convertLocalTimezone(start, dateFormat), 
-                    end_time: convertLocalTimezone(end, dateFormat)
-                } 
+                resign_date: convertLocalTimezone(start, dateFormat) 
             });
         });
 

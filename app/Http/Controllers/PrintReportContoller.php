@@ -426,7 +426,7 @@ class PrintReportContoller extends Controller
                 }
             } else if ($attendance['is_counting_salary']) {
                 if ($attendance['HK'] == 0.5) {
-                    if ($attendance['JL'] > 0) {
+                    if ($attendance['JL'] <= 0) {
                         $attendance['value_string'] = '1/2';
                     } else {
                         $attendance['value_string'] =  '1/2 (' . $attendance['JL'] . ')';
@@ -441,18 +441,19 @@ class PrintReportContoller extends Controller
                     $attendance['value_string'] = 'X';
                 }
             } else if ($attendance['is_counting_overtime']) {
-                if ($attendance['HK'] > 0) {
-                    if ($attendance['is_holiday'] && $attendance['HK'] == 1) {
-                        $attendance['value_string'] = '';
-                    } else {
-                        $attendance['value_string'] = (string)($attendance['JL']);
-                    }
-                    if ($attendance['attendance_lb_status'] == 'accept') {
-                        $attendance['value_string'] += ' LB';
-                    }
-                } else {
-                    $attendance['value_string'] = '-';
-                }
+                $attendance['value_string'] = (string)($attendance['JL']);
+                // if ($attendance['HK'] > 0) {
+                //     if ($attendance['is_holiday'] && $attendance['HK'] == 1) {
+                //         $attendance['value_string'] = '';
+                //     } else {
+                //         $attendance['value_string'] = (string)($attendance['JL']);
+                //     }
+                //     if ($attendance['attendance_lb_status'] == 'accept') {
+                //         $attendance['value_string'] += ' LB';
+                //     }
+                // } else {
+                //     $attendance['value_string'] = '-';
+                // }
             }
         } else if ($attendance['JL'] == 0 && $attendance['HK'] == 0 && $attendance['attendance_lb_status'] == 'given') {
             $attendance['value_string'] = 'LB';
@@ -464,7 +465,8 @@ class PrintReportContoller extends Controller
             } else if ($attendance['is_counting_salary']) {
                 $attendance['value_string'] = 'X';
             } else if ($attendance['is_counting_overtime']) {
-                $attendance['value_string'] = '-';
+                // $attendance['value_string'] = '-';
+                $attendance['value_string'] = '0';
             }
         }
 
@@ -622,14 +624,18 @@ class PrintReportContoller extends Controller
                                         ];
 
                                         $attendance_employee_in_dates = collect($attendance_employee[$date->format('Y-m-d')] ?? []);
-                                        if ($attendance_employee_in_dates->isNotEmpty() && count($attendance_employee_in_dates) >= 2) {
+                                        if ($attendance_employee_in_dates->isNotEmpty()) {
                                             $first = $attendance_employee_in_dates->first();
                                             $last = $attendance_employee_in_dates->last();
-                                            $first_punch = Carbon::parse($first['punch_time']);
                                             $last_punch = Carbon::parse($last['punch_time']);
+                                            $first_punch = Carbon::parse($first['punch_time']);
                                             $attendance_data['first_punch'] = $first['punch_time'];
-                                            $attendance_data['last_punch'] =count($attendance_employee_in_dates) >=2? $last['punch_time']: null;
-
+                                            if(count($attendance_employee_in_dates) >=2) {
+                                                $attendance_data['last_punch'] = $last['punch_time'];
+                                            }else {
+                                                $attendance_data['last_punch'] = null;
+                                            }        
+                                                       
                                             if (!empty($empshift)) {
                                                 $shiftday = $empshift->shiftdays->where('code_day', $date->dayOfWeek)->first();
                                                 if (!empty($shiftday)) {
@@ -676,11 +682,15 @@ class PrintReportContoller extends Controller
                                                                 $attendance_data['be_one_shift'] += $countingOvertime['be_one_shift'];
                                                             }
 
-                                                            if ($attendance_employee_in_dates->count() > 1) {
+                                                            if ($range_date['is_counting_salary'] && $attendance_employee_in_dates->count() > 1) {
                                                                 $countingSalary = $this->countingSalary($employee_department_local, $range_date, $first_punch, $last_punch, $timetable);
                                                                 $attendance_data['HK'] += $countingSalary['HK'] + $attendance_data['be_one_shift'];
-                                                                $attendance_data['HK_pay_value'] += $countingSalary['HK'] * $emplocal->daily_salary;
+                                                                $attendance_data['HK_pay_value'] += $attendance_data['HK'] * $emplocal->daily_salary;
                                                             }
+
+                                                            // if ($range_date['is_counting_salary'] && $range_date['is_holiday'] && $employee_department_local->still_paid) {
+                                                            //     $attendance_data['HK']++;
+                                                            // }
                                                         } else {
                                                         }
                                                     }
@@ -689,7 +699,7 @@ class PrintReportContoller extends Controller
                                                 }
                                             }
                                         } else {
-                                            if ($range_date['is_holiday'] && $employee_department_local->still_paid) {
+                                            if ($range_date['is_counting_salary'] && $range_date['is_holiday'] && $employee_department_local->still_paid) {
                                                 $attendance_data['HK']++;
                                                 $attendance_data['HK_pay_value'] += $attendance_data['HK'] * $emplocal->daily_salary;
                                             }
@@ -922,6 +932,78 @@ class PrintReportContoller extends Controller
             } else {
                 return view('print.card_report', compact('start_date_work_day', 'end_date_work_day', 'start_date_overtime', 'end_date_overtime', 'salary_archive_ths'));
             }
+        } catch (\Exception $e) {
+            Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
+        }
+    }
+    public function print_card_attendance(Request $request)
+    {
+        Log::info('[' . request()->route()->getName() . ']::GET');
+        try {
+            $business_id = Session::get('business_id');
+            $datas = collect([]);
+            $start_date = null;
+            $end_date = null;
+
+            $business = Business::where('id', $business_id)->select('id', 'pending_day')->first();
+            if ($request->has('start_date') && $request->has('end_date')) {
+                $start_date = Carbon::createFromFormat('d-m-Y', $request['start_date']);
+                $end_date = Carbon::createFromFormat('d-m-Y', $request['end_date']);
+
+                $start_date_work_day = Carbon::createFromFormat('d-m-Y', $request['start_date']);
+                $end_date_work_day = Carbon::createFromFormat('d-m-Y', $request['end_date']);
+                $start_date_overtime = Carbon::createFromFormat('d-m-Y', $request['start_date'])->subDays($business->pending_day);
+                $end_date_overtime = Carbon::createFromFormat('d-m-Y', $request['end_date'])->subDays($business->pending_day);
+
+                $datas = app(PrintReportContoller::class)->getPayrollAttendanceReport(
+                    $start_date_work_day,
+                    $end_date_work_day,
+                    $start_date_overtime,
+                    $end_date_overtime,
+                    $request['department_code'],
+                );
+
+                return  view('print.card_attendance', compact('datas', 'start_date_work_day', 'end_date_work_day', 'start_date_overtime', 'end_date_overtime'));
+            } else {
+                return view('print.card_attendance', compact('datas'));
+            }
+
+        } catch (\Exception $e) {
+            Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
+        }
+    }
+    public function print_card_attendance_operational(Request $request)
+    {
+        Log::info('[' . request()->route()->getName() . ']::GET');
+        try {
+            $business_id = Session::get('business_id');
+            $datas = collect([]);
+            $start_date = null;
+            $end_date = null;
+
+            $business = Business::where('id', $business_id)->select('id', 'pending_day')->first();
+            if ($request->has('start_date') && $request->has('end_date')) {
+                $start_date = Carbon::createFromFormat('d-m-Y', $request['start_date']);
+                $end_date = Carbon::createFromFormat('d-m-Y', $request['end_date']);
+
+                $start_date_work_day = Carbon::createFromFormat('d-m-Y', $request['start_date']);
+                $end_date_work_day = Carbon::createFromFormat('d-m-Y', $request['end_date']);
+                $start_date_overtime = Carbon::createFromFormat('d-m-Y', $request['start_date'])->subDays($business->pending_day);
+                $end_date_overtime = Carbon::createFromFormat('d-m-Y', $request['end_date'])->subDays($business->pending_day);
+
+                $datas = app(PrintReportContoller::class)->getPayrollAttendanceReport(
+                    $start_date_work_day,
+                    $end_date_work_day,
+                    $start_date_overtime,
+                    $end_date_overtime,
+                    $request['department_code'],
+                );
+
+                return  view('print.card_attendance_operational', compact('datas', 'start_date_work_day', 'end_date_work_day', 'start_date_overtime', 'end_date_overtime'));
+            } else {
+                return view('print.card_attendance_operational', compact('datas'));
+            }
+
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
         }

@@ -1,47 +1,53 @@
 @extends('layouts.app')
 @section('title', 'Kartu absensi')
 @section('css')
-<style></style>
+    <style></style>
 @endsection
 @section('content')
-<div class="flex flex-col gap-6 flex-1 h-full overflow-auto bg-white px-8 pt-8 pb-12">
-    <header class="flex justify-between items-start">
-        <div class="flex flex-col gap-1">
-            <p class="text-3xl font-medium text-gray-900">Kartu absensi Operational</p>
-            <p class="text-base font-normal text-gray-500">Daftar kartu absensi karyawan.</p>
-        </div>
-        <div class="">
-
-        </div>
-    </header>
-    <hr>
-    <div class="flex justify-between">
-        <div class="flex items-start gap-3">
-            <div class="w-72">
-                {!! FormCustom::input('date', null, [
-                'placeholder' => 'Pilih tanggal absensi',
-                'class' => 'date_input',
-                'readonly' => true,
-                'prefixiconname' => 'calendar',
-                ]) !!}
+    <div class="flex flex-col gap-6 flex-1 h-full overflow-auto bg-white px-8 pt-8 pb-12">
+        <header class="flex justify-between items-start">
+            <div class="flex flex-col gap-1">
+                <p class="text-3xl font-medium text-gray-900">Kartu absensi Operational</p>
+                <p class="text-base font-normal text-gray-500">Daftar kartu absensi karyawan.</p>
             </div>
-            <section class="flex flex-col gap-1 w-72">
-                <select class="select2-dept hidden" name="dept">
-                    <option value="all" selected>All bagian</option>
-                    @foreach ($dept_bios['data'] as $item)
-                    <option value="{{ $item['id'] }}">{{ $item['dept_name'] }}</option>
-                    @endforeach
-                </select>
-                <label class="font-normal text-xs text-red-500 xs/max:text-xs parent_dept hint-text"></label>
-            </section>
-        </div>
-        <x-ui.search-data placeholder="Cari absensi" url="{{ route('attendance-report.index') }}" />
-    </div>
-    <div class="table-content"></div>
-    <x-ui.confirm-modal class="submit-delete-attendance-report"></x-ui.confirm-modal>
-</div>
+            <div class="">
 
-<script type="application/javascript">
+            </div>
+        </header>
+        <hr>
+        <div class="flex justify-between">
+            <div class="flex items-start gap-3">
+                <div class="w-72">
+                    {!! FormCustom::input('date', null, [
+                        'placeholder' => 'Pilih tanggal absensi',
+                        'class' => 'date_input',
+                        'readonly' => true,
+                        'prefixiconname' => 'calendar',
+                    ]) !!}
+                </div>
+                <section class="flex flex-col gap-1 w-max">
+                    <select class="select2-dept hidden" name="dept">
+                        <option value="" disabled>Semua bagian</option>
+                        @foreach ($department_bios ?? [] as $department)
+                            <option value="{{ $department['id'] }}"@selected($department_bios->first()['dept_code'] == $department['id'])>
+                                {{ $department['dept_name'] }}</option>
+                        @endforeach
+                    </select>
+                    <label class="font-normal text-xs text-red-500 xs/max:text-xs parent_dept hint-text"></label>
+                </section>
+                <a id="card-attendance-operational" target="_blank"
+                    class="flex items-center gap-2.5 text-sm px-4 py-1.5 rounded-lg border text-gray-700 ">
+                    <x-icon icon="printer" width=20 height=20 viewBox="20 20" />
+                    Cetak kartu absen operational
+                </a>
+            </div>
+            <x-ui.search-data placeholder="Cari absensi" url="{{ route('attendance-report.index') }}" />
+        </div>
+        <div class="table-content"></div>
+        <x-ui.confirm-modal class="submit-delete-attendance-report"></x-ui.confirm-modal>
+    </div>
+
+    <script type="application/javascript">
     let dataParams = {};
 
         window.addEventListener('DOMContentLoaded', (event) => {
@@ -55,15 +61,21 @@
             $('.select2-dept').on('select2:select', function (e) {
                 delete dataParams.page;
 
-                onInit({dept_id: $(this).val()})
+                onInit({department_code: $(this).val()})
             });
 
+            // onInit({
+            //     q: $(".search-data-input").val(),
+            //     date: { 
+            //         start_time: convertLocalTimezone(moment().startOf('week'), 'YYYY-MM-DD HH:mm:ss'), 
+            //         end_time: convertLocalTimezone(moment().endOf('week'), 'YYYY-MM-DD HH:mm:ss')
+            //     }
+            // });
             onInit({
-                q: $(".search-data-input").val(),
-                date: { 
-                    start_time: convertLocalTimezone(moment().startOf('week'), 'YYYY-MM-DD HH:mm:ss'), 
-                    end_time: convertLocalTimezone(moment().endOf('week'), 'YYYY-MM-DD HH:mm:ss')
-                }
+                q: $('.search-data-input').val(),
+                department_code: $('.select2-dept').val(),
+                start_date: convertLocalTimezone( moment().startOf('week'), 'DD-MM-YYYY'), 
+                end_date: convertLocalTimezone(moment().endOf('week'), 'DD-MM-YYYY')
             });
 
             $('input[name="date"]').daterangepicker({
@@ -85,15 +97,22 @@
                 drops: "auto",
                 maxYear: parseInt(moment().format('YYYY'), 10)
             },function(start, end, label) {
-                var dateFormat = 'YYYY-MM-DD HH:mm:ss';
+                // var dateFormat = 'YYYY-MM-DD HH:mm:ss';
+
+                // delete dataParams.page;
+                // onInit({ 
+                //     q: $(".search-data-input").val(),
+                //     date: { 
+                //         start_time: convertLocalTimezone(start, dateFormat), 
+                //         end_time: convertLocalTimezone(end, dateFormat)
+                //     } 
+                // });
+                var dateFormat = 'DD-MM-YYYY';
 
                 delete dataParams.page;
                 onInit({ 
-                    q: $(".search-data-input").val(),
-                    date: { 
-                        start_time: convertLocalTimezone(start, dateFormat), 
-                        end_time: convertLocalTimezone(end, dateFormat)
-                    } 
+                    start_date: convertLocalTimezone(start, dateFormat),
+                    end_date: convertLocalTimezone(end, dateFormat)
                 });
             });
 
@@ -110,7 +129,9 @@
             // * Build data params table ----->
             // *
             dataParams = { ...dataParams, ...data };
-        
+            $('#card-attendance-operational').attr('href', 
+                `/print/card-attendance-operational?department_code=${dataParams.department_code}&start_date=${dataParams.start_date}&end_date=${dataParams.end_date}` 
+            );
             // **
             // * get table ----->
             // *

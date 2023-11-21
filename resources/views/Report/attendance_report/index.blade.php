@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Kasbon')
+@section('title', 'Laporan absensi')
 @section('css')
 <style></style>
 @endsection
