@@ -42,6 +42,7 @@ class FoodArchiveController extends Controller
                     });
                 }
                 $food_archives = $food_archives->orderBy('start_date', 'ASC')->orderBy('dept_id', 'ASC')->paginate(10);
+                Log::info($food_archives);
                 $render = view('report.food_archive.table', compact('food_archives'))->render();
 
                 return $this->buildRes->RESPONSE_REQ('success', $render, null);

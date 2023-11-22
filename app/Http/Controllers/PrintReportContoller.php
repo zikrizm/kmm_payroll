@@ -194,7 +194,7 @@ class PrintReportContoller extends Controller
         Timetable $timetable,
         int $length_attendance_emp,
     ) {
-        $overtime_data = ['JL_pay_value' => 0, 'JL' => 0, 'be_one_shift' => 0];
+        $overtime_data = ['JL_pay_value' => 0, 'JL' => 0, 'be_one_shift' => 0, 'food' => 0];
         $date = Carbon::parse($range_date['date']);
 
         $check_in = Carbon::parse($date->format('Y-m-d') . $timetable->check_in);
@@ -242,7 +242,7 @@ class PrintReportContoller extends Controller
             }
 
             if (!empty($timetable->duration_rice_shift) && $lembur > $timetable->duration_rice_shift) {
-                $timetable['food'] += floor($lembur / $timetable->duration_rice_shift);
+                $overtime_data['food'] += floor($lembur / $timetable->duration_rice_shift);
             }
         }
 
@@ -626,16 +626,17 @@ class PrintReportContoller extends Controller
                                         $attendance_employee_in_dates = collect($attendance_employee[$date->format('Y-m-d')] ?? []);
                                         if ($attendance_employee_in_dates->isNotEmpty()) {
                                             $first = $attendance_employee_in_dates->first();
-                                            $last = $attendance_employee_in_dates->last();
-                                            $last_punch = Carbon::parse($last['punch_time']);
                                             $first_punch = Carbon::parse($first['punch_time']);
                                             $attendance_data['first_punch'] = $first['punch_time'];
-                                            if(count($attendance_employee_in_dates) >=2) {
+                                            if (count($attendance_employee_in_dates) >= 2) {
+                                                $last = $attendance_employee_in_dates->last();
+                                                $last_punch = Carbon::parse($last['punch_time']);
                                                 $attendance_data['last_punch'] = $last['punch_time'];
-                                            }else {
+                                            } else {
+                                                $last_punch = null;
                                                 $attendance_data['last_punch'] = null;
-                                            }        
-                                                       
+                                            }      
+
                                             if (!empty($empshift)) {
                                                 $shiftday = $empshift->shiftdays->where('code_day', $date->dayOfWeek)->first();
                                                 if (!empty($shiftday)) {
@@ -644,11 +645,11 @@ class PrintReportContoller extends Controller
                                                         $check_in = Carbon::parse($date->format('Y-m-d') . $timetable->check_in);
                                                         $check_out = Carbon::parse($date->format('Y-m-d') . $timetable->check_out);
 
-                                                        $check_in_add_plusmn = $check_in->copy()->subMinutes($timetable->check_in_plusmn);
-                                                        $check_in_sub_plusmn = $check_in->copy()->addMinutes($timetable->check_in_plusmn);
+                                                        $check_in_sub_plusmn = $check_in->copy()->subMinutes($timetable->check_in_plusmn);
+                                                        $check_in_add_plusmn = $check_in->copy()->addMinutes($timetable->check_in_plusmn);
+                                                        $check_out_sub_plusmn = $check_out->copy()->subMinutes($timetable->check_out_plusmn);
 
-
-                                                        if ($first_punch->between($check_in_sub_plusmn, $check_in_add_plusmn)) {
+                                                        if ($first_punch->between($check_in_sub_plusmn, $check_in_add_plusmn) && !empty($last_punch) && $last_punch->gte($check_out_sub_plusmn)) {
                                                             $attendance_data['timetable'] = $timetable->toArray();
                                                             $check_out_plus_duration_ot_limit =  $check_out->copy()->addHours($timetable->duration_ot_limit);
                                                             // if($date->format('Y-m-d') == '2023-03-22') {
@@ -677,6 +678,7 @@ class PrintReportContoller extends Controller
 
                                                             if ($range_date['is_counting_overtime']) {
                                                                 $countingOvertime = $this->countingOvertime($range_date, $first_punch, $last_punch, $timetable, $attendance_employee_in_dates->count());
+                                                                $attendance_data['food'] += !empty($countingOvertime['food']) ? $countingOvertime['food']: 0;
                                                                 $attendance_data['JL'] += $countingOvertime['JL'];
                                                                 $attendance_data['JL_pay_value'] += $countingOvertime['JL_pay_value'];
                                                                 $attendance_data['be_one_shift'] += $countingOvertime['be_one_shift'];
@@ -684,9 +686,11 @@ class PrintReportContoller extends Controller
 
                                                             if ($range_date['is_counting_salary'] && $attendance_employee_in_dates->count() > 1) {
                                                                 $countingSalary = $this->countingSalary($employee_department_local, $range_date, $first_punch, $last_punch, $timetable);
-                                                                $attendance_data['HK'] += $countingSalary['HK'] + $attendance_data['be_one_shift'];
+                                                                $attendance_data['HK'] += $countingSalary['HK'] ;
                                                                 $attendance_data['HK_pay_value'] += $attendance_data['HK'] * $emplocal->daily_salary;
                                                             }
+
+                                                            $attendance_data['HK'] += $attendance_data['be_one_shift'];
 
                                                             // if ($range_date['is_counting_salary'] && $range_date['is_holiday'] && $employee_department_local->still_paid) {
                                                             //     $attendance_data['HK']++;

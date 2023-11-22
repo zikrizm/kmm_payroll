@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'User')
+@section('title', 'Mengundurkan Diri')
 @section('css')
     <style></style>
 @endsection
@@ -21,14 +21,14 @@
         </header>
         <hr>
         <div class="flex justify-between">
-            <div class="w-52">
+            {{-- <div class="w-52">
                 {!! FormCustom::input('resign_date', null, [
                     'placeholder' => 'Select resign date',
                     'class' => 'date_input',
                     'readonly' => true,
                     'prefixiconname' => 'calendar',
                 ]) !!}
-            </div>
+            </div> --}}
             <x-ui.search-data placeholder="Search for resign" url="{{ route('resign.index') }}" />
         </div>
         <div class="table-content"></div>
@@ -43,7 +43,7 @@
 
         onInit({ 
             q: $('.search-data-input').val(),
-            resign_date: convertLocalTimezone(moment().now(), 'YYYY-MM-DD') 
+            // resign_date: convertLocalTimezone(moment().now(), 'YYYY-MM-DD') 
 
             // date: { 
             //     start_date: convertLocalTimezone(moment().startOf("month").toDate(), 'YYYY-MM-DD'), 
@@ -72,9 +72,9 @@
             var dateFormat = 'YYYY-MM-DD';
             $('.search-data-input').val('');
             delete dataParams.page;
-            onInit({ 
-                resign_date: convertLocalTimezone(start, dateFormat) 
-            });
+            // onInit({ 
+            //     resign_date: convertLocalTimezone(start, dateFormat) 
+            // });
         });
 
         $(".search-data-input").on('keyup', debounce(function(e) {

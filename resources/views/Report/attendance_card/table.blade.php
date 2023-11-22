@@ -143,6 +143,13 @@
                                     -
                                     @endif
                                 </div>
+
+                                <div class="absolute right-0">
+                                    @if (!empty($attendance['be_one_shift']))
+                                    <p class="text-[10px] truncate">({{ $attendance['be_one_shift'] ?? '-' }})</p>
+                                    @else
+                                    @endif
+                                </div>
                             </div>
 
                         </td>

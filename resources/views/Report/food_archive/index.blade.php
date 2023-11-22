@@ -64,7 +64,7 @@
             onInit({ 
                 q: $('.search-data-input').val(),
                 start_date: convertLocalTimezone(start, dateFormat), 
-                end_Date: convertLocalTimezone(end, dateFormat),
+                end_date: convertLocalTimezone(end, dateFormat),
             });
         });
 

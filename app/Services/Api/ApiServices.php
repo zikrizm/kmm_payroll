@@ -672,7 +672,7 @@ class ApiServices extends NetworkUtils
         if ($res['response'] < 200 || $res['response'] >= 300) {
             // throw new ResponseExeception($res['msg']);
         } else {
-            return !empty($res['data']) ? $res['data'] : [];
+            return !empty($res['data']) ? $res['data'] : [['data'=> []]];
         }
     }
 

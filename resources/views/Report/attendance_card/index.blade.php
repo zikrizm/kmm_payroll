@@ -15,7 +15,7 @@
             </div>
         </header>
         <hr>
-        <div class="flex justify-between">
+        <div class="flex item-center justify-between">
             <div class="flex items-start gap-3">
                 <div class="w-72">
                     {!! FormCustom::input('date', null, [
@@ -41,7 +41,13 @@
                     Cetak kartu absen
                 </a>
             </div>
-            <x-ui.search-data placeholder="Cari absensi" url="{{ route('attendance-report.index') }}" />
+            <div class="flex items-center gap-3">
+                <x-ui.search-data placeholder="Cari absensi" url="{{ route('attendance-report.index') }}" />
+                <button type="button" onclick="onInit({})"
+                    class="flex items-center gap-2.5 text-sm px-4 py-1.5 rounded-lg border text-gray-700 ">
+                    <x-icon icon="refresh-cw" width=20 height=20 viewBox="20 20" />
+                </button>
+            </div>
         </div>
         <div class="table-content"></div>
         <x-ui.confirm-modal class="submit-delete-attendance-report"></x-ui.confirm-modal>
@@ -108,6 +114,8 @@
     });
     
     async function onInit(data) {
+        $('#loading-block-document').show();
+
         // **
         // * Build data params table ----->
         // *
@@ -122,6 +130,7 @@
         var res = await ApiService.get_table('/attendance-card', dataParams);
         $('.table-content').html(res);
 
+        $('#loading-block-document').hide();
         // **
         // * pagination table ----->
         // *

@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Payroll report')
+@section('title', 'Laporan Penggajian')
 @section('css')
 <style></style>
 @endsection
@@ -12,7 +12,7 @@
         </div>
     </header>
     <hr>
-    <div class="flex justify-between gap-2.5">
+    <div class="flex item-center justify-between gap-2.5">
         <div class="flex items-center gap-2.5">
             <div class="w-72">
                 {!! FormCustom::input('date', null, [
@@ -38,7 +38,13 @@
                 <p class="truncate">Hitung penggajian</p>
             </button>
         </div>
-        <x-ui.search-data placeholder="Cari penggajian" url="{{ route('payroll-report.index') }}" />
+        <div class="flex items-center gap-3">
+            <x-ui.search-data placeholder="Cari penggajian" url="{{ route('payroll-report.index') }}" />
+            <button type="button" onclick="onInit({})"
+                class="flex items-center gap-2.5 text-sm px-4 py-1.5 rounded-lg border text-gray-700 ">
+                <x-icon icon="refresh-cw" width=20 height=20 viewBox="20 20" />
+            </button>
+        </div>
     </div>
     <div class="table-content flex-1"></div>
     <x-ui.confirm-modal class="submit-delete-payroll-report"></x-ui.confirm-modal>
