@@ -60,6 +60,7 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('employee', 'EmployeeController', ['except' => ['update']]);
     Route::post('/employee/{employee}', 'EmployeeController@update')->name('employee.update');
     Route::get('/employee-import-template', 'EmployeeController@employeeImportTemplate')->name('employee.employeeImportTemplate');
+    Route::get('/employee-export', 'EmployeeController@employeeExport')->name('employee.employeeExport');
     Route::get('/employee-csv', 'EmployeeController@uploadCSV')->name('employee.uploadCSV');
     Route::post('/employee-csv', 'EmployeeController@uploadCSV_store')->name('employee.uploadCSV-store');
     // * employee photo

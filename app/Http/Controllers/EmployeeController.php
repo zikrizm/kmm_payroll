@@ -18,6 +18,7 @@ use App\Models\EmployeeHasPosition;
 use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exceptions\ResponseExeception;
+use App\Imports\EmployeeImportExport;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
 use Maatwebsite\Excel\Validators\ValidationException;
@@ -548,7 +549,11 @@ class EmployeeController extends Controller
 
     public function employeeImportTemplate(Request $request)
     {
-        return Excel::download(new EmployeeImportTemplate, 'template-export-employee.xlsx', \Maatwebsite\Excel\Excel::XLSX);
+        return Excel::download(new EmployeeImportTemplate, 'employee-import-template.xlsx', \Maatwebsite\Excel\Excel::XLSX);
+    }
+    public function employeeExport(Request $request)
+    {
+        return Excel::download(new EmployeeImportExport, 'employee-export.xlsx', \Maatwebsite\Excel\Excel::XLSX);
     }
 
 
