@@ -100,5 +100,9 @@
     async function show(id) {
         var res = await ApiService.get_modal('/food-archive/'+id, null);
     }
+    function colapse(e) {
+        console.log($(e).closest('.date-box').find('.emps-box'))
+        $(e).closest('.date-box').find('.emps-box').toggle('hidden');
+    }
 </script>
 @endsection

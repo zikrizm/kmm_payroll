@@ -22,6 +22,8 @@ use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
 use Maatwebsite\Excel\Validators\ValidationException;
 use Maatwebsite\Excel\Exceptions\NoTypeDetectedException;
+use App\Imports\EmployeeImportTemplate;
+
 
 
 class EmployeeController extends Controller
@@ -543,6 +545,12 @@ class EmployeeController extends Controller
             return [];
         }
     }
+
+    public function employeeImportTemplate(Request $request)
+    {
+        return Excel::download(new EmployeeImportTemplate, 'template-export-employee.xlsx', \Maatwebsite\Excel\Excel::XLSX);
+    }
+
 
     public function uploadCSV()
     {

@@ -15,14 +15,67 @@
                     <p class="text-xl font-semibold text-gray-900">Detail tagihan nasi
                     </p>
                     <p class="text-sm font-normal text-gray-500 xs/max:text-xs">
-                        Lihat karyawan bagian = {{ $food_archive->food_archive_th->dept_name }}, yang mendapat nasi.
+                        Lihat karyawan bagian = {{ $food_archive['food_archive_th']['dept_name'] }}, yang mendapat nasi.
                     </p>
                 </div>
             </div>
         </div>
         <hr>
     </header>
-    <div class="flex flex-col gap-4">
+    <div>
+        <section class="bg-gray-100 py-1.5 px-4 flex items-center border-b">
+            <div class="flex-[2]">
+                <p class="text-sm text-gray-700 font-medium">Tanggal</p>
+            </div>
+            <div class="flex items-center gap-2.5 flex-1">
+                <p class="text-sm text-gray-700 font-medium ">
+                    Total
+                </p>
+            </div>
+        </section>
+        <section>
+            @foreach ($food_archive['total_food_perhari'] as $item)
+                <div class="w-full flex flex-col gap-2 px-4 py-1.5 date-box">
+                    <div class="w-full flex items-center justify-between ">
+                        <div class="flex-[2]">
+                            <p class="text-sm text-gray-500">
+                                {{ Carbon\Carbon::parse($item['date'])->format('d F Y') }}
+                            </p>
+                        </div>
+                        <div class="flex items-center gap-2.5 flex-1">
+                            <div class="flex-1">
+                                <p class="text-sm text-gray-500">
+                                    {{ $item['total'] ?? 0 }}
+                                </p>
+                            </div>
+                            <button onclick="colapse(this)"
+                                class="text-xs text-gray-500 border px-2 py-1 rounded flex items-center gap-1">
+                                <x-icon icon="chevron-down" width=16 height=16 viewBox="20 20" />
+                            </button>
+                        </div>
+                    </div>
+                    <div class="emps-box hidden">
+                        @foreach ($item['employees'] as $emp)
+                            <div class="w-full flex items-center justify-between ">
+                                <div class="flex-[2]">
+                                    <p class="text-sm text-gray-500">
+                                    <p class="text-sm text-gray-500">{{ $emp['first_name'] ?? '-' }}
+                                        {{ $emp['last_name'] ?? '' }}</p>
+                                    </p>
+                                </div>
+                                <div class="flex items-center gap-2.5 flex-1">
+                                    <p class="text-sm text-gray-500">
+                                        {{ $emp['total'] ?? 0 }}
+                                    </p>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            @endforeach
+        </section>
+    </div>
+    {{-- <div class="flex flex-col gap-4">
         <section class="px-4">
             <p class="text-base text-gray-700 font-medium">Range tanggal nasi</p>
             <p class="text-sm text-gray-500">Range tanggal nasi untuk bagian <span class="font-medium text-gray-700">{{
@@ -81,5 +134,5 @@
                 @endforeach
             </section>
         </div>
-    </div>
+    </div> --}}
 </section>

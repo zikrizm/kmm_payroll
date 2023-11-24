@@ -45,6 +45,7 @@
                             </div>
                         </div>
                     </header>
+                    <a href="{{ route('employee.employeeImportTemplate') }}" class="text-violet-700 text-xs font-medium">Template Employee</a>
                     <main id="preview-contents" class="flex flex-col gap-2.5"></main>
                 </div>
                 <hr>
