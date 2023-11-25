@@ -255,45 +255,100 @@ class PrintReportContoller extends Controller
         return collect($overtime_data);
     }
 
+    public function timetableCheck(
+        Collection $range_date,
+        ?Carbon $first_punch  = null,
+        ?Carbon $last_punch = null,
+        ?Timetable $timetable = null,
+    ) {
+        if (!empty($timetable)) {
+            $date = Carbon::parse($range_date['date']);
+            $check_in = Carbon::parse($date->format('Y-m-d') . $timetable->check_in);
+            $check_out = Carbon::parse($date->format('Y-m-d') . $timetable->check_out)->addDays($timetable->cross_day ?? 0);
+
+            $check_in_sub_plusmn = $check_in->copy()->subMinutes($timetable->check_in_plusmn);
+            $check_in_add_plusmn = $check_in->copy()->addMinutes($timetable->check_in_plusmn);
+            $check_out_sub_plusmn = $check_out->copy()->subMinutes($timetable->check_out_plusmn);
+
+            if ($first_punch->between($check_in_sub_plusmn, $check_in_add_plusmn) && (!empty($last_punch)
+                && ($last_punch->gte($check_out) || ($timetable->check_out_plusmn && $last_punch->gte($check_out_sub_plusmn))))) {
+                return true;
+            } else  if (!empty($timetable->timetable_has_break_time) && $timetable->timetable_has_break_time->count() != 0) {
+                $is_half_day = false;
+                foreach ($timetable->timetable_has_break_time as $item) {
+                    $break_time_start = Carbon::parse($date->format('Y-m-d') . $item->break_time->start_time);
+                    if (
+                        $first_punch->between($check_in_sub_plusmn, $check_in_add_plusmn)
+                        && !empty($last_punch) && $last_punch->gte($break_time_start)
+                    ) {
+                        $is_half_day = true;
+                        break;
+                    }
+                }
+
+                return $is_half_day;
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+
     public function countingSalary(
         Department $department_local,
         Collection $range_date,
-        Carbon $first_punch,
-        Carbon $last_punch,
-        Timetable $timetable,
+        ?Carbon $first_punch  = null,
+        ?Carbon $last_punch = null,
+        ?Timetable $timetable = null,
     ) {
         $salary_data = ['HK' => 0];
         $date = Carbon::parse($range_date['date']);
 
         $check_in = Carbon::parse($date->format('Y-m-d') . $timetable->check_in);
-        $check_out = Carbon::parse($date->format('Y-m-d') . $timetable->check_out);
-        $check_out_plusmn =  $check_out->copy()->addHours($timetable->check_out_plusmn);
-        if ($range_date['is_holiday'] && $department_local->still_paid) {
-            $salary_data['HK']++;
-        }
+        $check_out = Carbon::parse($date->format('Y-m-d') . $timetable->check_out)->addDays($timetable->cross_day ?? 0);
+        $check_in_sub_plusmn = $check_in->copy()->subMinutes($timetable->check_in_plusmn);
+        $check_in_add_plusmn = $check_in->copy()->addMinutes($timetable->check_in_plusmn);
+        $check_out_sub_plusmn = $check_out->copy()->subMinutes($timetable->check_out_plusmn);
 
-        if ($last_punch->gte($check_out) || ($timetable->check_out_plusmn && $last_punch->gte($check_out_plusmn))) {
+        if ($first_punch->between($check_in_sub_plusmn, $check_in_add_plusmn) && (!empty($last_punch)
+            && ($last_punch->gte($check_out) || ($timetable->check_out_plusmn && $last_punch->gte($check_out_sub_plusmn))))) {
             $salary_data['HK']++;
-        } else {
-            $break_times = $timetable->timetable_has_break_time;
-            $break_time_first = (!empty($break_times) && $break_times->count()) ? $break_times->first() : null;
-            if (!empty($break_time_first)) {
-                $break_time_start = Carbon::parse($date->format('Y-m-d') . $break_time_first->break_time->start_time)->subMinutes($timetable->check_out_plusmn);
-                $break_time_end = Carbon::parse($date->format('Y-m-d') . $break_time_first->break_time->end_time);
+        } else if (!empty($timetable->timetable_has_break_time) && $timetable->timetable_has_break_time->count() != 0) {
 
-                $is_half_day = $last_punch->between($break_time_start, $break_time_end);
-                if ($last_punch->gt($break_time_start)) {
-                    if ($is_half_day) {
-                        if ($timetable->is_without_break) {
-                            $salary_data['HK']++;
-                        } else {
-                            $salary_data['HK'] += 0.5;
-                        }
+            $is_break_time = false;
+            $is_half_day = false;
+            $is_without_break = false;
+            foreach ($timetable->timetable_has_break_time as $item) {
+                $break_time_start = Carbon::parse($date->format('Y-m-d') . $item->break_time->start_time);
+                $break_time_end = Carbon::parse($date->format('Y-m-d') . $item->break_time->end_time);
+                if (!empty($last_punch) && $last_punch->gte($break_time_start)) {
+                    $is_without_break = $timetable->is_without_break;
+                    if ($last_punch->between($break_time_start, $break_time_end)) {
+                        $is_half_day = true;
+                        $is_break_time = true;
                     } else {
-                        $salary_data['HK']++;
+                        $is_half_day = false;
+                        $is_break_time = true;
                     }
+
+                    break;
                 }
             }
+
+            if ($is_half_day) {
+                if ($is_without_break) {
+                    $salary_data['HK']++;
+                } else {
+                    $salary_data['HK'] += 0.5;
+                }
+            } else if ($is_break_time) {
+                $salary_data['HK'] += 0.5;
+            }
+        }
+
+        if ($range_date['is_holiday'] && $department_local->still_paid) {
+            $salary_data['HK']++;
         }
 
         return collect($salary_data);
@@ -645,17 +700,13 @@ class PrintReportContoller extends Controller
                                                         $check_in = Carbon::parse($date->format('Y-m-d') . $timetable->check_in);
                                                         $check_out = Carbon::parse($date->format('Y-m-d') . $timetable->check_out);
 
-                                                        $check_in_sub_plusmn = $check_in->copy()->subMinutes($timetable->check_in_plusmn);
-                                                        $check_in_add_plusmn = $check_in->copy()->addMinutes($timetable->check_in_plusmn);
-                                                        $check_out_sub_plusmn = $check_out->copy()->subMinutes($timetable->check_out_plusmn);
+                                                        // $check_in_sub_plusmn = $check_in->copy()->subMinutes($timetable->check_in_plusmn);
+                                                        // $check_in_add_plusmn = $check_in->copy()->addMinutes($timetable->check_in_plusmn);
+                                                        // $check_out_sub_plusmn = $check_out->copy()->subMinutes($timetable->check_out_plusmn);
 
-                                                        if ($first_punch->between($check_in_sub_plusmn, $check_in_add_plusmn) && !empty($last_punch) && $last_punch->gte($check_out_sub_plusmn)) {
+                                                        if ($this->timetableCheck($range_date, $first_punch, $last_punch, $timetable)) {
                                                             $attendance_data['timetable'] = $timetable->toArray();
                                                             $check_out_plus_duration_ot_limit =  $check_out->copy()->addHours($timetable->duration_ot_limit);
-                                                            // if($date->format('Y-m-d') == '2023-03-22') {
-
-                                                            //     Log::info($check_out_plus_duration_ot_limit);
-                                                            // }
                                                             $attendance_date_time_cross = collect();
                                                             $attendance_date_time_uncross = collect();
                                                             if (!empty($attendance_employee->get($next_date->format('Y-m-d')))) {
@@ -691,10 +742,6 @@ class PrintReportContoller extends Controller
                                                             }
 
                                                             $attendance_data['HK'] += $attendance_data['be_one_shift'];
-
-                                                            // if ($range_date['is_counting_salary'] && $range_date['is_holiday'] && $employee_department_local->still_paid) {
-                                                            //     $attendance_data['HK']++;
-                                                            // }
                                                         } else {
                                                         }
                                                     }

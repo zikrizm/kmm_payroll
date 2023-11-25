@@ -150,6 +150,12 @@
                                     @else
                                     @endif
                                 </div>
+                                <div class="absolute right-0">
+                                    @if (!empty($attendance['HK']))
+                                    <p class="text-[10px] truncate">({{ $attendance['HK'] ?? '-' }})</p>
+                                    @else
+                                    @endif
+                                </div>
                             </div>
 
                         </td>
