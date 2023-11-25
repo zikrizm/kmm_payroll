@@ -18,7 +18,7 @@ use App\Models\EmployeeHasPosition;
 use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exceptions\ResponseExeception;
-use App\Imports\EmployeeImportExport;
+use App\Imports\EmployeeExport;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
 use Maatwebsite\Excel\Validators\ValidationException;
@@ -549,11 +549,11 @@ class EmployeeController extends Controller
 
     public function employeeImportTemplate(Request $request)
     {
-        return Excel::download(new EmployeeImportTemplate, 'employee-import-template.xlsx', \Maatwebsite\Excel\Excel::XLSX);
+        return Excel::download(new EmployeeImportTemplate, 'employee-import-template.csv', \Maatwebsite\Excel\Excel::CSV);
     }
     public function employeeExport(Request $request)
     {
-        return Excel::download(new EmployeeImportExport, 'employee-export.xlsx', \Maatwebsite\Excel\Excel::XLSX);
+        return Excel::download(new EmployeeExport($this->apiService), 'employee-export.csv', \Maatwebsite\Excel\Excel::CSV);
     }
 
 
@@ -598,10 +598,13 @@ class EmployeeController extends Controller
                                 [
                                     "emp_code" => (string)$value['emp_code'],
                                     "first_name" => trim($value['first_name']),
-                                    "department" => $depts[$keydept] ? $depts[$keydept]['id'] : $value['department'],
+                                    "last_name" => trim($value['last_name']),
                                     "emp_type" => $value['emp_type'],
-                                    "area" => is_array(json_decode($value['area'])) ? json_decode($value['area']) : [json_decode($value['area'])],
+                                    "address" => $value['address'],
+                                    "city" => $value['city'],
                                     "gender" => $value['gender'],
+                                    "area" => is_array(json_decode($value['area'])) ? json_decode($value['area']) : [json_decode($value['area'])],
+                                    "department" => $depts[$keydept] ? $depts[$keydept]['id'] : $value['department'],
                                     "daily_salary" => $value['daily_salary'],
                                     "payment_period" => $value['payment_period'],
                                     'created_user' => $user_id,
@@ -617,6 +620,7 @@ class EmployeeController extends Controller
                                     'emp_id' => $res['data']['id'],
                                     "emp_code" => $value['emp_code'],
                                     "first_name" => $value['first_name'],
+                                    "last_name" => $value['last_name'],
                                     "daily_salary" => $value['daily_salary'],
                                     "payment_period" => $value['payment_period'],
                                     'created_user' => $user_id,
@@ -636,6 +640,7 @@ class EmployeeController extends Controller
                                 'emp_id' => $emp_exist['id'],
                                 "emp_code" => $value['emp_code'],
                                 "first_name" => $value['first_name'],
+                                "last_name" => $value['last_name'],
                                 "daily_salary" => $value['daily_salary'],
                                 "payment_period" => $value['payment_period'],
                                 'created_user' => $user_id,

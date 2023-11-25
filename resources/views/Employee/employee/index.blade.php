@@ -19,12 +19,12 @@
             <button onclick="get_modal_CSV()" class="flex items-center gap-2.5 px-4 py-2 text-gray-500 text-sm font-medium 
                 flex items-center border border-gray-200 shadow-sm rounded-lg">
                 <x-icon icon="upload-cloud" width=18 height=18 viewBox="20 20" />
-                Import CSV
+                Import
             </button>
             <a href="{{ route('employee.employeeExport') }}" class="flex items-center gap-2.5 px-4 py-2 text-gray-500 text-sm font-medium 
                 flex items-center border border-gray-200 shadow-sm rounded-lg">
                 <x-icon icon="download" width=18 height=18 viewBox="20 20" />
-                Export Excel
+                Export
             </a>
         </div>
     </header>
@@ -289,7 +289,8 @@
             parallelUploads: 10,
             addRemoveLinks: true,
             acceptedFiles: 'text/csv',
-            maxFiles: 1,
+        // acceptedFiles: '.xls,.csv',
+        maxFiles: 1,
             init: function() {
                 $("#submit-all").on('click', function(e) {
                     e.preventDefault();

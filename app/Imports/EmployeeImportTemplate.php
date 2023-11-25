@@ -18,10 +18,14 @@ class EmployeeImportTemplate implements FromArray, WithHeadings
         return [
             'emp_code',
             'first_name',
-            'department',
+            'last_name',
             'emp_type',
-            'area',
+            'address',
+            'city',
             'gender',
+            'hire_date',
+            'area',
+            'department',
             'daily_salary',
             'payment_period',
         ];

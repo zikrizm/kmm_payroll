@@ -30,7 +30,6 @@ class ManageUserController extends Controller
     public function __construct(BusinessUtil $businessUtil, ApiServices $service, ResponseUtil $buildRes)
     {
         $this->businessUtil = $businessUtil;
-        $this->apiService = $service;
         $this->buildRes = $buildRes;
     }
 

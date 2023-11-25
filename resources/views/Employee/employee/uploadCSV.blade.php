@@ -17,10 +17,10 @@
                             <x-icon icon="upload-cloud" width=18 height=18 viewBox="20 20" />
                         </div>
                         <div>
-                            <p class="text-xl font-semibold text-gray-900">Import CSV
+                            <p class="text-xl font-semibold text-gray-900">Import
                             </p>
                             <p class="text-sm font-normal text-gray-500 xs/max:text-xs">
-                                Harap memberikan file csv anda.
+                                Harap memberikan file excel anda.
                             </p>
                         </div>
                     </div>
@@ -45,7 +45,7 @@
                             </div>
                         </div>
                     </header>
-                    <a href="{{ route('employee.employeeImportTemplate') }}" class="text-violet-700 text-xs font-medium">Template Employee</a>
+                    <a href="{{ route('employee.employeeImportTemplate') }}" class="text-violet-700 text-xs font-medium " style="cursor:pointer;">Download Template Karyarwan</a>
                     <main id="preview-contents" class="flex flex-col gap-2.5"></main>
                 </div>
                 <hr>

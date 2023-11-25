@@ -11,6 +11,7 @@ function init_dropzone(options) {
         parallelUploads: 10,
         addRemoveLinks: true,
         acceptedFiles: 'text/csv',
+        // acceptedFiles: '.xls,.csv',
         maxFiles: 1,
         init: function () {
             $("#submit-all").on('click', function (e) {

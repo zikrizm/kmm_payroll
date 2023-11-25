@@ -9,30 +9,31 @@ use Maatwebsite\Excel\Concerns\FromArray;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 
 
-class EmployeeImportExport implements FromArray, WithHeadings
+class EmployeeExport implements FromArray, WithHeadings
 {
-    private $apiService;
+    protected $apiService;
 
-    public function __construct(ApiServices $apiService)
+    function __construct(ApiServices $apiService)
     {
         $this->apiService = $apiService;
     }
+
     public function array(): array
     {
         $employees = $this->apiService->get_employees(['page_size' => 9999]);
         if (!empty($employees)) {
             $emp_ids = array_column($employees['data'], 'id');
-            $employeedbs = Employee::whereIn('emp_id', $emp_ids)->with('employee_has_position')->get()->toArray();
+            $employeedbs = Employee::whereIn('emp_id', $emp_ids)->get()->toArray();
 
             $datas = [];
             foreach ($employeedbs as  $item) {
-                $key = array_search($item->emp_code, array_column($employees, 'emp_code'));
-                if ($key == '') {
-                    $emp = $employees[$key];
+                $key = array_search($item['emp_code'], array_column($employees['data'], 'emp_code'));
+                if ($key != '') {
+                    $emp = $employees['data'][$key];
 
-                    $_positions = [];
-                    if (!empty($item['employee_has_position'])) {
-                       $_positions= array_column($item['employee_has_position'], 'position_id');
+                    $_areas = [];
+                    if (!empty($emp['area'])) {
+                       $_areas= array_column($emp['area'], 'area_code');
                     }
 
                     $datas[] = [
@@ -44,16 +45,14 @@ class EmployeeImportExport implements FromArray, WithHeadings
                         'city' => $emp['city'],
                         'gender' =>  $emp['gender'],
                         'hire_date' => $emp['hire_date'],
-                        'area' => $emp['area'],
-                        'department' => $emp['department'],
-                        'position' => implode(",", $_positions),
+                        'area' => implode(",", $_areas),
+                        'department' => $emp['department']['dept_code'],
                         'daily_salary' => $item['daily_salary'],
                         'payment_period' => $item['payment_period'],
                     ];
                 }
             }
             
-            Log::info(json_encode($datas));
             return $datas;
         } else {
             return [];
