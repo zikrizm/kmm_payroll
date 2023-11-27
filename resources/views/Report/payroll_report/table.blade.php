@@ -124,8 +124,8 @@
                         </td>
                         <td class='border px-3 py-2 text-gray-500 text-xs'>
                             <p class="truncate text-right">
-                                @if (isset($item['salary_pay_value']))
-                                @convertnorp($item['salary_pay_value'])
+                                @if (isset($item['employee']['daily_salary']))
+                                @convertnorp($item['employee']['daily_salary'])
                                 @else
                                 -
                                 @endif
