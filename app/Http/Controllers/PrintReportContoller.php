@@ -635,6 +635,7 @@ class PrintReportContoller extends Controller
 
                             if (!empty($emplocal)) {
                                 $kasbon = $this->getEmployeeKasbonPaid($emplocal, $start_date, $end_date);
+                                $report['employee']['daily_salary'] = $emplocal->daily_salary;
                                 $report['kasbon_pay_value'] += $kasbon['kasbon_pay'];
                                 $report['remaining_kasbon_pay_value'] += $kasbon['remaining_kasbon'];
                                 $report['tbhn_u_position_pay_value'] += $this->getEmployeeExtraPayPosition($emplocal, $start_date, $end_date);
