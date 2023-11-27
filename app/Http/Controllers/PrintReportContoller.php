@@ -58,7 +58,7 @@ class PrintReportContoller extends Controller
 
     public function getEmployee(array|null $department)
     {
-        $empbios = [];
+        $empbios = collect();
         if (!empty($department)) {
             $empbios_count = $this->service->get_employees(["department" => $department['id']])["count"];
             $empbios = collect($this->service->get_employees(["page_size" => $empbios_count, "department" => $department['id']])['data']);
@@ -67,7 +67,7 @@ class PrintReportContoller extends Controller
             $empbios = collect($this->service->get_employees(["page_size" => $empbios_count])['data']);
         }
 
-        return collect($empbios);
+        return $empbios;
     }
 
     public function getDiffPaymentEmp(string $payment_period, Carbon $start_date, Carbon $end_date)
@@ -614,7 +614,7 @@ class PrintReportContoller extends Controller
                         foreach ($empdepts as $emp) {
                             $attendances = collect();
                             $report = collect([
-                                'employee' => $emp,
+                                'employee' => $emp->toArray(),
                                 'attendances' => collect(),
                                 'HK_value' => 0,
                                 'JL_value' => 0,
@@ -636,6 +636,7 @@ class PrintReportContoller extends Controller
                             if (!empty($emplocal)) {
                                 $kasbon = $this->getEmployeeKasbonPaid($emplocal, $start_date, $end_date);
                                 $report['employee']['daily_salary'] = $emplocal->daily_salary;
+                                Log::info($report['employee']);
                                 $report['kasbon_pay_value'] += $kasbon['kasbon_pay'];
                                 $report['remaining_kasbon_pay_value'] += $kasbon['remaining_kasbon'];
                                 $report['tbhn_u_position_pay_value'] += $this->getEmployeeExtraPayPosition($emplocal, $start_date, $end_date);
