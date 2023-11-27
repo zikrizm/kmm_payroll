@@ -678,85 +678,87 @@ class PrintReportContoller extends Controller
                                             'is_counting_overtime' => $range_date['is_counting_overtime'],
                                         ];
 
-                                        $attendance_employee_in_dates = collect($attendance_employee[$date->format('Y-m-d')] ?? []);
-                                        if ($attendance_employee_in_dates->isNotEmpty()) {
-                                            $first = $attendance_employee_in_dates->first();
-                                            $first_punch = Carbon::parse($first['punch_time']);
-                                            $attendance_data['first_punch'] = $first['punch_time'];
-                                            if (count($attendance_employee_in_dates) >= 2) {
-                                                $last = $attendance_employee_in_dates->last();
-                                                $last_punch = Carbon::parse($last['punch_time']);
-                                                $attendance_data['last_punch'] = $last['punch_time'];
-                                            } else {
-                                                $last_punch = null;
-                                                $attendance_data['last_punch'] = null;
-                                            }      
-
-                                            if (!empty($empshift)) {
-                                                $shiftday = $empshift->shiftdays->where('code_day', $date->dayOfWeek)->first();
-                                                if (!empty($shiftday)) {
-                                                    foreach ($shiftday->shiftday_has_timetables as $shiftday_has_timetable) {
-                                                        $timetable = $shiftday_has_timetable->timetable;
-                                                        $check_in = Carbon::parse($date->format('Y-m-d') . $timetable->check_in);
-                                                        $check_out = Carbon::parse($date->format('Y-m-d') . $timetable->check_out);
-
-                                                        // $check_in_sub_plusmn = $check_in->copy()->subMinutes($timetable->check_in_plusmn);
-                                                        // $check_in_add_plusmn = $check_in->copy()->addMinutes($timetable->check_in_plusmn);
-                                                        // $check_out_sub_plusmn = $check_out->copy()->subMinutes($timetable->check_out_plusmn);
-
-                                                        if ($this->timetableCheck($range_date, $first_punch, $last_punch, $timetable)) {
-                                                            $attendance_data['timetable'] = $timetable->toArray();
-                                                            $check_out_plus_duration_ot_limit =  $check_out->copy()->addHours($timetable->duration_ot_limit);
-                                                            $attendance_date_time_cross = collect();
-                                                            $attendance_date_time_uncross = collect();
-                                                            if (!empty($attendance_employee->get($next_date->format('Y-m-d')))) {
-                                                                foreach ($attendance_employee->get($next_date->format('Y-m-d')) ?? [] as $attendance_emp_next_date) {
-                                                                    $check_in_next_date = Carbon::parse($attendance_emp_next_date['punch_time']);
-                                                                    if ($check_in_next_date->lte($check_out_plus_duration_ot_limit)) {
-                                                                        $attendance_date_time_cross[] = collect($attendance_emp_next_date);
-                                                                    } else {
-                                                                        $attendance_date_time_uncross[] = collect($attendance_emp_next_date);
+                                        if(!empty($attendance_employee)) {
+                                            $attendance_employee_in_dates = collect($attendance_employee[$date->format('Y-m-d')] ?? []);
+                                            if ($attendance_employee_in_dates->isNotEmpty()) {
+                                                $first = $attendance_employee_in_dates->first();
+                                                $first_punch = Carbon::parse($first['punch_time']);
+                                                $attendance_data['first_punch'] = $first['punch_time'];
+                                                if (count($attendance_employee_in_dates) >= 2) {
+                                                    $last = $attendance_employee_in_dates->last();
+                                                    $last_punch = Carbon::parse($last['punch_time']);
+                                                    $attendance_data['last_punch'] = $last['punch_time'];
+                                                } else {
+                                                    $last_punch = null;
+                                                    $attendance_data['last_punch'] = null;
+                                                }      
+    
+                                                if (!empty($empshift)) {
+                                                    $shiftday = $empshift->shiftdays->where('code_day', $date->dayOfWeek)->first();
+                                                    if (!empty($shiftday)) {
+                                                        foreach ($shiftday->shiftday_has_timetables as $shiftday_has_timetable) {
+                                                            $timetable = $shiftday_has_timetable->timetable;
+                                                            $check_in = Carbon::parse($date->format('Y-m-d') . $timetable->check_in);
+                                                            $check_out = Carbon::parse($date->format('Y-m-d') . $timetable->check_out);
+    
+                                                            // $check_in_sub_plusmn = $check_in->copy()->subMinutes($timetable->check_in_plusmn);
+                                                            // $check_in_add_plusmn = $check_in->copy()->addMinutes($timetable->check_in_plusmn);
+                                                            // $check_out_sub_plusmn = $check_out->copy()->subMinutes($timetable->check_out_plusmn);
+    
+                                                            if ($this->timetableCheck($range_date, $first_punch, $last_punch, $timetable)) {
+                                                                $attendance_data['timetable'] = $timetable->toArray();
+                                                                $check_out_plus_duration_ot_limit =  $check_out->copy()->addHours($timetable->duration_ot_limit);
+                                                                $attendance_date_time_cross = collect();
+                                                                $attendance_date_time_uncross = collect();
+                                                                if (!empty($attendance_employee->get($next_date->format('Y-m-d')))) {
+                                                                    foreach ($attendance_employee->get($next_date->format('Y-m-d')) ?? [] as $attendance_emp_next_date) {
+                                                                        $check_in_next_date = Carbon::parse($attendance_emp_next_date['punch_time']);
+                                                                        if ($check_in_next_date->lte($check_out_plus_duration_ot_limit)) {
+                                                                            $attendance_date_time_cross[] = collect($attendance_emp_next_date);
+                                                                        } else {
+                                                                            $attendance_date_time_uncross[] = collect($attendance_emp_next_date);
+                                                                        }
+                                                                    }
+    
+                                                                    if (!empty($attendance_date_time_cross) && $attendance_date_time_cross->isNotEmpty()) {
+                                                                        $attendance_employee[$date->format('Y-m-d')]->push(...$attendance_date_time_cross);
+                                                                        $attendance_employee[$next_date->format('Y-m-d')] = collect($attendance_date_time_uncross);
+                                                                        $last_punch = Carbon::parse($attendance_date_time_cross->last()['punch_time']);
+                                                                        $attendance_data['last_punch'] = $attendance_date_time_cross->last()['punch_time'];
                                                                     }
                                                                 }
-
-                                                                if (!empty($attendance_date_time_cross) && $attendance_date_time_cross->isNotEmpty()) {
-                                                                    $attendance_employee[$date->format('Y-m-d')]->push(...$attendance_date_time_cross);
-                                                                    $attendance_employee[$next_date->format('Y-m-d')] = collect($attendance_date_time_uncross);
-                                                                    $last_punch = Carbon::parse($attendance_date_time_cross->last()['punch_time']);
-                                                                    $attendance_data['last_punch'] = $attendance_date_time_cross->last()['punch_time'];
+    
+                                                                if ($range_date['is_counting_overtime']) {
+                                                                    $countingOvertime = $this->countingOvertime($range_date, $first_punch, $last_punch, $timetable, $attendance_employee_in_dates->count());
+                                                                    $attendance_data['food'] += !empty($countingOvertime['food']) ? $countingOvertime['food']: 0;
+                                                                    $attendance_data['JL'] += $countingOvertime['JL'];
+                                                                    $attendance_data['JL_pay_value'] += $countingOvertime['JL_pay_value'];
+                                                                    $attendance_data['be_one_shift'] += $countingOvertime['be_one_shift'];
                                                                 }
+    
+                                                                if ($range_date['is_counting_salary'] && $attendance_employee_in_dates->count() > 1) {
+                                                                    $countingSalary = $this->countingSalary($employee_department_local, $range_date, $first_punch, $last_punch, $timetable);
+                                                                    $attendance_data['HK'] += $countingSalary['HK'] ;
+                                                                    $attendance_data['HK_pay_value'] += $attendance_data['HK'] * $emplocal->daily_salary;
+                                                                }
+    
+                                                                $attendance_data['HK'] += $attendance_data['be_one_shift'];
+                                                            } else {
                                                             }
-
-                                                            if ($range_date['is_counting_overtime']) {
-                                                                $countingOvertime = $this->countingOvertime($range_date, $first_punch, $last_punch, $timetable, $attendance_employee_in_dates->count());
-                                                                $attendance_data['food'] += !empty($countingOvertime['food']) ? $countingOvertime['food']: 0;
-                                                                $attendance_data['JL'] += $countingOvertime['JL'];
-                                                                $attendance_data['JL_pay_value'] += $countingOvertime['JL_pay_value'];
-                                                                $attendance_data['be_one_shift'] += $countingOvertime['be_one_shift'];
-                                                            }
-
-                                                            if ($range_date['is_counting_salary'] && $attendance_employee_in_dates->count() > 1) {
-                                                                $countingSalary = $this->countingSalary($employee_department_local, $range_date, $first_punch, $last_punch, $timetable);
-                                                                $attendance_data['HK'] += $countingSalary['HK'] ;
-                                                                $attendance_data['HK_pay_value'] += $attendance_data['HK'] * $emplocal->daily_salary;
-                                                            }
-
-                                                            $attendance_data['HK'] += $attendance_data['be_one_shift'];
-                                                        } else {
                                                         }
+                                                    } else {
+                                                        // MASUKK KESINI KLO-KLO DATA SHIFTNYA BLOM DI INPUT
                                                     }
-                                                } else {
-                                                    // MASUKK KESINI KLO-KLO DATA SHIFTNYA BLOM DI INPUT
                                                 }
+                                            } else {
+                                                if ($range_date['is_counting_salary'] && $range_date['is_holiday'] && $employee_department_local->still_paid) {
+                                                    $attendance_data['HK']++;
+                                                    $attendance_data['HK_pay_value'] += $attendance_data['HK'] * $emplocal->daily_salary;
+                                                }
+                                                // MASUKK KESINI KLO ABSENSI USER DI TANGGAL INI GA ADA
                                             }
-                                        } else {
-                                            if ($range_date['is_counting_salary'] && $range_date['is_holiday'] && $employee_department_local->still_paid) {
-                                                $attendance_data['HK']++;
-                                                $attendance_data['HK_pay_value'] += $attendance_data['HK'] * $emplocal->daily_salary;
-                                            }
-                                            // MASUKK KESINI KLO ABSENSI USER DI TANGGAL INI GA ADA
                                         }
-
+    
                                         $operational_date = $empoperationals->where('date', $date->format('Y-m-d'))->first();
                                         if (!empty($operational_date)) {
                                             $attendance_data = $this->checkAttendaceOperational($date, $operational_date, $attendance_data);
