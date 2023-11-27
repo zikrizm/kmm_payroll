@@ -739,11 +739,13 @@ class PrintReportContoller extends Controller
                                                                 if ($range_date['is_counting_salary'] && $attendance_employee_in_dates->count() > 1) {
                                                                     $countingSalary = $this->countingSalary($employee_department_local, $range_date, $first_punch, $last_punch, $timetable);
                                                                     $attendance_data['HK'] += $countingSalary['HK'] ;
-                                                                    $attendance_data['HK_pay_value'] += $attendance_data['HK'] * $emplocal->daily_salary;
                                                                 }
     
                                                                 $attendance_data['HK'] += $attendance_data['be_one_shift'];
                                                             } else {
+                                                                if ($range_date['is_counting_salary'] && $range_date['is_holiday'] && $employee_department_local->still_paid) {
+                                                                    $attendance_data['HK']++;
+                                                                }
                                                             }
                                                         }
                                                     } else {
@@ -753,9 +755,12 @@ class PrintReportContoller extends Controller
                                             } else {
                                                 if ($range_date['is_counting_salary'] && $range_date['is_holiday'] && $employee_department_local->still_paid) {
                                                     $attendance_data['HK']++;
-                                                    $attendance_data['HK_pay_value'] += $attendance_data['HK'] * $emplocal->daily_salary;
                                                 }
                                                 // MASUKK KESINI KLO ABSENSI USER DI TANGGAL INI GA ADA
+                                            }
+
+                                            if($attendance_data['HK']) {
+                                                $attendance_data['HK_pay_value'] += $attendance_data['HK'] * $emplocal->daily_salary;
                                             }
                                         }
     
