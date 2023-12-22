@@ -57,7 +57,7 @@
                         <th class='border border-t-0 px-3 py-1 text-left' rowspan="2">
                             <p class="text-xs font-medium truncate text-center">JL</p>
                         </th>
-                        <th class='border border-t-0 border-r-0 px-3 py-1 text-center' colspan="7">
+                        <th class='border border-t-0 border-r-0 px-3 py-1 text-center' colspan="6">
                             <p class="text-xs font-medium truncate">Jumlah( Rupiah )</p>
                         </th>
 
@@ -121,15 +121,6 @@
                         </td>
                         <td class='border px-3 py-2 text-gray-500 text-xs'>
                             <p class="truncate text-center">{{ $item['JL_value'] ?? 0 }}</p>
-                        </td>
-                        <td class='border px-3 py-2 text-gray-500 text-xs'>
-                            <p class="truncate text-right">
-                                @if ( isset($item['employee']['daily_salary']))
-                                @convertnorp($item['employee']['daily_salary'])
-                                @else
-                                -
-                                @endif
-                            </p>
                         </td>
                         <td class='border px-3 py-2 text-gray-500 text-xs'>
                             <p class="truncate text-right">
