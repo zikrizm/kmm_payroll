@@ -18,8 +18,7 @@ class ZktecoSettingsTabelSeeder extends Seeder
         ZktecoSettings::create(
             [
                 'username' => 'admin',
-                'password' => 'ciptakanjuara123',
-                // 'password' => '#123jaipong',
+                'password' => '#123jaipong',
                 'notes' => 'untuk login ke bioTime',
                 'is_login' => true,
             ]
