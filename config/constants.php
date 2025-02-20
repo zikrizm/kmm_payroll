@@ -8,10 +8,11 @@ return [
     |--------------------------------------------------------------------------
     |List of all constants for the app
     */
-    'api_zkteco' => 'http://'.'127.0.0.1' . ':8000',
-    'api' => 'http://'. '127.0.0.1' . ':8000',
-    // 'api_zkteco' => 'http://'.$_SERVER['HTTP_HOST'] . ':8000',
-    // 'api' => 'http://'. $_SERVER['HTTP_HOST'] . ':8000',
+    // 'api_zkteco' => 'http://127.0.0.1:8000',
+    // 'api' => 'http://127.0.0.1:8000',
+    // 'zkt_port' => '8000',
+    'api_zkteco' => 'http://'.parse_url($_SERVER['HTTP_HOST'], PHP_URL_HOST) . ':8000',
+    'api' => 'http://'. parse_url($_SERVER['HTTP_HOST'], PHP_URL_HOST) . ':8000',
  
     'langs' => [
         'en' => ['full_name' => 'English', 'short_name' => 'English'],

@@ -135,7 +135,8 @@
                         </thead>
                         <tbody>
                             @php
-                            $salary_archive_td = $salary_archive_th->salary_archive_tds->first();
+                            $salary_archive_td = $salary_archive_th->salary_archive_tds->last();
+                            // var_dump($salary_archive_td->salary_archive_td_emps)
                             @endphp
                             @foreach ($salary_archive_td->salary_archive_td_emps as $key => $item)
                             <tr class='border-black'>

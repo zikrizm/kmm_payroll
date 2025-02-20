@@ -566,6 +566,7 @@ class EmployeeController extends Controller
     public function uploadCSV_store(Request $request)
     {
         try {
+            $errorResponse = [];
             $business_id = Session::get('business_id');
             $user_id = auth()->user()->id;
             $emp_count = $this->apiService->get_employees([])['count'];
@@ -575,49 +576,101 @@ class EmployeeController extends Controller
             $files = $request->file('file');
             foreach ($files as $key => $item) {
                 $rows = Excel::toArray(new EmployeesImport, $item);
-                $validator = Validator::make($rows[0], [
-                    '*.emp_code' => 'required|max:255',
-                    '*.first_name' => 'required|max:255',
-                    '*.department' => 'required|max:255',
-                    '*.emp_type' => 'required|max:255',
-                    '*.area' => 'required',
-                    '*.gender' => 'required',
-                    '*.daily_salary' => 'required',
-                    '*.payment_period' => 'required',
-                ]);
+                // $validator = Validator::make($rows[0], [
+                //     '*.emp_code' => 'required|max:255',
+                //     '*.first_name' => 'required|max:255',
+                //     '*.department' => 'required|max:255',
+                //     '*.emp_type' => 'required|max:255',
+                //     '*.area' => 'required',
+                //     '*.gender' => 'required',
+                //     '*.daily_salary' => 'required',
+                //     '*.payment_period' => 'required',
+                // ]);
 
-                if ($validator->fails()) {
-                    return $this->buildRes->RESPONSE_REQ('error', null, ['error' => ['Invalid import employee data file']]);
-                } else {
+                // if ($validator->fails()) {
+                //     $errors = $validator->errors()->messages();
+                //     foreach ($errors as $key => $value) {
+                //         $errorResponse[] = $value;
+                //     }
+
+                //     return $this->buildRes->RESPONSE_REQ('error', null, ['error' => ['Invalid import employee data file']]);
+                // } else {
                     foreach ($rows[0] as $key => $value) {
-                        $key = array_search($value['emp_code'], array_column($employees, 'emp_code'));
-                        $keydept = array_search($value['department'], array_column($depts, 'dept_code'));
-                        if ($key == '') {
-                            // ** Add employee for biotime 
-                            $res = $this->apiService->create_employee(
-                                [
-                                    "emp_code" => (string)$value['emp_code'],
-                                    "first_name" => trim($value['first_name']),
-                                    "last_name" => trim($value['last_name']),
-                                    "emp_type" => $value['emp_type'],
-                                    "address" => $value['address'],
-                                    "city" => $value['city'],
-                                    "gender" => $value['gender'],
-                                    "area" => is_array(json_decode($value['area'])) ? json_decode($value['area']) : [json_decode($value['area'])],
-                                    "department" => $depts[$keydept] ? $depts[$keydept]['id'] : $value['department'],
-                                    "daily_salary" => $value['daily_salary'],
-                                    "payment_period" => $value['payment_period'],
-                                    'created_user' => $user_id,
-                                    'updated_user' => $user_id,
-                                    'is_device' => -1,
-                                ]
-                            );
+                        $validator = Validator::make($value, [
+                            'emp_code' => 'required|max:255',
+                            'first_name' => 'required|max:255',
+                            'department' => 'required|max:255',
+                            'emp_type' => 'required|max:255',
+                            'area' => 'required',
+                            'gender' => 'required',
+                            'daily_salary' => 'required',
+                            'payment_period' => 'required',
+                        ], [
+                            'required' => ':attribute wajib diisi.',
+                            'max' => ':attribute tidak boleh lebih dari :max karakter.',
+                        ]);
 
-                            if ($res['status'] == 'success') {
+                        if ($validator->fails()) {
+                            $errors = $validator->errors()->messages();
+                            Log::info($errors);
+                            foreach ($errors as $i => $value) {
+                                $errorResponse[] = "Baris Ke-". (string)($key+1) .", Untuk kolom ". $value[0]."<br/>";
+                            }
+    
+                        } else {
+                            $key = array_search($value['emp_code'], array_column($employees, 'emp_code'));
+                            $keydept = array_search($value['department'], array_column($depts, 'dept_code'));
+                            if ($key == '') {
+                                // ** Add employee for biotime 
+                                $res = $this->apiService->create_employee(
+                                    [
+                                        "emp_code" => (string)$value['emp_code'],
+                                        "first_name" => trim($value['first_name']),
+                                        "last_name" => trim($value['last_name']),
+                                        "emp_type" => $value['emp_type'],
+                                        "address" => $value['address'],
+                                        "city" => $value['city'],
+                                        "gender" => $value['gender'],
+                                        "area" => is_array(json_decode($value['area'])) ? json_decode($value['area']) : [json_decode($value['area'])],
+                                        "department" => $depts[$keydept] ? $depts[$keydept]['id'] : $value['department'],
+                                        "daily_salary" => $value['daily_salary'],
+                                        "payment_period" => $value['payment_period'],
+                                        'created_user' => $user_id,
+                                        'updated_user' => $user_id,
+                                        'is_device' => -1,
+                                    ]
+                                );
+    
+                                
+                                if ($res['status'] == 'success') {
+                                    
+                                    // ** Add employee for local if not exist 
+                                    Employee::updateOrCreate(["emp_code" => (string)$value['emp_code']], [
+                                        'business_id' => $business_id,
+                                        'emp_id' => $res['data']['id'],
+                                        "emp_code" => $value['emp_code'],
+                                        "first_name" => $value['first_name'],
+                                        "last_name" => $value['last_name'],
+                                        "daily_salary" => $value['daily_salary'],
+                                        "payment_period" => $value['payment_period'],
+                                        'created_user' => $user_id,
+                                        'updated_user' => $user_id,
+                                        'is_device' => -1,
+                                    ]);
+                                } else {
+                                    if (!empty($res['msg'])) {
+                                        foreach ($res['msg'] as $key => $msg) {
+                                            $errorResponse[] = (isset($value[$key]) ? $key.' '.$value[$key].' ' : ''). $msg[0]."<br/>";
+                                        }
+                                        // return $this->buildRes->RESPONSE_REQ('error', null, ['error' => ['Invalid import employee data file']]);
+                                    }
+                                }
+                            } else {
                                 // ** Add employee for local if not exist 
-                                Employee::updateOrCreate(["emp_code" => (string)$value['emp_code']], [
+                                $emp_exist = $employees[$key];
+                                Employee::updateOrCreate(["emp_id" => $emp_exist['id']], [
                                     'business_id' => $business_id,
-                                    'emp_id' => $res['data']['id'],
+                                    'emp_id' => $emp_exist['id'],
                                     "emp_code" => $value['emp_code'],
                                     "first_name" => $value['first_name'],
                                     "last_name" => $value['last_name'],
@@ -627,32 +680,17 @@ class EmployeeController extends Controller
                                     'updated_user' => $user_id,
                                     'is_device' => -1,
                                 ]);
-                            } else {
-                                if (!empty($res['msg'])) {
-                                    return $this->buildRes->RESPONSE_REQ('error', null, ['error' => ['Invalid import employee data file']]);
-                                }
                             }
-                        } else {
-                            // ** Add employee for local if not exist 
-                            $emp_exist = $employees[$key];
-                            Employee::updateOrCreate(["emp_code" => (string)$value['emp_code']], [
-                                'business_id' => $business_id,
-                                'emp_id' => $emp_exist['id'],
-                                "emp_code" => $value['emp_code'],
-                                "first_name" => $value['first_name'],
-                                "last_name" => $value['last_name'],
-                                "daily_salary" => $value['daily_salary'],
-                                "payment_period" => $value['payment_period'],
-                                'created_user' => $user_id,
-                                'updated_user' => $user_id,
-                                'is_device' => -1,
-                            ]);
                         }
                     }
                 }
-            }
+            // }
 
-            return $this->buildRes->RESPONSE_REQ('success', null, ['success' => ['Employee data import successful']]);
+            if(count($errorResponse) != 0) {
+                return $this->buildRes->RESPONSE_REQ('success', null, ['error' => $errorResponse]);
+            } else {
+                return $this->buildRes->RESPONSE_REQ('success', null, ['success' => ['Employee data import successful']]);
+            }
         } catch (ValidationException $e) {
             $failures = $e->failures();
 

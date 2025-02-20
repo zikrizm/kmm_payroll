@@ -79,7 +79,7 @@
                                         </div>
                                     </td>
                                     <td class='px-3 py-1'>
-                                        <a href="/print/payroll-report?start_date_work_day={{ Carbon\Carbon::parse($item->start_date_work_day)->format('d-m-Y')}}&end_date_work_day={{ Carbon\Carbon::parse($item->end_date_work_day)->format('d-m-Y') }}&start_date_overtime={{ Carbon\Carbon::parse($item->start_date_overtime)->format('d-m-Y') }}&end_date_overtime={{ Carbon\Carbon::parse($item->end_date_overtime)->format('d-m-Y') }}&calculation_salary_archive_id={{ $salary_archive_td->id }}"
+                                        <a href="/print/payroll-report?start_date_work_day={{ Carbon\Carbon::parse($item->start_date_work_day)->format('d-m-Y')}}&end_date_work_day={{ Carbon\Carbon::parse($item->end_date_work_day)->format('d-m-Y') }}&start_date_overtime={{ Carbon\Carbon::parse($item->start_date_overtime)->format('d-m-Y') }}&end_date_overtime={{ Carbon\Carbon::parse($item->end_date_overtime)->format('d-m-Y') }}&calculation_salary_archive_id={{ $salary_archive_td->id }}&salary_archive_th_id={{ $item->id }}"
                                             class="text-gray-500 flex justify-center items-center gap-2 border rounded-lg shadow px-2.5 py-1.5">
                                             <x-icon icon="printer" width=16 height=16 viewBox="20 20" />
                                             <p class="text-xs">Cetak</p>

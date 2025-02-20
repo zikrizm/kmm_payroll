@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\View;
+use Illuminate\Support\Facades\Config;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -90,8 +91,9 @@ class AppServiceProvider extends ServiceProvider
         });
 
         Blade::directive('zkPhoto', function ($url) {
-            return config('constants.api') . $url;
-        });
+            return '';
+           
+        });   
 
         Blade::directive('convert', function ($money) {
             return "Rp. <?php echo number_format($money,0, ',', '.'); ?>";

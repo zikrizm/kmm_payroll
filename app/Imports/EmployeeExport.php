@@ -35,6 +35,10 @@ class EmployeeExport implements FromArray, WithHeadings
                     if (!empty($emp['area'])) {
                        $_areas= array_column($emp['area'], 'area_code');
                     }
+                    $_position = [];
+                    if (!empty($emp['position'])) {
+                       $_position= $emp['position']['position_code'];
+                    }
 
                     $datas[] = [
                         'emp_code' => $emp['emp_code'],
@@ -47,6 +51,7 @@ class EmployeeExport implements FromArray, WithHeadings
                         'hire_date' => $emp['hire_date'],
                         'area' => implode(",", $_areas),
                         'department' => $emp['department']['dept_code'],
+                        'position' => $_position,
                         'daily_salary' => $item['daily_salary'],
                         'payment_period' => $item['payment_period'],
                     ];

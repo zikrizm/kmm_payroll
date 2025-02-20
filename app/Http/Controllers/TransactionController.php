@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
 use Maatwebsite\Excel\Validators\ValidationException;
 use Maatwebsite\Excel\Exceptions\NoTypeDetectedException;
+use App\Imports\TransactionExport;
 
 
 class TransactionController extends Controller
@@ -268,6 +269,12 @@ class TransactionController extends Controller
             return $this->buildRes->RESPONSE_REQ('error', null, ['error' => 'something wrong']);
         }
     }
+
+    public function transactionExport(Request $request)
+    {
+        return Excel::download(new TransactionExport( $request, $this->apiService), 'transaction-export.csv', \Maatwebsite\Excel\Excel::CSV);
+    }
+
 
     /**
      * Rules validation department.

@@ -331,12 +331,28 @@ function setErorrsformInputs(errors) {
     }
 }
 
+// setTimeout(() => {
+    
+// const dummyMsg = [
+//     "emp_code 190135 Karyawan dengan ID Karyawan telah ada. <br/>",
+//     "emp_code 190214 Karyawan dengan ID Karyawan telah ada. <br/>",
+//     "emp_code 190432 Karyawan dengan ID Karyawan telah ada. <br/>",
+//     "emp_code 190434 Karyawan dengan ID Karyawan telah ada. <br/>",
+//     "301 The area field is required. <br/>",
+//     "429 The area field is required. <br/>"
+// ];
+// toastr.error(dummyMsg, 'Error information')
+
+// }, 3000);
+
 function handleMessage(_response) {
     // **
     // * SHOW NOTIFICATION ----->
     // *
     for (const msg in _response.msg) {
-        if (_response.status == 'error') toastr.error(_response.msg[msg], 'Error information')
+        if (_response.status == 'error' || msg == 'error') {
+            toastr.error(_response.msg[msg], 'Error information')
+        }
         else toastr.success(_response.msg[msg], 'Successfully information');
     }
 }

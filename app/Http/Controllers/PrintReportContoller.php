@@ -67,7 +67,11 @@ class PrintReportContoller extends Controller
             $empbios = collect($this->service->get_employees(["page_size" => $empbios_count])['data']);
         }
 
-        return $empbios;
+        $filtered = $empbios->filter(function ($user) {
+            return $user['attemployee']['enable_attendance']; // Hanya ambil user dengan umur lebih dari 21
+        });
+
+        return $filtered;
     }
 
     public function getDiffPaymentEmp(string $payment_period, Carbon $start_date, Carbon $end_date)
@@ -83,7 +87,7 @@ class PrintReportContoller extends Controller
                 return $start_date->diffInDays($end_date);
                 break;
             default:
-                return 0;
+                return $start_date->diffInWeeks($end_date);
                 break;
         }
     }
@@ -797,6 +801,32 @@ class PrintReportContoller extends Controller
                                     }
                                 }
                             } else {
+                                $range_date_count = count($range_dates);
+                                foreach ($range_dates as $iDate => $range_date) {
+                                    if ($range_date_count - 1 != $iDate) {
+                                        $attendance_data = [
+                                            'date' => $date->format('Y-m-d'),
+
+                                            'JL' => 0,
+                                            'HK' => 0,
+                                            'value_string'=> '',
+                                            'food' => 0,
+                                            'HK_pay_value' => 0,
+                                            'JL_pay_value' => 0,
+                                            'tbhn_u_libur_pay_value' => 0,
+                                            
+                                            'is_holiday' => $range_date['is_holiday'],
+                                            'is_addition_date' => $range_date['is_addition_date'],
+
+                                        ];
+                                        if ($range_date['is_addition_date']) {
+                                        }else {
+
+                                            $attendances->push(collect($attendance_data));
+                                        }
+
+                                    }
+                                }
                                 // MASUKK KESINI JIKA USER BIOS TIDAK ADA DI LOCAL
                             }
                             foreach ($attendances as $attendance) {
@@ -886,13 +916,29 @@ class PrintReportContoller extends Controller
                     ->whereDate('end_date_work_day', $end_date_work_day->format('Y-m-d'))
                     ->whereDate('start_date_overtime', $start_date_overtime->format('Y-m-d'))
                     ->whereDate('end_date_overtime', $end_date_overtime->format('Y-m-d'));
-
-                if ($request->has('calculation_salary_archive_id')) {
-                    $calculation_salary_archive_id = $request->calculation_salary_archive_id;
-                    $salary_archive_ths = $salary_archive_ths->with(['salary_archive_tds' => fn ($query) => $query->where('id', $calculation_salary_archive_id)])->get();
-                } else {
+// Cek jika salary_archive_th_id ada, tambahkan kondisi where
+if ($request->has('salary_archive_th_id')) {
+    $salary_archive_th_id = $request->salary_archive_th_id;
+    $salary_archive_ths = $salary_archive_ths->where('id', $salary_archive_th_id);
+}
+                    // $salary_archive_ths = $salary_archive_ths->with(['salary_archive_tds' => fn ($query) => $query->select('id')->where('id', 30)])->get();
+                // if ($request->has('calculation_salary_archive_id')) {
+                //     $calculation_salary_archive_id = $request->calculation_salary_archive_id;
+                //     $salary_archive_ths = $salary_archive_ths->with(['salary_archive_tds' => fn ($query) => $query->where('id', $calculation_salary_archive_id)])->get();
+                // } else {
                     $salary_archive_ths = $salary_archive_ths->with(['salary_archive_tds'])->get();
-                }
+                // }
+                // Jika ada nilai $calculation_salary_archive_id, filter data salary_archive_tds
+if ($request->has('calculation_salary_archive_id')) {
+                        $calculation_salary_archive_id = $request->calculation_salary_archive_id;
+
+    $salary_archive_ths->each(function ($item) use ($calculation_salary_archive_id) {
+        // Filter salary_archive_tds berdasarkan id
+        $item->salary_archive_tds = $item->salary_archive_tds->filter(function ($td) use ($calculation_salary_archive_id) {
+            return $td->id == $calculation_salary_archive_id;
+        });
+    });
+}
 
                 $range_dates = $this->getRangeDate(
                     $business,

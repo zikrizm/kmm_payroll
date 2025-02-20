@@ -53,7 +53,7 @@
                             <div class="flex gap-3 items-center px-3 py">
                                 @if (!empty($item['photo']))
                                 <img src="{{config('constants.api_zkteco')}}{{ $item['photo'] }}" alt=""
-                                    class="w-8 object-cover h-8 min-w-[32px] min-h-[32px] rounded-full">
+                                    class="image w-8 object-cover h-8 min-w-[32px] min-h-[32px] rounded-full">
                                 @else
                                 <img src="{{config('constants.api_zkteco')}}/files/nophoto.gif" alt=""
                                     class="w-8 object-cover h-8 min-w-[32px] min-h-[32px] rounded-full">
@@ -140,3 +140,15 @@
         </div>
     </footer>
 </main>
+<script>
+        // Mendapatkan semua gambar dengan class 'image'
+        var images = document.querySelectorAll('.image');
+
+        // Menambahkan event error pada setiap gambar
+        images.forEach(function(img) {
+            img.onerror = function() {
+                // Jika terjadi error, ubah URL gambar
+                img.src = img.src.replace('auth_files/photo', 'auth_files/biophoto');
+            };
+        });
+</script>

@@ -72,6 +72,8 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/kasbon/{kasbon}', 'KasbonController@update')->name('kasbon.update');
     // * transaction
     Route::resource('transaction', 'TransactionController', ['except' => ['update', 'edit']]);
+    Route::get('/transaction-export', 'TransactionController@transactionExport')->name('transaction.transactionExport');
+
     // * resign
     Route::resource('resign', 'ResignController', ['except' => ['update']]);
     Route::post('/resign/{resign}', 'ResignController@update')->name('resign.update');
