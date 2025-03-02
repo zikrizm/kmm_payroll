@@ -535,7 +535,7 @@ class Toggle {
 
 function convertLocalTimezone(date, dateFormat) {
     if (dateFormat) {
-        var dateUTC = moment.utc(date);
+        var dateUTC = moment.utc(date, dateFormat);
         var localDate = dateUTC.local();
         localDate.set({hour:23,minute:59,second:59});
         return localDate.format(dateFormat);

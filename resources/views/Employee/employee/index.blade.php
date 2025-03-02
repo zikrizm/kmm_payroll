@@ -21,7 +21,7 @@
                 <x-icon icon="upload-cloud" width=18 height=18 viewBox="20 20" />
                 Import
             </button>
-            <a href="{{ route('employee.employeeExport') }}" class="flex items-center gap-2.5 px-4 py-2 text-gray-500 text-sm font-medium 
+            <a id="export-button" href="{{ route('employee.employeeExport') }}" class="flex items-center gap-2.5 px-4 py-2 text-gray-500 text-sm font-medium 
                 flex items-center border border-gray-200 shadow-sm rounded-lg">
                 <x-icon icon="download" width=18 height=18 viewBox="20 20" />
                 Export
@@ -133,6 +133,8 @@
 
 
 <script type="application/javascript">
+    let baseExportUrl = "{{ route('employee.employeeExport') }}";
+
     let dataParams = {};
     let minSteps = 6, maxSteps = 60, timeBetweenSteps = 100, bytesPerStep = 1000;
 
@@ -215,6 +217,11 @@
         $(".search-data-input").on('keyup', debounce(function(e) {
             if(e.key == 'Shift') return 0;
             delete dataParams.page;
+
+            let searchValue = this.value.trim();
+            let newUrl = searchValue ? `${baseExportUrl}?q=${encodeURIComponent(searchValue)}` : baseExportUrl;
+            $('#export-button').attr('href', newUrl)
+
             onInit( { q: this.value });
         }, 250));
     });

@@ -110,7 +110,7 @@
                         <td class='border px-3 py-2 text-left text-xs'>
                             <div class="flex justify-center relative w-full h-full">
                                 <p
-                                    class="runcate text-center {{ !empty($attendance['is_holiday']) ? 'text-red-500' : 'text-gray-500' }} ">
+                                    class="runcate text-center {{!empty($attendance['be_one_shift']) ? 'font-bold': ''}} {{ !empty($attendance['is_holiday']) ? 'text-red-500' : 'text-gray-500' }} ">
                                     {{ $attendance['value_string'] }}
                                 </p>
                             </div>

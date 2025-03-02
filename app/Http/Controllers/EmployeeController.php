@@ -553,7 +553,7 @@ class EmployeeController extends Controller
     }
     public function employeeExport(Request $request)
     {
-        return Excel::download(new EmployeeExport($this->apiService), 'employee-export.csv', \Maatwebsite\Excel\Excel::CSV);
+        return Excel::download(new EmployeeExport($this->apiService, $request), 'employee-export.csv', \Maatwebsite\Excel\Excel::CSV);
     }
 
 
@@ -618,7 +618,7 @@ class EmployeeController extends Controller
                             }
     
                         } else {
-                            $key = array_search($value['emp_code'], array_column($employees, 'emp_code'));
+                            $key = array_search($value['emp_id'], array_column($employees, 'id'));
                             $keydept = array_search($value['department'], array_column($depts, 'dept_code'));
                             if ($key == '') {
                                 // ** Add employee for biotime 
@@ -631,7 +631,8 @@ class EmployeeController extends Controller
                                         "address" => $value['address'],
                                         "city" => $value['city'],
                                         "gender" => $value['gender'],
-                                        "area" => is_array(json_decode($value['area'])) ? json_decode($value['area']) : [json_decode($value['area'])],
+                                        "area" => !empty($value['area']) ? explode(',', $value['area']) : [],
+                                        // "area" => is_array(json_decode($value['area'])) ? json_decode($value['area']) : [json_decode($value['area'])],
                                         "department" => $depts[$keydept] ? $depts[$keydept]['id'] : $value['department'],
                                         "daily_salary" => $value['daily_salary'],
                                         "payment_period" => $value['payment_period'],
@@ -668,6 +669,21 @@ class EmployeeController extends Controller
                             } else {
                                 // ** Add employee for local if not exist 
                                 $emp_exist = $employees[$key];
+                                $res = $this->apiService->update_employee(
+                                    [
+                                        "id" => $emp_exist['id'],
+                                        "emp_code" => $value['emp_code'],
+                                        "first_name" => trim($value['first_name']),
+                                        "last_name" => trim($value['last_name']),
+                                        "emp_type" => $value['emp_type'],
+                                        "address" => $value['address'],
+                                        "city" => $value['city'],
+                                        "gender" => $value['gender'],
+                                        "area" => !empty($value['area']) ? explode(',', $value['area']) : [],
+                                        "department" => $depts[$keydept] ? $depts[$keydept]['id'] : $value['department'],
+                                    ]
+                                );
+
                                 Employee::updateOrCreate(["emp_id" => $emp_exist['id']], [
                                     'business_id' => $business_id,
                                     'emp_id' => $emp_exist['id'],

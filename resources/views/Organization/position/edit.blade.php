@@ -76,6 +76,30 @@
                         <section>
                             <div class="flex items-start gap-2.5">
                                 <span class="pt-0.5">
+                                    {!! FormCustom::checkbox('enable_extra_break_time', -1, ['checked' => $position['enable_extra_break_time']]) !!}
+                                </span>
+                                <div class="flex flex-col gap-px">
+                                    <p class="font-medium text-sm text-gray-700">Istirahat tambahan</p>
+                                    <p class="font-normal text-sm text-gray-500">
+                                        Atur upah waktu istirahat tambahan
+                                    </p>
+                                </div>
+                            </div>
+                        </section>
+                        <div id="extra-break-time-content" class="{{ !$position['enable_extra_break_time'] ? 'hidden' : '' }}">
+                            <section class="flex flex-col gap-1 pl-[26px]">
+                                {!! FormCustom::input('extra_break_time', $position['extra_break_time'], [
+                                    'prefixtext' => 'Mnt',
+                                    'placeholder' => 'Masukkan istirahat tambahan',
+                                    'class' => 'number',
+                                ]) !!}
+                            </section>
+                        </div>
+                    </div>
+                    <div class="flex flex-col gap-2">
+                        <section>
+                            <div class="flex items-start gap-2.5">
+                                <span class="pt-0.5">
                                     {!! FormCustom::checkbox('extra_pay_check', -1, ['checked' => $position['extra_pay_check']]) !!}
                                 </span>
                                 <div class="flex flex-col gap-px">

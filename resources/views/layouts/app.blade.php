@@ -581,6 +581,34 @@ hover:bg-gray-50
                         </a>
                         @endcan
                         @can('attendance-operational.view')
+                        <a href="{{ route('working-report.index') }}" class="flex items-center justify-between p-2.5 rounded-lg w-full hover:underline hover:decoration-gray-500 
+                                    @activemenu('working-report')
+bg-gray-100 active
+@else
+hover:bg-gray-50
+@endactivemenu">
+                            <div class="flex items-center gap-2.5">
+                                <div class="space-sub-menu w-5"></div>
+                                <p class="text-sub-menu text-sm font-medium text-gray-600">
+                                    Absensi tidak disiplin</p>
+                            </div>
+                        </a>
+                        @endcan
+                        @can('attendance-operational.view')
+                        <a href="{{ route('break-time-report.index') }}" class="flex items-center justify-between p-2.5 rounded-lg w-full hover:underline hover:decoration-gray-500 
+                                    @activemenu('break-time-report')
+bg-gray-100 active
+@else
+hover:bg-gray-50
+@endactivemenu">
+                            <div class="flex items-center gap-2.5">
+                                <div class="space-sub-menu w-5"></div>
+                                <p class="text-sub-menu text-sm font-medium text-gray-600">
+                                    Istirahat tidak disiplin</p>
+                            </div>
+                        </a>
+                        @endcan
+                        @can('attendance-operational.view')
                         <a href="{{ route('attendance-operational.index') }}" class="flex items-center justify-between p-2.5 rounded-lg w-full hover:underline hover:decoration-gray-500 
                                     @activemenu('attendance-operational')
 bg-gray-100 active

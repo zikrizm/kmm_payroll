@@ -16,6 +16,12 @@ use Illuminate\Support\Facades\Route;
 */
 
 Auth::routes();
+// Route::get('/test', function () {
+//     $pgsqlPosts = DB::connection('pgsql')->select('SELECT * FROM personnel_employee');
+//     return response()->json([
+//         'pgsql' => $pgsqlPosts,
+//     ]);
+// });
 // * Home
 Route::get('/', 'HomeController@index')->name('home.index');
 // * Businness register
@@ -109,8 +115,12 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/salary-archive/re-calculate', 'SalaryArchiveController@get_re_calculate')->name('salary-archive.get-re-calculate');
     Route::post('/salary-archive/re-calculate', 'SalaryArchiveController@save_re_calculate')->name('salary-archive.save-re-calculate');
     Route::get('/salary-archive/{id}', 'SalaryArchiveController@show')->name('salary-archive.show');
+    // * break-time-report
+    Route::resource('break-time-report', 'BreakTimeReportController', ['except' => ['update', 'show', 'create', 'store']]);
+    // * working-report
+    Route::resource('working-report', 'WorkingReportController', ['except' => ['update', 'show', 'create', 'store']]);
     // * attendance-report
-Route::resource('attendance-report', 'AttendanceReportController', ['except' => ['update', 'show']]);
+    Route::resource('attendance-report', 'AttendanceReportController', ['except' => ['update', 'show']]);
     // * attendance-card
     Route::resource('attendance-card', 'AttendanceReportCardController', ['except' => ['update', 'show']]);
     // * attendance-operational
@@ -150,6 +160,7 @@ Route::resource('attendance-report', 'AttendanceReportController', ['except' => 
     Route::prefix('/print')->group(function () {
         Route::get('/payroll-report', 'PrintReportContoller@print_payroll_report')->name('print.payroll_report');
         Route::get('/card-report', 'PrintReportContoller@print_card_report')->name('print.card_report');
+        Route::get('/card-working-report', 'PrintReportContoller@print_card_working_report')->name('print.card_working_report');
         Route::get('/card-attendance', 'PrintReportContoller@print_card_attendance')->name('print.card_attendance');
         Route::get('/card-attendance-operational', 'PrintReportContoller@print_card_attendance_operational')->name('print.card_attendance');
     });

@@ -93,7 +93,7 @@
                 </td>
                 <td class='px-3 py text-gray-500 text-sm'>
                     @forelse ($item->timetable_has_break_time as $key => $itemhas)
-                    {{ $itemhas->break_time->name }}@if(( $item->timetable_has_break_time->count()-1) != $key),@endif
+                    {{ $itemhas->break_time->name }} (- {{ $itemhas->break_time->duration }} Menit) @if(( $item->timetable_has_break_time->count()-1) != $key),@endif
                     @empty
                     -
                     @endforelse

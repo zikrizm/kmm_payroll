@@ -29,8 +29,7 @@
             <main class="px-4 flex flex-col gap-4 mb-8">
                 <section class="flex flex-col gap-1">
                     <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Nama jadwal*</label>
-                    {!! FormCustom::input('name', null, [ "placeholder" => 'Masukkan nama jadwal anda yang baru'])
-                    !!}
+                    {!! FormCustom::input('name', null, ['placeholder' => 'Masukkan nama jadwal anda yang baru']) !!}
                 </section>
                 <ul class="flex border-b mb-4">
                     <li>
@@ -53,34 +52,53 @@
                     </li>
                 </ul>
                 <div class="flex flex-col gap-2.5" id="basic-settings-content">
-                    <div class="flex items-start gap-3 w-full">
+                    <div class="flex gap-3 w-full">
                         <div class="flex items-center gap-1 flex-col flex-1">
                             <div class="flex flex-col gap-1 w-full">
                                 <label class="text-sm font-normal text-gray-500">Masuk*</label>
-                                {!! FormCustom::input('check_in', '00:00:00', [ "placeholder" => '-', 'type' => 'time'])
-                                !!}
+                                {!! FormCustom::input('check_in', '00:00:00', ['placeholder' => '-', 'type' => 'time']) !!}
                             </div>
                             <div class="flex flex-col gap-1 w-full">
-                                <label class="text-sm font-normal text-gray-500">Batas ± (60 menit)*</label>
-                                {!! FormCustom::input('check_in_plusmn', null, [ "placeholder" => '-',
-                                'prefixiconname' => 'plus-minus','class' => 'plus-minus' ])
-                                !!}
+                                <label class="text-sm font-normal text-gray-500">Batas Min*</label>
+                                {!! FormCustom::input('check_in_min', null, [
+                                    'placeholder' => '-',
+                                    'prefixiconname' => 'minus',
+                                    'class' => 'plus-minus',
+                                ]) !!}
+                            </div>
+                            <div class="flex flex-col gap-1 w-full">
+                                <label class="text-sm font-normal text-gray-500">Batas Max*</label>
+                                {!! FormCustom::input('check_in_plus', null, [
+                                    'placeholder' => '-',
+                                    'prefixiconname' => 'plus',
+                                    'class' => 'plus-minus',
+                                ]) !!}
                             </div>
                         </div>
+                        <div class="w-1 bg-gray-300" style="width: 2px; "></div>
                         <div class="flex items-center gap-1 flex-col flex-1">
                             <div class="flex flex-col gap-1 w-full">
                                 <label class="text-sm font-normal text-gray-500">Keluar*</label>
-                                {!! FormCustom::input('check_out', '00:00:00', [ "placeholder" => '-', 'type' =>
-                                'time'])
-                                !!}
+                                {!! FormCustom::input('check_out', '00:00:00', ['placeholder' => '-', 'type' => 'time']) !!}
                             </div>
                             <div class="flex flex-col gap-1 w-full">
-                                <label class="text-sm font-normal text-gray-500">Batas ± (60 menit)*</label>
-                                {!! FormCustom::input('check_out_plusmn', null, [ "placeholder" => '-',
-                                'prefixiconname' => 'plus-minus','class' => 'plus-minus' ])
-                                !!}
+                                <label class="text-sm font-normal text-gray-500">Batas Min*</label>
+                                {!! FormCustom::input('check_out_min', null, [
+                                    'placeholder' => '-',
+                                    'prefixiconname' => 'minus',
+                                    'class' => 'plus-minus',
+                                ]) !!}
+                            </div>
+                            <div class="flex flex-col gap-1 w-full">
+                                <label class="text-sm font-normal text-gray-500">Batas Max*</label>
+                                {!! FormCustom::input('check_out_plus', null, [
+                                    'placeholder' => '-',
+                                    'prefixiconname' => 'plus',
+                                    'class' => 'plus-minus',
+                                ]) !!}
                             </div>
                         </div>
+                        <div class="w-1 bg-gray-300" style="width: 2px; "></div>
                         <section class="flex flex-col gap-1 flex-1">
                             <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Beda Hari*</label>
                             <select class="select2" name="cross_day">
@@ -106,33 +124,18 @@
                         <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Jam istirahat</label>
                         <select class="select2-break-time" name="break_times[]" multiple="multiple">
                             @foreach ($break_times as $item)
-                            <option value="{{ $item->id }}" title="{{ $item }}">
-                                {{ $item->name }}
-                            </option>
+                                <option value="{{ $item->id }}" title="{{ $item }}">
+                                    {{ $item->name }} ({{ $item->duration }} Menit)
+                                </option>
                             @endforeach
                         </select>
                         <label class="font-normal text-xs text-red-500 xs/max:text-xs break_times hint-text"></label>
                     </section>
-                    <div id="is-without-break-content" class="{{ empty($timetable_has_break_times) ? 'hidden': '' }}">
+                    <div id="is-without-break-content" class="{{ empty($timetable_has_break_times) ? 'hidden' : '' }}">
                         <section>
                             <div class="flex items-start gap-2.5">
                                 <span class="pt-0.5">
                                     {!! FormCustom::checkbox('is_without_break', true) !!}
-                                </span>
-                                <div class="flex flex-col gap-px">
-                                    <p class="font-medium text-sm text-gray-700">Bisa tanpa istirahat</p>
-                                    <p class="font-normal text-sm text-gray-500">
-                                        Karyawan di perbolehkan untuk tidak istirahat
-                                    </p>
-                                </div>
-                            </div>
-                        </section>
-                    </div>
-                    <div id="is-without-break-content" class="hidden">
-                        <section>
-                            <div class="flex items-start gap-2.5">
-                                <span class="pt-0.5">
-                                    {!! FormCustom::checkbox('is_without_break', -1) !!}
                                 </span>
                                 <div class="flex flex-col gap-px">
                                     <p class="font-medium text-sm text-gray-700">Bisa tanpa istirahat</p>
@@ -163,19 +166,35 @@
                             <div class="flex-1 flex flex-col gap-1">
                                 <label class="text-sm font-normal text-gray-500 flex items-center gap-1">Durasi min
                                     pembulatan 1 jam <span class="text-xs"> (menit)</span>*</label>
-                                {!! FormCustom::input('ot_roundone_hr', '40',
-                                [ "placeholder" => 'Masukkan durasi','class'=> 'plus-minus']) !!}
+                                {!! FormCustom::input('ot_roundone_hr', '40', ['placeholder' => 'Masukkan durasi', 'class' => 'plus-minus']) !!}
                             </div>
                             <div class="flex-1 flex flex-col gap-1">
                                 <label class="text-sm font-normal text-gray-500 flex items-center gap-1">Durasi min
                                     pembulatan 1/2 jam <span class="text-xs"> (menit)</span>*</label>
-                                {!! FormCustom::input('ot_roundhalf_hr', '20',
-                                [ "placeholder" => 'Masukkan durasi','class'=> 'plus-minus']) !!}
+                                {!! FormCustom::input('ot_roundhalf_hr', '20', ['placeholder' => 'Masukkan durasi', 'class' => 'plus-minus']) !!}
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="flex flex-col gap-2.5 hidden" id="overtime-rule-content">
+                    <section class="flex flex-col gap-1 flex-1">
+                        <div class="flex items-center gap-2">
+                            {!! FormCustom::checkbox('enable_extra_pay', true) !!}
+                            <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Upah Tambahan</label>
+                        </div>
+                        <label class="font-normal text-xs text-red-500 xs/max:text-xs cross_day hint-text"></label>
+                    </section>
+                    <div id="extra-pay-content" class="hidden">
+                        <section class="flex flex-col gap-1 flex-2">
+                            <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Nominal Upah
+                                Tambahan</label>
+                            {!! FormCustom::input('extra_break_pay', null, [
+                                'prefixtext' => 'Rp',
+                                'placeholder' => 'Masukkan upah tambahan',
+                                'class' => 'number',
+                            ]) !!}
+                        </section>
+                    </div>
                     <section class="flex flex-col gap-1 flex-1">
                         <div class="flex items-center gap-2">
                             {!! FormCustom::checkbox('is_ot', true) !!}
@@ -188,28 +207,35 @@
                             <section class="flex items-start gap-3">
                                 <div class="flex-1 flex flex-col gap-1">
                                     <label class="text-sm font-normal text-gray-500">Durasi Menit*</label>
-                                    {!! FormCustom::input('ot_period', null, [ "placeholder" => 'Masukkan
-                                    durasi','type'=>
-                                    'number']) !!}
+                                    {!! FormCustom::input('ot_period', null, [
+                                        'placeholder' => 'Masukkan durasi',
+                                        'type' => 'number',
+                                    ]) !!}
                                 </div>
                                 <div class="flex-2 flex flex-col gap-1">
                                     <label class="text-sm font-normal text-gray-500">Upah lembur*</label>
-                                    {!! FormCustom::input('ot_pay', null, ['class' => 'number', "placeholder" =>
-                                    'Masukkan upah lembur',
-                                    'prefixtext' => 'Rp']) !!}
+                                    {!! FormCustom::input('ot_pay', null, [
+                                        'class' => 'number',
+                                        'placeholder' => 'Masukkan upah lembur',
+                                        'prefixtext' => 'Rp',
+                                    ]) !!}
                                 </div>
                             </section>
                             <section class="flex flex-col gap-1">
                                 <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Durasi jam lembur
                                     dikonversikan jadi 1 shift*</label>
-                                {!! FormCustom::input('duration_count_one_shift', null,
-                                [ "placeholder" => 'Masukkan durasi waktu (jam)', 'type'=> 'number']) !!}
+                                {!! FormCustom::input('duration_count_one_shift', null, [
+                                    'placeholder' => 'Masukkan durasi waktu (jam)',
+                                    'type' => 'number',
+                                ]) !!}
                             </section>
                             <section class="flex flex-col gap-1">
                                 <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Batas maksimal
                                     lembur*</label>
-                                {!! FormCustom::input('duration_ot_limit', null,
-                                [ "placeholder" => 'Masukkan batas durasi lembur', 'type'=> 'number']) !!}
+                                {!! FormCustom::input('duration_ot_limit', null, [
+                                    'placeholder' => 'Masukkan batas durasi lembur',
+                                    'type' => 'number',
+                                ]) !!}
                             </section>
                         </div>
                     </div>
@@ -224,8 +250,10 @@
                         <section class="flex flex-col gap-1">
                             <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Durasi jam nasi
                                 lembur*</label>
-                            {!! FormCustom::input('duration_rice_shift', null,
-                            [ "placeholder" => 'Masukkan durasi waktu (jam)', 'type'=> 'number']) !!}
+                            {!! FormCustom::input('duration_rice_shift', null, [
+                                'placeholder' => 'Masukkan durasi waktu (jam)',
+                                'type' => 'number',
+                            ]) !!}
                         </section>
                     </div>
                 </div>

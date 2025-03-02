@@ -18,8 +18,8 @@ return new class extends Migration
             $table->integer('business_id')->unsigned();
             $table->foreign('business_id')->references('id')->on('business')->onDelete('cascade');
             $table->string('name');
-            $table->time('start_time');
-            $table->time('end_time');
+            $table->time('start_time')->nullable();
+            $table->time('end_time')->nullable();
             $table->integer('duration');
             $table->string('duplicate_punch_policy')->nullable();
             $table->integer('duplicate_punch_period')->nullable();

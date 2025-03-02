@@ -73,6 +73,9 @@
             $('input[name="extra_pay_check"]').on('change', function(e) {
                 $('#extra-pay-content').toggle('hidden');
             })
+            $('input[name="enable_extra_break_time"]').on('change', function(e) {
+                $('#extra-break-time-content').toggle('hidden');
+            })
 
             $('#add-info').on('click', function(e) {
                 $('.add-info-icon').toggleClass('rotate-180');

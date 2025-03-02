@@ -13,14 +13,14 @@
                         </div>
                     </div>
                 </th>
-                <th class='px-3  py-3 text-left cursor-pointer'>
+                {{-- <th class='px-3  py-3 text-left cursor-pointer'>
                     <x-ui.sort-table text="Start time" url="{{ route('break-time.index') }}" field="start_time"
                         order="{{ $order }}" />
                 </th>
                 <th class='px-3  py-3 text-left cursor-pointer'>
                     <x-ui.sort-table text="End time" url="{{ route('break-time.index') }}" field="end_time"
                         order="{{ $order }}" />
-                </th>
+                </th> --}}
                 <th class='px-3  py-3 text-left cursor-pointer'>
                     <x-ui.sort-table text="Duration" url="{{ route('break-time.index') }}" field="duration"
                         order="{{ $order }}" />
@@ -46,7 +46,7 @@
                         </div>
                     </div>
                 </td>
-                <td class='px-3 py text-gray-500 text-sm'>
+                {{-- <td class='px-3 py text-gray-500 text-sm'>
                     <div class="flex items-center gap-2">
                         <x-icon icon="clock" width=18 height=18 viewBox="20 20" />
                         <p class="truncate">
@@ -61,9 +61,9 @@
                             {{ date('H:i', strtotime($item->end_time)); }}
                         </p>
                     </div>
-                </td>
+                </td> --}}
                 <td class='px-3 py text-gray-500 text-sm'>
-                    {{ $item->duration }}
+                    {{ $item->duration }} Menit
                 </td>
                 @canany(['break-time.update', 'break-time.delete'])
                 <td class='px-3 py'>

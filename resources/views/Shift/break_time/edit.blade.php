@@ -16,7 +16,7 @@
                         <x-icon icon="clock" width=18 height=18 viewBox="20 20" />
                     </div>
                     <div>
-                        <p class="text-xl font-semibold text-gray-900">Break-time
+                        <p class="text-xl font-semibold text-gray-900">Istirahat
                         </p>
                         <p class="text-sm font-normal text-gray-500 xs/max:text-xs">
                             Please provide the break time's detail.
@@ -34,7 +34,7 @@
                     name'])
                     !!}
                 </section>
-                <div>
+                {{-- <div>
                     <p class="text-lg font-medium text-gray-900
                     xs/max:font-semibold">Basic settings
                     </p>
@@ -42,8 +42,8 @@
                         Please complete this data.
                     </p>
                 </div>
-                <hr>
-                <div class="flex items-center gap-3">
+                <hr> --}}
+                {{-- <div class="flex items-center gap-3">
                     <div class="flex-1 flex flex-col gap-1 flex-1">
                         <label class="text-sm font-normal text-gray-500">Start*</label>
                         {!! FormCustom::input('start_time', $break_time->start_time, [ "placeholder" => '-', 'type' =>
@@ -54,7 +54,7 @@
                         {!! FormCustom::input('end_time', $break_time->end_time, [ "placeholder" => '-', 'type' =>
                         'time']) !!}
                     </div>
-                </div>
+                </div> --}}
                 <div class="flex items-center gap-3">
                     <section class="flex flex-col gap-1 flex-1">
                         <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Duration*</label>

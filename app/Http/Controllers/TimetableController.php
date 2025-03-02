@@ -62,7 +62,7 @@ class TimetableController extends Controller
                     $timetables->orderBy($sort['name'], $sort['order']);
                 }
                 $timetables = $timetables->paginate(10);
-                $render =  view('Shift.timetable.table', compact('timetables', 'order'))->render();
+                $render = view('Shift.timetable.table', compact('timetables', 'order'))->render();
 
                 return $this->buildRes->RESPONSE_REQ('success', $render, null);
             }
@@ -119,8 +119,12 @@ class TimetableController extends Controller
             } else {
                 $business_id = Session::get('business_id');
                 $timetable_data = $request->only([
-                    'name', 'check_in',  'check_out', 'check_in_plusmn', 'check_out_plusmn', 'cross_day', 'is_ot_rounding', 'ot_roundone_hr', 'ot_roundhalf_hr', 'break_times', 'is_without_break',
-                    'is_ot', 'ot_period', 'ot_pay', 'duration_count_one_shift', 'duration_ot_limit', 'is_ot_rice', 'duration_rice_shift'
+                    'name', 'check_in',  'check_out',
+                    'check_in_plus', 'check_in_min',
+                    'check_out_plus','check_out_min',
+                    'cross_day', 'is_ot_rounding', 'ot_roundone_hr', 'ot_roundhalf_hr', 'break_times', 'is_without_break',
+                    'is_ot', 'ot_period', 'ot_pay', 'duration_count_one_shift', 'duration_ot_limit', 'is_ot_rice', 'duration_rice_shift',
+                    'enable_extra_pay','extra_pay', 
                 ]);
                 $timetable_data['business_id'] = $business_id;
                 $check_in = Carbon::parse($timetable_data['check_in']);
@@ -137,6 +141,12 @@ class TimetableController extends Controller
                     $timetable_data['ot_roundone_hr'] = null;
                     $timetable_data['ot_roundhalf_hr'] = null;
                 }
+                if (!empty($request->input('enable_extra_pay'))) {
+                    $timetable_data['extra_pay'] = str_replace('.', '', $timetable_data['extra_pay']);
+                }else {
+                    $timetable_data['enable_extra_pay'] = 0;
+                    $timetable_data['extra_pay'] = null;
+                }
                 if (!empty($request->input('is_ot'))) {
                     $timetable_data['ot_pay'] = str_replace('.', '', $timetable_data['ot_pay']);
                 } else {
@@ -151,6 +161,17 @@ class TimetableController extends Controller
                 if (empty($request->input('break_times'))) {
                     $timetable_data['is_without_break'] = 0;
                 }
+
+                if (!empty($request->input('break_times'))) {
+                    // * Insert timetable has breaktime.
+                    foreach ($timetable_data['break_times']  as $item) {
+                        $break_time = BreakTime::find($item);
+                        if(!empty($break_time)) {
+                            $timetable_data['work_time'] -= $break_time->duration;
+                        }
+                    }
+                }
+
                 $timetable = new Timetable($timetable_data);
                 $timetable->save();
 
@@ -164,6 +185,8 @@ class TimetableController extends Controller
                         ];
                         $timetable_has_break_time = new TimetableHasBreakTime($timetable_has_break_time_data);
                         $timetable_has_break_time->save();
+
+                        
                     }
                 }
 
@@ -241,8 +264,12 @@ class TimetableController extends Controller
             } else {
                 $business_id = Session::get('business_id');
                 $timetable_data = $request->only([
-                    'name', 'check_in',  'check_out', 'check_in_plusmn', 'check_out_plusmn', 'cross_day', 'is_ot_rounding', 'ot_roundone_hr', 'ot_roundhalf_hr', 'break_times', 'is_without_break',
-                    'is_ot', 'ot_period', 'ot_pay', 'duration_count_one_shift', 'duration_ot_limit', 'is_ot_rice', 'duration_rice_shift'
+                    'name', 'check_in',  'check_out',
+                    'check_in_plus', 'check_in_min',
+                    'check_out_plus','check_out_min',
+                    'cross_day', 'is_ot_rounding', 'ot_roundone_hr', 'ot_roundhalf_hr', 'break_times', 'is_without_break',
+                    'is_ot', 'ot_period', 'ot_pay', 'duration_count_one_shift', 'duration_ot_limit', 'is_ot_rice', 'duration_rice_shift',
+                    'enable_extra_pay','extra_pay', 
                 ]);
                 $timetable_data['business_id'] = $business_id;
                 $check_in = Carbon::parse($timetable_data['check_in']);
@@ -258,6 +285,12 @@ class TimetableController extends Controller
                 } else {
                     $timetable_data['ot_roundone_hr'] = null;
                     $timetable_data['ot_roundhalf_hr'] = null;
+                }
+                if (!empty($request->input('enable_extra_pay'))) {
+                    $timetable_data['extra_pay'] = str_replace('.', '', $timetable_data['extra_pay']);
+                }else {
+                    $timetable_data['enable_extra_pay'] = 0;
+                    $timetable_data['extra_pay'] = null;
                 }
                 if (!empty($request->input('is_ot'))) {
                     $timetable_data['ot_pay'] = str_replace('.', '', $timetable_data['ot_pay']);
@@ -276,6 +309,17 @@ class TimetableController extends Controller
                 if(empty($timetable_data['is_without_break'])) {
                     $timetable_data['is_without_break'] = 0;
                 }
+
+                if (!empty($request->input('break_times'))) {
+                    // * Insert timetable has breaktime.
+                    foreach ($timetable_data['break_times']  as $item) {
+                        $break_time = BreakTime::find($item);
+                        if(!empty($break_time)) {
+                            $timetable_data['work_time'] -= $break_time->duration;
+                        }
+                    }
+                }
+                
                 $timetable->update($timetable_data);
 
                 // * Remove all timetable has breaktime.
@@ -361,8 +405,10 @@ class TimetableController extends Controller
             'name' => 'required|string|max:255',
             'check_in' => 'required',
             'check_out' => 'required',
-            'check_in_plusmn' => 'required',
-            'check_out_plusmn' => 'required',
+            'check_in_plus' => 'required',
+            'check_in_min' => 'required',
+            'check_out_plus' => 'required',
+            'check_out_min' => 'required',
             'is_ot' => 'nullable',
             'is_ot_rice' => 'nullable',
             'ot_period' => ['nullable', new RequiredIf(request()->get('is_ot') == true), 'numeric', 'max:60'],

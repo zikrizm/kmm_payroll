@@ -180,7 +180,7 @@
                     </div>
                     <div class="flex items-start gap-4">
                         <section class="flex flex-col gap-1 flex-2">
-                            <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Gaji karyawan
+                            <label class="font-normatl text-sm text-gray-500 xs/max:text-xs">Gaji karyawan
                                 (per-shift)*</label>
                             {!! FormCustom::input('daily_salary', null, [
                             'prefixtext' => 'Rp',

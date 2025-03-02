@@ -110,7 +110,7 @@ class BreakTimeController extends Controller
             if ($validator->fails()) {
                 return $this->buildRes->RESPONSE_REQ('error', null, $validator->errors());
             } else {
-                $break_time_data = $request->only(['name', 'start_time', 'end_time', 'duration']);
+                $break_time_data = $request->only(['name', 'duration']);
                 $break_time_data['business_id'] = Session::get('business_id');
 
                 $break_time = new BreakTime($break_time_data);
@@ -185,7 +185,7 @@ class BreakTimeController extends Controller
             if ($validator->fails()) {
                 return $this->buildRes->RESPONSE_REQ('error', null, $validator->errors());
             } else {
-                $break_time_data = $request->only(['name', 'start_time', 'end_time', 'duration']);
+                $break_time_data = $request->only(['name', 'duration']);
                 $break_time->update($break_time_data);
 
                 // ** create activity log user
@@ -251,8 +251,8 @@ class BreakTimeController extends Controller
     {
         return [
             'name' => (empty($break_time)) ?  'required|string|max:255|unique:break_times' : 'required|string|max:255|unique:break_times,name,' . $break_time->id,
-            'start_time' => 'required',
-            'end_time' => 'required|after:start_time',
+            // 'start_time' => 'required',
+            // 'end_time' => 'required|after:start_time',
             'duration' => 'required',
         ];
     }

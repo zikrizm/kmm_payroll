@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Jadwal')
+@section('title', 'Timetable')
 @section('css')
 <style></style>
 @endsection
@@ -87,6 +87,9 @@
 
             $('input[name="is_ot_rounding"]').on('change', function(e) {
                 $('#overtime-rounded-content').toggle('hidden');
+            })
+            $('input[name="enable_extra_pay"]').on('change', function(e) {
+                $('#extra-pay-content').toggle('hidden');
             })
             $('input[name="is_ot"]').on('change', function(e) {
                 $('#overtime-content').toggle('hidden');

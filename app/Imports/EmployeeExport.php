@@ -7,27 +7,35 @@ use App\Services\Api\ApiServices;
 use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Concerns\FromArray;
 use Maatwebsite\Excel\Concerns\WithHeadings;
-
+use Illuminate\Http\Request;
 
 class EmployeeExport implements FromArray, WithHeadings
 {
     protected $apiService;
+    protected $request;
 
-    function __construct(ApiServices $apiService)
+    function __construct(ApiServices $apiService, Request $request)
     {
         $this->apiService = $apiService;
+        $this->request = $request;
     }
 
     public function array(): array
     {
-        $employees = $this->apiService->get_employees(['page_size' => 9999]);
+        $filter = ['page_size' => 9999];
+
+        if ($this->request->has('q')) {
+            $filter['employee_icontains'] = $this->request->q;
+        }
+
+        $employees = $this->apiService->get_employees($filter);
         if (!empty($employees)) {
             $emp_ids = array_column($employees['data'], 'id');
             $employeedbs = Employee::whereIn('emp_id', $emp_ids)->get()->toArray();
 
             $datas = [];
             foreach ($employeedbs as  $item) {
-                $key = array_search($item['emp_code'], array_column($employees['data'], 'emp_code'));
+                $key = array_search($item['emp_id'], array_column($employees['data'], 'id'));
                 if ($key != '') {
                     $emp = $employees['data'][$key];
 
@@ -41,6 +49,7 @@ class EmployeeExport implements FromArray, WithHeadings
                     }
 
                     $datas[] = [
+                        'emp_id' => $emp['id'],
                         'emp_code' => $emp['emp_code'],
                         'first_name' => $emp['first_name'],
                         'last_name' => $emp['last_name'],
@@ -67,6 +76,7 @@ class EmployeeExport implements FromArray, WithHeadings
     public function headings(): array
     {
         return [
+            'emp_id',
             'emp_code',
             'first_name',
             'last_name',

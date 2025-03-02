@@ -30,9 +30,9 @@
             <main class="px-4 flex flex-col gap-4 mb-8">
                 <section class="flex flex-col gap-1">
                     <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Nama jadwal*</label>
-                    {!! FormCustom::input('name', $timetable->name, [ "placeholder" => 'Masukkan nama jadwal anda yang
-                    baru'])
-                    !!}
+                    {!! FormCustom::input('name', $timetable->name, [
+                        'placeholder' => 'Masukkan nama jadwal anda yang baru',
+                    ]) !!}
                 </section>
                 <ul class="flex border-b mb-4">
                     <li>
@@ -55,38 +55,79 @@
                     </li>
                 </ul>
                 <div class="flex flex-col gap-2.5" id="basic-settings-content">
-                    <div class="flex items-start gap-3 w-full">
+                    <div class="flex gap-3 w-full">
                         <div class="flex items-center gap-1 flex-col flex-1">
                             <div class="flex flex-col gap-1 w-full">
                                 <label class="text-sm font-normal text-gray-500">Masuk*</label>
-                                {!! FormCustom::input('check_in', $timetable->check_in, [ "placeholder" => '-', 'type'
-                                =>
-                                'time'])
-                                !!}
+                                {!! FormCustom::input('check_in', $timetable->check_in, ['placeholder' => '-', 'type' => 'time']) !!}
                             </div>
                             <div class="flex flex-col gap-1 w-full">
+                                <label class="text-sm font-normal text-gray-500">Batas Sebelum*</label>
+                                <div class="flex items-center gap-2">
+                                    {!! FormCustom::input('check_in_min', $timetable->check_in_min, [
+                                        'placeholder' => '-',
+                                        'prefixiconname' => 'minus',
+                                        'class' => 'plus-minus',
+                                    ]) !!}
+                                    <p class="text-sm font-normal text-gray-500">Menit</p>
+                                </div>
+                            </div>
+                            <div class="flex flex-col gap-1 w-full">
+                                <label class="text-sm font-normal text-gray-500">Batas Setelah*</label>
+                                <div class="flex items-center gap-2">
+                                    {!! FormCustom::input('check_in_plus', $timetable->check_in_plus, [
+                                        'placeholder' => '-',
+                                        'prefixiconname' => 'plus',
+                                        'class' => 'plus-minus',
+                                    ]) !!}
+                                    <p class="text-sm font-normal text-gray-500">Menit</p>
+                                </div>
+                            </div>
+                            {{-- <div class="flex flex-col gap-1 w-full">
                                 <label class="text-sm font-normal text-gray-500">Batas ± (60 menit)*</label>
                                 {!! FormCustom::input('check_in_plusmn', $timetable->check_in_plusmn, [
                                 "placeholder" => '-',
                                 'prefixiconname' => 'plus-minus','class' => 'plus-minus' ])
                                 !!}
-                            </div>
+                            </div> --}}
                         </div>
+                        <div class="w-1 bg-gray-300" style="width: 2px;"></div>
                         <div class="flex items-center gap-1 flex-col flex-1">
                             <div class="flex flex-col gap-1 w-full">
                                 <label class="text-sm font-normal text-gray-500">Keluar*</label>
-                                {!! FormCustom::input('check_out', $timetable->check_out, [ "placeholder" => '-', 'type'
-                                => 'time'])
-                                !!}
+                                {!! FormCustom::input('check_out', $timetable->check_out, ['placeholder' => '-', 'type' => 'time']) !!}
                             </div>
                             <div class="flex flex-col gap-1 w-full">
+                                <label class="text-sm font-normal text-gray-500">Batas Sebelum*</label>
+                                <div class="flex items-center gap-2">
+                                    {!! FormCustom::input('check_out_min', $timetable->check_out_min, [
+                                        'placeholder' => '-',
+                                        'prefixiconname' => 'minus',
+                                        'class' => 'plus-minus',
+                                    ]) !!}
+                                    <p class="text-sm font-normal text-gray-500">Menit</p>
+                                </div>
+                            </div>
+                            <div class="flex flex-col gap-1 w-full">
+                                <label class="text-sm font-normal text-gray-500">Batas Setelah*</label>
+                                <div class="flex items-center gap-2">
+                                    {!! FormCustom::input('check_out_plus', $timetable->check_out_plus, [
+                                        'placeholder' => '-',
+                                        'prefixiconname' => 'plus',
+                                        'class' => 'plus-minus',
+                                    ]) !!}
+                                    <p class="text-sm font-normal text-gray-500">Menit</p>
+                                </div>
+                            </div>
+                            {{-- <div class="flex flex-col gap-1 w-full">
                                 <label class="text-sm font-normal text-gray-500">Batas ± (60 menit)*</label>
                                 {!! FormCustom::input('check_out_plusmn', $timetable->check_out_plusmn, [
                                 "placeholder" => '-',
                                 'prefixiconname' => 'plus-minus','class' => 'plus-minus' ])
                                 !!}
-                            </div>
+                            </div> --}}
                         </div>
+                        <div class="w-1 bg-gray-300" style="width: 2px;"></div>
                         <section class="flex flex-col gap-1 flex-1">
                             <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Beda Hari*</label>
                             <select class="select2" name="cross_day">
@@ -112,31 +153,33 @@
                         <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Jam Istirahat</label>
                         <select class="select2-break-time" name="break_times[]" multiple="multiple">
                             @foreach ($break_times as $item)
-                            @forelse ($timetable_has_break_times as $itemHas)
-                            @if ($itemHas->break_time->id == $item->id)
-                            <option value="{{ $itemHas->break_time->id}}" title="{{ $itemHas->break_time }}" selected>
-                                {{ $itemHas->break_time->name }}
-                            </option>
-                            @else
-                            <option value="{{ $item->id}}" title="{{ $item }}">
-                                {{ $item->name }}
-                            </option>
-                            @endif
-                            @empty
-                            <option value="{{ $item->id}}" title="{{ $item }}">
-                                {{ $item->name }}
-                            </option>
-                            @endforelse
+                                @forelse ($timetable_has_break_times as $itemHas)
+                                    @if ($itemHas->break_time->id == $item->id)
+                                        <option value="{{ $itemHas->break_time->id }}"
+                                            title="{{ $itemHas->break_time }}" selected>
+                                            {{ $itemHas->break_time->name }} ({{ $itemHas->break_time->duration }}
+                                            Menit)
+                                        </option>
+                                    @else
+                                        <option value="{{ $item->id }}" title="{{ $item }}">
+                                            {{ $item->name }} ({{ $item->duration }} Menit)
+                                        </option>
+                                    @endif
+                                @empty
+                                    <option value="{{ $item->id }}" title="{{ $item }}">
+                                        {{ $item->name }} ({{ $item->duration }} Menit)
+                                    </option>
+                                @endforelse
                             @endforeach
                         </select>
                         <label class="font-normal text-xs text-red-500 xs/max:text-xs break_times hint-text"></label>
                     </section>
-                    <div id="is-without-break-content" class="{{ empty($timetable_has_break_times) || count($timetable_has_break_times) == 0 ? 'hidden': '' }}">
+                    <div id="is-without-break-content"
+                        class="{{ empty($timetable_has_break_times) || count($timetable_has_break_times) == 0 ? 'hidden' : '' }}">
                         <section>
                             <div class="flex items-start gap-2.5">
                                 <span class="pt-0.5">
-                                    {!! FormCustom::checkbox('is_without_break', true, ['checked'=>
-                                    $timetable->is_without_break]) !!}
+                                    {!! FormCustom::checkbox('is_without_break', true, ['checked' => $timetable->is_without_break]) !!}
                                 </span>
                                 <div class="flex flex-col gap-px">
                                     <p class="font-medium text-sm text-gray-700">Bisa tanpa istirahat</p>
@@ -152,25 +195,30 @@
                 <div class="flex flex-col gap-4 hidden" id="break-time-settings-content">
                     <section class="flex flex-col gap-1 flex-1">
                         <div class="flex items-center gap-2">
-                            {!! FormCustom::checkbox('is_ot_rounding', -1, ['checked' =>
-                            ($timetable->ot_roundone_hr || $timetable->ot_roundhalf_hr)]) !!}
+                            {!! FormCustom::checkbox('is_ot_rounding', -1, [
+                                'checked' => $timetable->ot_roundone_hr || $timetable->ot_roundhalf_hr,
+                            ]) !!}
                             <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Pembulatan</label>
                         </div>
                     </section>
                     <div id="overtime-rounded-content"
-                        class="{{ ($timetable->ot_roundone_hr || $timetable->ot_roundhalf_hr)? '': 'hidden' }}">
+                        class="{{ $timetable->ot_roundone_hr || $timetable->ot_roundhalf_hr ? '' : 'hidden' }}">
                         <div class="flex flex-col gap-4">
                             <div class="flex-1 flex flex-col gap-1">
                                 <label class="text-sm font-normal text-gray-500 flex items-center gap-1">Durasi minimal
                                     Pembulatan 1 jam <span class="text-xs"> (menit)</span>*</label>
                                 {!! FormCustom::input('ot_roundone_hr', $timetable->ot_roundone_hr, [
-                                "placeholder" => 'Masukkan durasi','type' => 'number']) !!}
+                                    'placeholder' => 'Masukkan durasi',
+                                    'type' => 'number',
+                                ]) !!}
                             </div>
                             <div class="flex-1 flex flex-col gap-1">
                                 <label class="text-sm font-normal text-gray-500 flex items-center gap-1">Durasi minimal
                                     Pembulatan 1/2 jam <span class="text-xs"> (menit)</span>*</label>
                                 {!! FormCustom::input('ot_roundhalf_hr', $timetable->ot_roundhalf_hr, [
-                                "placeholder" => 'Masukkan durasi','type' => 'number']) !!}
+                                    'placeholder' => 'Masukkan durasi',
+                                    'type' => 'number',
+                                ]) !!}
                             </div>
                         </div>
                     </div>
@@ -178,59 +226,88 @@
                 <div class="flex flex-col gap-4 hidden" id="overtime-rule-content">
                     <section class="flex flex-col gap-1 flex-1">
                         <div class="flex items-center gap-2">
-                            {!! FormCustom::checkbox('is_ot', true, ['checked'=> ($timetable->time_period ||
-                            $timetable->overtime_pay ||$timetable->duration_calculate_one_shift||
-                            $timetable->duration_ot_limit )]) !!}
+                            {!! FormCustom::checkbox('enable_extra_pay', true, ['checked' => $timetable->enable_extra_pay]) !!}
+                            <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Upah Tambahan</label>
+                        </div>
+                        <label class="font-normal text-xs text-red-500 xs/max:text-xs cross_day hint-text"></label>
+                    </section>
+                    <div id="extra-pay-content" class="{{ $timetable->enable_extra_pay ? 'block' : 'hidden' }}">
+                        <section class="flex flex-col gap-1 flex-2">
+                            <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Nominal Upah
+                                Tambahan</label>
+                            {!! FormCustom::input('extra_pay', $timetable->extra_pay, [
+                                'prefixtext' => 'Rp',
+                                'placeholder' => 'Masukkan upah tambahan',
+                                'class' => 'number',
+                            ]) !!}
+                        </section>
+                    </div>
+                    <section class="flex flex-col gap-1 flex-1">
+                        <div class="flex items-center gap-2">
+                            {!! FormCustom::checkbox('is_ot', true, [
+                                'checked' =>
+                                    $timetable->time_period ||
+                                    $timetable->overtime_pay ||
+                                    $timetable->duration_calculate_one_shift ||
+                                    $timetable->duration_ot_limit,
+                            ]) !!}
                             <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Lembur</label>
                         </div>
                         <label class="font-normal text-xs text-red-500 xs/max:text-xs cross_day hint-text"></label>
                     </section>
                     <div id="overtime-content"
-                        class="{{ (!empty($timetable->ot_period) || !empty($timetable->ot_pay) || !empty($timetable->duration_count_one_shift) || !empty($timetable->duration_ot_limit) ) ? '': 'hidden'}}">
+                        class="{{ !empty($timetable->ot_period) || !empty($timetable->ot_pay) || !empty($timetable->duration_count_one_shift) || !empty($timetable->duration_ot_limit) ? '' : 'hidden' }}">
                         <div class="flex flex-col gap-4">
                             <section class="flex items-start gap-3">
                                 <div class="flex-1 flex flex-col gap-1">
                                     <label class="text-sm font-normal text-gray-500">Durasi Menit*</label>
-                                    {!! FormCustom::input('ot_period', $timetable->ot_period,
-                                    [ "placeholder" => '-','type'=> 'number']) !!}
+                                    {!! FormCustom::input('ot_period', $timetable->ot_period, ['placeholder' => '-', 'type' => 'number']) !!}
                                 </div>
                                 <div class="flex-2 flex flex-col gap-1">
                                     <label class="text-sm font-normal text-gray-500">Upah lembur*</label>
-                                    {!! FormCustom::input('ot_pay', $timetable->ot_pay, ['class' =>
-                                    'number', "placeholder" => '-', 'prefixtext' => 'Rp']) !!}
+                                    {!! FormCustom::input('ot_pay', $timetable->ot_pay, [
+                                        'class' => 'number',
+                                        'placeholder' => '-',
+                                        'prefixtext' => 'Rp',
+                                    ]) !!}
                                 </div>
                             </section>
                             <section class="flex flex-col gap-1">
                                 <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Durasi jam lembur
                                     dikonversikan jadi 1 shift*</label>
-                                {!! FormCustom::input('duration_count_one_shift',
-                                $timetable->duration_count_one_shift,
-                                [ "placeholder" => 'Masukkan durasi waktu (jam)', 'type'=> 'number']) !!}
+                                {!! FormCustom::input('duration_count_one_shift', $timetable->duration_count_one_shift, [
+                                    'placeholder' => 'Masukkan durasi waktu (jam)',
+                                    'type' => 'number',
+                                ]) !!}
                             </section>
                             <section class="flex flex-col gap-1">
                                 <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Batas maksimal jam
                                     lembur*</label>
-                                {!! FormCustom::input('duration_ot_limit', $timetable->duration_ot_limit,
-                                [ "placeholder" => 'Masukkan batas durasi lembur', 'type'=> 'number']) !!}
+                                {!! FormCustom::input('duration_ot_limit', $timetable->duration_ot_limit, [
+                                    'placeholder' => 'Masukkan batas durasi lembur',
+                                    'type' => 'number',
+                                ]) !!}
                             </section>
                         </div>
                     </div>
                     <section class="flex flex-col gap-1 flex-1">
                         <div class="flex items-center gap-2">
-                            {!! FormCustom::checkbox('is_ot_rice', true, ['checked'=>
-                            !is_null($timetable->duration_rice_shift) && $timetable->duration_rice_shift >= 0])
-                            !!}
+                            {!! FormCustom::checkbox('is_ot_rice', true, [
+                                'checked' => !is_null($timetable->duration_rice_shift) && $timetable->duration_rice_shift >= 0,
+                            ]) !!}
                             <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Nasi lembur</label>
                         </div>
                         <label class="font-normal text-xs text-red-500 xs/max:text-xs cross_day hint-text"></label>
                     </section>
                     <div id="rice-overtime-content"
-                        class="{{(!is_null($timetable->duration_rice_shift) && $timetable->duration_rice_shift >= 0) ? '': 'hidden'}}">
+                        class="{{ !is_null($timetable->duration_rice_shift) && $timetable->duration_rice_shift >= 0 ? '' : 'hidden' }}">
                         <section class="flex flex-col gap-1">
                             <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Durasi jam nasi
                                 lembur*</label>
-                            {!! FormCustom::input('duration_rice_shift', $timetable->duration_rice_shift,
-                            [ "placeholder" => 'Masukkan durasi waktu (jam)', 'type'=> 'number']) !!}
+                            {!! FormCustom::input('duration_rice_shift', $timetable->duration_rice_shift, [
+                                'placeholder' => 'Masukkan durasi waktu (jam)',
+                                'type' => 'number',
+                            ]) !!}
                         </section>
                     </div>
                 </div>

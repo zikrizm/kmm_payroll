@@ -192,6 +192,8 @@ class ApiServices extends NetworkUtils
             "position" => null, // ** Posisi dikirim null karena di set dbLocal
             "area" => $data["area"] ?? null,
         ];
+        Log::info($data);
+
         $res = $this->emitter('PUT', "/personnel/api/employees/" . $data['id'] . "/", $data);
         if ($res['response'] < 200 || $res['response'] >= 300) {
             return $res;
@@ -654,6 +656,24 @@ class ApiServices extends NetworkUtils
         } else {
             $res['msg'] = ['success' => 'Delete area succesfully'];
             return $res;
+        }
+    }
+
+    public function get_transaction_reports($data)
+    {
+        $data = [
+            'page' => $data['page'] ?? null,
+            'page_size' => $data['page_size'] ?? null,
+            'departments' => $data['departments'] ?? null,
+            'areas' => $data['areas'] ?? null,
+            'start_date' => $data['start_date'] ?? null,
+            'end_date' => $data['end_date'] ?? null,
+        ];
+        $res = $this->emitter('GET', "/att/api/transactionReport/", $data);
+        if ($res['response'] < 200 || $res['response'] >= 300) {
+            // throw new ResponseExeception($res['msg']);
+        } else {
+            return !empty($res['data']) ? $res['data'] : [['data'=> []]];
         }
     }
 

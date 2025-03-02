@@ -61,6 +61,8 @@ class PositionController extends Controller
                             $positions['data'][$key]['must_attend'] = $posi->must_attend;
                             $positions['data'][$key]['permanently'] = $posi->permanently;
                             $positions['data'][$key]['extra_pay'] = $posi->extra_pay;
+                            $positions['data'][$key]['enable_extra_break_time'] = $posi->enable_extra_break_time;
+                            $positions['data'][$key]['extra_break_time'] = $posi->extra_break_time;
                         }
                     }
                 }
@@ -120,7 +122,14 @@ class PositionController extends Controller
                 return $this->buildRes->RESPONSE_REQ('error', null, $validator->errors());
             } else {
                 $position_data = $request->only([
-                    'position_code', 'position_name', 'must_attend', 'permanently', 'extra_pay_check', 'extra_pay'
+                    'position_code', 
+                    'position_name', 
+                    'must_attend', 
+                    'permanently', 
+                    'extra_pay_check', 
+                    'extra_pay',
+                    'enable_extra_break_time',
+                    'extra_break_time'
                 ]);
 
                 $res = $this->apiService->create_position($position_data);
@@ -179,12 +188,16 @@ class PositionController extends Controller
                 $position['permanently'] = (bool)$positionDB->permanently;
                 $position['extra_pay_check'] = (bool)$positionDB->extra_pay;
                 $position['extra_pay'] = $positionDB->extra_pay;
+                $position['enable_extra_break_time'] =  $positionDB->enable_extra_break_time;
+                $position['extra_break_time'] =  $positionDB->extra_break_time;
                 $position['updated_by'] = 'Diperbarui: ' . $positionDB->user->first_name . ', ' . $positionDB->updated_at;
             } else {
                 $position['must_attend'] = false;
                 $position['permanently'] = false;
                 $position['extra_pay_check'] = false;
                 $position['extra_pay'] = null;
+                $position['enable_extra_break_time'] = false;
+                $position['extra_break_time'] = null;
                 $position['updated_by'] = null;
             }
 
@@ -220,7 +233,7 @@ class PositionController extends Controller
                 return $this->buildRes->RESPONSE_REQ('error', null, $validator->errors());
             } else {
                 $position_data = $request->only([
-                    'position_code', 'position_name', 'must_attend', 'extra_pay_check', 'extra_pay', 'permanently'
+                    'position_code', 'position_name', 'must_attend', 'extra_pay_check', 'extra_pay', 'permanently', 'enable_extra_break_time','extra_break_time'
                 ]);
                 $position_data['id'] = $position;
 
@@ -283,6 +296,8 @@ class PositionController extends Controller
                 'updated_user' => auth()->user()->id,
                 'must_attend' => $request['must_attend'] ?? 0,
                 'permanently' => $request['permanently'] ?? 0,
+                'enable_extra_break_time' => $request['enable_extra_break_time'] ?? -1,
+                'extra_break_time' => $request['extra_break_time'],
                 'extra_pay' => (!empty($request->input('extra_pay_check'))) ?
                     str_replace('.', '', $request['extra_pay']) : null
             ]);
@@ -296,6 +311,8 @@ class PositionController extends Controller
                 'updated_user' => auth()->user()->id,
                 'must_attend' => $request['must_attend'] ?? 0,
                 'permanently' => $request['permanently'] ?? 0,
+                'enable_extra_break_time' => $request['enable_extra_break_time'] ?? 0,
+                'extra_break_time' => $request['extra_break_time'],
             ]);
         }
     }
