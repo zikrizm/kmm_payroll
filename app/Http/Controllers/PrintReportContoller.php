@@ -1171,13 +1171,54 @@ if ($request->has('calculation_salary_archive_id')) {
 
                 $result['department_reports']->each(function ($dep) {
                     $dep['employee_attendances'] = $dep['employee_attendances']->filter(function ($item) {
-                        return $item['total_invalid_attendance'] > 0;
+                        $totalLength = $item['attendances']->sum(fn($item) => count($item['working_status_list']->filter(fn($item) => !$item['status'])));
+                        return $totalLength > 0;
                     });
                 });
                
                 return view('print.card_working_report', compact('result', 'start_date_work_day', 'end_date_work_day', 'start_date_overtime', 'end_date_overtime'));
             } else {
                 return view('print.card_working_report', compact('result'));
+            }
+
+        } catch (\Exception $e) {
+            Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
+        }
+    }
+    public function print_card_break_time_report(Request $request)
+    {
+        try {
+            $business_id = Session::get('business_id');
+            $result = collect();
+            
+            $business = Business::where('id', $business_id)->select('id', 'pending_day')->first();
+            if ($request->has('start_date') && $request->has('end_date')) {
+                $start_date = Carbon::createFromFormat('d-m-Y', $request['start_date']);
+                $end_date = Carbon::createFromFormat('d-m-Y', $request['end_date']);
+
+                $start_date_work_day = Carbon::createFromFormat('d-m-Y', $request['start_date']);
+                $end_date_work_day = Carbon::createFromFormat('d-m-Y', $request['end_date']);
+                $start_date_overtime = Carbon::createFromFormat('d-m-Y', $request['start_date'])->subDays($business->pending_day);
+                $end_date_overtime = Carbon::createFromFormat('d-m-Y', $request['end_date'])->subDays($business->pending_day);
+
+                $result = $this->attendanceUtil->getAttendance(
+                    $start_date_work_day,
+                    $end_date_work_day,
+                    $start_date_overtime,
+                    $end_date_overtime,
+                    $request['department_code'],
+                );
+
+                $result['department_reports']->each(function ($dep) {
+                    $dep['employee_attendances'] = $dep['employee_attendances']->filter(function ($item) {
+                        $totalLength = $item['attendances']->sum(fn($item) => count($item['break_time_status_list']->filter(fn($item) => !$item['status'])));
+                        return $totalLength > 0;
+                    });
+                });
+               
+                return view('print.card_break_time_report', compact('result', 'start_date_work_day', 'end_date_work_day', 'start_date_overtime', 'end_date_overtime'));
+            } else {
+                return view('print.card_break_time_report', compact('result'));
             }
 
         } catch (\Exception $e) {

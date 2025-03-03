@@ -122,7 +122,7 @@
         // *
         dataParams = { ...dataParams, ...data };
         $('#card-working-time').attr('href', 
-            `/print/card-working-break-time?department_code=${dataParams.department_code}&start_date=${dataParams.start_date}&end_date=${dataParams.end_date}` 
+            `/print/card-break-time-report?department_code=${dataParams.department_code}&start_date=${dataParams.start_date}&end_date=${dataParams.end_date}` 
         );
 
         const queryString = new URLSearchParams(dataParams).toString();

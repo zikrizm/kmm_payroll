@@ -161,6 +161,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/payroll-report', 'PrintReportContoller@print_payroll_report')->name('print.payroll_report');
         Route::get('/card-report', 'PrintReportContoller@print_card_report')->name('print.card_report');
         Route::get('/card-working-report', 'PrintReportContoller@print_card_working_report')->name('print.card_working_report');
+        Route::get('/card-break-time-report', 'PrintReportContoller@print_card_break_time_report')->name('print.card_break_time_report');
         Route::get('/card-attendance', 'PrintReportContoller@print_card_attendance')->name('print.card_attendance');
         Route::get('/card-attendance-operational', 'PrintReportContoller@print_card_attendance_operational')->name('print.card_attendance');
     });

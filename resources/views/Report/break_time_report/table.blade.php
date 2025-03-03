@@ -100,6 +100,9 @@
                                         <p class="text-xs font-medium text-gray-500 text-center truncate">Tgl</p>
                                     </th>
                                     <th class='text-left border '>
+                                        <p class="text-xs font-medium text-gray-500 text-center truncate">Hari</p>
+                                    </th>
+                                    <th class='text-left border '>
                                         <p class="text-xs font-medium text-gray-500 text-center truncate">Masuk</p>
                                     </th>
                                     <th class='text-left border '>
@@ -111,42 +114,47 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach ($employee_attendance['attendances'] as $key => $attendance)
                                 @php
-                                    $inValidShift = $attendance['shifts']->filter(function ($item) {
-                                        return !$item['break_time']['status'];
+                                    $attendances_break_time = $employee_attendance['attendances']->filter(function ($item) {
+                                        return count($item['break_time_status_list']) > 0;
                                     });
                                 @endphp
-                                    @foreach($inValidShift as $key => $shift)
+                                @foreach ($attendances_break_time as $key => $attendance)
+                                    @php
+                                        $invalidBreakTime = $attendance['break_time_status_list']->filter(function ($item) {
+                                            return !$item['status'];
+                                        });
+                                    @endphp
+                                    @foreach($invalidBreakTime as $key => $item)
                                         <tr class='hover:bg-gray-50 border '>
                                             @if ($key == 0)
-                                                <td rowspan="{{ count($attendance['shifts']) }}"
+                                                <td rowspan="{{ count($invalidBreakTime) }}"
                                                     class="text-xs border text-center w-8 {{ $attendance['is_holiday'] ? 'text-red-500' : 'text-gray-500' }}">
                                                     {{ date('d', strtotime($attendance['date'])) }}
                                                 </td>
+                                                <td rowspan="{{ count($invalidBreakTime) }}"
+                                                    class="text-xs border text-center w-8 {{ $attendance['is_holiday'] ? 'text-red-500' : 'text-gray-500' }}">
+                                                    {{ $attendance['key'] }}
+                                                </td>
                                             @endif
                                             <td class='text-xs border text-gray-500 text-center w-12'>
-                                                @if (!empty($shift['break_time']['start_punch']))
-                                                    {{ date('H:i', strtotime($shift['break_time']['start_punch'])) }}
+                                                @if (!empty($item['start_punch']))
+                                                    {{ date('H:i', strtotime($item['start_punch'])) }}
                                                 @else
                                                 -
                                                 @endif
                                             </td>
                                             <td class='text-xs border text-gray-500 text-center w-14 '>
-                                                @if (!empty($shift['break_time']['end_punch']))
+                                                @if (!empty($item['end_punch']))
                                                     <div class="relative">
-                                                        {{ date('H:i', strtotime($shift['break_time']['end_punch'])) }}
+                                                        {{ date('H:i', strtotime($item['end_punch'])) }}
                                                     </div>
                                                 @else
                                                 -
                                                 @endif
                                             </td>
                                             <td class='text-xs border text-gray-500 text-center'>
-                                                @if (!empty($shift['break_time']))
-                                                <p>{{ $shift['break_time']['info'] ?? '-' }}</p>
-                                                @else
-                                                -
-                                                @endif
+                                                <p>{{ $item['info'] ?? '-' }}</p>
                                             </td>
                                         </tr>
                                     @endforeach

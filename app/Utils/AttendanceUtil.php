@@ -13,6 +13,7 @@ use App\Models\Position;
 use App\Models\Timetable;
 use App\Models\Department;
 use App\Models\EmployeeTso;
+use App\Models\EmployeeDebt;
 use App\Models\Operational;
 use App\Models\Transaction;
 use App\Models\EmployeeStatusLb;
@@ -39,6 +40,24 @@ class AttendanceUtil extends Util
     public function __construct(ApiServices $service)
     {
         $this->service = $service;
+    }
+
+    public function calculatePaymentPeriodDiff(string $payment_period, Carbon $start_date, Carbon $end_date)
+    {
+        switch ($payment_period) {
+            case 'mounthly':
+                return $start_date->diffInMonths($end_date);
+                break;
+            case 'weekly':
+                return $start_date->diffInWeeks($end_date);
+                break;
+            case 'daily':
+                return $start_date->diffInDays($end_date);
+                break;
+            default:
+                return $start_date->diffInWeeks($end_date);
+                break;
+        }
     }
 
     public function getRangeDate(
@@ -211,6 +230,24 @@ class AttendanceUtil extends Util
         return $operationals;
     }
 
+    public function getPosition() {
+        $page_size = $this->service->get_positions([])["count"];
+        $list_position_bios = collect($this->service->get_positions(["page_size" => $page_size])['data']);
+
+        $list_position_db = Position::select('id as position_id', 'position_id as id', 'position_name', 'must_attend', 'permanently', 'extra_pay', 'enable_extra_break_time', 'extra_break_time')->get();
+
+        $positions = $list_position_bios->map(function ($item) use ($list_position_db) {
+            $position_db = $list_position_db->firstWhere('id', $item['id']);
+            if ($position_db) {
+                return array_merge($item, $position_db->toArray());
+            }
+
+            return $item;
+        });
+
+        return $positions;
+    }
+
     public function getDepartment() {
         $page_size = $this->service->get_departments([])["count"];
         $list_department_bios = collect($this->service->get_departments(["page_size" => $page_size])['data']);
@@ -229,8 +266,14 @@ class AttendanceUtil extends Util
         return $departments;
     }
 
-    public function getEmployee(array|null $department = null, Collection $list_department = null) {
+    public function getEmployee(
+        array|null $department = null, 
+        Collection $list_department = null, 
+        Collection $list_position = null
+    ) {
         $list_department = $list_department ?? collect();
+        $list_position = $list_position ?? collect();
+        
         $list_employee_bios = collect();
 
         if (!empty($department)) {
@@ -248,7 +291,14 @@ class AttendanceUtil extends Util
             ->select('id as emp_id', 'business_id', 'emp_id as id', 'emp_code', 'daily_salary', 'payment_period')
             ->get();
 
-        $employees = $list_employee_bios->map(function ($item) use ($list_employee_db, $list_department) {
+        $employees = $list_employee_bios->map(function ($item) use ($list_employee_db, $list_department, $list_position) {
+            if(!empty($item['position'])) {
+                $position = $list_position->firstWhere('id', $item['position']['id']);
+                if ($position) {
+                    $item['position'] = array_merge($item['position'], $position);
+                }
+            }
+
             $department = $list_department->firstWhere('id', $item['department']['id']);
             if ($department) {
                 $item['department'] = array_merge($item['department'], $department);
@@ -377,6 +427,7 @@ class AttendanceUtil extends Util
 
   
     public function shiftCheck(
+        array $employee, 
         Collection $range_date = null,
         Collection $attendances,
         Timetable $timetable,
@@ -385,25 +436,12 @@ class AttendanceUtil extends Util
             'key' => $range_date['key'],
             'date' => $range_date['date'],
             'timetable' => null,
-            'working' => collect([
-                'start_punch' => null,
-                'end_punch' => null,
-                'duration' => null,
-                'status' => false,
-                'info' => null,
-            ]),
-            'break_time' => collect([
-                'start_punch' => null,
-                'end_punch' => null,
-                'duration' => null,
-                'status' => false,
-                'info' => null,
-            ]),
-            'text_value' => null,
+            'working' => collect(['start_punch' => null, 'end_punch' => null, "status" => false, "info" => null]),
+            'break_time' => collect(['start_punch' => null, 'end_punch' => null, "status" => false, "info" => null]),
+            'operational' => collect(['tso_status' => false, 'lb_status' => false, 'overtime_adjustment' => null, "status" => false, "info" => null]),
             'total_shifted_overtime' => 0,
-            'total_invalid_attendance' => 0,
-            'total_invalid_break_time' => 0,
             'total_hk' => 0,
+            'total_hk_bonus' => 0,
             'total_jl' => 0,
             'total_hk_pay' => 0,
             'total_jl_pay' => 0,
@@ -412,30 +450,6 @@ class AttendanceUtil extends Util
 
         $date = Carbon::parse($range_date['date']);
         $date_string = $date->format('Y-m-d');
-
-        $first_attendance = $attendances->first();
-        $last_attendance = null;
-        $first_break_time = null;
-        $last_break_time = null;
-
-        $attendance_count = $attendances->count();
-        if($attendance_count > 1) {
-            $last_attendance = $attendances->last();
-        }
-        if($attendance_count > 2) {
-            $middle_attendances = $attendances->slice(1, -1)->values();
-            $middle_attendance_count = $attendances->count();
-            
-            $first_break_time = $middle_attendances->first();
-            if($middle_attendance_count > 1) {
-                $last_break_time = $attendances->last();
-            }
-        } 
-
-        $result['working']['start_punch'] = $first_attendance ? $first_attendance['punch_time'] : null;
-        $result['working']['end_punch'] =  $last_attendance ? $last_attendance['punch_time'] : null;
-        $result['break_time']['start_punch'] = $first_break_time ? $first_break_time['punch_time'] : null;
-        $result['break_time']['end_punch'] = $last_break_time ? $last_break_time['punch_time'] : null;
 
         $check_in = Carbon::parse($date_string ." ". $timetable->check_in);
         $check_out = Carbon::parse($date_string ." ". $timetable->check_out)->addDays($timetable->cross_day ?? 0);
@@ -446,18 +460,56 @@ class AttendanceUtil extends Util
         $check_out_limit_min = $check_out->copy()->subMinutes($timetable->check_out_min);
         $check_out_limit_plus = $check_out->copy()->addMinutes($timetable->check_out_plus);
 
-        $duration_break_time = $timetable->timetable_has_break_time->sum(fn($item) => $item->break_time->duration ?? 0);
-        $check_out_limit_break_time = $check_out_limit_min->copy();
-        if(!$timetable->is_without_break) {
-            $check_out_limit_break_time->subMinutes($duration_break_time);
+        $first_attendance = $attendances->first();
+        $last_attendance = null;
+        $first_break_time = null;
+        $last_break_time = null;
+
+        $attendance_count = $attendances->count();
+        if($attendance_count > 1) {
+            $last_attendance = $attendances->last();
         }
 
+        if($attendance_count > 2) {
+            $break_time_attendance = $attendances->filter(function ($item) use ($check_in_limit_min, $check_in_limit_plus, $check_out_limit_min, $check_out_limit_plus){
+                $punch_time = Carbon::parse($item['punch_time']);
+                return !($punch_time->between($check_in_limit_min, $check_in_limit_plus) || $punch_time->between($check_out_limit_min, $check_out_limit_plus))
+                    && $punch_time->lte($check_out_limit_plus);
+            });
+
+            $break_time_attendance_count = $break_time_attendance->count();
+            if($break_time_attendance_count > 0) {
+                $first_break_time = $break_time_attendance->first();
+                if($break_time_attendance_count > 1) {
+                    $last_break_time = $break_time_attendance->last();
+                }
+            }
+        } 
+
+        $result['working']['start_punch'] = $first_attendance ? $first_attendance['punch_time'] : null;
+        $result['working']['end_punch'] =  $last_attendance ? $last_attendance['punch_time'] : null;
+        $result['break_time']['start_punch'] = $first_break_time ? $first_break_time['punch_time'] : null;
+        $result['break_time']['end_punch'] = $last_break_time ? $last_break_time['punch_time'] : null;
+
+        $duration_break_time = $timetable->timetable_has_break_time->sum(fn($item) => $item->break_time->duration ?? 0);
+        if(!empty($employee['position']) && $employee['position']['enable_extra_break_time'] && !empty($employee['position']['extra_break_time'])) {
+            $duration_break_time += $employee['position']['extra_break_time'];
+        }
+
+        $check_out_limit_break_time = $check_out_limit_min->copy();
+        if(empty($result['break_time']['start_punch']) || empty($result['break_time']['end_punch'])) {
+            if(!$timetable->is_without_break) {
+                $check_out_limit_break_time->subMinutes($duration_break_time);
+            }
+        }
+       
         if(!empty($result['working']['start_punch']) && !empty($result['working']['end_punch'])) {
             $start_punch = Carbon::parse($result['working']['start_punch']);
             $end_punch = Carbon::parse($result['working']['end_punch']);
 
             if ($start_punch->between($check_in_limit_min, $check_in_limit_plus)) {
                 $result['timetable'] = collect([
+                    'id' => $timetable->id,
                     'name' => $timetable->name,
                     'check_in' => $timetable->check_in,
                     'check_in_min' => $timetable->check_in_min,
@@ -471,6 +523,8 @@ class AttendanceUtil extends Util
                     'ot_roundhalf_hr' => $timetable->ot_roundhalf_hr,
                     'ot_period' => $timetable->ot_period,
                     'ot_pay' => $timetable->ot_pay,
+                    'enable_extra_pay' => $timetable->enable_extra_pay,
+                    'extra_pay' => $timetable->extra_pay,
                     'duration_rice_shift' => $timetable->duration_rice_shift,
                     'duration_count_one_shift' => $timetable->duration_count_one_shift,
                     'duration_break_time' => $duration_break_time,
@@ -496,7 +550,7 @@ class AttendanceUtil extends Util
             }
         } else if(empty($result['working']['start_punch']) && empty($result['working']['end_punch'])) {
             $result['working']['status'] = false;
-            $result['working']['info'] = 'Tidak ada absensi di waktu kerja';
+            $result['working']['info'] = 'Tidak ada absensi';
         } else if(empty($result['working']['start_punch'])) {
             $result['working']['status'] = false;
             $result['working']['info'] = 'Tidak ada absensi di waktu datang kerja';
@@ -513,26 +567,27 @@ class AttendanceUtil extends Util
                 $break_duration = $start_break_time_punch->diffInMinutes($end_break_time_punch);
                 if($break_duration > $duration_break_time) {
                     $result['break_time']['status'] = false;
-                    $result['break_time']['info'] = 'Istirahat tidak sesuai jadwal';
+
+                    $exceeded_minutes = $break_duration - $duration_break_time;
+                    $hours = floor($exceeded_minutes / 60);
+                    $minutes = $exceeded_minutes % 60; 
+
+                    if ($hours > 0 && $minutes > 0) {
+                        $formatted_time = "{$hours} jam {$minutes} menit";
+                    } elseif ($hours > 0) {
+                        $formatted_time = "{$hours} jam";
+                    } else {
+                        $formatted_time = "{$minutes} menit";
+                    }
+
+                    $result['break_time']['info'] = "Istirahat melebihi batas " . ($formatted_time);
                 } else {
                     $result['break_time']['status'] = true;
                     $result['break_time']['info'] = 'Istirahat sudah sesuai jadwal';
                 }
     
-            } else if(empty($result['break_time']['start_punch']) && empty($result['break_time']['end_punch'])) {
-                if($timetable->is_without_break) {
-                    $result['break_time']['status'] = true;
-                    $result['break_time']['info'] = 'Di bolehkan untuk tidak istirahat';
-                } else {
-                    $result['break_time']['status'] = false;
-                    $result['break_time']['info'] = 'Tidak ada absensi di waktu istirahat';
-                }
-            } else if(empty($result['break_time']['start_punch'])) { 
-                $result['break_time']['status'] = false;
-                $result['break_time']['info'] = 'Tidak ada absensi di waktu awal istirahat';
-            } else if(empty($result['break_time']['end_punch'])) { 
-                $result['break_time']['status'] = false;
-                $result['break_time']['info'] = 'Tidak ada absensi di waktu akhir istirahat';
+            } else if(empty($result['break_time']['start_punch']) || empty($result['break_time']['end_punch'])) {
+                $result['break_time']['status'] = true;
             }
         } else { 
             if(!empty($result['break_time']['start_punch'])|| !empty($result['break_time']['end_punch'])) {
@@ -541,21 +596,122 @@ class AttendanceUtil extends Util
             }
         }
 
-        if(!$result['working']['status']) {
-            $result['total_invalid_attendance'] += 1;
+        return $result;
+    }
+
+    public function operationalCheck(
+        array $employee, 
+        Collection $range_date = null,
+        Collection $shift_data,
+        Operational $operational,
+    ) {
+        $result = collect([
+            'tso_status' => false,
+            'lb_status' => false,
+            'overtime_adjustment' => null,
+            'status' => false,
+            'info' => null,
+        ]);
+
+        $date = Carbon::parse($range_date['date']);
+        $date_string = $date->format('Y-m-d');
+
+        $timetable_operational = $operational->operational_has_timetables->firstWhere('timetable_id', $shift_data['timetable']['id']);
+
+        if ($timetable_operational->status == 'active') {
+            $end_punch = Carbon::parse($shift_data['working']['end_punch']);
+            
+            $check_out = Carbon::parse($date_string ." ". $shift_data['timetable']['check_out'])->addDays($shift_data['timetable']['cross_day'] ?? 0);
+            $check_out_limit_min = $check_out->copy()->subMinutes($shift_data['timetable']['check_out_min']);
+            $check_out_limit_break_time = $check_out_limit_min->copy();
+            if(empty($shift_data['break_time']['start_punch']) || empty($shift_data['break_time']['end_punch'])) {
+                if(!$shift_data['timetable']['is_without_break']) {
+                    $check_out_limit_break_time->subMinutes($duration_break_time);
+                }
+            }
+
+            if ($shift_data['total_shifted_overtime'] > 0) {
+                $total_overtime = $shift_data['total_jl'] * ($shift_data['total_shifted_overtime'] + 1);
+            } else {
+                $total_overtime = $shift_data['total_jl'];
+            }
+
+            if ($end_punch->gte($check_out_limit_break_time)) {
+                if ($total_overtime == $timetable_operational->ot_limit) {
+                    // OPERATIONAL SUDAH SEASUAI
+                    $result['status'] = true;
+                    $result['info'] = 'Absensi sudah sesuai operational';
+                } else if ($total_overtime < $timetable_operational->ot_limit) {
+                    // LEMBUR LEBIH KECIL,DARI WAKTU LEMBUR OPERATIONAL
+                    $result['status'] = false;
+                    $result['info'] = 'Lembur karyawan tidak sesuai operational';
+                    $result['overtime_adjustment'] = $total_overtime - $timetable_operational->ot_limit;
+                } else if ($total_overtime > $timetable_operational->ot_limit) {
+                    // LEMBUR LEBIH BESAR,DARI WAKTU LEMBUR OPERATIONAL
+                    $result['status'] = false;
+                    $result['info'] = 'Lembur karyawan tidak sesuai operational';
+                    $result['overtime_adjustment'] = $total_overtime - $timetable_operational->ot_limit;
+                }
+            } else {
+                // OPERATIONAL HADIR, KARYAWAN HADIR TETAPI TIDAK SESUAI DENGAN SHIFT
+                $result['status'] = false;
+                $result['info'] = 'Absensi tidak sesuai operational';
+                $result['overtime_adjustment'] = $lembur - $timetable_operational->ot_limit;
+            }
+
+        } else {
+            $result['status'] = false;
+            $result['info'] = 'Operasional diliburkan, tetapi karyawan masuk';
         }
-        if(!$result['break_time']['status']) {
-            $result['total_invalid_break_time'] += 1;
+
+        $tso_db = AttendanceTso::where('tso_date', $date_string)
+            ->where('emp_id', $employee['id'])
+            ->where('operational_id', $operational->id)
+            ->where('timetable_id', $shift_data['timetable']['id'])
+            ->first();
+
+        if (!empty($tso_db)) {
+            $result['tso_status'] = true;
+            $result['status'] = true;
+            $result['info'] = 'kehadiran karyawan telah Disetujui';
+        }
+
+
+        $lb_db = AttendanceLb::where('tso_date', $date_string)
+        ->where('emp_id', $employee['id'])
+        ->where('operational_id', $operational->id)
+        ->where('timetable_id', $shift_data['timetable']['id'])
+        ->first();
+
+        if (!empty($attendance_lb_db)) {
+            $result['lb_status'] = true;
         }
 
         return $result;
     }
 
+    public function checkLb(
+        array $employee, 
+        Collection $range_date = null,
+        Collection $attendance_data
+    ) {
+        $result = collect(['status' => false]);
+
+        $date = Carbon::parse($range_date['date']);
+        $date_string = $date->format('Y-m-d');
+
+        $lb_db = AttendanceLb::where('lb_date', $date_string)->where('emp_id', $employee['id'])->first();
+        if (!empty($lb_db)) {
+            $result['status'] = $lb_db->lb_status == 'accept';
+        } 
+
+        return $result;
+    }
    
     public function calculatedSalary(
         Collection $shift_data,
     ) {
-        $result = collect(['total_hk' => 0]);
+        $result = collect(['total_hk' => 0, 'total_hk_bonus' => 0]);
         
         $date = Carbon::parse($shift_data['date']);
         $date_string = $date->format('Y-m-d');
@@ -581,6 +737,10 @@ class AttendanceUtil extends Util
         if ($start_punch->between($check_in_limit_min, $check_in_limit_plus)) {
             if($end_punch->gte($check_out_limit_break_time)) {
                 $result['total_hk'] += 1;
+
+                if($shift_data['timetable']['enable_extra_pay']) {
+                    $result['total_hk_bonus'] += $shift_data['timetable']['extra_pay'];
+                }
             } else {
                 $working_duration = $start_punch->diffInMinutes($end_punch);
                 if($working_duration >= ($work_time / 2)) {
@@ -683,6 +843,139 @@ class AttendanceUtil extends Util
         return $result;
     }
 
+    public function calculatedLoan(
+        array $employee, 
+        Carbon $start_date_work_day,
+        Carbon $end_date_work_day,
+        Carbon $start_date_overtime,
+        Carbon $end_date_overtime
+    ) {
+        $result = collect(['total_loan_paid' => 0, 'total_loan_balance' => 0]);
+
+        $start_date = min($start_date_work_day, $start_date_overtime)->subDay();
+        $end_date = max($end_date_work_day, $end_date_overtime)->addDay();
+
+        $business_id = Session::get('business_id');
+        $payment_period_diff = $this->calculatePaymentPeriodDiff($employee['payment_period'], $start_date, $end_date);
+
+        $kasbons = EmployeeDebt::where('business_id', $business_id)
+            ->where('paid', 0)
+            ->where('emp_id', $employee['id'])
+            ->whereDate('date', '>= ', $start_date)
+            ->whereDate('date', '<= ', $end_date)
+            ->with(['employee_debt_pays' => fn ($query) => $query->select('id', 'employee_debt_id', 'debt_payment_date', 'payment')])->get();
+
+        $total_cicilan_kasbon = $kasbons->sum('instalment');
+        $total_kasbon = $kasbons->sum('debt');
+        $value = 0;
+        foreach ($kasbons as $item) {
+            $value += ($item->employee_debt_pays->isNotEmpty()) ? $item->employee_debt_pays->sum('payment') : 0;
+        }
+
+        $remaining_kasbon = $total_kasbon - $value;
+        $kasbon_pay = ((($total_cicilan_kasbon * $payment_period_diff) + $value) > $total_kasbon) ? $remaining_kasbon : $total_cicilan_kasbon * $payment_period_diff;
+
+        $result['total_loan_paid'] = $kasbon_pay;
+        $result['total_loan_balance'] = $remaining_kasbon;
+
+        return $result;
+    }
+
+    public function calculatedJobBonus(
+        array $employee, 
+        Carbon $start_date_work_day,
+        Carbon $end_date_work_day,
+        Carbon $start_date_overtime,
+        Carbon $end_date_overtime
+    ) {
+        $result = collect(['total_job_bonus' => 0]);
+
+        $start_date = min($start_date_work_day, $start_date_overtime)->subDay();
+        $end_date = max($end_date_work_day, $end_date_overtime)->addDay();
+
+        $position = Position::where('permanently', '!=', 0)->whereHas('employee_has_position.employee', function ($e) use ($employee) {
+            $e->where('emp_id', $employee['id']);
+        })->get();
+
+        if($position->isNotEmpty()) {
+            $payment_period_diff = $this->calculatePaymentPeriodDiff($employee['payment_period'], $start_date, $end_date);
+            $total_extra_pay = $position->sum('extra_pay');
+
+            $result['total_job_bonus'] += $total_extra_pay * $payment_period_diff;
+        }
+
+        return $result;
+    }
+
+    
+    public function getAttendanceDisplayValue(Collection $attendance_data) {
+        $result = collect(['text_value' => null]);
+
+        if ($attendance_data['total_jl'] != 0 || $attendance_data['total_hk'] != 0) {
+            if ($attendance_data['salary_included'] && $attendance_data['overtime_included']) {
+                if($attendance_data['total_hk'] > 0) {
+                    if ($attendance_data['total_hk'] == 0.5) {
+                        if ($attendance_data['total_jl'] > 0) {
+                            $result['text_value'] =  '1/2 (' . $attendance_data['total_jl'] . ')';
+                        } else {
+                            $result['text_value'] = '1/2';
+                        }
+    
+                        if ($attendance_data['operational']['lb_status']) {
+                            $result['text_value'] += ' LB';
+                        }
+                    } else if ($attendance_data['total_hk'] > 0.5) {
+                        if ($attendance_data['is_holiday'] && $attendance_data['total_hk'] == 1) {
+                            $result['text_value'] = '';
+                        } else {
+                            $result['text_value'] = (string)($attendance_data['total_jl']);
+                        }
+
+                        if ($attendance_data['operational']['lb_status']) {
+                            $result['text_value'] += ' LB';
+                        }
+                    }
+                } else {
+                    $result['text_value'] = 'X';
+                }
+            } else if ($attendance_data['salary_included']) {
+                if ($attendance_data['total_hk'] == 0.5) {
+                    if ($attendance_data['total_jl'] <= 0) {
+                        $result['text_value'] = '1/2';
+                    } else {
+                        $result['text_value'] =  '1/2 (' . $attendance_data['total_jl'] . ')';
+                    }
+
+                    if ($attendance_data['operational']['lb_status']) {
+                        $result['text_value'] += ' LB';
+                    }
+                } else if ($attendance_data['total_hk'] > 0.5) {
+                    $result['text_value'] = '';
+                } else {
+                    $result['text_value'] = 'X';
+                }
+            } else if ($attendance_data['overtime_included']) {
+                $result['text_value'] = (string)($attendance_data['total_jl']);
+            }
+        }
+        else if ($attendance_data['total_jl'] == 0 && $attendance_data['HK'] == 0 && $attendance_data['operational']['lb_status']) {
+            $result['text_value'] = 'LB';
+        } else if ($attendance_data['total_jl'] == 0 && $attendance_data['total_hk'] == 0) {
+            if($attendance_data['is_holiday']) {
+                $result['text_value'] = '';
+            } else {
+                if ($attendance_data['salary_included'] && $attendance_data['overtime_included']) {
+                    $result['text_value'] = 'X';
+                } else if ($attendance_data['salary_included']) {
+                    $result['text_value'] = 'X';
+                } else if ($attendance_data['overtime_included']) {
+                    $result['text_value'] = '0';
+                }
+            }
+        } 
+
+        return $result;
+    }
 
     public function getAttendance(
         Carbon $start_date_work_day = null,
@@ -700,6 +993,7 @@ class AttendanceUtil extends Util
             $business = Business::where('id', $business_id)->select('id', 'pending_day')->first();
 
             $list_department = $this->getDepartment();
+            $list_position = $this->getPosition();
 
             $department_bios = null;
             if ($department_code) {
@@ -710,10 +1004,9 @@ class AttendanceUtil extends Util
             $attendances = $this->getMergeAttendance($start_date_work_day->copy(), $end_date_work_day->copy(), $start_date_overtime->copy(), $end_date_overtime->copy(), $department_bios);
             $attendance_grouping = $this->groupingAttendance($attendances);
            
-            $list_employee = $this->getEmployee($department_bios, $list_department);
+            $list_employee = $this->getEmployee($department_bios, $list_department, $list_position);
             $employee_dept_group = $list_employee->groupBy([fn ($item) => $item['department']['id']]);
 
-            
             $shifts = $this->getShift($department_bios);
             $operationals = $this->getOperationals($start_date_work_day->copy(), $end_date_work_day->copy(), $start_date_overtime->copy(), $end_date_overtime->copy(), $department_bios);
 
@@ -724,13 +1017,12 @@ class AttendanceUtil extends Util
                 'department_reports' => collect()
             ]);
 
-            if ($attendance_grouping->isEmpty()) return $result;
             if ($employee_dept_group->isEmpty()) return $result;
 
             foreach ($employee_dept_group as $key_dept_id => $employees) {
                 $department = $list_department->where('id', $key_dept_id)->first();
                 $department_shift = $shifts->where('dept_id', $key_dept_id)->first();
-                $operational = $operationals->where('dept_id', $key_dept_id)->first();
+                $department_operational = $operationals->where('dept_id', $key_dept_id);
 
                 $attendance_reports = collect([
                     'department' => $department,
@@ -742,23 +1034,27 @@ class AttendanceUtil extends Util
                         'employee' => collect($employee),
                         'attendances' => collect(),
                         'total_hk' => 0,
+                        'total_hk_bonus' => 0,
                         'total_jl' => 0,
                         'total_salary' => 0,
                         'total_overtime' => 0,
-                        'total_loan_deduction' => 0,
+                        'total_loan_paid' => 0,
                         'total_loan_balance' => 0,
-                        'total_rbhn_plus_u_libur' => 0,
+                        'total_tbhn_plus_u_libur' => 0,
                         'total_food' => 0,
                         'total_job_bonus' => 0,
-                        'total_invalid_attendance' => 0,
-                        'total_invalid_break_time' => 0,
                         'grand_total' => 0,
                     ]);
 
                     $attendance_employees = $attendance_grouping->get($employee['emp_code'], collect());
                     $attendance_employee_timetables = $this->attendanceTimetableGrouping($department_shift, $attendance_employees, $range_dates);
 
-                    Log::info($attendance_employee_timetables);
+                    $calculated_loan = $this->calculatedLoan($employee, $start_date_work_day->copy(), $end_date_work_day->copy(), $start_date_overtime->copy(), $end_date_overtime->copy());
+                    $attendance_report_employee_data['total_loan_paid'] += $calculated_loan['total_loan_paid'];
+                    $attendance_report_employee_data['total_loan_balance'] += $calculated_loan['total_loan_balance'];
+
+                    $calculated_job_bonus = $this->calculatedJobBonus($employee, $start_date_work_day->copy(), $end_date_work_day->copy(), $start_date_overtime->copy(), $end_date_overtime->copy());
+                    $attendance_report_employee_data['total_job_bonus'] += $calculated_job_bonus['total_job_bonus'];
 
                     $range_date_count = count($range_dates);
                     foreach ($range_dates as $iDate => $range_date) {
@@ -770,29 +1066,33 @@ class AttendanceUtil extends Util
                                 'date' => $date_string,
                                 'key' => $range_date['key'],
                                 'total_hk' => 0,
+                                'total_hk_bonus' => 0,
                                 'total_jl' => 0,
                                 'total_jl_pay' => 0,
                                 'total_food' => 0,
                                 'total_shifted_overtime' => 0,
                                 'text_value' => null,
                                 'shifts' => collect(),
-                                'total_invalid_attendance' => 0,
-                                'total_invalid_break_time' => 0,
+                                'working_status_list' => collect([]),
+                                'break_time_status_list' => collect([]),
+                                'operational_status_list' => collect([]),
                                 'is_holiday' => $range_date['holiday']['status'],
                                 'salary_included' => $range_date['salary_included'],
                                 'overtime_included' => $range_date['overtime_included'],
                             ]);
 
-                            $date_attendances = $attendance_employees->get($date_string,  collect());
+                            $operational = $department_operational->where('date', $date_string)->first();
                             $timetable_attendances = $attendance_employee_timetables->get($date_string, collect());
 
-                            if(!empty($department_shift->shiftdays)) {
-                                $shiftday = $department_shift->shiftdays->where('code_day', $date->dayOfWeek)->first();
+                            if(empty($department_shift) || empty($department_shift->shiftdays)) continue;
+                            $shiftday = $department_shift->shiftdays->where('code_day', $date->dayOfWeek)->first();
+
+                            if($timetable_attendances->isNotEmpty()) {
                                 foreach ($timetable_attendances as $key => $attendances) {
                                     $timetable = $shiftday->shiftday_has_timetables->where('timetable.id', $key)->first()->timetable;
     
                                     if($attendances->isNotEmpty()) {
-                                        $shift_data = $this->shiftCheck($range_date, $attendances, $timetable);
+                                        $shift_data = $this->shiftCheck($employee, $range_date, $attendances, $timetable);
                                         if(!empty($shift_data['timetable'])) {
                                             if ($range_date['overtime_included']) {
                                                 $overtime_calculated = $this->calculatedOvertime($shift_data);
@@ -807,27 +1107,59 @@ class AttendanceUtil extends Util
                                             if ($range_date['salary_included']) {
                                                 $salary_calculated = $this->calculatedSalary($shift_data);
                                                 $shift_data['total_hk'] += $salary_calculated['total_hk'];
+                                                $shift_data['total_hk_bonus'] += $salary_calculated['total_hk_bonus'];
                                             }
     
                                             $shift_data['total_hk'] += $shift_data['total_shifted_overtime'];
-                                        }
+
+                                            // if ($operational->isNotEmpty()) {
+                                            //     $operational_data = $this->operationalCheck($employee, $range_date, $shift_data, $operational);
+                                            //     $shift_data['operational']['tso_status'] = $operational_data['tso_status'];
+                                            //     $shift_data['operational']['lb_status'] = $operational_data['lb_status'];
+                                            //     $shift_data['operational']['overtime_adjustment'] = $operational_data['overtime_adjustment'];
+                                            //     $shift_data['operational']['status'] = $operational_data['status'];
+                                            //     $shift_data['operational']['info'] = $operational_data['info'];
     
+                                            //     $attendance_dailly_data['operational_status_list']->push($shift_data['operational']);
+                                            // }
+
+                                            // $ld_data  = $this->checkLb($employee, $range_date, $attendance_dailly_data);
+                                            // $attendance_dailly_data['operational']['lb_status'] = $ld_data['status'];
+
+                                            // if ($attendance_dailly_data['operational']['lb_status']) {
+                                            //     $attendance_dailly_data['total_tbhn_plus_u_libur'] += $department['sitting_money'] ?? 0;
+                                            // }
+                                        }
+
+                                        $attendance_dailly_data['working_status_list']->push($shift_data['working']);
+                                        $attendance_dailly_data['break_time_status_list']->push($shift_data['break_time']);
+
                                         $attendance_dailly_data['shifts']->push($shift_data);
                                     }
                                 }
-    
-                                if ($range_date['holiday']['status'] && isset($department['still_paid']) && $department['still_paid']) {
-                                    $attendance_dailly_data['total_hk'] += 1;
+                            } else {
+                                if (!$range_date['holiday']['status']) {
+                                    $attendance_dailly_data['working_status_list']->push([
+                                        "info" => 'Tidak ada absensi',
+                                        "status" => false,
+                                    ]);
+
+                                    // $attendance_dailly_data['break_time_status_list']->push([
+                                    //     "info" => 'Tidak ada absensi',
+                                    //     "status" => false,
+                                    // ]);
                                 }
-    
-                                foreach ($attendance_dailly_data['shifts'] as $shift) {
-                                    $attendance_dailly_data['total_hk'] += $shift['total_hk'];
-                                    $attendance_dailly_data['total_jl'] += $shift['total_jl'];
-                                    $attendance_dailly_data['total_jl_pay'] += $shift['total_jl_pay'];
-                                    $attendance_dailly_data['total_food'] += $shift['total_food'];
-                                    $attendance_dailly_data['total_invalid_attendance'] += $shift['total_invalid_attendance'];
-                                    $attendance_dailly_data['total_invalid_break_time'] += $shift['total_invalid_break_time'];
-                                }
+                            }
+
+                            if ($range_date['holiday']['status'] && isset($department['still_paid']) && $department['still_paid']) {
+                                $attendance_dailly_data['total_hk'] += 1;
+                            }
+
+                            foreach ($attendance_dailly_data['shifts'] as $shift) {
+                                $attendance_dailly_data['total_hk'] += $shift['total_hk'];
+                                $attendance_dailly_data['total_jl'] += $shift['total_jl'];
+                                $attendance_dailly_data['total_jl_pay'] += $shift['total_jl_pay'];
+                                $attendance_dailly_data['total_food'] += $shift['total_food'];
                             }
 
                             $attendance_report_employee_data['attendances']->push($attendance_dailly_data);
@@ -839,8 +1171,6 @@ class AttendanceUtil extends Util
                         $attendance_report_employee_data['total_jl'] += $attendance['total_jl'];
                         $attendance_report_employee_data['total_overtime'] += $attendance['total_jl_pay'];
                         $attendance_report_employee_data['total_food'] += $attendance['total_food'];
-                        $attendance_report_employee_data['total_invalid_attendance'] += $attendance['total_invalid_attendance'];
-                        $attendance_report_employee_data['total_invalid_break_time'] += $attendance['total_invalid_break_time'];
                     }
 
                     if(isset($employee['daily_salary']) && !empty($employee['daily_salary'])) {
@@ -853,8 +1183,6 @@ class AttendanceUtil extends Util
                
                 $result['department_reports']->push($attendance_reports);
             }
-
-            Log::info($result);
 
             return $result;
         } catch (\InvalidArgumentException $e) {

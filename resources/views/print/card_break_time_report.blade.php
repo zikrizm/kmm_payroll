@@ -1,19 +1,19 @@
 @extends('layouts.app')
-@section('title', 'Print | Card Working Report')
+@section('title', 'Print | Card Break Time Report')
 @section('content')
     <div class="flex flex-col items-center gap-8 w-full h-screen overflow-auto py-8">
         <div class="w-full flex justify-center items-center">
             <button type="button" onclick="print()"
                 class="text-white shadow bg-violet-600 hover:bg-violet-700 focus:ring-2 focus:ring-violet-700 font-medium rounded-lg xs/max:rounded-md text-sm xs/max:text-xs inline-flex items-center xs/max:px-4 px-6 xs/max:py-1.5 py-2 text-center">Cetak</button>
         </div>
-        <div id="print-card-working-report" class="w-max">
+        <div id="print-card-break-time-report" class="w-max">
             <div class="grid gap-5 grid-cols-2">
                 @foreach ($result['department_reports'] as $department)
                     @foreach ($department['employee_attendances'] as $employee_attendance)
                         <div class="flex flex-col gap-2.5 border rounded p-4 w-[375px]" style="min-width: 375px;">
                             <header class="relative">
                                 <div>
-                                    <p class="font-bold text-gray-700 text-xl">Absensi Tidak Disiplin</p>
+                                    <p class="font-bold text-gray-700 text-xl">Istrahat Tidak Disiplin</p>
                                     <p class="font-medium text-gray-500 text-xs ">{{ Auth::user()->business->name }}</p>
                                 </div>
                                 <div class="flex items-end absolute top-[5px] w-full">
@@ -123,27 +123,27 @@
                                     </thead>
                                     <tbody>
                                         @php
-                                            $attendances_working = $employee_attendance['attendances']->filter(function ($item) {
-                                                return count($item['working_status_list']) > 0;
+                                            $attendances_break_time = $employee_attendance['attendances']->filter(function ($item) {
+                                                return count($item['break_time_status_list']) > 0;
                                             });
                                         @endphp
-                                        @foreach ($attendances_working as $key => $attendance)
+                                        @foreach ($attendances_break_time as $key => $attendance)
                                             @php
-                                                $invalidWorking = $attendance['working_status_list']->filter(function ($item) {
+                                                $invalidBreakTime = $attendance['break_time_status_list']->filter(function ($item) {
                                                     return !$item['status'];
                                                 });
                                             @endphp
-                                            @foreach($invalidWorking as $key => $item)
-                                                <tr class='hover:bg-gray-50 border'>
+                                            @foreach($invalidBreakTime as $key => $item)
+                                                <tr class='hover:bg-gray-50 border '>
                                                     @if ($key == 0)
-                                                    <td rowspan="{{ count($invalidWorking) }}"
-                                                        class="text-xs border text-center w-8 {{ $attendance['is_holiday'] ? 'text-red-500' : 'text-gray-500' }}">
-                                                        {{ date('d', strtotime($attendance['date'])) }}
-                                                    </td>
-                                                    <td rowspan="{{ count($invalidWorking) }}"
-                                                        class="text-xs border text-center w-8 {{ $attendance['is_holiday'] ? 'text-red-500' : 'text-gray-500' }}">
-                                                        {{ $attendance['key'] }}
-                                                    </td>
+                                                        <td rowspan="{{ count($invalidBreakTime) }}"
+                                                            class="text-xs border text-center w-8 {{ $attendance['is_holiday'] ? 'text-red-500' : 'text-gray-500' }}">
+                                                            {{ date('d', strtotime($attendance['date'])) }}
+                                                        </td>
+                                                        <td rowspan="{{ count($invalidBreakTime) }}"
+                                                            class="text-xs border text-center w-8 {{ $attendance['is_holiday'] ? 'text-red-500' : 'text-gray-500' }}">
+                                                            {{ $attendance['key'] }}
+                                                        </td>
                                                     @endif
                                                     <td class='text-xs border text-gray-500 text-center w-12'>
                                                         @if (!empty($item['start_punch']))
@@ -183,7 +183,7 @@
         function print(params) {
             var originalContents, popupWin, printContents;
             return printContents = document.getElementById(
-                    "print-card-working-report").innerHTML,
+                    "print-card-break-time-report").innerHTML,
                 originalContents = document.body.innerHTML,
                 headContents = document.head.innerHTML,
                 popupWin = window.open(),

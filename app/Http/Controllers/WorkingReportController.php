@@ -68,7 +68,8 @@ class WorkingReportController extends Controller
 
                     $result['department_reports']->each(function ($dep) {
                         $dep['employee_attendances'] = $dep['employee_attendances']->filter(function ($item) {
-                            return $item['total_invalid_attendance'] > 0;
+                            $totalLength = $item['attendances']->sum(fn($item) => count($item['working_status_list']->filter(fn($item) => !$item['status'])));
+                            return $totalLength > 0;
                         });
                     });
                    

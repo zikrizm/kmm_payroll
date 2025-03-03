@@ -114,46 +114,47 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach ($employee_attendance['attendances'] as $key => $attendance)
                                 @php
-                                    $inValidShift = $attendance['shifts']->filter(function ($item) {
-                                        return !$item['working']['status'];
+                                    $attendances_working = $employee_attendance['attendances']->filter(function ($item) {
+                                        return count($item['working_status_list']) > 0;
                                     });
                                 @endphp
-                                    @foreach($inValidShift as $key => $shift)
-                                        <tr class='hover:bg-gray-50 border '>
+                                @foreach ($attendances_working as $key => $attendance)
+                                    @php
+                                        $invalidWorking = $attendance['working_status_list']->filter(function ($item) {
+                                            return !$item['status'];
+                                        });
+                                    @endphp
+                                    @foreach($invalidWorking as $key => $item)
+                                        <tr class='hover:bg-gray-50 border'>
                                             @if ($key == 0)
-                                            <td rowspan="{{ count($attendance['shifts']) }}"
+                                            <td rowspan="{{ count($invalidWorking) }}"
                                                 class="text-xs border text-center w-8 {{ $attendance['is_holiday'] ? 'text-red-500' : 'text-gray-500' }}">
                                                 {{ date('d', strtotime($attendance['date'])) }}
                                             </td>
-                                            <td rowspan="{{ count($attendance['shifts']) }}"
+                                            <td rowspan="{{ count($invalidWorking) }}"
                                                 class="text-xs border text-center w-8 {{ $attendance['is_holiday'] ? 'text-red-500' : 'text-gray-500' }}">
                                                 {{ $attendance['key'] }}
                                             </td>
                                             @endif
                                             <td class='text-xs border text-gray-500 text-center w-12'>
-                                                @if (!empty($shift['working']['start_punch']))
-                                                    {{ date('H:i', strtotime($shift['working']['start_punch'])) }}
+                                                @if (!empty($item['start_punch']))
+                                                    {{ date('H:i', strtotime($item['start_punch'])) }}
                                                 @else
                                                 -
                                                 @endif
                                             </td>
                                             <td class='text-xs border text-gray-500 text-center w-14 '>
-                                                @if (!empty($shift['working']['end_punch']))
+                                                @if (!empty($item['end_punch']))
                                                     <div class="relative">
-                                                        {{ date('H:i', strtotime($shift['working']['end_punch'])) }}
+                                                        {{ date('H:i', strtotime($item['end_punch'])) }}
                                                     </div>
                                                 @else
                                                 -
                                                 @endif
                                             </td>
                                             <td class='text-xs border text-gray-500 text-center'>
-                                                @if (!empty($shift['working']))
-                                                <p>{{ $shift['working']['info'] ?? '-' }}</p>
-                                                @else
-                                                -
-                                                @endif
+                                                <p>{{ $item['info'] ?? '-' }}</p>
                                             </td>
                                         </tr>
                                     @endforeach
