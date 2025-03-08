@@ -1169,8 +1169,8 @@ if ($request->has('calculation_salary_archive_id')) {
                     $request['department_code'],
                 );
 
-                $result['department_reports']->each(function ($dep) {
-                    $dep['employee_attendances'] = $dep['employee_attendances']->filter(function ($item) {
+                $result['departments']->each(function ($dep) {
+                    $dep['employees'] = $dep['employees']->filter(function ($item) {
                         $totalLength = $item['attendances']->sum(fn($item) => count($item['working_status_list']->filter(fn($item) => !$item['status'])));
                         return $totalLength > 0;
                     });
@@ -1209,8 +1209,8 @@ if ($request->has('calculation_salary_archive_id')) {
                     $request['department_code'],
                 );
 
-                $result['department_reports']->each(function ($dep) {
-                    $dep['employee_attendances'] = $dep['employee_attendances']->filter(function ($item) {
+                $result['departments']->each(function ($dep) {
+                    $dep['employees'] = $dep['employees']->filter(function ($item) {
                         $totalLength = $item['attendances']->sum(fn($item) => count($item['break_time_status_list']->filter(fn($item) => !$item['status'])));
                         return $totalLength > 0;
                     });

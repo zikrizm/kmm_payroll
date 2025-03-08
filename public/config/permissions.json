@@ -1,0 +1,529 @@
+{
+    "user": {
+        "name": "user",
+        "title": "Pengguna",
+        "subtitle": "Silakan pilih akses untuk Pengguna",
+        "roles": [
+            {
+                "id": 1,
+                "name": "Lihat Pengguna",
+                "value": "user.view"
+            },
+            {
+                "id": 2,
+                "name": "Tambah Pengguna",
+                "value": "user.create"
+            },
+            {
+                "id": 3,
+                "name": "Edit Pengguna",
+                "value": "user.update"
+            },
+            {
+                "id": 4,
+                "name": "Hapus Pengguna",
+                "value": "user.delete"
+            }
+        ]
+    },
+    "role": {
+        "name": "role",
+        "title": "Wewenang",
+        "subtitle": "Silakan pilih akses untuk Wewenang",
+        "roles": [
+            {
+                "id": 5,
+                "name": "Lihat Wewenang",
+                "value": "role.view"
+            },
+            {
+                "id": 6,
+                "name": "Tambah Wewenang",
+                "value": "role.create"
+            },
+            {
+                "id": 7,
+                "name": "Edit Wewenang",
+                "value": "role.update"
+            },
+            {
+                "id": 8,
+                "name": "Hapus Wewenang",
+                "value": "role.delete"
+            }
+        ]
+    },
+    "employee": {
+        "name": "employee",
+        "title": "Karyawan",
+        "subtitle": "Silakan pilih akses untuk Karyawan",
+        "roles": [
+            {
+                "id": 9,
+                "name": "Lihat Karyawan",
+                "value": "employee.view"
+            },
+            {
+                "id": 10,
+                "name": "Tambah Karyawan",
+                "value": "employee.create"
+            },
+            {
+                "id": 11,
+                "name": "Edit Karyawan",
+                "value": "employee.update"
+            },
+            {
+                "id": 12,
+                "name": "Hapus Karyawan",
+                "value": "employee.delete"
+            }
+        ]
+    },
+    "employee-photo": {
+        "name": "employee-photo",
+        "title": "Photo Karyawan",
+        "subtitle": "Silakan pilih akses untuk Photo Karyawan",
+        "roles": [
+            {
+                "id": 13,
+                "name": "Lihat Photo Karyawan",
+                "value": "employee-photo.view"
+            },
+            {
+                "id": 14,
+                "name": "Tambah Photo Karyawan",
+                "value": "employee-photo.create"
+            }
+        ]
+    },
+    "kasbon": {
+        "name": "kasbon",
+        "title": "Kasbon",
+        "subtitle": "Silakan pilih akses untuk Kasbon",
+        "roles": [
+            {
+                "id": 15,
+                "name": "Lihat Kasbon",
+                "value": "kasbon.view"
+            },
+            {
+                "id": 16,
+                "name": "Tambah Kasbon",
+                "value": "kasbon.create"
+            },
+            {
+                "id": 17,
+                "name": "Edit Kasbon",
+                "value": "kasbon.update"
+            },
+            {
+                "id": 18,
+                "name": "Hapus Kasbon",
+                "value": "kasbon.delete"
+            }
+        ]
+    },
+    "resign": {
+        "name": "resign",
+        "title": "Pengunduran diri",
+        "subtitle": "Silakan pilih akses untuk Pengunduran diri",
+        "roles": [
+            {
+                "id": 19,
+                "name": "Lihat Pengunduran diri",
+                "value": "resign.view"
+            },
+            {
+                "id": 20,
+                "name": "Tambah Pengunduran diri",
+                "value": "resign.create"
+            },
+            {
+                "id": 21,
+                "name": "Edit Pengunduran diri",
+                "value": "resign.update"
+            },
+            {
+                "id": 22,
+                "name": "Hapus Pengunduran diri",
+                "value": "resign.delete"
+            }
+        ]
+    },
+    "attendance-manual": {
+        "name": "attendance-manual",
+        "title": "Absensi Manual",
+        "subtitle": "Silakan pilih akses untuk Absensi Manual",
+        "roles": [
+            {
+                "id": 23,
+                "name": "Lihat Absensi Manual",
+                "value": "attendance-manual.view"
+            },
+            {
+                "id": 24,
+                "name": "Tambah Absensi Manual",
+                "value": "attendance-manual.create"
+            },
+            {
+                "id": 25,
+                "name": "Hapus Absensi Manual",
+                "value": "attendance-manual.delete"
+            }
+        ]
+    },
+    "shift": {
+        "name": "shift",
+        "title": "Shift",
+        "subtitle": "Silakan pilih akses untuk Shift",
+        "roles": [
+            {
+                "id": 26,
+                "name": "Lihat Shift",
+                "value": "shift.view"
+            },
+            {
+                "id": 27,
+                "name": "Tambah Shift",
+                "value": "shift.create"
+            },
+            {
+                "id": 28,
+                "name": "Edit Shift",
+                "value": "shift.update"
+            },
+            {
+                "id": 29,
+                "name": "Hapus Shift",
+                "value": "shift.delete"
+            }
+        ]
+    },
+    "break-time": {
+        "name": "break-time",
+        "title": "Istirahat",
+        "subtitle": "Silakan pilih akses untuk Istirahat",
+        "roles": [
+            {
+                "id": 30,
+                "name": "Lihat Istirahat",
+                "value": "break-time.view"
+            },
+            {
+                "id": 31,
+                "name": "Tambah Istirahat",
+                "value": "break-time.create"
+            },
+            {
+                "id": 32,
+                "name": "Edit Istirahat",
+                "value": "break-time.update"
+            },
+            {
+                "id": 33,
+                "name": "Hapus Istirahat",
+                "value": "break-time.delete"
+            }
+        ]
+    },
+    "timetable": {
+        "name": "timetable",
+        "title": "Jadwal",
+        "subtitle": "Silakan pilih akses untuk Jadwal",
+        "roles": [
+            {
+                "id": 34,
+                "name": "Lihat Jadwal",
+                "value": "timetable.view"
+            },
+            {
+                "id": 35,
+                "name": "Tambah Jadwal",
+                "value": "timetable.create"
+            },
+            {
+                "id": 36,
+                "name": "Edit Jadwal",
+                "value": "timetable.update"
+            },
+            {
+                "id": 37,
+                "name": "Hapus Jadwal",
+                "value": "timetable.delete"
+            }
+        ]
+    },
+    "holiday": {
+        "name": "holiday",
+        "title": "Libur",
+        "subtitle": "Silakan pilih akses untuk Libur",
+        "roles": [
+            {
+                "id": 38,
+                "name": "Lihat Libur",
+                "value": "holiday.view"
+            },
+            {
+                "id": 39,
+                "name": "Tambah Libur",
+                "value": "holiday.create"
+            },
+            {
+                "id": 40,
+                "name": "Edit Libur",
+                "value": "holiday.update"
+            },
+            {
+                "id": 41,
+                "name": "Hapus Libur",
+                "value": "holiday.delete"
+            }
+        ]
+    },
+    "department": {
+        "name": "department",
+        "title": "Departemen",
+        "subtitle": "Silakan pilih akses untuk departemen",
+        "roles": [
+            {
+                "id": 42,
+                "name": "Lihat Departemen",
+                "value": "department.view"
+            },
+            {
+                "id": 43,
+                "name": "Tambah Departemen",
+                "value": "department.create"
+            },
+            {
+                "id": 44,
+                "name": "Edit Departemen",
+                "value": "department.update"
+            },
+            {
+                "id": 45,
+                "name": "Hapus Departemen",
+                "value": "department.delete"
+            }
+        ]
+    },
+    "position": {
+        "name": "position",
+        "title": "Jabatan",
+        "subtitle": "Silakan pilih akses untuk jabatan",
+        "roles": [
+            {
+                "id": 46,
+                "name": "Lihat Jabatan",
+                "value": "position.view"
+            },
+            {
+                "id": 47,
+                "name": "Tambah Jabatan",
+                "value": "position.create"
+            },
+            {
+                "id": 48,
+                "name": "Edit Jabatan",
+                "value": "position.update"
+            },
+            {
+                "id": 49,
+                "name": "Hapus Jabatan",
+                "value": "position.delete"
+            }
+        ]
+    },
+    "area": {
+        "name": "area",
+        "title": "Area",
+        "subtitle": "Silakan pilih akses untuk area",
+        "roles": [
+            {
+                "id": 50,
+                "name": "Lihat Area",
+                "value": "area.view"
+            },
+            {
+                "id": 51,
+                "name": "Tambah Area",
+                "value": "area.create"
+            },
+            {
+                "id": 52,
+                "name": "Edit Area",
+                "value": "area.update"
+            },
+            {
+                "id": 53,
+                "name": "Hapus Area",
+                "value": "area.delete"
+            }
+        ]
+    },
+    "device": {
+        "name": "device",
+        "title": "Perangkat",
+        "subtitle": "Silakan pilih akses untuk perangkat",
+        "roles": [
+            {
+                "id": 54,
+                "name": "Lihat Perangkat",
+                "value": "device.view"
+            },
+            {
+                "id": 55,
+                "name": "Tambah Perangkat",
+                "value": "device.create"
+            },
+            {
+                "id": 56,
+                "name": "Edit Perangkat",
+                "value": "device.update"
+            },
+            {
+                "id": 57,
+                "name": "Hapus Perangkat",
+                "value": "device.delete"
+            }
+        ]
+    },
+    "operational": {
+        "name": "operational",
+        "title": "Operasional",
+        "subtitle": "Silakan pilih akses untuk Operasional",
+        "roles": [
+            {
+                "id": 72,
+                "name": "Lihat Operasional",
+                "value": "operational.view"
+            },
+            {
+                "id": 73,
+                "name": "Tambah Operasional",
+                "value": "operational.create"
+            },
+            {
+                "id": 74,
+                "name": "Edit Operasional",
+                "value": "operational.update"
+            },
+            {
+                "id": 75,
+                "name": "Hapus Operasional",
+                "value": "operational.delete"
+            }
+        ]
+    },
+    "requestTask": {
+        "name": "request-task",
+        "title": "Permintaan Tugas",
+        "subtitle": "Silakan pilih akses untuk Permintaan Tugas",
+        "roles": [
+            {
+                "id": 81,
+                "name": "Lihat Permintaan Tugas",
+                "value": "request-task.view"
+            },
+            {
+                "id": 82,
+                "name": "Buat Permintaan Tugas",
+                "value": "request-task.create"
+            },
+            {
+                "id": 83,
+                "name": "Edit Permintaan Tugas",
+                "value": "request-task.update"
+            },
+            {
+                "id": 84,
+                "name": "Hapus Permintaan Tugas",
+                "value": "request-task.delete"
+            }
+        ]
+    },
+    "salaryArchive": {
+        "name": "salaryArchive",
+        "title": "Arsip Gaji",
+        "subtitle": "Silakan pilih akses untuk Arsip Gaji",
+        "roles": [
+            {
+                "id": 85,
+                "name": "Lihat Arsip Gaji",
+                "value": "salary-archive.view"
+            },
+            {
+                "id": 86,
+                "name": "Tambah Arsip Gaji",
+                "value": "salary-archive.create"
+            },
+            {
+                "id": 87,
+                "name": "Hitung Arsip Gaji",
+                "value": "salary-archive.calculate"
+            }
+        ]
+    },
+    "foodArchive": {
+        "name": "foodArchive",
+        "title": "Arsip makanan lembur",
+        "subtitle": "Silakan pilih akses untuk Arsip makanan lembur",
+        "roles": [
+            {
+                "id": 88,
+                "name": "Lihat Arsip makanan lembur",
+                "value": "food-archive.view"
+            }
+        ]
+    },
+    "business_settings": {
+        "name": "business_settings",
+        "title": "Setting bisnis",
+        "subtitle": "Silakan pilih akses untuk Setting bisnis",
+        "roles": [
+            {
+                "id": 89,
+                "name": "Setting bisnis",
+                "value": "business_settings.access"
+            }
+        ]
+    },
+    "report": {
+        "name": "report",
+        "title": "Report",
+        "subtitle": "Silakan pilih akses untuk report",
+        "roles": [
+            {
+                "id": 58,
+                "name": "Lihat Laporan Absensi",
+                "value": "attendance-report.view"
+            },
+            {
+                "id": 62,
+                "name": "Lihat Laporan Absensi Kartu",
+                "value": "attendance-card.view"
+            },
+            {
+                "id": 70,
+                "name": "Lihat Laporan Penggajian",
+                "value": "payroll-report.view"
+            },
+            {
+                "id": 71,
+                "name": "Hitung Penggajian",
+                "value": "payroll-report.calculate"
+            },
+            {
+                "id": 90,
+                "name": "Lihat Laporan Absensi Kerja tidak di disiplin",
+                "value": "report.working.view"
+            },
+            {
+                "id": 91,
+                "name": "Lihat Laporan Absensi Istirahat tidak di disiplin",
+                "value": "report.break-time.view"
+            }
+        ]
+    }
+}

@@ -580,7 +580,7 @@ hover:bg-gray-50
                             </div>
                         </a>
                         @endcan
-                        @can('attendance-operational.view')
+                        @can('report.working.view')
                         <a href="{{ route('working-report.index') }}" class="flex items-center justify-between p-2.5 rounded-lg w-full hover:underline hover:decoration-gray-500 
                                     @activemenu('working-report')
 bg-gray-100 active
@@ -594,7 +594,7 @@ hover:bg-gray-50
                             </div>
                         </a>
                         @endcan
-                        @can('attendance-operational.view')
+                        @can('report.break-time.view')
                         <a href="{{ route('break-time-report.index') }}" class="flex items-center justify-between p-2.5 rounded-lg w-full hover:underline hover:decoration-gray-500 
                                     @activemenu('break-time-report')
 bg-gray-100 active

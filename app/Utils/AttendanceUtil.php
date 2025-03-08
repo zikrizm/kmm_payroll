@@ -1014,7 +1014,7 @@ class AttendanceUtil extends Util
                 'range_dates' => $range_dates,
                 'working_date' => ['start_date' => $start_date_work_day, 'end_date' => $end_date_work_day],
                 'overtime_date' => ['start_date' => $start_date_overtime, 'end_date' => $end_date_overtime],
-                'department_reports' => collect()
+                'departments' => collect()
             ]);
 
             if ($employee_dept_group->isEmpty()) return $result;
@@ -1026,7 +1026,7 @@ class AttendanceUtil extends Util
 
                 $attendance_reports = collect([
                     'department' => $department,
-                    'employee_attendances' => collect(),
+                    'employees' => collect(),
                 ]);
 
                 foreach ($employees as $employee) {
@@ -1177,11 +1177,11 @@ class AttendanceUtil extends Util
                         $attendance_report_employee_data['total_salary'] += $attendance_report_employee_data['total_hk'] * $employee['daily_salary'];
                     }
 
-                    $attendance_reports['employee_attendances']->push($attendance_report_employee_data);
+                    $attendance_reports['employees']->push($attendance_report_employee_data);
                 }
 
                
-                $result['department_reports']->push($attendance_reports);
+                $result['departments']->push($attendance_reports);
             }
 
             return $result;

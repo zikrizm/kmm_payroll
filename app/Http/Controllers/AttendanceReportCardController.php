@@ -7,6 +7,7 @@ use App\Models\Department;
 use App\Models\Employee;
 use App\Models\Shift;
 use App\Utils\ResponseUtil;
+use App\Utils\AttendanceUtil;
 use App\Models\EmployeeDebt;
 use App\Models\Holiday;
 use App\Models\Operational;
@@ -24,12 +25,14 @@ class AttendanceReportCardController extends Controller
 {
     private $service;
     private $buildRes;
+    private $attendanceUtil;
     private $util;
 
-    public function __construct(ApiServices $service, Util $util, ResponseUtil $buildRes)
+    public function __construct(ApiServices $service, Util $util, AttendanceUtil $attendanceUtil, ResponseUtil $buildRes)
     {
         $this->service = $service;
         $this->buildRes = $buildRes;
+        $this->attendanceUtil = $attendanceUtil;
         $this->util = $util;
     }
 
@@ -47,6 +50,10 @@ class AttendanceReportCardController extends Controller
 
         try {
             $business_id = Session::get('business_id');
+            $department_code = $request['department_code'];
+            $start_date = $request['start_date'];
+            $end_date = $request['end_date'];
+
             if (request()->ajax()) {
                 $datas = collect([]);
                 $start_date = null;
@@ -62,7 +69,15 @@ class AttendanceReportCardController extends Controller
                     $start_date_overtime = Carbon::createFromFormat('d-m-Y', $request['start_date'])->subDays($business->pending_day);
                     $end_date_overtime = Carbon::createFromFormat('d-m-Y', $request['end_date'])->subDays($business->pending_day);
 
-                    $datas = app(PrintReportContoller::class)->getPayrollAttendanceReport(
+                    // $datas = app(PrintReportContoller::class)->getPayrollAttendanceReport(
+                    //     $start_date_work_day,
+                    //     $end_date_work_day,
+                    //     $start_date_overtime,
+                    //     $end_date_overtime,
+                    //     $request['department_code'],
+                    // );
+
+                    $result = $this->attendanceUtil->getAttendance(
                         $start_date_work_day,
                         $end_date_work_day,
                         $start_date_overtime,
@@ -70,16 +85,18 @@ class AttendanceReportCardController extends Controller
                         $request['department_code'],
                     );
 
-                    $render =  view('Report.attendance_card.table', compact('datas', 'start_date_work_day', 'end_date_work_day', 'start_date_overtime', 'end_date_overtime'))->render();
-                    return $this->buildRes->RESPONSE_REQ('success', $render, null);
+                    Log::info($result);
+
+                    // $render =  view('Report.attendance_card.table', compact('datas', 'start_date_work_day', 'end_date_work_day', 'start_date_overtime', 'end_date_overtime'))->render();
+                    // return $this->buildRes->RESPONSE_REQ('success', $render, null);
                 } else {
-                    $render =  view('Report.attendance_card.table', compact('datas'))->render();
-                    return $this->buildRes->RESPONSE_REQ('success', $render, null);
+                    // $render =  view('Report.attendance_card.table', compact('datas'))->render();
+                    // return $this->buildRes->RESPONSE_REQ('success', $render, null);
                 }
             }
 
             $department_bios = collect($this->service->get_departments(['page_size' => 999])['data']);
-            return  view('Report.attendance_card.index', compact('department_bios'));
+            return  view('Report.attendance_card.index', compact('department_bios', 'department_code', 'start_date', 'end_date'));
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
 

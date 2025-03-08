@@ -51,12 +51,11 @@
                                 @foreach ($item['roles'] as $item_role)
                                 <label
                                     class="text-sm xs/max:text-xs text-gray-500 flex items-center gap-2 bg-gray-50 rounded-md px-2 py-1 cursor-pointer hover:bg-gray-100 {{ $role->is_default ? 'cursor-not-allowed': '' }}">
-                                    <input {{ in_array($item_role['name'],
-                                    $role_permissions ) ? 'checked' : '' }} type="checkbox" class="accent-violet-500 {{
+                                    <input {{ in_array($item_role['value'], $role_permissions ) ? 'checked' : '' }} type="checkbox" class="accent-violet-500 {{
                                     $item['name'] }}-check "
-                                    name="roles[]" value="{{ $item_role['name'] }}">
-                                    {{ ucfirst(join(" ",array_reverse(explode('.', $item_role['name'])))) }}
-                                </label>
+                                    name="roles[]" value="{{ $item_role['value'] }}">
+                                    {{  $item_role['name'] }}
+                                    </label>
                                 @endforeach
                             </div>
                         </div>

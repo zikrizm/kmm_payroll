@@ -45,14 +45,14 @@
                                 <label
                                     class="text-sm xs/max:text-xs text-gray-500 flex items-center gap-2 bg-gray-50 rounded-md px-2 py-1 cursor-pointer hover:bg-gray-100 mb-3">
                                     <input type="checkbox" class="accent-violet-500"
-                                        onchange="onSelectAllCheckbox(this,'.{{ $item['name'] }}-check')"> Select all
+                                        onchange="onSelectAllCheckbox(this,'.{{ $item['name'] }}-check')"> Pilih semua
                                 </label>
                                 @foreach ($item['roles'] as $item_role)
                                 <label
                                     class="text-sm xs/max:text-xs text-gray-500 flex items-center gap-2 bg-gray-50 rounded-md px-2 py-1 cursor-pointer hover:bg-gray-100">
                                     <input type="checkbox" class="accent-violet-500 {{ $item['name'] }}-check"
-                                        name="roles[]" value="{{ $item_role['name'] }}">
-                                    {{ ucfirst(join(" ",array_reverse(explode('.', $item_role['name'])))) }}
+                                        name="roles[]" value="{{ $item_role['value'] }}">
+                                    {{ $item_role['name'] }}
                                 </label>
                                 @endforeach
                             </div>

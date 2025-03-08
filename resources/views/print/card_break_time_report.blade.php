@@ -8,8 +8,8 @@
         </div>
         <div id="print-card-break-time-report" class="w-max">
             <div class="grid gap-5 grid-cols-2">
-                @foreach ($result['department_reports'] as $department)
-                    @foreach ($department['employee_attendances'] as $employee_attendance)
+                @foreach ($result['departments'] as $department)
+                    @foreach ($department['employees'] as $employee_attendance)
                         <div class="flex flex-col gap-2.5 border rounded p-4 w-[375px]" style="min-width: 375px;">
                             <header class="relative">
                                 <div>

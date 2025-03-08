@@ -89,21 +89,25 @@ class RoleController extends Controller
         }
 
         try {
-            $permissions = [];
-            $permits = Permission::all();
-            foreach ($permits as $item) {
-                $permissionSplice = explode('.', $item->name)[0];
-                if (!isset($permissions[$permissionSplice])) {
-                    $permissions[$permissionSplice] = [
-                        'name' => $permissionSplice,
-                        'title' => ucfirst($permissionSplice),
-                        'subtitle' => "Please select access for " . $permissionSplice,
-                        'roles' => [$item->toArray()],
-                    ];
-                } else {
-                    $permissions[$permissionSplice]['roles'][] = $item->toArray();
-                }
-            }
+            $json = file_get_contents(public_path('config\permissions.json'));
+            $permissions = json_decode($json, true);
+
+            // $permissions = [];
+            // $permits = Permission::all();
+            
+            // foreach ($permits as $item) {
+            //     $permissionSplice = explode('.', $item->name)[0];
+            //     if (!isset($permissions[$permissionSplice])) {
+            //         $permissions[$permissionSplice] = [
+            //             'name' => $permissionSplice,
+            //             'title' => ucfirst($permissionSplice),
+            //             'subtitle' => "Please select access for " . $permissionSplice,
+            //             'roles' => [$item->toArray()],
+            //         ];
+            //     } else {                    
+            //         $permissions[$permissionSplice]['roles'][] = $item->toArray();
+            //     }
+            // }
 
             $render = view('User.role.create', compact('permissions'))->render();
 
@@ -182,21 +186,25 @@ class RoleController extends Controller
         try {
             $business_id = Session::get('business_id');
 
-            $permissions = [];
-            $permits = Permission::all();
-            foreach ($permits as $item) {
-                $permissionSplice = explode('.', $item->name)[0];
-                if (!isset($permissions[$permissionSplice])) {
-                    $permissions[$permissionSplice] = [
-                        'name' => $permissionSplice,
-                        'title' => ucfirst($permissionSplice),
-                        'subtitle' => "Please select access for " . $permissionSplice,
-                        'roles' => [$item->toArray()],
-                    ];
-                } else {
-                    $permissions[$permissionSplice]['roles'][] = $item->toArray();
-                }
-            }
+            // $permissions = [];
+            // $permits = Permission::all();
+            // foreach ($permits as $item) {
+            //     $permissionSplice = explode('.', $item->name)[0];
+            //     if (!isset($permissions[$permissionSplice])) {
+            //         $permissions[$permissionSplice] = [
+            //             'name' => $permissionSplice,
+            //             'title' => ucfirst($permissionSplice),
+            //             'subtitle' => "Please select access for " . $permissionSplice,
+            //             'roles' => [$item->toArray()],
+            //         ];
+            //     } else {
+            //         $permissions[$permissionSplice]['roles'][] = $item->toArray();
+            //     }
+            // }
+
+            $json = file_get_contents(public_path('config\permissions.json'));
+            $permissions = json_decode($json, true);
+
 
             $role = Role::where('business_id', $business_id)->with(['permissions'])->find($role);
             $role_permissions = [];
@@ -249,7 +257,7 @@ class RoleController extends Controller
 
                 // ** create activity log user
                 ActivityLog::created_activity('CRUD role', 'User ' . auth()->user()->username . ' edit data role');
-                return $this->buildRes->RESPONSE_REQ('success', null, ['error' => ['Role update succesfully']]);
+                return $this->buildRes->RESPONSE_REQ('success', null,[ 'Role update succesfully']);
                 // } else {
                 //     return $this->buildRes->RESPONSE_REQ('error', null, ['error' => ['Default role cannot be edited']]);
                 // }

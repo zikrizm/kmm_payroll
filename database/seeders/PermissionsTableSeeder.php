@@ -113,15 +113,27 @@ class PermissionsTableSeeder extends Seeder
             
             ['name' => 'food-archive.view'],
             ['name' => 'business_settings.access'],
+
+            ['name' => 'business_settings.access'],
+
+            ['name' => 'report.working.view'],
+            ['name' => 'report.break-time.view'],
         ];
 
-        $insert_data = [];
-        $time_stamp = Carbon::now()->toDateTimeString();
-        foreach ($data as $d) {
-            $d['guard_name'] = 'web';
-            $d['created_at'] = $time_stamp;
-            $insert_data[] = $d;
+        // $insert_data = [];
+        // $time_stamp = Carbon::now()->toDateTimeString();
+        // foreach ($data as $d) {
+        //     $d['guard_name'] = 'web';
+        //     $d['created_at'] = $time_stamp;
+        //     $insert_data[] = $d;
+        // }
+        // Permission::insert($insert_data);
+
+        foreach ($data as $permission) {
+            Permission::firstOrCreate([
+                'name' => $permission['name'],
+                'guard_name' => 'web'
+            ]);
         }
-        Permission::insert($insert_data);
     }
 }

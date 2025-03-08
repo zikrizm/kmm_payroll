@@ -35,7 +35,7 @@ class BreakTimeReportController extends Controller
      */
     public function index(Request $request)
     {
-        if (!auth()->user()->can('attendance-card.view')) {
+        if (!auth()->user()->can('report.break-time.view')) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -69,8 +69,8 @@ class BreakTimeReportController extends Controller
                         $request['department_code'],
                     );
 
-                    $result['department_reports']->each(function ($dep) {
-                        $dep['employee_attendances'] = $dep['employee_attendances']->filter(function ($item) {
+                    $result['departments']->each(function ($dep) {
+                        $dep['employees'] = $dep['employees']->filter(function ($item) {
                             $totalLength = $item['attendances']->sum(fn($item) => count($item['break_time_status_list']->filter(fn($item) => !$item['status'])));
                             return $totalLength > 0;
                         });

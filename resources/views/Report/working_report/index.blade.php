@@ -35,7 +35,7 @@
                     </select>
                     <label class="font-normal text-xs text-red-500 xs/max:text-xs parent_dept hint-text"></label>
                 </section>
-                <a id="card-working-report" target="_blank"
+                <a id="card-working-export" target="_blank"
                     class="flex  items-center gap-2.5 text-sm px-4 py-1.5 rounded-lg border text-gray-700">
                     <x-icon icon="printer" width=16 height=16 viewBox="20 20" />
                     <p style="white-space: nowrap;">Cetak kartu</p>
@@ -68,15 +68,14 @@
             onInit({department_code: $(this).val()})
         });
 
-
-        var defaultStartDate = "{{ $start_date }}";
-        var defaultEndDate = "{{ $end_date }}";
+        var defaultStartDate = "{{ $start_date ?? '' }}";
+        var defaultEndDate = "{{ $end_date ?? '' }}";
 
         onInit({
             q: $('.search-data-input').val(),
             department_code: $('.select2-dept').val(),
-            start_date: convertLocalTimezone(defaultStartDate ?? moment().startOf('week'), 'DD-MM-YYYY'), 
-            end_date: convertLocalTimezone(defaultEndDate ?? moment().endOf('week'), 'DD-MM-YYYY')
+            start_date: convertLocalTimezone(defaultStartDate || moment().startOf('week'), 'DD-MM-YYYY'), 
+            end_date: convertLocalTimezone(defaultEndDate || moment().endOf('week'), 'DD-MM-YYYY')
         });
 
         $('input[name="date"]').daterangepicker({
@@ -122,8 +121,9 @@
         // * Build data params table ----->
         // *
         dataParams = { ...dataParams, ...data };
-        $('#card-working-report').attr('href', 
-            `/print/card-working-report?department_code=${dataParams.department_code}&start_date=${dataParams.start_date}&end_date=${dataParams.end_date}` 
+        console.log(dataParams)
+        $('#card-working-export').attr('href', 
+            `/print/card-working-report?department_code=${dataParams.department_code}` 
         );
 
         const queryString = new URLSearchParams(dataParams).toString();

@@ -69,18 +69,20 @@
             onInit({department_code: $(this).val()})
         });
 
+        var defaultStartDate = "{{ $start_date ?? '' }}";
+        var defaultEndDate = "{{ $end_date ?? '' }}";
 
         onInit({
             q: $('.search-data-input').val(),
             department_code: $('.select2-dept').val(),
-            start_date: convertLocalTimezone( moment().startOf('week'), 'DD-MM-YYYY'), 
-            end_date: convertLocalTimezone(moment().endOf('week'), 'DD-MM-YYYY')
+            start_date: convertLocalTimezone(defaultStartDate || moment().startOf('week'), 'DD-MM-YYYY'), 
+            end_date: convertLocalTimezone(defaultEndDate || moment().endOf('week'), 'DD-MM-YYYY')
         });
 
         $('input[name="date"]').daterangepicker({
             locale: { format: 'DD-MM-YYYY' },
-            startDate: moment().startOf('week'),
-            endDate: moment().endOf('week'),
+            startDate: defaultStartDate ? moment(defaultStartDate, 'DD-MM-YYYY') : moment().startOf('week'),
+            endDate: defaultEndDate ? moment(defaultEndDate, 'DD-MM-YYYY') : moment().endOf('week'),
             ranges: {
                 'Today': [moment(), moment()],
                 'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
@@ -123,6 +125,12 @@
         $('#card-attendance').attr('href', 
             `/print/card-attendance?department_code=${dataParams.department_code}&start_date=${dataParams.start_date}&end_date=${dataParams.end_date}` 
         );
+
+        const queryString = new URLSearchParams(dataParams).toString();
+
+        // Update URL tanpa refresh halaman
+        const newUrl = window.location.pathname + "?" + queryString;
+        history.replaceState(null, "", newUrl);
     
         // **
         // * get table ----->

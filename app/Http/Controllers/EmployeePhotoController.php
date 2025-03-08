@@ -30,7 +30,7 @@ class EmployeePhotoController extends Controller
      */
     public function index(Request $request)
     {
-        if (!auth()->user()->can('employee-photo.view')) {
+        if (!auth()->user()->can('employee-photo.create')) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -104,7 +104,7 @@ class EmployeePhotoController extends Controller
      */
     public function show($employee)
     {
-        if (!auth()->user()->can('employee-photo.view')) {
+        if (!auth()->user()->can('employee-photo.create')) {
             abort(403, 'Unauthorized action.');
         }
     }
@@ -118,7 +118,7 @@ class EmployeePhotoController extends Controller
      */
     public function detail($employee)
     {
-        if (!auth()->user()->can('employee-photo.view')) {
+        if (!auth()->user()->can('employee-photo.create')) {
             abort(403, 'Unauthorized action.');
         }
 
