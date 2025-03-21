@@ -83,6 +83,14 @@
                                     <p class="text-sm font-normal text-gray-500">Menit</p>
                                 </div>
                             </div>
+                            <div class="flex flex-col gap-1 w-full">
+                                <label class="text-sm font-normal text-gray-500">Batas disiplin*</label>
+                                {!! FormCustom::input('warning_check_in', $timetable->warning_check_in_min, [
+                                    'placeholder' => '-',
+                                    'prefixiconname' => 'plus-minus',
+                                    'class' => 'plus-minus',
+                                ]) !!}
+                            </div>
                             {{-- <div class="flex flex-col gap-1 w-full">
                                 <label class="text-sm font-normal text-gray-500">Batas ± (60 menit)*</label>
                                 {!! FormCustom::input('check_in_plusmn', $timetable->check_in_plusmn, [
@@ -118,6 +126,14 @@
                                     ]) !!}
                                     <p class="text-sm font-normal text-gray-500">Menit</p>
                                 </div>
+                            </div>
+                            <div class="flex flex-col gap-1 w-full">
+                                <label class="text-sm font-normal text-gray-500">Batas disiplin*</label>
+                                {!! FormCustom::input('warning_check_out', $timetable->warning_check_out_min, [
+                                    'placeholder' => '-',
+                                    'prefixiconname' => 'plus-minus',
+                                    'class' => 'plus-minus',
+                                ]) !!}
                             </div>
                             {{-- <div class="flex flex-col gap-1 w-full">
                                 <label class="text-sm font-normal text-gray-500">Batas ± (60 menit)*</label>

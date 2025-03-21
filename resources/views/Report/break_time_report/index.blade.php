@@ -68,14 +68,14 @@
             onInit({department_code: $(this).val()})
         });
 
-        var defaultStartDate = "{{ $start_date }}";
-        var defaultEndDate = "{{ $end_date }}";
+        var defaultStartDate = "{{ $start_date ?? '' }}";
+        var defaultEndDate = "{{ $end_date ?? '' }}";
 
         onInit({
             q: $('.search-data-input').val(),
             department_code: $('.select2-dept').val(),
-            start_date: convertLocalTimezone(defaultStartDate ?? moment().startOf('week'), 'DD-MM-YYYY'), 
-            end_date: convertLocalTimezone(defaultEndDate ?? moment().endOf('week'), 'DD-MM-YYYY')
+            start_date: convertLocalTimezone(defaultStartDate || moment().startOf('week'), 'DD-MM-YYYY'), 
+            end_date: convertLocalTimezone(defaultEndDate || moment().endOf('week'), 'DD-MM-YYYY')
         });
 
         $('input[name="date"]').daterangepicker({

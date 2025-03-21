@@ -1,7 +1,7 @@
 <div class="w-full overflow-auto overflow-y-hidden flex-1">
     <div class="grid gap-5 grid-cols-3 xl/max:grid-cols-2 lg/max:grid-cols-1 w-max items-start">
         @foreach ($result['departments'] as $department)
-            @foreach ($department['employees'] as $employee_attendance)
+            @foreach ($department['employees'] as $employee)
                 <div class="flex flex-col gap-2.5 border rounded p-4 w-[375px]" style="min-width: 375px;">
                     <header class="relative">
                         <div>
@@ -11,13 +11,14 @@
                         <div class="flex items-end absolute top-[5px] w-full">
                             <hr class="flex-1 border-[1.5px] bg-black rounded ">
                             <div class="w-14 h-14 bg-white mb-[-10px] rounded-full overflow-hidden">
-                                @if (!empty($employee_attendance['employee']['photo']))
-                                <img class="image w-full h-full object-cover"
-                                    src="{{config('constants.api_zkteco')}}{{ $employee_attendance['employee']['photo'] }}" alt="">
+                                @if (!empty($employee['employee']['photo']))
+                                    <img class="image w-full h-full object-cover"
+                                        src="{{ config('constants.api_zkteco') }}{{ $employee['employee']['photo'] }}"
+                                        alt="">
                                 @else
-                                <img class="w-full h-full object-cover"
-                                    src="{{config('constants.api_zkteco')}}/files/nophoto.gif" alt=""
-                                    onerror="this.parentElement.style.width='0';">
+                                    <img class="w-full h-full object-cover"
+                                        src="{{ config('constants.api_zkteco') }}/files/nophoto.gif" alt=""
+                                        onerror="this.parentElement.style.width='0';">
                                 @endif
                             </div>
                             <hr class="w-10 border-[1.5px] bg-black rounded ">
@@ -41,8 +42,8 @@
                                 </td>
                                 <td class="align-middle">
                                     <p class="text-gray-500 text-xs text-middle mt-0.5">
-                                        {{ date('d-m-Y', strtotime($result['working_date']['start_date'])) }} -
-                                        {{ date('d-m-Y', strtotime($result['working_date']['end_date'])) }}
+                                        {{ date('d-m-Y', strtotime($result['start_date_work_day'])) }} -
+                                        {{ date('d-m-Y', strtotime($result['end_date_work_day'])) }}
                                 </td>
                             </tr>
                         </table>
@@ -63,8 +64,8 @@
                                 </td>
                                 <td class="align-middle">
                                     <p class="text-gray-500 text-xs text-middle mt-0.5">
-                                        {{ $employee_attendance['employee']['first_name'] }}
-                                        {{ $employee_attendance['employee']['last_name'] }}
+                                        {{ $employee['employee']['first_name'] }}
+                                        {{ $employee['employee']['last_name'] }}
                                     </p>
                                 </td>
                             </tr>
@@ -115,7 +116,7 @@
                             </thead>
                             <tbody>
                                 @php
-                                    $attendances_working = $employee_attendance['attendances']->filter(function ($item) {
+                                    $attendances_working = $employee['attendances']->filter(function ($item) {
                                         return count($item['working_status_list']) > 0;
                                     });
                                 @endphp
@@ -125,23 +126,23 @@
                                             return !$item['status'];
                                         });
                                     @endphp
-                                    @foreach($invalidWorking as $key => $item)
+                                    @foreach ($invalidWorking as $key => $item)
                                         <tr class='hover:bg-gray-50 border'>
                                             @if ($key == 0)
-                                            <td rowspan="{{ count($invalidWorking) }}"
-                                                class="text-xs border text-center w-8 {{ $attendance['is_holiday'] ? 'text-red-500' : 'text-gray-500' }}">
-                                                {{ date('d', strtotime($attendance['date'])) }}
-                                            </td>
-                                            <td rowspan="{{ count($invalidWorking) }}"
-                                                class="text-xs border text-center w-8 {{ $attendance['is_holiday'] ? 'text-red-500' : 'text-gray-500' }}">
-                                                {{ $attendance['key'] }}
-                                            </td>
+                                                <td rowspan="{{ count($invalidWorking) }}"
+                                                    class="text-xs border text-center w-8 {{ $attendance['is_holiday'] ? 'text-red-500' : 'text-gray-500' }}">
+                                                    {{ date('d', strtotime($attendance['date'])) }}
+                                                </td>
+                                                <td rowspan="{{ count($invalidWorking) }}"
+                                                    class="text-xs border text-center w-8 {{ $attendance['is_holiday'] ? 'text-red-500' : 'text-gray-500' }}">
+                                                    {{ $attendance['key'] }}
+                                                </td>
                                             @endif
                                             <td class='text-xs border text-gray-500 text-center w-12'>
                                                 @if (!empty($item['start_punch']))
                                                     {{ date('H:i', strtotime($item['start_punch'])) }}
                                                 @else
-                                                -
+                                                    -
                                                 @endif
                                             </td>
                                             <td class='text-xs border text-gray-500 text-center w-14 '>
@@ -150,7 +151,7 @@
                                                         {{ date('H:i', strtotime($item['end_punch'])) }}
                                                     </div>
                                                 @else
-                                                -
+                                                    -
                                                 @endif
                                             </td>
                                             <td class='text-xs border text-gray-500 text-center'>
@@ -169,7 +170,8 @@
             @endforeach
         @endforeach
     </div>
-</div><script>
+</div>
+<script>
     // Mendapatkan semua gambar dengan class 'image'
     var images = document.querySelectorAll('.image');
 

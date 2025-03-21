@@ -8,9 +8,9 @@
         </div>
         <div id="print-card-attendance" class="w-max">
             <div class="grid gap-5 grid-cols-2">
-                @foreach ($result['departments'] as $department)
-                    @foreach ($department['employees'] as $employee)
-                        <div class="flex flex-col gap-2.5 border rounded p-4 w-[375px]" style="min-width: 375px;">
+                @foreach ($datas as $data)
+                    @foreach ($data['attendance_reports'] as $item)
+                        <div class="flex flex-col gap-2.5 border rounded p-4 w-full max-w-[375px]">
                             <header class="relative">
                                 <div>
                                     <p class="font-bold text-gray-700 text-xl">KARTU ABSEN</p>
@@ -19,14 +19,13 @@
                                 <div class="flex items-end absolute top-[5px] w-full">
                                     <hr class="flex-1 border-[1.5px] bg-black rounded ">
                                     <div class="w-14 h-14 bg-white mb-[-10px] rounded-full overflow-hidden">
-                                        @if (!empty($employee['employee']['photo']))
+                                        @if (!empty($item['employee']['photo']))
                                             <img class="image w-full h-full object-cover"
-                                                src="{{ config('constants.api_zkteco') }}{{ $employee['employee']['photo'] }}"
+                                                src="{{ config('constants.api_zkteco') }}{{ $item['employee']['photo'] }}"
                                                 alt="">
                                         @else
                                             <img class="w-full h-full object-cover"
-                                                src="{{ config('constants.api_zkteco') }}/files/nophoto.gif" alt=""
-                                                onerror="this.parentElement.style.width='0';">
+                                                src="{{ config('constants.api_zkteco') }}/files/nophoto.gif" alt="">
                                         @endif
                                     </div>
                                     <hr class="w-10 border-[1.5px] bg-black rounded ">
@@ -50,8 +49,8 @@
                                         </td>
                                         <td class="align-middle">
                                             <p class="text-gray-500 text-xs text-middle mt-0.5">
-                                                {{ date('d-m-Y', strtotime($result['start_date_work_day'])) }} -
-                                                {{ date('d-m-Y', strtotime($result['end_date_work_day'])) }}
+                                                {{ date('d-m-Y', strtotime($data['start_date'])) }} -
+                                                {{ date('d-m-Y', strtotime($data['end_date'])) }}
                                         </td>
                                     </tr>
                                 </table>
@@ -72,8 +71,8 @@
                                         </td>
                                         <td class="align-middle">
                                             <p class="text-gray-500 text-xs text-middle mt-0.5">
-                                                {{ $employee['employee']['first_name'] }}
-                                                {{ $employee['employee']['last_name'] }}
+                                                {{ $item['employee']['first_name'] }}
+                                                {{ $item['employee']['last_name'] }}
                                             </p>
                                         </td>
                                     </tr>
@@ -95,7 +94,7 @@
                                         </td>
                                         <td class="align-middle">
                                             <p class="text-gray-500 text-xs text-middle mt-0.5">
-                                                {{ $department['department']['dept_name'] ?? '-' }}
+                                                {{ $data['department']['dept_name'] ?? '-' }}
                                             </p>
                                         </td>
                                     </tr>
@@ -122,86 +121,45 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach ($employee['attendances'] as $attendance)
-                                        @forelse ($attendance['shifts'] as $key => $shift)
-                                            <tr class='hover:bg-gray-50 border '>
-                                                @if ($key == 0)
-                                                    <td rowspan="{{ count($attendance['shifts']) }}"
-                                                        class="text-xs border text-center w-8 {{ $attendance['is_holiday'] ? 'text-red-500' : 'text-gray-500' }}">
-                                                        {{ date('d', strtotime($attendance['date'])) }}
-                                                    </td>
+                                    @foreach ($item['attendances'] as $key => $attendance)
+                                        <tr class='hover:bg-gray-50 border '>
+                                            <td
+                                                class="text-xs border text-center w-8 {{ $attendance['is_holiday'] ? 'text-red-500' : 'text-gray-500' }}">
+                                                {{ date('d', strtotime($attendance['date'])) }}
+                                            </td>
+                                            <td class='text-xs border text-gray-500 text-center w-12'>
+                                                @if (!empty($attendance['first_punch']))
+                                                    {{ date('H:i', strtotime($attendance['first_punch'])) }}
+                                                @else
+                                                    -
                                                 @endif
-                                                <td class='text-xs border text-gray-500 text-center w-12'>
-                                                    @if (!empty($shift['working']['start_punch']))
-                                                        {{ date('H:i', strtotime($shift['working']['start_punch'])) }}
-                                                    @else
-                                                        -
-                                                    @endif
-                                                </td>
-                                                <td class='text-xs border text-gray-500 text-center w-14 '>
-                                                    @if (!empty($shift['working']['end_punch']))
-                                                        <div class="relative">
-                                                            {{ date('H:i', strtotime($shift['working']['end_punch'])) }}
-                                                        </div>
-                                                    @else
-                                                        -
-                                                    @endif
-                                                </td>
-                                                <td class='text-xs border text-gray-500 text-center'>
-                                                    <div class="relative flex items-center justify-between gap-1">
-                                                        <div class="flex justify-center text-center flex-1 overflow-hidden">
-                                                            @if (!empty($shift['timetable']))
-                                                                <p class="text-[10px] truncate">
-                                                                    {{ $shift['timetable']['name'] ?? '-' }}</p>
-                                                            @else
-                                                                -
-                                                            @endif
-                                                        </div>
-                                                        <div class="absolute right-0 flex items-center bg-white pl-2">
-                                                            @if (!empty($shift['total_hk']))
-                                                                <p class="text-[10px] truncate">
-                                                                    ({{ $shift['total_hk'] ?? '-' }})
-                                                                </p>
-                                                            @endif
-                                                            @if ($key == 0 && !empty($attendance['total_hk_holiday']))
-                                                                <p class="text-[10px] text-red-500 truncate">
-                                                                    +({{ $attendance['total_hk_holiday'] ?? '-' }})
-                                                                </p>
-                                                            @endif
-                                                        </div>
+                                            </td>
+                                            <td class='text-xs border text-gray-500 text-center w-14 '>
+                                                @if (!empty($attendance['last_punch']))
+                                                    <div class="relative">
+                                                        {{ date('H:i', strtotime($attendance['last_punch'])) }}
                                                     </div>
-
-                                                </td>
-                                                <td class='text-xs border text-gray-500 text-center w-14'>
-                                                    {{ $shift['total_jl'] ?? '-' }}
-                                                </td>
-                                            </tr>
-                                        @empty
-                                            <tr class='hover:bg-gray-50 border '>
-                                                <td
-                                                    class="text-xs border text-center w-8 {{ $attendance['is_holiday'] ? 'text-red-500' : 'text-gray-500' }}">
-                                                    {{ date('d', strtotime($attendance['date'])) }}
-                                                </td>
-                                                <td class='text-xs border text-gray-500 text-center w-12'>
+                                                @else
                                                     -
-                                                </td>
-                                                <td class='text-xs border text-gray-500 text-center w-14 '>
-                                                    -
-                                                </td>
-                                                <td class='text-xs border text-gray-500 text-center'>
-                                                    <div class="relative flex items-center justify-end gap-1">
-                                                        @if (!empty($attendance['total_hk']))
+                                                @endif
+                                            </td>
+                                            <td class='text-xs border text-gray-500 text-center'>
+                                                <div class="relative flex items-center justify-between gap-1">
+                                                    <div class="flex justify-center text-center flex-1 overflow-hidden">
+                                                        @if (!empty($attendance['timetable']))
                                                             <p class="text-[10px] truncate">
-                                                                ({{ $attendance['total_hk'] ?? '-' }})
-                                                            </p>
+                                                                {{ $attendance['timetable']['name'] ?? '-' }}</p>
+                                                        @else
+                                                            -
                                                         @endif
                                                     </div>
-                                                </td>
-                                                <td class='text-xs border text-gray-500 text-center w-14'>
-                                                    -
-                                                </td>
-                                            </tr>
-                                        @endforelse
+                                                </div>
+
+                                            </td>
+                                            <td class='text-xs border text-gray-500 text-center w-14'>
+                                                {{ $attendance['JL'] ?? '-' }}
+                                            </td>
+                                        </tr>
                                     @endforeach
                                     <tr class='hover:bg-gray-50'>
                                         <td class='text-xs text-center'>
@@ -220,17 +178,16 @@
                                                 </div>
                                                 <div class="flex items-center">
                                                     <p class="text-gray-500 flex-1 text-center text-[10px]">
-                                                        {{ $employee['total_hk'] ?? 0 }}
+                                                        {{ $item['HK_value'] ?? 0 }}
                                                     </p>
                                                     <p class="text-gray-500 flex-1 text-center text-[10px]">
-                                                        {{ $employee['total_jl'] ?? 0 }}</p>
+                                                        {{ $item['JL_value'] ?? 0 }}</p>
                                                 </div>
                                             </div>
                                         </td>
                                     </tr>
                                 </tbody>
                             </table>
-
                         </div>
                     @endforeach
                 @endforeach
@@ -264,5 +221,5 @@
                 img.src = img.src.replace('auth_files/photo', 'auth_files/biophoto');
             };
         });
-    </script>
+</script>
 @endsection

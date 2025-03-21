@@ -1,72 +1,82 @@
 @extends('layouts.app')
 @section('title', 'Laporan Penggajian')
 @section('css')
-<style></style>
+    <style></style>
 @endsection
 @section('content')
-<div class="flex flex-col gap-6 flex-1 h-full overflow-auto bg-white px-8 pt-8 pb-12">
-    <header class="flex justify-between items-start">
-        <div class="flex flex-col gap-1">
-            <p class="text-3xl font-medium text-gray-900">Laporan penggajian</p>
-            <p class="text-base font-normal text-gray-500">Disini untuk melihat status laporan penggajian.</p>
-        </div>
-    </header>
-    <hr>
-    <div class="flex item-center justify-between gap-2.5">
-        <div class="flex items-center gap-2.5">
-            <div class="w-72">
-                {!! FormCustom::input('date', null, [
-                'placeholder' => 'Pilih tanggal penggajian',
-                'class' => 'date_input',
-                'readonly' => true,
-                'prefixiconname' => 'calendar',
-                ]) !!}
+    <div class="flex flex-col gap-6 flex-1 h-full overflow-auto bg-white px-8 pt-8 pb-12">
+        <header class="flex justify-between items-start">
+            <div class="flex flex-col gap-1">
+                <p class="text-3xl font-medium text-gray-900">Laporan penggajian</p>
+                <p class="text-base font-normal text-gray-500">Disini untuk melihat status laporan penggajian.</p>
             </div>
-            <section class="flex flex-col gap-1">
-                <select class="select2-department hidden" name="">
-                    <option value="">Semua bagian</option>
-                    @foreach (($department_bios ?? []) as $department)
-                    <option value="{{ $department['dept_code'] }}" @selected($department_bios->first()['dept_code'] ==
-                        $department['id'])>{{ $department['dept_name'] }}</option>
-                    @endforeach
-                </select>
-                <label class="font-normal text-xs text-red-500 xs/max:text-xs parent_dept hint-text"></label>
-            </section>
-            <button onclick="get_modal()"
-                class="truncate flex items-center gap-2.5 px-4 h-[36px] mb-1 text-gray-500 text-sm font-medium  flex items-center border border-gray-200 shadow-sm rounded-lg">
-                <x-icon icon="dollar-sign" width=18 height=18 viewBox="20 20" />
-                <p class="truncate">Hitung penggajian</p>
-            </button>
+        </header>
+        <hr>
+        <div class="flex item-center justify-between gap-2.5">
+            <div class="flex items-center gap-2.5">
+                <div class="w-72">
+                    {!! FormCustom::input('date', null, [
+                        'placeholder' => 'Pilih tanggal penggajian',
+                        'class' => 'date_input',
+                        'readonly' => true,
+                        'prefixiconname' => 'calendar',
+                    ]) !!}
+                </div>
+                <section class="flex flex-col gap-1">
+                    <select class="select2-department hidden" name="">
+                        <option value="" disabled>Semua bagian</option>
+                        @foreach ($department_bios ?? [] as $department)
+                            <option value="{{ $department['dept_code'] }}" @selected($department['dept_code'] === $department_code)>
+                                {{ $department['dept_name'] }}</option>
+                        @endforeach
+                    </select>
+                    <label class="font-normal text-xs text-red-500 xs/max:text-xs parent_dept hint-text"></label>
+                </section>
+                <button onclick="get_modal()"
+                    class="truncate flex items-center gap-2.5 px-4 h-[36px] mb-1 text-gray-500 text-sm font-medium  flex items-center border border-gray-200 shadow-sm rounded-lg">
+                    <x-icon icon="dollar-sign" width=18 height=18 viewBox="20 20" />
+                    <p class="truncate">Hitung penggajian</p>
+                </button>
+            </div>
+            <div class="flex items-center gap-3">
+                <x-ui.search-data placeholder="Cari penggajian" url="{{ route('payroll-report.index') }}" />
+                <button type="button" onclick="onInit({})"
+                    class="flex items-center gap-2.5 text-sm px-4 py-1.5 rounded-lg border text-gray-700 ">
+                    <x-icon icon="refresh-cw" width=20 height=20 viewBox="20 20" />
+                </button>
+            </div>
         </div>
-        <div class="flex items-center gap-3">
-            <x-ui.search-data placeholder="Cari penggajian" url="{{ route('payroll-report.index') }}" />
-            <button type="button" onclick="onInit({})"
-                class="flex items-center gap-2.5 text-sm px-4 py-1.5 rounded-lg border text-gray-700 ">
-                <x-icon icon="refresh-cw" width=20 height=20 viewBox="20 20" />
-            </button>
-        </div>
+        <div class="table-content flex-1"></div>
+        <x-ui.confirm-modal class="submit-delete-payroll-report"></x-ui.confirm-modal>
     </div>
-    <div class="table-content flex-1"></div>
-    <x-ui.confirm-modal class="submit-delete-payroll-report"></x-ui.confirm-modal>
-</div>
 
-<script type="application/javascript">
+    <script type="application/javascript">
     let dataParams = {};
 
         window.addEventListener('DOMContentLoaded', (event) => {
             $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
-            
+
+            $('.select2-department').select2();  
+            $('.select2-department').show();
+            $('.select2-department').on('select2:select', function (e) {
+                delete dataParams.page;
+                onInit({department_code: this.value});
+            });
+
+            var defaultStartDate = "{{ $start_date ?? '' }}";
+            var defaultEndDate = "{{ $end_date ?? '' }}";
+
             onInit({
                 q: $('.search-data-input').val(),
-                department_code: "{{ $department_bios->first()['dept_code'] }}",
-                start_date: convertLocalTimezone(moment().startOf('week'), 'DD-MM-YYYY'), 
-                end_date: convertLocalTimezone(moment().endOf('week'), 'DD-MM-YYYY')
+                department_code: $('.select2-department').val(),
+                start_date: convertLocalTimezone(defaultStartDate || moment().startOf('week'), 'DD-MM-YYYY'), 
+                end_date: convertLocalTimezone(defaultEndDate || moment().endOf('week'), 'DD-MM-YYYY')
             });
 
             $('input[name="date"]').daterangepicker({
                 locale: { format: 'DD-MM-YYYY' },
-                startDate: moment().startOf('week'),
-                endDate: moment().endOf('week'),
+                startDate: defaultStartDate ? moment(defaultStartDate, 'DD-MM-YYYY') : moment().startOf('week'),
+                endDate: defaultEndDate ? moment(defaultEndDate, 'DD-MM-YYYY') : moment().endOf('week'),
                 ranges: {
                     'Today': [moment(), moment()],
                     'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
@@ -92,15 +102,6 @@
                 });
             });
 
-            // $('.select2-department').select2({ minimumResultsForSearch: -1 });  
-            $('.select2-department').select2();  
-            $('.select2-department').show();
-            $('.select2-department').on('select2:select', function (e) {
-                delete dataParams.page;
-                onInit({department_code: this.value});
-            });
-
-
             $(".search-data-input").on('keyup', debounce(function(e) {
                 if(e.key == 'Shift') return 0;
                 delete dataParams.page;
@@ -115,6 +116,12 @@
             // *
             dataParams = { ...dataParams, ...data };
             
+            const queryString = new URLSearchParams(dataParams).toString();
+
+            // Update URL tanpa refresh halaman
+            const newUrl = window.location.pathname + "?" + queryString;
+            history.replaceState(null, "", newUrl);
+
             // **
             // * get table ----->
             // *

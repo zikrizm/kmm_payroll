@@ -27,7 +27,7 @@
                 </div>
                 <section class="flex flex-col gap-1 w-max">
                     <select class="select2-dept hidden" name="dept">
-                        <option value="" selected>Semua bagian</option>
+                        <option value="" disabled>Semua bagian</option>
                         @foreach ($department_bios ?? [] as $department)
                             <option value="{{ $department['dept_code'] }}" @selected($department['dept_code'] === $department_code)>
                                 {{ $department['dept_name'] }}</option>
@@ -121,7 +121,6 @@
         // * Build data params table ----->
         // *
         dataParams = { ...dataParams, ...data };
-        console.log(dataParams)
         $('#card-working-export').attr('href', 
             `/print/card-working-report?department_code=${dataParams.department_code}` 
         );

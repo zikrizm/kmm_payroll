@@ -571,8 +571,10 @@ class EmployeeController extends Controller
             $user_id = auth()->user()->id;
             $emp_count = $this->apiService->get_employees([])['count'];
             $dept_count = $this->apiService->get_departments([])['count'];
+            $area_count = $this->apiService->get_areas([])['count'];
             $employees = $this->apiService->get_employees(['page_size' => $emp_count])['data'];
             $depts = $this->apiService->get_departments(['page_size' => $dept_count])['data'];
+            $area_list = $this->apiService->get_areas(['page_size' => $area_count])['data'];
             $files = $request->file('file');
             foreach ($files as $key => $item) {
                 $rows = Excel::toArray(new EmployeesImport, $item);
@@ -600,11 +602,11 @@ class EmployeeController extends Controller
                             'emp_code' => 'required|max:255',
                             'first_name' => 'required|max:255',
                             'department' => 'required|max:255',
-                            'emp_type' => 'required|max:255',
+                            // 'emp_type' => 'required|max:255',
                             'area' => 'required',
-                            'gender' => 'required',
-                            'daily_salary' => 'required',
-                            'payment_period' => 'required',
+                            // 'gender' => 'required',
+                            // 'daily_salary' => 'required',
+                            // 'payment_period' => 'required',
                         ], [
                             'required' => ':attribute wajib diisi.',
                             'max' => ':attribute tidak boleh lebih dari :max karakter.',
@@ -618,7 +620,26 @@ class EmployeeController extends Controller
                             }
     
                         } else {
-                            $key = array_search($value['emp_id'], array_column($employees, 'id'));
+                            $value_areas = !empty($value['area']) ? explode(',', $value['area']) : [];
+                            for ($i=0; $i < count($value_areas); $i++) {
+                                // Search for the area in the array based on area_code
+                                $area = null;
+                                foreach ($area_list as $item) {
+                                    if ($item['area_code'] === $value_areas[$i]) {
+                                        $area = $item;
+                                        break;
+                                    }
+                                }
+                            
+                                if ($area) {
+                                    $value_areas[$i] =  $area['id'];
+                                }
+                            }
+
+                            // Log::info($value_areas);
+                            
+
+                            $key = isset($value['emp_id']) ?  array_search($value['emp_id'], array_column($employees, 'id')) : '';
                             $keydept = array_search($value['department'], array_column($depts, 'dept_code'));
                             if ($key == '') {
                                 // ** Add employee for biotime 
@@ -631,11 +652,11 @@ class EmployeeController extends Controller
                                         "address" => $value['address'],
                                         "city" => $value['city'],
                                         "gender" => $value['gender'],
-                                        "area" => !empty($value['area']) ? explode(',', $value['area']) : [],
+                                        "area" => $value_areas,
                                         // "area" => is_array(json_decode($value['area'])) ? json_decode($value['area']) : [json_decode($value['area'])],
                                         "department" => $depts[$keydept] ? $depts[$keydept]['id'] : $value['department'],
-                                        "daily_salary" => $value['daily_salary'],
-                                        "payment_period" => $value['payment_period'],
+                                        // "daily_salary" => $value['daily_salary'],
+                                        // "payment_period" => $value['payment_period'],
                                         'created_user' => $user_id,
                                         'updated_user' => $user_id,
                                         'is_device' => -1,
@@ -646,18 +667,26 @@ class EmployeeController extends Controller
                                 if ($res['status'] == 'success') {
                                     
                                     // ** Add employee for local if not exist 
-                                    Employee::updateOrCreate(["emp_code" => (string)$value['emp_code']], [
+                                    $data = [
                                         'business_id' => $business_id,
                                         'emp_id' => $res['data']['id'],
                                         "emp_code" => $value['emp_code'],
                                         "first_name" => $value['first_name'],
                                         "last_name" => $value['last_name'],
-                                        "daily_salary" => $value['daily_salary'],
-                                        "payment_period" => $value['payment_period'],
                                         'created_user' => $user_id,
                                         'updated_user' => $user_id,
                                         'is_device' => -1,
-                                    ]);
+                                    ];
+
+                                    if(!empty($value['daily_salary'])) {
+                                        $data["daily_salary"] = $value['daily_salary'];
+                                    }
+                                    if(!empty($value['payment_period'])) {
+                                        $data["payment_period"] = $value['payment_period'];
+                                    }
+
+
+                                    Employee::updateOrCreate(["emp_code" => (string)$value['emp_code']],  $data);
                                 } else {
                                     if (!empty($res['msg'])) {
                                         foreach ($res['msg'] as $key => $msg) {
@@ -679,23 +708,30 @@ class EmployeeController extends Controller
                                         "address" => $value['address'],
                                         "city" => $value['city'],
                                         "gender" => $value['gender'],
-                                        "area" => !empty($value['area']) ? explode(',', $value['area']) : [],
+                                        "area" => $value_areas,
                                         "department" => $depts[$keydept] ? $depts[$keydept]['id'] : $value['department'],
                                     ]
                                 );
 
-                                Employee::updateOrCreate(["emp_id" => $emp_exist['id']], [
+                                $data =  [
                                     'business_id' => $business_id,
                                     'emp_id' => $emp_exist['id'],
                                     "emp_code" => $value['emp_code'],
                                     "first_name" => $value['first_name'],
                                     "last_name" => $value['last_name'],
-                                    "daily_salary" => $value['daily_salary'],
-                                    "payment_period" => $value['payment_period'],
                                     'created_user' => $user_id,
                                     'updated_user' => $user_id,
                                     'is_device' => -1,
-                                ]);
+                                ];
+
+                                if(!empty($value['daily_salary'])) {
+                                    $data["daily_salary"] = $value['daily_salary'];
+                                }
+                                if(!empty($value['payment_period'])) {
+                                    $data["payment_period"] = $value['payment_period'];
+                                }
+
+                                Employee::updateOrCreate(["emp_id" => $emp_exist['id']], $data);
                             }
                         }
                     }

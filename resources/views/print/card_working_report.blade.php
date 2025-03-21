@@ -49,8 +49,8 @@
                                         </td>
                                         <td class="align-middle">
                                             <p class="text-gray-500 text-xs text-middle mt-0.5">
-                                                {{ date('d-m-Y', strtotime($result['working_date']['start_date'])) }} -
-                                                {{ date('d-m-Y', strtotime($result['working_date']['end_date'])) }}
+                                                {{ date('d-m-Y', strtotime($result['start_date_work_day'])) }} -
+                                                {{ date('d-m-Y', strtotime($result['end_date_work_day'])) }}
                                         </td>
                                     </tr>
                                 </table>

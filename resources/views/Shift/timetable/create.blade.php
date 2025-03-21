@@ -74,6 +74,14 @@
                                     'class' => 'plus-minus',
                                 ]) !!}
                             </div>
+                            <div class="flex flex-col gap-1 w-full">
+                                <label class="text-sm font-normal text-gray-500">Batas disiplin*</label>
+                                {!! FormCustom::input('warning_check_in', null, [
+                                    'placeholder' => '-',
+                                    'prefixiconname' => 'plus-minus',
+                                    'class' => 'plus-minus',
+                                ]) !!}
+                            </div>
                         </div>
                         <div class="w-1 bg-gray-300" style="width: 2px; "></div>
                         <div class="flex items-center gap-1 flex-col flex-1">
@@ -94,6 +102,14 @@
                                 {!! FormCustom::input('check_out_plus', null, [
                                     'placeholder' => '-',
                                     'prefixiconname' => 'plus',
+                                    'class' => 'plus-minus',
+                                ]) !!}
+                            </div>
+                            <div class="flex flex-col gap-1 w-full">
+                                <label class="text-sm font-normal text-gray-500">Batas disiplin*</label>
+                                {!! FormCustom::input('warning_check_out', null, [
+                                    'placeholder' => '-',
+                                    'prefixiconname' => 'plus-minus',
                                     'class' => 'plus-minus',
                                 ]) !!}
                             </div>

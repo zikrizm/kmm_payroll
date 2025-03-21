@@ -122,6 +122,9 @@ class TimetableController extends Controller
                     'name', 'check_in',  'check_out',
                     'check_in_plus', 'check_in_min',
                     'check_out_plus','check_out_min',
+                    'warning_check_in','warning_check_out',
+                    // 'warning_check_in_min', 'warning_check_in_plus',
+                    // 'warning_check_out_min','warning_check_out_plus',
                     'cross_day', 'is_ot_rounding', 'ot_roundone_hr', 'ot_roundhalf_hr', 'break_times', 'is_without_break',
                     'is_ot', 'ot_period', 'ot_pay', 'duration_count_one_shift', 'duration_ot_limit', 'is_ot_rice', 'duration_rice_shift',
                     'enable_extra_pay','extra_pay', 
@@ -133,6 +136,11 @@ class TimetableController extends Controller
                     $check_out = $check_out->addDays(1);
                 }
                 $timetable_data['work_time'] = $check_in->diffInMinutes($check_out);
+
+                $timetable_data['warning_check_in_min'] = $timetable_data['warning_check_in'];
+                $timetable_data['warning_check_in_plus'] = $timetable_data['warning_check_in'];
+                $timetable_data['warning_check_out_min'] = $timetable_data['warning_check_out'];
+                $timetable_data['warning_check_out_plus'] = $timetable_data['warning_check_out'];
 
                 if (!empty($request->input('is_ot_rounding'))) {
                     $timetable_data['ot_roundone_hr'] = !empty($timetable_data['ot_roundone_hr']) ? $timetable_data['ot_roundone_hr']:40;
@@ -267,6 +275,9 @@ class TimetableController extends Controller
                     'name', 'check_in',  'check_out',
                     'check_in_plus', 'check_in_min',
                     'check_out_plus','check_out_min',
+                    'warning_check_in','warning_check_out',
+                    // 'warning_check_in_min', 'warning_check_in_plus',
+                    // 'warning_check_out_min','warning_check_out_plus',
                     'cross_day', 'is_ot_rounding', 'ot_roundone_hr', 'ot_roundhalf_hr', 'break_times', 'is_without_break',
                     'is_ot', 'ot_period', 'ot_pay', 'duration_count_one_shift', 'duration_ot_limit', 'is_ot_rice', 'duration_rice_shift',
                     'enable_extra_pay','extra_pay', 
@@ -278,6 +289,11 @@ class TimetableController extends Controller
                     $check_out = $check_out->addDays(1);
                 }
                 $timetable_data['work_time'] = $check_in->diffInMinutes($check_out);
+
+                $timetable_data['warning_check_in_min'] = $timetable_data['warning_check_in'];
+                $timetable_data['warning_check_in_plus'] = $timetable_data['warning_check_in'];
+                $timetable_data['warning_check_out_min'] = $timetable_data['warning_check_out'];
+                $timetable_data['warning_check_out_plus'] = $timetable_data['warning_check_out'];
 
                 if (!empty($request->input('is_ot_rounding'))) {
                     $timetable_data['ot_roundone_hr'] = !empty($timetable_data['ot_roundone_hr']) ? $timetable_data['ot_roundone_hr']:40;
@@ -409,6 +425,12 @@ class TimetableController extends Controller
             'check_in_min' => 'required',
             'check_out_plus' => 'required',
             'check_out_min' => 'required',
+            'warning_check_in' => 'required',
+            'warning_check_out' => 'required',
+            // 'warning_check_in_min' => 'required',
+            // 'warning_check_in_plus' => 'required',
+            // 'warning_check_out_min' => 'required',
+            // 'warning_check_out_plus' => 'required',
             'is_ot' => 'nullable',
             'is_ot_rice' => 'nullable',
             'ot_period' => ['nullable', new RequiredIf(request()->get('is_ot') == true), 'numeric', 'max:60'],

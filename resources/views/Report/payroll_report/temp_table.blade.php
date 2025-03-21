@@ -1,9 +1,9 @@
-@forelse ($result['departments'] as $department)
+@forelse ($datas as $data)
 <div class="">
     <div class="flex items-start justify-between pl-10 pr-20">
         <div class="border pl-2 pr-6 py-1">
             <p class="text-xs">
-                Bagian: {{ $department['department']['dept_name'] }}
+                Bagian: {{ $data['department']['dept_name'] }}
             </p>
         </div>
         <div class="flex flex-col gap-1">
@@ -43,10 +43,10 @@
                         <th class='border border-t-0 px-3 py-1 text-center'>
                             <p class="text-xs font-medium truncate">Nama</p>
                         </th>
-                        @foreach ($result['range_dates'] as $item)
+                        @foreach ($data['range_dates'] as $item)
                         <th class='border border-t-0 px-3 py-1 text-left w-[56px] min-w-[56px]'>
                             <p
-                                class="text-xs font-medium truncate text-center {{ $item['holiday']['status'] ? 'text-red-500' : '' }} ">
+                                class="text-xs font-medium truncate text-center {{ $item['is_holiday'] ? 'text-red-500' : '' }} ">
                                 {{ $item['d'] }}
                             </p>
                         </th>
@@ -66,10 +66,10 @@
                         <th class='border px-3 py-1 text-center'>
                             <p class="text-xs font-medium truncate">Pegawai</p>
                         </th>
-                        @foreach ($result['range_dates'] as $item)
+                        @foreach ($data['range_dates'] as $item)
                         <th class='border px-3 py-1 text-left w-[56px] min-w-[56px]'>
                             <p
-                                class="text-xs font-medium truncate text-center {{ $item['holiday']['status'] ? 'text-red-500' : '' }} ">
+                                class="text-xs font-medium truncate text-center {{ $item['is_holiday'] ? 'text-red-500' : '' }} ">
                                 {{ $item['key'] }}
                             </p>
                         </th>
@@ -95,37 +95,37 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach ($department['employees'] as $key => $employee)
+                    @foreach ($data['attendance_reports'] as $key => $item)
                     <tr class='hover:bg-gray-50 border-gray-200'>
                         <td class='border border-l-0 px-3 py-2 text-gray-500 text-xs text-right'>
                             {{ $key +1 }}
                         </td>
                         <td class='border px-3 py-2 text-gray-500 text-xs'>
                             <p class="truncate">
-                                {{ $employee['employee']['first_name'] ?? '-' }}
-                                {{ $employee['employee']['last_name'] ?? '' }}
+                                {{ $item['employee']['first_name'] ?? '-' }}
+                                {{ $item['employee']['last_name'] ?? '' }}
                             </p>
                         </td>
-                        @foreach ($employee['attendances'] ?? [] as $attendance)
+                        @foreach ($item['attendances'] ?? [] as $attendance)
                         <td class='border px-3 py-2 text-left text-xs'>
                             <div class="flex justify-center relative w-full h-full">
                                 <p
-                                    class="runcate text-center {{$attendance['total_shifted_overtime'] > 0 ? 'font-bold': ''}} {{ !empty($attendance['is_holiday']) ? 'text-red-500' : 'text-gray-500' }} ">
-                                    {{ $attendance['text_value'] }}
+                                    class="runcate text-center {{!empty($attendance['be_one_shift']) ? 'font-bold': ''}} {{ !empty($attendance['is_holiday']) ? 'text-red-500' : 'text-gray-500' }} ">
+                                    {{ $attendance['value_string'] }}
                                 </p>
                             </div>
                         </td>
                         @endforeach
                         <td class='border px-3 py-2 text-gray-500 text-xs'>
-                            <p class="truncate text-center">{{ $employee['total_hk'] ?? 0 }}</p>
+                            <p class="truncate text-center">{{ $item['HK_value'] ?? 0 }}</p>
                         </td>
                         <td class='border px-3 py-2 text-gray-500 text-xs'>
-                            <p class="truncate text-center">{{ $employee['total_jl'] ?? 0 }}</p>
+                            <p class="truncate text-center">{{ $item['JL_value'] ?? 0 }}</p>
                         </td>
                         <td class='border px-3 py-2 text-gray-500 text-xs'>
                             <p class="truncate text-right">
-                                @if (isset($employee['total_salary']))
-                                @convertnorp($employee['total_salary'])
+                                @if (isset($item['salary_pay_value']))
+                                @convertnorp($item['salary_pay_value'])
                                 @else
                                 -
                                 @endif
@@ -133,8 +133,8 @@
                         </td>
                         <td class='border px-3 py-2 text-gray-500 text-xs'>
                             <p class="truncate text-right">
-                                @if (isset($employee['total_loan_paid']))
-                                @convertnorp($employee['total_loan_paid'])
+                                @if (isset($item['kasbon_pay_value']))
+                                @convertnorp($item['kasbon_pay_value'])
                                 @else
                                 -
                                 @endif
@@ -142,8 +142,8 @@
                         </td>
                         <td class='border px-3 py-2 text-gray-500 text-xs'>
                             <p class="truncate text-right">
-                                @if (isset($employee['total_overtime']))
-                                @convertnorp($employee['total_overtime'])
+                                @if (isset($item['overtime_pay_value']))
+                                @convertnorp($item['overtime_pay_value'])
                                 @else
                                 -
                                 @endif
@@ -151,8 +151,8 @@
                         </td>
                         <td class='border px-3 py-2 text-gray-500 text-xs'>
                             <p class="truncate text-right">
-                                @if (isset($employee['total_tbhn_plus_u_libur']))
-                                @convertnorp($employee['total_tbhn_plus_u_libur'])
+                                @if (isset($item['tbhn_u_libur_pay_value']))
+                                @convertnorp($item['tbhn_u_libur_pay_value'])
                                 @else
                                 -
                                 @endif
@@ -160,8 +160,8 @@
                         </td>
                         <td class='border px-3 py-2 text-gray-500 text-xs'>
                             <p class="truncate text-right">
-                                @if (isset($employee['total_job_bonus']))
-                                @convertnorp($employee['total_job_bonus'])
+                                @if (isset($item['tbhn_u_position_pay_value']))
+                                @convertnorp($item['tbhn_u_position_pay_value'])
                                 @else
                                 -
                                 @endif
@@ -169,8 +169,8 @@
                         </td>
                         <td class='border border-r-0 px-3 py-2 text-gray-500 text-xs'>
                             <p class="truncate text-right">
-                                @if (isset($employee['final_total']))
-                                @convertnorp($employee['final_total'])
+                                @if (isset($item['total_pay_value']))
+                                @convertnorp($item['total_pay_value'])
                                 @else
                                 -
                                 @endif
@@ -179,17 +179,14 @@
                     </tr>
                     @endforeach
                     <tr class='border-black'>
-                        <td colspan="{{ count($result['range_dates']) + 2 }}"></td>
+                        <td colspan="{{ count($data['range_dates']) + 3 }}"></td>
                         <td class='border px-3 py-2 text-gray-500 text-xs'>
-                            <p class="truncate text-center">{{ $department['total_hk'] ?? 0 }}</p>
-                        </td>
-                        <td class='border px-3 py-2 text-gray-500 text-xs'>
-                            <p class="truncate text-center">{{ $department['total_jl'] ?? 0 }}</p>
+                            <p class="truncate text-center">{{ $data['total_HK_value'] ?? 0 }}</p>
                         </td>
                         <td class='border px-3 py-2 text-gray-500 text-xs'>
                             <p class="truncate text-right">
-                                @if (isset($department['total_salary']))
-                                @convertnorp($department['total_salary'])
+                                @if (isset($data['total_salary_pay_value']))
+                                @convertnorp($data['total_salary_pay_value'])
                                 @else
                                 -
                                 @endif
@@ -197,8 +194,8 @@
                         </td>
                         <td class='border px-3 py-2 text-gray-500 text-xs'>
                             <p class="truncate text-right">
-                                @if (isset($department['total_loan_paid']))
-                                @convertnorp($department['total_loan_paid'])
+                                @if (isset($data['total_kasbon_pay_value']))
+                                @convertnorp($data['total_kasbon_pay_value'])
                                 @else
                                 -
                                 @endif
@@ -206,8 +203,8 @@
                         </td>
                         <td class='border px-3 py-2 text-gray-500 text-xs'>
                             <p class="truncate text-right">
-                                @if (isset($department['total_overtime']))
-                                @convertnorp($department['total_overtime'])
+                                @if (isset($data['total_overtime_pay_value']))
+                                @convertnorp($data['total_overtime_pay_value'])
                                 @else
                                 -
                                 @endif
@@ -216,8 +213,8 @@
                         <td class='border px-3 py-2 text-gray-500 text-xs'>
 
                             <p class="truncate text-right">
-                                @if (isset($department['total_tbhn_plus_u_libur']))
-                                @convertnorp($department['total_tbhn_plus_u_libur'])
+                                @if (isset($data['total_tbhn_u_libur_pay_value']))
+                                @convertnorp($data['total_tbhn_u_libur_pay_value'])
                                 @else
                                 -
                                 @endif
@@ -225,8 +222,8 @@
                         </td>
                         <td class='border px-3 py-2 text-gray-500 text-xs'>
                             <p class="truncate text-right">
-                                @if (isset($department['total_job_bonus']))
-                                @convertnorp($department['total_job_bonus'])
+                                @if (isset($data['total_tbhn_u_position_pay_value']))
+                                @convertnorp($data['total_tbhn_u_position_pay_value'])
                                 @else
                                 -
                                 @endif
@@ -234,8 +231,8 @@
                         </td>
                         <td class='border px-3 py-2 text-gray-500 text-xs'>
                             <p class="truncate text-right">
-                                @if (isset($department['final_total']))
-                                @convertnorp($department['final_total'])
+                                @if (isset($data['grand_total_pay_value']))
+                                @convertnorp($data['grand_total_pay_value'])
                                 @else
                                 -
                                 @endif
@@ -243,13 +240,13 @@
                         </td>
                     </tr>
                     <tr class='border-black'>
-                        <td colspan="{{ count($result['range_dates']) + 8 }}"></td>
+                        <td colspan="{{ count($data['range_dates']) + 8 }}"></td>
                         <td colspan="2" class='border px-3 py-2 text-gray-500 text-xs bg-gray-200 grand-total-bg-color'>
                             <div class="flex items-center justify-between">
                                 <p class="truncate text-right">Total: </p>
                                 <p class="truncate text-right">
-                                    @if (isset($department['final_total']))
-                                    @convertnorp($department['final_total'])
+                                    @if (isset($data['grand_total_pay_value']))
+                                    @convertnorp($data['grand_total_pay_value'])
                                     @else
                                     -
                                     @endif

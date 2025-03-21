@@ -29,7 +29,7 @@
                     <select class="select2-dept hidden" name="dept">
                         <option value="" disabled>Semua bagian</option>
                         @foreach ($department_bios ?? [] as $department)
-                            <option value="{{ $department['dept_code'] }}" @selected($department_bios->first()['dept_code'] == $department['id'])>
+                            <option value="{{ $department['dept_code'] }}" @selected($department['dept_code'] === $department_code)>
                                 {{ $department['dept_name'] }}</option>
                         @endforeach
                     </select>
@@ -60,7 +60,8 @@
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
-        });           
+        });    
+
         $('.select2-dept').select2();
         $('.select2-dept').show();
         $('.select2-dept').on('select2:select', function (e) {

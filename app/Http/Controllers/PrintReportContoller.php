@@ -1019,11 +1019,11 @@ class PrintReportContoller extends Controller
                     ->whereDate('end_date_work_day', $end_date_work_day->format('Y-m-d'))
                     ->whereDate('start_date_overtime', $start_date_overtime->format('Y-m-d'))
                     ->whereDate('end_date_overtime', $end_date_overtime->format('Y-m-d'));
-// Cek jika salary_archive_th_id ada, tambahkan kondisi where
-if ($request->has('salary_archive_th_id')) {
-    $salary_archive_th_id = $request->salary_archive_th_id;
-    $salary_archive_ths = $salary_archive_ths->where('id', $salary_archive_th_id);
-}
+                // Cek jika salary_archive_th_id ada, tambahkan kondisi where
+                if ($request->has('salary_archive_th_id')) {
+                    $salary_archive_th_id = $request->salary_archive_th_id;
+                    $salary_archive_ths = $salary_archive_ths->where('id', $salary_archive_th_id);
+                }
                     // $salary_archive_ths = $salary_archive_ths->with(['salary_archive_tds' => fn ($query) => $query->select('id')->where('id', 30)])->get();
                 // if ($request->has('calculation_salary_archive_id')) {
                 //     $calculation_salary_archive_id = $request->calculation_salary_archive_id;
@@ -1032,16 +1032,16 @@ if ($request->has('salary_archive_th_id')) {
                     $salary_archive_ths = $salary_archive_ths->with(['salary_archive_tds'])->get();
                 // }
                 // Jika ada nilai $calculation_salary_archive_id, filter data salary_archive_tds
-if ($request->has('calculation_salary_archive_id')) {
-                        $calculation_salary_archive_id = $request->calculation_salary_archive_id;
+                if ($request->has('calculation_salary_archive_id')) {
+                    $calculation_salary_archive_id = $request->calculation_salary_archive_id;
 
-    $salary_archive_ths->each(function ($item) use ($calculation_salary_archive_id) {
-        // Filter salary_archive_tds berdasarkan id
-        $item->salary_archive_tds = $item->salary_archive_tds->filter(function ($td) use ($calculation_salary_archive_id) {
-            return $td->id == $calculation_salary_archive_id;
-        });
-    });
-}
+                    $salary_archive_ths->each(function ($item) use ($calculation_salary_archive_id) {
+                        // Filter salary_archive_tds berdasarkan id
+                        $item->salary_archive_tds = $item->salary_archive_tds->filter(function ($td) use ($calculation_salary_archive_id) {
+                            return $td->id == $calculation_salary_archive_id;
+                        });
+                    });
+                }
 
                 $range_dates = $this->getRangeDate(
                     $business,
@@ -1230,9 +1230,7 @@ if ($request->has('calculation_salary_archive_id')) {
         Log::info('[' . request()->route()->getName() . ']::GET');
         try {
             $business_id = Session::get('business_id');
-            $datas = collect([]);
-            $start_date = null;
-            $end_date = null;
+            $result = collect([]);
 
             $business = Business::where('id', $business_id)->select('id', 'pending_day')->first();
             if ($request->has('start_date') && $request->has('end_date')) {
@@ -1244,7 +1242,7 @@ if ($request->has('calculation_salary_archive_id')) {
                 $start_date_overtime = Carbon::createFromFormat('d-m-Y', $request['start_date'])->subDays($business->pending_day);
                 $end_date_overtime = Carbon::createFromFormat('d-m-Y', $request['end_date'])->subDays($business->pending_day);
 
-                $datas = app(PrintReportContoller::class)->getPayrollAttendanceReport(
+                $result = $this->attendanceUtil->getAttendance(
                     $start_date_work_day,
                     $end_date_work_day,
                     $start_date_overtime,
@@ -1252,9 +1250,9 @@ if ($request->has('calculation_salary_archive_id')) {
                     $request['department_code'],
                 );
 
-                return  view('print.card_attendance', compact('datas', 'start_date_work_day', 'end_date_work_day', 'start_date_overtime', 'end_date_overtime'));
+                return view('print.card_attendance', compact('result', 'start_date_work_day', 'end_date_work_day', 'start_date_overtime', 'end_date_overtime'));
             } else {
-                return view('print.card_attendance', compact('datas'));
+                return view('print.card_attendance', compact('result'));
             }
 
         } catch (\Exception $e) {

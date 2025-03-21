@@ -78,6 +78,8 @@ class ApiServices extends NetworkUtils
             'csrfmiddlewaretoken' => $data['csrfmiddlewaretoken'] ?? null,
             'remark' => $data['remark'] ?? null,
         ];
+
+    
         $res = $this->emitterGuzzle('POST', "/vlRegister/", $data);
         if ($res['response'] < 200 || $res['response'] >= 300) {
             // throw new ResponseExeception($res['msg']);
@@ -192,7 +194,8 @@ class ApiServices extends NetworkUtils
             "position" => null, // ** Posisi dikirim null karena di set dbLocal
             "area" => $data["area"] ?? null,
         ];
-        Log::info($data);
+
+        // Log::info($data);
 
         $res = $this->emitter('PUT', "/personnel/api/employees/" . $data['id'] . "/", $data);
         if ($res['response'] < 200 || $res['response'] >= 300) {
@@ -270,7 +273,6 @@ class ApiServices extends NetworkUtils
             'ordering' => $data['ordering'] ?? null,
         ];
         $res = $this->emitter('GET', "/personnel/api/resigns/", $data);
-        Log::info($res);
         if ($res['response'] < 200 || $res['response'] >= 300) {
             // throw new ResponseExeception($res['msg']);
         } else {
@@ -688,6 +690,7 @@ class ApiServices extends NetworkUtils
             'start_time' => $data['start_time'] ?? null,
             'end_time' => $data['end_time'] ?? null,
         ];
+
         $res = $this->emitter('GET', "/iclock/api/transactions/", $data);
         if ($res['response'] < 200 || $res['response'] >= 300) {
             // throw new ResponseExeception($res['msg']);
