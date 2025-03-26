@@ -123,7 +123,7 @@
                                     <p class="text-[8px] font-medium truncate">Lembur</p>
                                 </th>
                                 <th class='bg-white border border-black px-1 py-0.5 text-center'>
-                                    <p class="text-[8px] font-medium truncate">Rbhn+U.Libur</p>
+                                    <p class="text-[8px] font-medium truncate">Tbhn+U.Libur</p>
                                 </th>
                                 <th class='bg-white border border-black px-1 py-0.5 text-center'>
                                     <p class="text-[8px] font-medium truncate">Jabatan</p>
@@ -154,7 +154,7 @@
                                 <td class='border border-black px-1 py-0.5 text-left'>
                                     <div class="flex justify-center relative w-full h-full">
                                         <p
-                                            class="text-[8px] truncate text-center {{ !empty($attendance->is_holiday) ? 'text-red-500' : '' }} ">
+                                            class="text-[8px] truncate text-center {{$attendance['be_one_shift'] > 0 ? 'font-bold': ''}} {{ !empty($attendance->is_holiday) ? 'text-red-500' : '' }} ">
                                             {{ $attendance->value_string }}
                                         </p>
                                     </div>
@@ -225,10 +225,14 @@
                             @endforeach
 
                             <tr class='border-black'>
-                                <td colspan="{{ count($salary_archive_th['range_dates']) + 3 }}"></td>
+                                <td colspan="{{ count($salary_archive_th['range_dates']) + 2 }}"></td>
                                 <td class='border border-black px-1 py-0.5 text-[8px]'>
                                     <p class="truncate text-center">{{
-                                        $salary_archive_td->total_HJ_value ?? 0 }}</p>
+                                        $salary_archive_td->total_HK_value ?? 0 }}</p>
+                                </td>
+                                <td class='border border-black px-1 py-0.5 text-[8px]'>
+                                    <p class="truncate text-center">{{
+                                        $salary_archive_td->total_JL_value ?? 0 }}</p>
                                 </td>
                                 <td class='border border-black px-1 py-0.5 text-[8px]'>
                                     <p class="truncate text-right">

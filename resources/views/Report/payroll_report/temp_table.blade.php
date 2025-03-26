@@ -84,7 +84,7 @@
                             <p class="text-xs font-medium truncate">Lembur</p>
                         </th>
                         <th class='border px-3 py-1 text-center'>
-                            <p class="text-xs font-medium truncate">Rbhn+U.Libur</p>
+                            <p class="text-xs font-medium truncate">Tbhn+U.Libur</p>
                         </th>
                         <th class='border px-3 py-1 text-center'>
                             <p class="text-xs font-medium truncate">Jabatan</p>

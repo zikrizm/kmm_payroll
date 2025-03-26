@@ -6,6 +6,7 @@ use App\Models\AttendanceLb;
 use App\Models\AttendanceTso;
 use App\Models\User;
 use App\Models\Shift;
+use App\Models\Device;
 use App\Models\Holiday;
 use App\Models\Business;
 use App\Models\Employee;
@@ -21,6 +22,7 @@ use App\Models\SalaryArchiveTh;
 use App\Services\Api\ApiServices;
 use Spatie\Permission\Models\Role;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Carbon\CarbonPeriod;
 use Illuminate\Support\Collection;
 use Spatie\Permission\Models\Permission;
@@ -121,6 +123,8 @@ class AttendanceUtil extends Util
         Carbon $end_date_work_day,
         Carbon $start_date_overtime,
         Carbon $end_date_overtime,
+        array|null $list_emp_code,
+        Collection $list_device = null,
         array|null $department
     ) {
         $start_date = min($start_date_work_day, $start_date_overtime)->copy()->subDay();
@@ -130,6 +134,31 @@ class AttendanceUtil extends Util
 
         $start_date_new = $start_date->copy()->startOfDay();
         $end_date_new = $end_date->copy()->addDays(1)->endOfDay();
+
+        // $list_emp_code_string = "'" . implode("','", $list_emp_code) . "'";
+        // $query = "
+        //     SELECT * FROM iclock_transaction 
+        //     WHERE punch_time BETWEEN '{$start_date_new->format('Y-m-d H:i:s')}' AND '{$end_date_new->format('Y-m-d H:i:s')}'
+        //     AND emp_code IN ($list_emp_code_string)
+        //     ORDER BY emp_code, punch_time
+        // ";
+
+        // $attendances = DB::connection('pgsql')->select($query);
+        // $attendances = collect($attendances); // Konversi ke Collection
+
+        // $list_attendance_bios = $attendances->map(function ($item) use ($list_device) {
+        //     $device_db = $list_device->firstWhere('sn', $item->terminal_sn);
+        
+        //     return [
+        //         "id" => $item->id,
+        //         "emp_code" => $item->emp_code,
+        //         "punch_time" => $item->punch_time,
+        //         "area_alias" => $item->area_alias,
+        //         "terminal_sn" => $item->terminal_sn,
+        //         "terminal_alias" => $item->terminal_alias,
+        //         "punch_type" => $device_db ? $device_db['punch_type'] ?? 'check-in-out' : 'check-in-out'
+        //     ];
+        // });
 
         if (!empty($department)) {
             $page_size = $this->service->get_transaction_reports(["start_date" =>  $start_date_new->format('Y-m-d'), "end_date" =>  $end_date_new->format('Y-m-d'), "departments" => $department['id']])['count'];
@@ -156,7 +185,7 @@ class AttendanceUtil extends Util
                     "source" => $item['source']
                 ];
             });
-        }else {
+        } else {
             $page_size = $this->service->get_transactions(["start_time" =>  $start_date_new->format('Y-m-d H:i:s'), "end_time" => $end_date_new->format('Y-m-d H:i:s')])['count'];
             $list_attendance_bios = collect($this->service->get_transactions(array_merge(['page_size' => $page_size], [
                 "start_time" =>  $start_date_new->format('Y-m-d H:i:s'), "end_time" =>  $end_date_new->format('Y-m-d H:i:s'),
@@ -280,6 +309,24 @@ class AttendanceUtil extends Util
         return $positions;
     }
 
+    public function getDevice() {
+        $page_size = $this->service->get_devices([])["count"];
+        $list_device_bios = collect($this->service->get_devices(["page_size" => $page_size])['data']);
+
+        $list_device_db = Device::select('id as device_id', 'device_id as id', 'punch_type')->get();
+
+        $devices = $list_device_bios->map(function ($item) use ($list_device_db) {
+            $device_db = $list_device_db->firstWhere('id', $item['id']);
+            if ($device_db) {
+                return array_merge($item, $device_db->toArray());
+            }
+
+            return $item;
+        });
+
+        return $devices;
+    }
+
     public function getDepartment() {
         $page_size = $this->service->get_departments([])["count"];
         $list_department_bios = collect($this->service->get_departments(["page_size" => $page_size])['data']);
@@ -398,29 +445,90 @@ class AttendanceUtil extends Util
                     $timetable, $attendance_timetable, $check_in_limit_min, $check_in_limit_plus, $check_out_limit_min, $check_out_limit_plus, $check_out_limit_ot,
                 ) {
                     $punch_time = Carbon::parse($attendance['punch_time']);
+                    // $punch_type = $attendance['punch_type'];
+
                     $is_delete = false;
 
-                    if($punch_time->gte($check_in_limit_min) && $punch_time->lte($check_out_limit_ot)) {
-                        $existing = $attendance_timetable->get($timetable->id, collect());
-                        if($existing->count() == 0) {
-                            if($punch_time->between($check_in_limit_min, $check_in_limit_plus)) {
+                    // if($punch_type === 'check-in-out') {
+                        if($punch_time->gte($check_in_limit_min) && $punch_time->lte($check_out_limit_ot)) {
+                            $existing = $attendance_timetable->get($timetable->id, collect());
+                            if($existing->count() == 0) {
+                                if($punch_time->between($check_in_limit_min, $check_in_limit_plus)) {
+                                    $existing->push($attendance);
+                                    $is_delete = true;
+                                } else {
+                                    $is_delete = false;
+                                }
+                            } else {
                                 $existing->push($attendance);
                                 $is_delete = true;
-                            } else {
-                                $is_delete = false;
                             }
-                        } else {
-                            $existing->push($attendance);
-                            $is_delete = true;
-                        }
 
-                        if($existing->isNotEmpty()) {
-                            $attendance_timetable->put($timetable->id, $existing);
+                            if($existing->isNotEmpty()) {
+                                $attendance_timetable->put($timetable->id, $existing);
+                            }
                         }
-                    }
+                    // } else if($punch_type === 'check-in') {
+                    //     if($punch_time->gte($check_in_limit_min) && $punch_time->lt($check_out_limit_min)) {
+                    //         $existing = $attendance_timetable->get($timetable->id, collect());
+                    //         $existing->push($attendance);
+                    //         $is_delete = true;
+
+                    //         if($existing->isNotEmpty()) {
+                    //             $attendance_timetable->put($timetable->id, $existing);
+                    //         }
+                    //     }
+                    // } else if($punch_type === 'check-out') {
+                    //     if($punch_time->gte($check_in_limit_min) && $punch_time->lt($check_out_limit_ot)) {
+                    //         $existing = $attendance_timetable->get($timetable->id, collect());
+                    //         if($existing->count() != 0) {
+                    //             $existing->push($attendance);
+                    //             $is_delete = true;
+                    //         } else {
+                    //             $is_delete = false;
+                    //         }
+
+                    //         if($existing->isNotEmpty()) {
+                    //             $attendance_timetable->put($timetable->id, $existing);
+                    //         }
+                    //     }
+                    // }
+
 
                     return $is_delete;
                 });
+
+                // $diff_days = $check_out_limit_ot->copy()->startOfDay()->diffInDays($check_out->copy()->startOfDay());
+                // $cross_day = $diff_days + ($timetable->cross_day ?? 0);
+
+                // if($cross_day > 0 && $attendance_timetable->get($timetable->id, collect())->count() > 0) {
+                //     $next_date = $date->copy();
+                    
+                //     for ($i = 0; $i < $cross_day; $i++) { 
+                //         $next_date = $next_date->addDay();
+                //         $next_date_string = $next_date->format('Y-m-d');
+
+                //         $next_date_attendance = $attendance_employee->get($next_date_string, collect());
+                //         if($next_date_attendance->isEmpty()) continue;
+
+                //         $attendance_employee[$next_date_string] = $next_date_attendance->reject(function ($attendance) use (
+                //             $timetable, $attendance_timetable, $check_in_limit_min, $check_in_limit_plus, $check_out_limit_min, $check_out_limit_plus, $check_out_limit_ot,
+                //         ) {
+                //             $punch_time = Carbon::parse($attendance['punch_time']);
+                //             $punch_type = $attendance['punch_type'];
+
+                //             if($punch_type === 'check-out' && $punch_time->lte($check_out_limit_ot)) {
+                //                 $existing = $attendance_timetable->get($timetable->id, collect());
+                //                 $existing->push($attendance);
+        
+                //                 $attendance_timetable->put($timetable->id, $existing);
+                //                 return true;
+                //             }
+        
+                //             return false;
+                //         });
+                //     }
+                // }
 
                 $diff_days = $check_out_limit_ot->copy()->startOfDay()->diffInDays($check_out->copy()->startOfDay());
                 $cross_day = $diff_days + ($timetable->cross_day ?? 0);
@@ -1064,26 +1172,30 @@ class AttendanceUtil extends Util
 
             $list_department = $this->getDepartment();
             $list_position = $this->getPosition();
+            $list_device = $this->getDevice();
 
             $department_bios = null;
             if ($department_code) {
                 $department_bios = collect($this->service->get_departments(["dept_code" => $department_code])['data'])->first();
             }
 
-            $range_dates = $this->getRangeDate($start_date_work_day->copy(), $end_date_work_day->copy(), $start_date_overtime->copy(), $end_date_overtime->copy());
-            $attendances = $this->getMergeAttendance($start_date_work_day->copy(), $end_date_work_day->copy(), $start_date_overtime->copy(), $end_date_overtime->copy(), $department_bios);
-            $attendance_grouping = $this->groupingAttendance($attendances);
-
             $list_employee = $this->getEmployee($department_bios, $list_department, $list_position);
             $employee_dept_group = $list_employee->groupBy([fn ($item) => $item['department']['id']]);
+            $list_emp_code = $employee_dept_group
+                ->flatMap(fn($employees) => collect($employees)->pluck('emp_code'))
+                ->all();
+
+            $range_dates = $this->getRangeDate($start_date_work_day->copy(), $end_date_work_day->copy(), $start_date_overtime->copy(), $end_date_overtime->copy());
+            $attendances = $this->getMergeAttendance($start_date_work_day->copy(), $end_date_work_day->copy(), $start_date_overtime->copy(), $end_date_overtime->copy(), $list_emp_code, $list_device, $department_bios);
+            $attendance_grouping = $this->groupingAttendance($attendances);
 
             $shifts = $this->getShift($department_bios);
             $operationals = $this->getOperationals($start_date_work_day->copy(), $end_date_work_day->copy(), $start_date_overtime->copy(), $end_date_overtime->copy(), $department_bios);
 
             $range_dates_filter = $range_dates->filter(fn ($item) => !$item['is_addition_date'])->values();
 
-            $start_date = min($start_date_work_day, $start_date_overtime)->subDay();
-            $end_date = max($end_date_work_day, $end_date_overtime)->addDay();
+            $start_date = min($start_date_work_day, $start_date_overtime);
+            $end_date = max($end_date_work_day, $end_date_overtime);
             $result = collect([
                 'range_dates' => $range_dates_filter,
                 'start_date' => $start_date,
@@ -1133,11 +1245,11 @@ class AttendanceUtil extends Util
                     ]);
 
                     $attendance_employees = $attendance_grouping->get($employee['emp_code'], collect());
-                    // if($employee['emp_code'] == '250402') {
+                    // if($employee['emp_code'] == '250403') {
                     //     Log::info($attendance_employees);
                     // }
                     $attendance_employee_timetables = $this->attendanceTimetableGrouping($department_shift, $attendance_employees, $range_dates);
-                    // if($employee['emp_code'] == '250402') {
+                    // if($employee['emp_code'] == '250314') {
                     //     Log::info($attendance_employee_timetables);
                     // }
 

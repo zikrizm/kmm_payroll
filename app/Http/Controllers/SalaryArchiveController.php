@@ -45,7 +45,6 @@ class SalaryArchiveController extends Controller
         }
 
         try {
-            Log::info($request);
             $business_id = Session::get('business_id');
             if (request()->ajax()) {
                 $salary_archives = SalaryArchiveTh::where('business_id', $business_id)->whereDate('start_date_work_day', '<=', $request->start_date)->whereDate('end_date_work_day', '>=', $request->end_date);
@@ -57,8 +56,13 @@ class SalaryArchiveController extends Controller
                     });
                 }
 
-                $salary_archives = $salary_archives->orderBy('start_date_work_day', 'ASC')->orderBy('created_at', 'ASC')->paginate(10);
-                $render =  view('report.salary_archive.table', compact('salary_archives'))->render();
+                $salary_archives = $salary_archives->with(['salary_archive_tds' => function ($query) {
+                    $query->orderBy('created_at', 'desc'); 
+                }])
+                ->orderBy('start_date_work_day', 'ASC')
+                ->orderBy('created_at', 'ASC')
+                ->paginate(10);
+                $render = view('report.salary_archive.table', compact('salary_archives'))->render();
 
                 return $this->buildRes->RESPONSE_REQ('success', $render, null);
             }

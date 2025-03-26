@@ -139,10 +139,10 @@
         </p>
         <div class='flex gap-3'>
             @if (!empty($positions['previous']))
-                <button data-pagination-url=""
+                <button data-pagination-url="{{ $positions['previous'] }}"
                     class='pagination-button px-3.5 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50'>Previous</button>
             @elseif (!empty($positions['next']))
-                <button data-pagination-url=""
+                <button data-pagination-url="{{ $positions['next'] }}"
                     class='pagination-button px-3.5 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50'>Next</button>
             @endif
         </div>

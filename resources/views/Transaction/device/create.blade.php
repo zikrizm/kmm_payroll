@@ -46,6 +46,15 @@
                     <label class="font-normal text-xs text-red-500 xs/max:text-xs area hint-text"></label>
                 </section>
                 <section class="flex flex-col gap-1">
+                    <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Punch type</label>
+                    <select class="select2" name="punch_type">
+                        <option value="check-in-out" selected>Check In Out</option>
+                        <option value="check-in">Check In</option>
+                        <option value="check-out">Check Out</option>
+                    </select>
+                    <label class="font-normal text-xs text-red-500 xs/max:text-xs punch_type hint-text"></label>
+                </section>
+                <section class="flex flex-col gap-1">
                     <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Attendance device*</label>
                     <select class="select2" name="is_attendance">
                         <option value="0" selected>Yes</option>

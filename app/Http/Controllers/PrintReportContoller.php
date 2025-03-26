@@ -1024,19 +1024,12 @@ class PrintReportContoller extends Controller
                     $salary_archive_th_id = $request->salary_archive_th_id;
                     $salary_archive_ths = $salary_archive_ths->where('id', $salary_archive_th_id);
                 }
-                    // $salary_archive_ths = $salary_archive_ths->with(['salary_archive_tds' => fn ($query) => $query->select('id')->where('id', 30)])->get();
-                // if ($request->has('calculation_salary_archive_id')) {
-                //     $calculation_salary_archive_id = $request->calculation_salary_archive_id;
-                //     $salary_archive_ths = $salary_archive_ths->with(['salary_archive_tds' => fn ($query) => $query->where('id', $calculation_salary_archive_id)])->get();
-                // } else {
-                    $salary_archive_ths = $salary_archive_ths->with(['salary_archive_tds'])->get();
-                // }
-                // Jika ada nilai $calculation_salary_archive_id, filter data salary_archive_tds
+            
+                $salary_archive_ths = $salary_archive_ths->with(['salary_archive_tds'])->get();
                 if ($request->has('calculation_salary_archive_id')) {
                     $calculation_salary_archive_id = $request->calculation_salary_archive_id;
 
                     $salary_archive_ths->each(function ($item) use ($calculation_salary_archive_id) {
-                        // Filter salary_archive_tds berdasarkan id
                         $item->salary_archive_tds = $item->salary_archive_tds->filter(function ($td) use ($calculation_salary_archive_id) {
                             return $td->id == $calculation_salary_archive_id;
                         });
@@ -1111,12 +1104,17 @@ class PrintReportContoller extends Controller
                 $end_date_work_day = Carbon::createFromFormat('d-m-Y', $request['end_date_work_day']);
                 $start_date_overtime = Carbon::createFromFormat('d-m-Y', $request['start_date_overtime']);
                 $end_date_overtime = Carbon::createFromFormat('d-m-Y', $request['end_date_overtime']);
-
                 $salary_archive_ths = SalaryArchiveTh::whereDate('start_date_work_day', $start_date_work_day)
                     ->whereDate('end_date_work_day', $end_date_work_day)
                     ->whereDate('start_date_overtime', $start_date_overtime)
                     ->whereDate('end_date_overtime', $end_date_overtime);
 
+                    // Cek jika salary_archive_th_id ada, tambahkan kondisi where
+                if ($request->has('salary_archive_th_id')) {
+                    $salary_archive_th_id = $request->salary_archive_th_id;
+                    $salary_archive_ths = $salary_archive_ths->where('id', $salary_archive_th_id);
+                }
+            
                 if ($request->has('calculation_salary_archive_id')) {
                     $calculation_salary_archive_id = $request->calculation_salary_archive_id;
                     $salary_archive_ths = $salary_archive_ths->with(['salary_archive_tds' => fn ($query) => $query->where('id', $calculation_salary_archive_id)])->get();

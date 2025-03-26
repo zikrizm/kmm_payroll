@@ -21,6 +21,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Session;
 use App\Models\FoodArchiveTdEmpAttendance;
 use App\Models\SalaryArchiveTdEmpAttendance;
+use App\Models\SalaryArchiveTdEmpShift;
 
 class PayrollReportController extends Controller
 {
@@ -124,7 +125,7 @@ class PayrollReportController extends Controller
                 $render = view('report.payroll_report.calculation', compact('dates', 'start_date', 'end_date',  'departments', 'department_code'))->render();
                 return $this->buildRes->RESPONSE_REQ('success', $render, null);
             } else {
-                $render = view('report.payroll_report.invalid_calculation')->render();
+                $render = view('report.payroll_report.invalid_calculation', compact('salary_archive'))->render();
                 return $this->buildRes->RESPONSE_REQ('success', $render, null);
             }
         } catch (\Exception $e) {
@@ -149,7 +150,6 @@ class PayrollReportController extends Controller
         }
 
         try {
-            // $datas = collect([]);
             $result = collect([]);
 
             $business_id = Session::get('business_id');
@@ -159,14 +159,6 @@ class PayrollReportController extends Controller
                 $end_date_work_day = Carbon::createFromFormat('d-m-Y', $request['end_date']);
                 $start_date_overtime = Carbon::createFromFormat('d-m-Y', $request['start_date'])->subDays($business->pending_day);
                 $end_date_overtime = Carbon::createFromFormat('d-m-Y', $request['end_date'])->subDays($business->pending_day);
-
-                // $datas = app(PrintReportContoller::class)->getPayrollAttendanceReport(
-                //     $start_date_work_day,
-                //     $end_date_work_day,
-                //     $start_date_overtime,
-                //     $end_date_overtime,
-                //     $request['department_code'],
-                // );
 
                 $result = $this->attendanceUtil->getAttendance(
                     $start_date_work_day,
@@ -178,10 +170,8 @@ class PayrollReportController extends Controller
 
                 foreach ($result['departments'] as $department) {
                     // SALARY
-                    $is_recalculate = false;
-                    $salary_archive_th = SalaryArchiveTh::whereDate('start_date_work_day', $data['start_date_work_day'],)->whereDate('end_date_work_day', $data['end_date_work_day'])->where('dept_id', $data['department']['id'])->first();
+                    $salary_archive_th = SalaryArchiveTh::whereDate('start_date_work_day', $result['start_date_work_day'],)->whereDate('end_date_work_day', $result['end_date_work_day'])->where('dept_id', $department['department']['id'])->first();
                     if (empty($salary_archive_th)) {
-                        $is_recalculate = false;
                         $salary_archive_th = new SalaryArchiveTh([
                             'business_id' => $business_id,
                             'start_date' => $result['start_date'],
@@ -195,152 +185,151 @@ class PayrollReportController extends Controller
                             'dept_name' =>  $department['department']['dept_name'],
                         ]);
 
-                        // $salary_archive_th->save();
-                    } else {
-                        $is_recalculate = true;
+                        $salary_archive_th->save();
                     }
 
-                    // $salary_archive_td = new SalaryArchiveTd([
-                    //     'salary_archive_th_id' => $salary_archive_th->id,
-                    //     'total_HK_value' => $department['total_hk'],
-                    //     'total_JL_value' => $department['total_jl'],
-                    //     'total_kasbon_pay_value' => $department['total_loan_paid'],
-                    //     'total_salary_pay_value' => $department['total_salary'],
-                    //     'total_overtime_pay_value' => $department['total_overtime'],
-                    //     'total_tbhn_u_position_pay_value' => $department['total_job_bonus'],
-                    //     'total_tbhn_u_libur_pay_value' => $department['total_tbhn_plus_u_libur'],
-                    //     'grand_total_pay_value' => $department['grand_total_pay_value'],
-                    //     'created_user' => auth()->user()->id,
-                    //     'updated_user' => auth()->user()->id,
-                    // ]);
-                    // $salary_archive_td->save();
+                    $salary_archive_td = new SalaryArchiveTd([
+                        'salary_archive_th_id' => $salary_archive_th->id,
+                        'total_HK_value' => $department['total_hk'],
+                        'total_JL_value' => $department['total_jl'],
+                        'total_kasbon_pay_value' => $department['total_loan_paid'],
+                        'total_salary_pay_value' => $department['total_salary'],
+                        'total_overtime_pay_value' => $department['total_overtime'],
+                        'total_tbhn_u_position_pay_value' => $department['total_job_bonus'],
+                        'total_tbhn_u_libur_pay_value' => $department['total_tbhn_plus_u_libur'],
+                        'grand_total_pay_value' => $department['final_total'],
+                        'created_user' => auth()->user()->id,
+                        'updated_user' => auth()->user()->id,
+                    ]);
 
-                    // // FOOD
-                    // $food_archive_th = FoodArchiveTh::whereDate('start_date', $result['start_date'])->whereDate('end_date', $result['end_date'])->where('dept_id', $data['department']['id'])->first();
-                    // if (empty($food_archive_th)) {
-                    //     $food_archive_th = new FoodArchiveTh([
-                    //         'start_date' => $result['start_date'],
-                    //         'end_date' => $result['end_date'],
-                    //         'dept_id' => $department['department']['id'],
-                    //         'dept_code' => $department['department']['dept_code'],
-                    //         'dept_name' =>  $department['department']['dept_name'],
-                    //     ]);
+                    $salary_archive_td->save();
+
+                    // FOOD
+                    $food_archive_th = FoodArchiveTh::whereDate('start_date', $result['start_date'])->whereDate('end_date', $result['end_date'])->where('dept_id', $department['department']['id'])->first();
+                    if (empty($food_archive_th)) {
+                        $food_archive_th = new FoodArchiveTh([
+                            'start_date' => $result['start_date'],
+                            'end_date' => $result['end_date'],
+                            'dept_id' => $department['department']['id'],
+                            'dept_code' => $department['department']['dept_code'],
+                            'dept_name' =>  $department['department']['dept_name'],
+                        ]);
                         
-                    //     $food_archive_th->save();
-                    // }
+                        $food_archive_th->save();
+                    }
 
-                    // $food_archive_td = new FoodArchiveTd([
-                    //     'food_archive_th_id' => $food_archive_th->id,
-                    //     'total' => $department['total_food'],
-                    //     'created_user' => auth()->user()->id,
-                    //     'updated_user' => auth()->user()->id,
-                    // ]);
-                    // $food_archive_td->save();
+                    $food_archive_td = new FoodArchiveTd([
+                        'food_archive_th_id' => $food_archive_th->id,
+                        'total' => $department['total_food'],
+                        'created_user' => auth()->user()->id,
+                        'updated_user' => auth()->user()->id,
+                    ]);
+                    $food_archive_td->save();
 
-                    // foreach ($department['employees'] as $employee) {
+                    foreach ($department['employees'] as $employee) {
+                        // SALARY
+                        $salary_archive_td_emp = new SalaryArchiveTdEmp([
+                            'salary_archive_td_id' => $salary_archive_td->id,
+                            'HK_value' => $employee['total_hk'],
+                            'JL_value' => $employee['total_jl'],
+                            'emp_id' => $employee['employee']['id'],
+                            'emp_code' => $employee['employee']['emp_code'],
+                            'first_name' =>  $employee['employee']['first_name'],
+                            'last_name' =>  $employee['employee']['last_name'],
+                            'photo' =>  $employee['employee']['photo'],
+                            'kasbon_pay_value' => $employee['total_loan_paid'],
+                            'remaining_kasbon_pay_value' => $employee['total_loan_balance'],
+                            'salary_pay_value' => $employee['total_salary'],
+                            'overtime_pay_value' => $employee['total_overtime'],
+                            'tbhn_u_position_pay_value' => $employee['total_job_bonus'],
+                            'tbhn_u_libur_pay_value' => $employee['total_tbhn_plus_u_libur'],
+                            'total_pay_value' => $employee['final_total'],
+                        ]);
+                        $salary_archive_td_emp->save();
 
-                    //     // SALARY
-                    //     $salary_archive_td_emp = new SalaryArchiveTdEmp([
-                    //         'salary_archive_td_id' => $salary_archive_td->id,
-                    //         'HK_value' => $employee['total_hk'],
-                    //         'JL_value' => $employee['total_jl'],
-                    //         'emp_id' => $employee['employee']['id'],
-                    //         'emp_code' => $employee['employee']['emp_code'],
-                    //         'first_name' =>  $employee['employee']['first_name'],
-                    //         'last_name' =>  $employee['employee']['last_name'],
-                    //         'photo' =>  $employee['employee']['photo'],
-                    //         'kasbon_pay_value' => $employee['total_loan_paid'],
-                    //         'remaining_kasbon_pay_value' => $employee['total_loan_balance'],
-                    //         'salary_pay_value' => $employee['total_salary'],
-                    //         'overtime_pay_value' => $employee['total_overtime'],
-                    //         'tbhn_u_position_pay_value' => $employee['total_job_bonus'],
-                    //         'tbhn_u_libur_pay_value' => $employee['total_tbhn_plus_u_libur'],
-                    //         'total_pay_value' => $employee['final_total'],
-                    //     ]);
-                    //     $salary_archive_td_emp->save();
+                        // if (!$is_recalculate) {
+                        //     $kasbons = EmployeeDebt::where('business_id', $business_id)
+                        //         ->where('paid', 0)
+                        //         ->where('emp_id', $employee['employee']['id'])
+                        //         ->whereDate('date', '>= ', $result['start_date'])
+                        //         ->whereDate('date', '<= ',  $result['end_date'])->get();
 
-                    //     // if (!$is_recalculate) {
-                    //     //     $kasbons = EmployeeDebt::where('business_id', $business_id)
-                    //     //         ->where('paid', 0)
-                    //     //         ->where('emp_id', $employee['employee']['id'])
-                    //     //         ->whereDate('date', '>= ', $result['start_date'])
-                    //     //         ->whereDate('date', '<= ',  $result['end_date'])->get();
+                        //     if($kasbons->count()) {
+                        //         $pay = $report['kasbon_pay_value'] / $kasbons->count();
+                        //         foreach ($kasbons as $kasbon) {
+                        //             $kasbon_pay = new EmployeeDebtPay([
+                        //                 'employee_debt_id' => $kasbon->id,
+                        //                 'debt_payment_date' => new Carbon(),
+                        //                 'payment' => $pay,
+                        //                 'created_user' => auth()->user()->id,
+                        //                 'updated_user' => auth()->user()->id,
+                        //             ]);
 
-                    //     //     if($kasbons->count()) {
-                    //     //         $pay = $report['kasbon_pay_value'] / $kasbons->count();
-                    //     //         foreach ($kasbons as $kasbon) {
-                    //     //             $kasbon_pay = new EmployeeDebtPay([
-                    //     //                 'employee_debt_id' => $kasbon->id,
-                    //     //                 'debt_payment_date' => new Carbon(),
-                    //     //                 'payment' => $pay,
-                    //     //                 'created_user' => auth()->user()->id,
-                    //     //                 'updated_user' => auth()->user()->id,
-                    //     //             ]);
-
-                    //     //             $kasbon_pay->save();
-                    //     //         }
-                    //     //     }
-                    //     // }
+                        //             $kasbon_pay->save();
+                        //         }
+                        //     }
+                        // }
                         
-                    //     // FOOD
-                    //     $food_archive_td_emp = new FoodArchiveTdEmp([
-                    //         'food_archive_td_id' => $food_archive_td->id,
-                    //         'emp_id' => $employee['employee']['id'],
-                    //         'emp_code' => $employee['employee']['emp_code'],
-                    //         'first_name' =>  $employee['employee']['first_name'],
-                    //         'last_name' =>  $employee['employee']['last_name'],
-                    //         'photo' =>  $employee['employee']['photo'],
-                    //         'total' => $employee['total_food'],
-                    //     ]);
-                    //     $food_archive_td_emp->save();
+                        // FOOD
+                        $food_archive_td_emp = new FoodArchiveTdEmp([
+                            'food_archive_td_id' => $food_archive_td->id,
+                            'emp_id' => $employee['employee']['id'],
+                            'emp_code' => $employee['employee']['emp_code'],
+                            'first_name' =>  $employee['employee']['first_name'],
+                            'last_name' =>  $employee['employee']['last_name'],
+                            'photo' =>  $employee['employee']['photo'],
+                            'total' => $employee['total_food'],
+                        ]);
+                        $food_archive_td_emp->save();
 
-                    //     foreach ($employee['attendances'] as $attendance) {
+                        foreach ($employee['attendances'] as $attendance) {
 
-                    //         // SALARY
-                    //         $salary_archive_td_emp_attendance = new SalaryArchiveTdEmpAttendance([
-                    //             'salary_td_emp_id' => $salary_archive_td_emp->id,
-                                
-                    //             'attendance_date' => $attendance['date'],
-                    //             'value_string' => $attendance['value_string'],
-                    //             'JL' => $attendance['total_jl'],
-                    //             'HK' => $attendance['total_hk'],
-                    //             'be_one_shift' => $attendance['total_shifted_overtime'],
-                    //             'HK_pay_value' => $attendance['total_day_salary'],
-                    //             'JL_pay_value' => $attendance['total_overtime'],
-                    //             'tbhn_u_libur_pay_value' => $attendance['total_tbhn_plus_u_libur'],
-                    //             'is_holiday' => $attendance['is_holiday'],
-                    //             'is_counting_salary' => $attendance['salary_included'],
-                    //             'is_counting_overtime' => $attendance['overtime_included'],
-                    //         ]);
-                    //         $salary_archive_td_emp_attendance->save();
+                            // SALARY
+                            $salary_archive_td_emp_attendance = new SalaryArchiveTdEmpAttendance([
+                                'salary_td_emp_id' => $salary_archive_td_emp->id,
+                                'attendance_date' => $attendance['date'],
+                                'value_string' => $attendance['text_value'],
+                                'JL' => $attendance['total_jl'],
+                                'HK' => $attendance['total_hk'],
+                                'be_one_shift' => $attendance['total_shifted_overtime'],
+                                'HK_pay_value' => $attendance['total_day_salary'],
+                                'JL_pay_value' => $attendance['total_overtime'],
+                                'tbhn_u_libur_pay_value' => $attendance['total_tbhn_plus_u_libur'],
+                                'is_holiday' => $attendance['is_holiday'],
+                                'is_counting_salary' => $attendance['salary_included'],
+                                'is_counting_overtime' => $attendance['overtime_included'],
+                            ]);
+                            $salary_archive_td_emp_attendance->save();
 
-                    //         foreach ($attendance['shifts'] as $shift) {
-                    //             $salary_archive_td_emp_shift = new SalaryArchiveTdEmpShift([
-                    //                 'salary_td_emp_attendance_id' => $salary_archive_td_emp_attendance->id,
+                            foreach ($attendance['shifts'] as $shift) {
+                                $salary_archive_td_emp_shift = new SalaryArchiveTdEmpShift([
+                                    'salary_td_emp_attendance_id' => $salary_archive_td_emp_attendance->id,
                                     
-                    //                 'timetable_id' => $shift['timetable']['id'],
-                    //                 'working_start_punch' => $shift['working']['start_punch'],
-                    //                 'working_end_punch' => $shift['working']['end_punch'],
-                    //                 'break_time_start_punch' => $shift['break_time']['start_punch'],
-                    //                 'break_time_end_punch' => $shift['break_time']['end_punch'],
-                    //                 'total_shifted_overtime' => $shift['total_shifted_overtime'],
-                    //                 'total_hk_pay' => $shift['total_hk_pay'],
-                    //                 'total_hk_bonus' => $shift['total_hk_bonus'],
-                    //                 'total_overtime' => $shift['total_overtime'],
-                    //             ]);
+                                    'timetable_id' =>!empty($shift['timetable']) ? $shift['timetable']['id'] : null,
+                                    'total_jl' => $shift['total_jl'],
+                                    'total_hk' => $shift['total_hk'],
+                                    'working_start_punch' => $shift['working']['start_punch'],
+                                    'working_end_punch' => $shift['working']['end_punch'],
+                                    'break_time_start_punch' => $shift['break_time']['start_punch'],
+                                    'break_time_end_punch' => $shift['break_time']['end_punch'],
+                                    'total_shifted_overtime' => $shift['total_shifted_overtime'],
+                                    'total_hk_pay' => $shift['total_hk_pay'],
+                                    'total_hk_bonus' => $shift['total_hk_bonus'],
+                                    'total_overtime' => $shift['total_overtime'],
+                                ]);
 
-                    //             $salary_archive_td_emp_shift->save();
-                    //         }
+                                $salary_archive_td_emp_shift->save();
+                            }
 
-                    //         // FOOD
-                    //         $food_archive_td_emp_attendance = new FoodArchiveTdEmpAttendance([
-                    //             'food_archive_td_emp_id' => $food_archive_td_emp->id,
-                    //             'food_date' => $attendance['date'],
-                    //             'total' => $attendance['total_food'],
-                    //         ]);
-                    //         $food_archive_td_emp_attendance->save();
-                    //     }
-                    // }
+                            // FOOD
+                            $food_archive_td_emp_attendance = new FoodArchiveTdEmpAttendance([
+                                'food_archive_td_emp_id' => $food_archive_td_emp->id,
+                                'food_date' => $attendance['date'],
+                                'total' => $attendance['total_food'],
+                            ]);
+                            $food_archive_td_emp_attendance->save();
+                        }
+                    }
                 }
 
                 // $start_date_work_day = Carbon::createFromFormat('d-m-Y', $request['start_date']);

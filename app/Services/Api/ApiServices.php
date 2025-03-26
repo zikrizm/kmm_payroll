@@ -592,6 +592,7 @@ class ApiServices extends NetworkUtils
             'alias_icontains' => $data['alias_icontains'] ?? null,
             'ordering' => $data['ordering'] ?? null,
         ];
+        
         $res = $this->emitter('GET', "/iclock/api/terminals/", $data);
         if ($res['response'] < 200 || $res['response'] >= 300) {
             // throw new ResponseExeception($res['msg']);

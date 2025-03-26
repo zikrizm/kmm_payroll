@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\ActivityLog;
 use App\Models\Transaction;
+use App\Models\Device;
 use App\Utils\ResponseUtil;
 use Illuminate\Http\Request;
 use App\Services\Api\ApiServices;
@@ -53,6 +54,15 @@ class DeviceController extends Controller
                 }
 
                 $devices = $this->apiService->get_devices($filter);
+                $device_dbs = Device::all();
+                foreach ($device_dbs as $device_db) {
+                    foreach ($devices['data'] as $key => $device) {
+                        if ($device_db->device_id == $device['id']) {
+                            $devices['data'][$key]['punch_type'] = $device_db->punch_type;
+                        }
+                    }
+                }
+
                 $render =  view('Transaction.device.table', compact('devices', 'order'))->render();
                 return $this->buildRes->RESPONSE_REQ('success', $render, null);
             }
@@ -108,8 +118,17 @@ class DeviceController extends Controller
             if ($validator->fails()) {
                 return $this->buildRes->RESPONSE_REQ('error', null, $validator->errors());
             } else {
-                $device_data = $request->only(['sn', 'alias', 'ip_address', 'area', 'is_attendance', 'terminal_tz']);
+                $device_data = $request->only(['sn', 'alias', 'ip_address', 'area', 'is_attendance', 'terminal_tz', 'punch_type']);
                 $res = $this->apiService->create_device($device_data);
+                if ($res['status'] == 'success') {
+                    $device_id = $res['data']['id'];
+                    $this->__createDeviceIfNotExists($device_id, $request);
+
+                    ActivityLog::created_activity('CRUD device', 'User ' . auth()->user()->username . ' create new device');
+                    return response()->json($res);
+                } else {
+                    return response()->json($res);
+                }
 
                 // ** create activity log user
                 ActivityLog::created_activity('CRUD device', 'User ' . auth()->user()->username . ' create new device');
@@ -151,6 +170,15 @@ class DeviceController extends Controller
 
         try {
             $device = $this->apiService->read_device($device);
+            $deviceDB = Device::where('device_id', $device['id'])->with('user')->first();
+            if ($deviceDB) {
+                $device['punch_type'] = $deviceDB->punch_type;
+                $device['updated_by'] = 'Diperbarui: ' . $deviceDB->user->first_name . ', ' . $deviceDB->updated_at;
+            } else {
+                $device['punch_type'] = null;
+                $device['updated_by'] = null;
+            }
+
             $areas = $this->apiService->get_areas([]);
             $render = view('Transaction.device.edit', compact('device', 'areas'))->render();
 
@@ -181,14 +209,25 @@ class DeviceController extends Controller
             if ($validator->fails()) {
                 return $this->buildRes->RESPONSE_REQ('error', null, $validator->errors());
             } else {
-                $device_data = $request->only(['sn', 'alias', 'ip_address', 'area', 'is_attendance', 'terminal_tz']);
+                $device_data = $request->only(['sn', 'alias', 'ip_address', 'area', 'is_attendance', 'terminal_tz', 'punch_type']);
                 $device_data['id'] = $department;
 
                 $res = $this->apiService->update_device($device_data);
+                if ($res['status'] == 'success') {
+                    $device_id = $res['data']['id'];
+                    $this->__createDeviceIfNotExists($device_id, $request);
 
-                // ** create activity log user
-                ActivityLog::created_activity('CRUD device', 'User ' . auth()->user()->username . ' edit data device');
-                return response()->json($res);
+                    Device::where('device_id', $device_id)->update([
+                        'punch_type' => $device_data['punch_type'],
+                        'updated_user' => auth()->user()->id,
+                    ]);
+
+                    // ** create activity log user
+                    ActivityLog::created_activity('CRUD device', 'User ' . auth()->user()->username . ' edit data device');
+                    return response()->json($res);
+                } else {
+                    return response()->json($res);
+                }
             }
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
@@ -218,6 +257,26 @@ class DeviceController extends Controller
             return response()->json($res);
         } catch (\Exception $e) {
             return $this->buildRes->RESPONSE_REQ('error', null, ['error' => 'something wrong']);
+        }
+    }
+
+    /**
+     * Creates new device if doesn't exist
+     *
+     * @param  int $device_id
+     * @return void
+     */
+    private function __createDeviceIfNotExists($device_id, Request $request)
+    {
+        $device = Device::where('device_id', $device_id)->first();
+        if (empty($device)) {
+            $device = new Device([
+                'device_id' => $device_id,
+                'punch_type' => $request['punch_type'],
+                'created_user' => auth()->user()->id,
+                'updated_user' => auth()->user()->id,
+            ]);
+            $device->save();
         }
     }
 

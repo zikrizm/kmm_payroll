@@ -87,7 +87,7 @@
                                     </div>
                                 </div>
                             </section>
-                            <div id="extra-pay-content" class="hidden">
+                            <div id="extra-break-time-content" class="hidden">
                                 <section class="flex flex-col gap-1 pl-[26px]">
                                     {!! FormCustom::input('extra_break_time', null, [
                                         'suffixtext' => 'Menit',

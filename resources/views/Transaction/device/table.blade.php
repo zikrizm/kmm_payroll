@@ -20,6 +20,9 @@
                             order="{{ $order }}" />
                     </th>
                     <th class='px-3 py-3 text-left cursor-pointer'>
+                        <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Punch type</p>
+                    </th>
+                    <th class='px-3 py-3 text-left cursor-pointer'>
                         <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Area</p>
                     </th>
                     <th class='px-3 py-3 text-left cursor-pointer'>
@@ -74,11 +77,11 @@
                         <td class='px-3 py text-gray-500 text-sm'>
                             {{ $item['sn'] }}
                         </td>
+                        <td class='px-3 py text-gray-500 text-sm truncate'>
+                            {{ $item['punch_type'] ?? '' }}
+                        </td>
                         <td class='px-3 py text-gray-500 text-sm'>
                             {{ !empty($item['area']) ? $item['area']['area_name'] : '-' }}
-                        </td>
-                        <td class='px-3 py text-gray-500 text-sm truncate'>
-                            {{ $item['ip_address'] }}
                         </td>
                         <td class='px-3 py text-gray-500 text-sm truncate'>
                             {{ $item['state'] }}

@@ -108,7 +108,7 @@
                             </div>
                             <div class="flex items-center justify-between w-full gap-2 text-xs">
                                 <div class="flex items-center justify-between gap-2">
-                                    <p>Rbhn+U.Libur</p>
+                                    <p>Tbhn+U.Libur</p>
                                     <p>:</p>
                                 </div>
                                 <p>

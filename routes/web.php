@@ -16,12 +16,15 @@ use Illuminate\Support\Facades\Route;
 */
 
 Auth::routes();
-// Route::get('/test', function () {
-//     $pgsqlPosts = DB::connection('pgsql')->select('SELECT * FROM personnel_employee');
-//     return response()->json([
-//         'pgsql' => $pgsqlPosts,
-//     ]);
-// });
+Route::get('/test', function () {
+    $pgsqlPosts = DB::connection('pgsql')->select("
+        SELECT * FROM iclock_transaction 
+        WHERE punch_time BETWEEN '2025-03-07 00:00:00' AND '2025-03-16 23:59:59'
+            AND emp_code IN ('250314')
+        ORDER BY emp_code, punch_time
+    ");
+    return response()->json($pgsqlPosts);
+});
 // * Home
 Route::get('/', 'HomeController@index')->name('home.index');
 // * Businness register
