@@ -58,8 +58,6 @@ class NetworkUtils
                 'Content-Type' => 'application/json',
                 'Authorization' => $token,
             ];
-            Log::info($this->api_zkteco);
-            Log::info($headers);
             if (strtolower($method) == 'get') {
                 // **
                 // * HTTP CLIENT GET ----->

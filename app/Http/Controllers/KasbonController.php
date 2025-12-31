@@ -106,28 +106,39 @@ class KasbonController extends Controller
 
         try {
             if ($request->debt)  $request['debt'] = str_replace('.', '', $request['debt']);
+            if ($request->debt_add)  $request['debt_add'] = str_replace('.', '', $request['debt_add']);
             if ($request->instalment) $request['instalment'] = str_replace('.', '', $request['instalment']);
 
-            $validator = Validator::make($request->all(), $this->rules(null));
+            $kasbon_old = null;
+            if($request['kasbon_id']) {
+                $kasbon_old = EmployeeDebt::where('id', $request['kasbon_id'])->first();
+            }
+            $validator = Validator::make($request->all(), $this->rules(null,  $kasbon_old ? true : false));
 
             if ($validator->fails()) {
                 return $this->buildRes->RESPONSE_REQ('error', null, $validator->errors());
             } else {
-                $kasbon_data = $request->only(['emp_id', 'date', 'debt', 'instalment']);
+                $kasbon_data = $request->only(['kasbon_id', 'emp_id', 'date', 'debt', 'debt_add', 'instalment']);
+                if($kasbon_old) {
+                    $kasbon_old->debt = $kasbon_old->debt + $request['debt_add'];
+                    $kasbon_old->instalment = $request['instalment'];
+                    $kasbon_old->updated_user = auth()->user()->id;
+                    $kasbon_old->save();
+                } else {
+                    $employee = $this->apiService->read_employee($kasbon_data['emp_id']);
+                    $kasbon_data['date'] = Carbon::createFromFormat('d-m-Y', $kasbon_data['date']);
+                    $kasbon_data['emp_code'] = $employee['emp_code'];
+                    $kasbon_data['business_id'] = Session::get('business_id');
+                    $kasbon_data['first_name'] = $employee['first_name'];
+                    $kasbon_data['last_name'] = $employee['last_name'];
+                    $kasbon_data['created_user'] = auth()->user()->id;
+                    $kasbon_data['updated_user'] = auth()->user()->id;
+                    $kasbon_data['debt'] = str_replace('.', '', $kasbon_data['debt']);
+                    $kasbon_data['instalment'] = str_replace('.', '', $kasbon_data['instalment']);
 
-                $employee = $this->apiService->read_employee($kasbon_data['emp_id']);
-                $kasbon_data['date'] = Carbon::createFromFormat('d-m-Y', $kasbon_data['date']);
-                $kasbon_data['emp_code'] = $employee['emp_code'];
-                $kasbon_data['business_id'] = Session::get('business_id');
-                $kasbon_data['first_name'] = $employee['first_name'];
-                $kasbon_data['last_name'] = $employee['last_name'];
-                $kasbon_data['created_user'] = auth()->user()->id;
-                $kasbon_data['updated_user'] = auth()->user()->id;
-                $kasbon_data['debt'] = str_replace('.', '', $kasbon_data['debt']);
-                $kasbon_data['instalment'] = str_replace('.', '', $kasbon_data['instalment']);
-
-                $kasbon = new EmployeeDebt($kasbon_data);
-                $kasbon->save();
+                    $kasbon = new EmployeeDebt($kasbon_data);
+                    $kasbon->save();
+                }
 
                 // ** create activity log user
                 ActivityLog::created_activity('CRUD debt', 'User ' . auth()->user()->username . ' create new debt');
@@ -139,7 +150,8 @@ class KasbonController extends Controller
             return $this->buildRes->RESPONSE_REQ('error', null, ['error' => 'something wrong']);
         }
     }
-
+   
+    
     /**
      * Display the specified resource.
      *
@@ -274,17 +286,40 @@ class KasbonController extends Controller
         }
     }
 
+    
+    public function checkUnpaid(Request $request)
+    {
+        if (!auth()->user()->can('kasbon.create')  || !$request->ajax()) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        try {
+            $input = $request->only(['emp_id']);
+            $kasbon = EmployeeDebt::where('emp_id', $input['emp_id'])->first();
+            if($kasbon && !$kasbon->is_paid) {
+                return $this->buildRes->RESPONSE_REQ('error', $kasbon, 'Karyawan masih memiliki kasbon yang belum lunas.');
+            }
+
+            return $this->buildRes->RESPONSE_REQ('success', null, 'Karyawan tidak memiliki kasbon yang belum lunas.');
+        } catch (\Exception $e) {
+            Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
+
+            return $this->buildRes->RESPONSE_REQ('error', null, ['error' => 'something wrong']);
+        }
+    }
+
     /**
      * Rules validation group.
      *
      * @return array
      */
-    public function rules($kasbon)
+    public function rules($kasbon, $isKasbonPenambahan = false)
     {
         return [
             'emp_id' => (empty($kasbon)) ? 'required|string|max:255' : '',
-            'date' => (empty($kasbon)) ? 'required' : '',
-            'debt' => 'required',
+            'date' => (empty($kasbon) && !$isKasbonPenambahan) ? 'required' : '',
+            'debt_add' => ($isKasbonPenambahan) ? 'required' : '',
+            'debt' => (!$isKasbonPenambahan) ? 'required' : '',
             'instalment' => 'required|lte:debt',
         ];
     }

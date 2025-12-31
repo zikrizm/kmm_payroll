@@ -80,19 +80,7 @@
                                     @endif
                                 </p>
                             </div>
-                            <div class="flex items-center justify-between w-full gap-2 text-xs">
-                                <div class="flex items-center justify-between gap-2">
-                                    <p>Kasbon</p>
-                                    <p>:</p>
-                                </div>
-                                <p>
-                                    @if (isset($item->kasbon_pay_value))
-                                    @convertnorp($item->kasbon_pay_value)
-                                    @else
-                                    -
-                                    @endif
-                                </p>
-                            </div>
+                           
                             <div class="flex items-center justify-between w-full gap-2 text-xs">
                                 <div class="flex items-center justify-between gap-2">
                                     <p>Lembur</p>
@@ -132,16 +120,26 @@
                                     @endif
                                 </p>
                             </div>
+                             <div class="flex items-center justify-between w-full gap-2 text-xs">
+                                <div class="flex items-center justify-between gap-2">
+                                    <p>Kasbon</p>
+                                    <p>:</p>
+                                </div>
+                                <p>
+                                    @if (isset($item->kasbon_pay_value))
+                                    -@convertnorp($item->kasbon_pay_value)
+                                    @else
+                                    -
+                                    @endif
+                                </p>
+                            </div>
                             <div class="flex items-center justify-between w-full gap-2 text-xs">
                                 <div class="flex items-center justify-between gap-2">
-                                    <p>kasbon</p>
+                                    <p>Sisa kasbon</p>
                                     <p>:</p>
                                 </div>
                                 <p>
                                     @if (isset($item->remaining_kasbon_pay_value))
-                                    @if ($item->remaining_kasbon_pay_value > 0)
-                                    -
-                                    @endif
                                     @convertnorp($item->remaining_kasbon_pay_value)
                                     @else
                                     -

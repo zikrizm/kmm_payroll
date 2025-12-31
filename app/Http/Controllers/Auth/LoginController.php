@@ -82,8 +82,10 @@ class LoginController extends Controller
 
         Session::put('business_id', $user->business->id);
 
-        // $res = $this->apiService->get_token_zkteco();
-        // Session::put('token_zkteco', $res['token']);
+        $res = $this->apiService->get_token_zkteco();
+        $token = $res['data']['token'];
+
+        Session::put('token_zkteco', $token);
         // $permissionNames = $user->getAllPermissions();
 
         // if (count($permissionNames) == 2 && $permissionNames[0]['name'] == 'employee-photo.view' && $permissionNames[1]['name'] == 'employee-photo.create') {

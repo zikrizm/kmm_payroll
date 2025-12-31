@@ -7,6 +7,7 @@ use App\Models\Business;
 use App\Models\ActivityLog;
 use App\Models\AttendanceLb;
 use App\Utils\ResponseUtil;
+use App\Utils\AttendanceUtil;
 use Illuminate\Http\Request;
 use App\Models\AttendanceTso;
 use Illuminate\Support\Carbon;
@@ -19,12 +20,14 @@ class TSOController extends Controller
 {
     private $service;
     private $buildRes;
+    private $attendanceUtil;
     private $util;
 
-    public function __construct(ApiServices $service, Util $util, ResponseUtil $buildRes)
+    public function __construct(ApiServices $service, Util $util, AttendanceUtil $attendanceUtil, ResponseUtil $buildRes)
     {
         $this->service = $service;
         $this->buildRes = $buildRes;
+        $this->attendanceUtil = $attendanceUtil;
         $this->util = $util;
     }
 
@@ -36,9 +39,10 @@ class TSOController extends Controller
      */
     public function index(Request $request)
     {
-        if (!auth()->user()->can('TSO.view')) {
-            abort(403, 'Unauthorized action.');
-        }
+        Log::info('[' . request()->route()->getName() . ']::GET');
+        // if (!auth()->user()->can('TSO.view')) {
+        //     abort(403, 'Unauthorized action.');
+        // }
 
         try {
             if (request()->ajax()) {
@@ -52,17 +56,16 @@ class TSOController extends Controller
                     $page_size = $request->page_size;
                 }
 
+                $business_id = Session::get('business_id');
+                $department_code = $request['department_code'];
+                $start_date = $request['start_date'];
+                $end_date = $request['end_date'];
+
                 $validator = Validator::make($request->all(), []);
                 if ($validator->fails()) {
                     return $this->buildRes->RESPONSE_REQ('error', null, $validator->errors());
                 } else {
-                    $reqdata = $request->only(['deparment_code', 'start_date', 'end_date']);
-                    $start_date = null;
-                    $end_date = null;
-
-                    $business_id = Session::get('business_id');
                     $business = Business::where('id', $business_id)->select('id', 'pending_day')->first();
-
                     $start_date = Carbon::createFromFormat('d-m-Y', $request['start_date']);
                     $end_date = Carbon::createFromFormat('d-m-Y', $request['end_date']);
 
@@ -71,38 +74,30 @@ class TSOController extends Controller
                     $start_date_overtime = Carbon::createFromFormat('d-m-Y', $request['start_date'])->subDays($business->pending_day);
                     $end_date_overtime = Carbon::createFromFormat('d-m-Y', $request['end_date'])->subDays($business->pending_day);
 
-                    $datas = app(PrintReportContoller::class)->getPayrollAttendanceReport(
+                    $result = $this->attendanceUtil->getAttendance(
                         $start_date_work_day,
                         $end_date_work_day,
                         $start_date_overtime,
                         $end_date_overtime,
-                        $request['deparment_code'],
+                        $request['department_code'],
                     );
 
                     $attendance_tsos = collect([]);
-                    foreach ($datas as $data) {
-                        foreach ($data['attendance_reports'] as $report) {
-                            foreach ($report['attendances'] as $attendance) {
-                                // || $attendance['attendance_lb_status'] == 'accept'
-                                if ($attendance['attendance_tso_id'] || $attendance['operational_status'] == 'invalid') {
-                                    $attendance_tsos->push([
-                                        'employee' => $report['employee'],
-                                        'timetable' => $attendance['timetable'],
-                                        "date" => $attendance['date'],
-                                        "first_punch" => $attendance['first_punch'],
-                                        "last_punch" => $attendance['last_punch'],
-                                        'operational_id' => $attendance['operational_id'],
-                                        'operational_has_timetable_id' => $attendance['operational_has_timetable_id'],
-                                        'operational_plusm_value' => $attendance['operational_plusm_value'],
-                                        'operational_status' => $attendance['operational_status'],
-                                        'operational_note' => $attendance['operational_note'],
-
-                                        'attendance_tso_id' => $attendance['attendance_tso_id'],
-
-                                        'attendance_lb_id' => $attendance['attendance_lb_id'],
-                                        'attendance_lb_status' => $attendance['attendance_lb_status'],
-                                        'is_holiday' => $attendance['is_holiday'],
-                                    ]);
+                    foreach ($result['departments'] as $department) {
+                        foreach ($department['employees'] as $employee) {
+                            foreach ($employee['attendances'] as $attendance) {
+                                foreach ($employee['shifts'] as $shift) {
+                                    if ($shift['operational']['status']) {
+                                        $attendance_tsos->push([
+                                            'employee' => $employee['employee'],
+                                            'timetable' => $shift['timetable'],
+                                            "date" => $attendance['date'],
+                                            "first_punch" => $shift['first_punch'],
+                                            "last_punch" => $shift['last_punch'],
+                                            'operational' => $shift['operational'],
+                                            'is_holiday' => $attendance['is_holiday'],
+                                        ]);
+                                    }
                                 }
                             }
                         }
@@ -113,7 +108,7 @@ class TSOController extends Controller
             }
 
             $department_bios = collect($this->service->get_departments(['page_size' => 999])['data']);
-            return view('task.tso.index', compact('department_bios'));
+            return view('task.tso.index', compact('department_bios', 'department_code', 'start_date', 'end_date'));
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
 

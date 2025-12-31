@@ -1,6 +1,15 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" class="feather feather-smile">
-    <circle cx="12" cy="12" r="10"></circle>
-    <path d="M8 14s1.5 2 4 2 4-2 4-2"></path>
-    <line x1="9" y1="9" x2="9.01" y2="9"></line>
-    <line x1="15" y1="9" x2="15.01" y2="9"></line>
+<svg version="1.0" xmlns="http://www.w3.org/2000/svg"
+ width="20" height="20" viewBox="0 0 45.000000 43.000000"
+ preserveAspectRatio="xMidYMid meet">
+
+<g transform="translate(0.000000,43.000000) scale(0.100000,-0.100000)"
+fill="#000000" stroke="none">
+<path d="M155 364 c-46 -24 -63 -43 -81 -90 -58 -152 122 -288 251 -190 46 36
+65 74 65 134 0 119 -131 200 -235 146z m150 -23 c94 -53 88 -209 -9 -255 -160
+-76 -292 122 -163 243 45 42 111 46 172 12z"/>
+<path d="M134 256 c-8 -21 3 -36 27 -36 15 0 20 6 17 22 -4 27 -35 37 -44 14z"/>
+<path d="M274 256 c-8 -21 3 -36 27 -36 15 0 20 6 17 22 -4 27 -35 37 -44 14z"/>
+<path d="M142 148 c7 -22 71 -49 102 -43 31 6 66 31 66 48 0 6 -8 3 -18 -6
+-32 -29 -80 -33 -112 -8 -33 24 -43 26 -38 9z"/>
+</g>
 </svg>

@@ -14,7 +14,7 @@
                                 @endif
                             </span>
                         </p>
-                        <dd class="text-gray-500 text-xs">Lorem ipsum dolor sit, amet consectetur</dd>
+                        <dd class="text-gray-500 text-xs">Pilih Jadwal</dd>
                     </div>
                 </div>
                 <hr>
@@ -92,7 +92,7 @@
                 <div class="flex flex-col">
                     <p class="text-gray-700 text-sm dayname">{{
                         Carbon\Carbon::create($timetable_card['date'])->locale('id_ID')->dayName }}</p>
-                    <dd class="text-gray-500 text-xs">Lorem ipsum dolor sit, amet consectetur</dd>
+                    <dd class="text-gray-500 text-xs">Pilih Jadwal</dd>
                 </div>
             </div>
             <hr>

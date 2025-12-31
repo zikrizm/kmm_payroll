@@ -31,7 +31,7 @@
             </div>
         </div>
     </div>
-    <div class="h-3"></div>
+    <div class="h-2"></div>
     <main class='border border-gray-200 rounded-lg shadow-sm overflow-hidden'>
         <div class="w-full overflow-auto overflow-y-hidden">
             <table class='table border-collapse w-full'>
@@ -133,8 +133,8 @@
                         </td>
                         <td class='border px-3 py-2 text-gray-500 text-xs'>
                             <p class="truncate text-right">
-                                @if (isset($employee['total_loan_paid']))
-                                @convertnorp($employee['total_loan_paid'])
+                                @if (isset($employee['total_loan_paid_for_payroll']))
+                                -@convertnorp($employee['total_loan_paid_for_payroll']) <span class="font-semibold">({{ $employee['loan_installment_count_for_payroll'] ?? '' }})</span>
                                 @else
                                 -
                                 @endif
@@ -169,8 +169,8 @@
                         </td>
                         <td class='border border-r-0 px-3 py-2 text-gray-500 text-xs'>
                             <p class="truncate text-right">
-                                @if (isset($employee['final_total']))
-                                @convertnorp($employee['final_total'])
+                                @if (isset($employee['final_total_for_payroll']))
+                                @convertnorp($employee['final_total_for_payroll'])
                                 @else
                                 -
                                 @endif
@@ -197,8 +197,8 @@
                         </td>
                         <td class='border px-3 py-2 text-gray-500 text-xs'>
                             <p class="truncate text-right">
-                                @if (isset($department['total_loan_paid']))
-                                @convertnorp($department['total_loan_paid'])
+                                @if (isset($department['total_loan_paid_for_payroll']))
+                                @convertnorp($department['total_loan_paid_for_payroll'])
                                 @else
                                 -
                                 @endif
@@ -234,8 +234,8 @@
                         </td>
                         <td class='border px-3 py-2 text-gray-500 text-xs'>
                             <p class="truncate text-right">
-                                @if (isset($department['final_total']))
-                                @convertnorp($department['final_total'])
+                                @if (isset($department['final_total_for_payroll']))
+                                @convertnorp($department['final_total_for_payroll'])
                                 @else
                                 -
                                 @endif
@@ -248,8 +248,8 @@
                             <div class="flex items-center justify-between">
                                 <p class="truncate text-right">Total: </p>
                                 <p class="truncate text-right">
-                                    @if (isset($department['final_total']))
-                                    @convertnorp($department['final_total'])
+                                    @if (isset($department['final_total_for_payroll']))
+                                    @convertnorp($department['final_total_for_payroll'])
                                     @else
                                     -
                                     @endif

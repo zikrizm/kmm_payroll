@@ -178,7 +178,7 @@
                                 <td class='border border-black px-1 py-0.5 text-[8px]'>
                                     <p class="truncate text-right">
                                         @if (isset($item->kasbon_pay_value) && $item->kasbon_pay_value != 0)
-                                        (@convertnorp($item->kasbon_pay_value))
+                                        -@convertnorp($item->kasbon_pay_value)
                                         @else
                                         -
                                         @endif
@@ -247,7 +247,7 @@
                                     <p class="truncate text-right">
                                         @if (isset($salary_archive_td->total_kasbon_pay_value) &&
                                         $salary_archive_td->total_kasbon_pay_value != 0)
-                                        (@convertnorp($salary_archive_td->total_kasbon_pay_value))
+                                        @convertnorp($salary_archive_td->total_kasbon_pay_value)
                                         @else
                                         -
                                         @endif

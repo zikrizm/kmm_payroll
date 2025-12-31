@@ -17,6 +17,7 @@ use App\Models\Transaction;
 use App\Models\EmployeeDebt;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Carbon\CarbonPeriod;
 use App\Models\EmployeeStatusLb;
 use App\Models\SalaryArchiveTh;
 use App\Services\Api\ApiServices;
@@ -1054,6 +1055,54 @@ class PrintReportContoller extends Controller
             }
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
+        }
+    }
+
+    public function print_monitoring_higiene_report(Request $request)
+    {
+        Log::info('[' . request()->route()->getName() . ']::GET');
+        
+        try {
+            $business_id = Session::get('business_id');
+            $department_code = $request['department_code'];
+            $check_all = $request['check_all'];
+            $start_date = Carbon::createFromFormat('d-m-Y', $request['start_date']);
+            $end_date = Carbon::createFromFormat('d-m-Y', $request['end_date']);
+
+            if ($start_date->year === $end_date->year) {
+                $year = (string) $start_date->year;
+            } else {
+                $year = $start_date->year . ' - ' . $end_date->year;
+            }
+            
+            Carbon::setLocale('id');
+            $range_dates =  collect(CarbonPeriod::create($start_date, $end_date))->map(function ($date) {
+                $dayOfWeek = $date->dayOfWeek;
+            
+                return collect([
+                    'date' => $date->translatedFormat('l, d-M-Y'),
+                ]);
+            });
+
+            $department_bios = null;
+            if ($department_code) {
+                $department_bios = collect($this->service->get_departments(["dept_code" => $department_code])['data'])->first();
+            }
+
+            if (!empty($department_bios)) {
+                $page_size = $this->service->get_employees(["department" => $department_bios['id']])["count"];
+                $employees = collect($this->service->get_employees(["page_size" => $page_size, "department" => $department_bios['id']])['data']);
+            } else {
+                $page_size = $this->service->get_employees([])["count"];
+                $employees = collect($this->service->get_employees(["page_size" => $page_size])['data']);
+            }
+            
+                
+            return view('print.monitoring_higiene_report', compact('range_dates', 'year','check_all', 'department_bios', 'employees'))->render();
+        } catch (\Exception $e) {
+            Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
+
+            return $this->buildRes->RESPONSE_REQ('error', null, ['error' => 'something wrong']);
         }
     }
 

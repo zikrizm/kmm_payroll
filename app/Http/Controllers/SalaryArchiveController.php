@@ -44,10 +44,18 @@ class SalaryArchiveController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
+        $start_date = $request['start_date'];
+        $end_date = $request['end_date'];
+
         try {
             $business_id = Session::get('business_id');
             if (request()->ajax()) {
-                $salary_archives = SalaryArchiveTh::where('business_id', $business_id)->whereDate('start_date_work_day', '<=', $request->start_date)->whereDate('end_date_work_day', '>=', $request->end_date);
+                $startDate = Carbon::createFromFormat('d-m-Y', $request->start_date)->format('Y-m-d');
+                $endDate = Carbon::createFromFormat('d-m-Y', $request->end_date)->format('Y-m-d');
+
+                $salary_archives = SalaryArchiveTh::where('business_id', $business_id)
+                    ->whereDate('start_date_work_day', '<=', $startDate)
+                    ->whereDate('end_date_work_day', '>=', $endDate);
 
                 if ($request->has('q')) {
                     $search = $request->q;
@@ -67,7 +75,7 @@ class SalaryArchiveController extends Controller
                 return $this->buildRes->RESPONSE_REQ('success', $render, null);
             }
 
-            return  view('report.salary_archive.index');
+            return  view('report.salary_archive.index', compact('start_date', 'end_date'));
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
 

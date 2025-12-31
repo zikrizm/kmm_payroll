@@ -16,6 +16,11 @@ class EmployeeDebt extends Model
      */
     protected $guarded = ['id'];
 
+
+     protected $casts = [
+        'instalment' => 'integer',
+    ];
+
     /**
      * Get the user that owns the work section.
      */

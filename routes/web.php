@@ -79,6 +79,7 @@ Route::middleware(['auth'])->group(function () {
     // * kasbon
     Route::resource('kasbon', 'KasbonController', ['except' => ['update']]);
     Route::post('/kasbon/{kasbon}', 'KasbonController@update')->name('kasbon.update');
+    Route::post('/kasbon/check/unpaid', 'KasbonController@checkUnpaid')->name('kasbon.checkUnpaid');
     // * transaction
     Route::resource('transaction', 'TransactionController', ['except' => ['update', 'edit']]);
     Route::get('/transaction-export', 'TransactionController@transactionExport')->name('transaction.transactionExport');
@@ -130,6 +131,7 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('attendance-operational', 'AttenOpReportController', ['except' => ['update', 'show', 'edit']]);
     // * payroll-report
     Route::resource('payroll-report', 'PayrollReportController', ['except' => ['update', 'show', 'delete']]);
+    Route::get('/monitoring-higiene', 'MonitoringHigieneController@index')->name('monitoring-higiene.index');
     // * food-archive
     Route::get('/food-archive', 'FoodArchiveController@index')->name('food-archive.index');
     Route::get('/food-archive/{id}', 'FoodArchiveController@show')->name('food-archive.show');
@@ -161,6 +163,7 @@ Route::middleware(['auth'])->group(function () {
 
     // * PRINT
     Route::prefix('/print')->group(function () {
+        Route::get('/monitoring-giniene-report', 'PrintReportContoller@print_monitoring_higiene_report')->name('print.monitoring_higiene_report');
         Route::get('/payroll-report', 'PrintReportContoller@print_payroll_report')->name('print.payroll_report');
         Route::get('/card-report', 'PrintReportContoller@print_card_report')->name('print.card_report');
         Route::get('/card-working-report', 'PrintReportContoller@print_card_working_report')->name('print.card_working_report');

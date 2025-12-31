@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Storage;
 use Spatie\Permission\Models\Permission;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Carbon;
 
 class BusinessController extends Controller
 {
@@ -153,16 +154,34 @@ class BusinessController extends Controller
                 if (!empty($logo_name)) {
                     $business_details['logo'] = Storage::url('/uploads/business_logos/' . $logo_name);
                 }
+                
 
                 $business_id = Session::get('business_id');
                 $business = Business::where('id', $business_id)->first();
 
+                // Konversi start_date ke format Y-m-d jika belum dalam format itu
+                if (!empty($business_details['start_date'])) {
+                    try {
+                        $business_details['start_date'] = Carbon::createFromFormat('d-m-Y', $business_details['start_date'])->format('Y-m-d');
+                    } catch (\Exception $e) {
+                        return $this->buildRes->RESPONSE_REQ('error', null, ['error' => ['Format tanggal tidak valid']]);
+                    }
+                }
+
                 //Update business settings
-                if (!empty($business_details['logo'])) {
+                if (isset($business_details['logo']) && !empty($business_details['logo'])) {
                     $business->logo = $business_details['logo'];
                 } else {
                     unset($business_details['logo']);
                 }
+
+                if (isset($business_details['pending_day']) && !empty($business_details['pending_day'])) {
+                    $business->pending_day = $business_details['pending_day'];
+                } else {
+                    $business_details['pending_day'] = 0;
+                }
+
+                Log::info($business_details);
 
                 $business->fill($business_details);
                 $business->save();

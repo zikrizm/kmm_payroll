@@ -47,28 +47,32 @@
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
+
+        var defaultStartDate = "{{ $start_date ?? '' }}";
+        var defaultEndDate = "{{ $end_date ?? '' }}";
+
         let startOfWeek = moment().startOf('week');
         let endOfWeek = moment().endOf('week');
-        let startOfWeekSubPending = startOfWeek.clone().subtract(business.pending_day, 'days');
-        let endOfWeekSubPending = endOfWeek.clone().subtract(business.pending_day, 'days');
+
+        let startOfWeekSubPending = (defaultStartDate ? moment(defaultStartDate, 'DD-MM-YYYY') : moment().startOf('week')).clone().subtract(business.pending_day, 'days');
+        let endOfWeekSubPending = (defaultEndDate ? moment(defaultEndDate, 'DD-MM-YYYY') : moment().endOf('week')).clone().subtract(business.pending_day, 'days');
 
         $('#card-report').attr('href',
-            `/print/card-report?start_date_work_day=${convertLocalTimezone(startOfWeek, 'DD-MM-YYYY')}&end_date_work_day=${convertLocalTimezone(endOfWeek, 'DD-MM-YYYY')}&start_date_overtime=${convertLocalTimezone(startOfWeekSubPending, 'DD-MM-YYYY')}&end_date_overtime=${convertLocalTimezone(endOfWeekSubPending, 'DD-MM-YYYY')}`
+            `/print/card-report?start_date_work_day=${convertLocalTimezone(defaultStartDate || moment().startOf('week'), 'DD-MM-YYYY')}&end_date_work_day=${convertLocalTimezone(defaultEndDate || moment().endOf('week'), 'DD-MM-YYYY')}&start_date_overtime=${convertLocalTimezone(startOfWeekSubPending, 'DD-MM-YYYY')}&end_date_overtime=${convertLocalTimezone(endOfWeekSubPending, 'DD-MM-YYYY')}`
             );
         $('#payroll-report').attr('href',
-            `/print/payroll-report?start_date_work_day=${convertLocalTimezone(startOfWeek, 'DD-MM-YYYY')}&end_date_work_day=${convertLocalTimezone(endOfWeek, 'DD-MM-YYYY')}&start_date_overtime=${convertLocalTimezone(startOfWeekSubPending, 'DD-MM-YYYY')}&end_date_overtime=${convertLocalTimezone(endOfWeekSubPending, 'DD-MM-YYYY')}`
+            `/print/payroll-report?start_date_work_day=${convertLocalTimezone(defaultStartDate || moment().startOf('week'), 'DD-MM-YYYY')}&end_date_work_day=${convertLocalTimezone(defaultEndDate || moment().endOf('week'), 'DD-MM-YYYY')}&start_date_overtime=${convertLocalTimezone(startOfWeekSubPending, 'DD-MM-YYYY')}&end_date_overtime=${convertLocalTimezone(endOfWeekSubPending, 'DD-MM-YYYY')}`
             );
+
         onInit({
             q: $('.search-data-input').val(),
-            start_date: convertLocalTimezone(moment().startOf('week'), 'YYYY-MM-DD'),
-            end_date: convertLocalTimezone(moment().endOf('week'), 'YYYY-MM-DD')
+            start_date: convertLocalTimezone(defaultStartDate || moment().startOf('week'), 'DD-MM-YYYY'), 
+            end_date: convertLocalTimezone(defaultEndDate || moment().endOf('week'), 'DD-MM-YYYY')
         });
         $('input[name="selected_date"]').daterangepicker({
-            locale: {
-                format: 'DD-MM-YYYY'
-            },
-            startDate: moment().startOf('week'),
-            endDate: moment().endOf('week'),
+            locale: { format: 'DD-MM-YYYY' },
+            startDate: defaultStartDate ? moment(defaultStartDate, 'DD-MM-YYYY') : moment().startOf('week'),
+            endDate: defaultEndDate ? moment(defaultEndDate, 'DD-MM-YYYY') : moment().endOf('week'),
             ranges: {
                 'Today': [moment(), moment()],
                 'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
@@ -85,16 +89,17 @@
             drops: "auto",
             maxYear: parseInt(moment().format('YYYY'), 10)
         }, function (start, end, label) {
-            var dateFormat = 'YYYY-MM-DD';
+            var dateFormat = 'DD-MM-YYYY';
 
             let startSubPending = start.clone().subtract(business.pending_day, 'days');
             let endSubPending = end.clone().subtract(business.pending_day, 'days');
             $('#card-report').attr('href',
                 `/print/card-report?start_date_work_day=${convertLocalTimezone(start, 'DD-MM-YYYY')}&end_date_work_day=${convertLocalTimezone(end, 'DD-MM-YYYY')}&start_date_overtime=${convertLocalTimezone(startSubPending, 'DD-MM-YYYY')}&end_date_overtime=${convertLocalTimezone(endSubPending, 'DD-MM-YYYY')}`
-                );
+            );
             $('#payroll-report').attr('href',
                 `/print/payroll-report?start_date_work_day=${convertLocalTimezone(start, 'DD-MM-YYYY')}&end_date_work_day=${convertLocalTimezone(end, 'DD-MM-YYYY')}&start_date_overtime=${convertLocalTimezone(startSubPending, 'DD-MM-YYYY')}&end_date_overtime=${convertLocalTimezone(endSubPending, 'DD-MM-YYYY')}`
-                );
+            );
+
             delete dataParams.page;
             onInit({
                 q: $('.search-data-input').val(),
@@ -120,6 +125,12 @@
             ...dataParams,
             ...data
         };
+
+        const queryString = new URLSearchParams(dataParams).toString();
+
+        // Update URL tanpa refresh halaman
+        const newUrl = window.location.pathname + "?" + queryString;
+        history.replaceState(null, "", newUrl);
 
         // **
         // * get table ----->

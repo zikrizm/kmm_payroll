@@ -121,10 +121,43 @@
             // **
             // * open modal form ----->
             // *
-            console.log('kasbon_id',kasbon_id)
             var URL = (kasbon_id) ? '/kasbon/' + kasbon_id + '/edit' : '/kasbon/create';
             var res = await ApiService.get_modal(URL, null);
             select2_employee();
+
+             $('.submit-kasbon').find('.select2-employee').on('change', async function() {
+                const selectedValue = $(this).val();
+
+                var _response = await ApiService.post_data('POST', "{{ route('kasbon.checkUnpaid') }}", {emp_id: selectedValue});
+                if(_response.status === 'success') {
+                    $('.submit-kasbon').find('#kasbon_id').val(null);
+                    $('.submit-kasbon').find('#text-title').text('Tambah kasbon');
+                    $('.submit-kasbon').find('#debt_add').addClass('hidden');
+                    $('.submit-kasbon').find('#debt').removeClass('hidden');
+                    $('.submit-kasbon').find('#kasbon_date').removeClass('hidden');
+                    $('.submit-kasbon').find('input[name="debt"]').val('');
+                    $('.submit-kasbon').find('input[name="instalment"]').val('');
+                } else {
+                    $('.submit-kasbon').find('#kasbon_id').val(_response.data.id);
+                    $('.submit-kasbon').find('#text-title').text('Penambahan kasbon');
+                    $('.submit-kasbon').find('#debt_add').removeClass('hidden');
+                    $('.submit-kasbon').find('#debt').addClass('hidden');
+                    $('.submit-kasbon').find('#kasbon_date').addClass('hidden');
+                    $('.submit-kasbon').find('input[name="debt"]').each(function () {
+                        const anInstance = AutoNumeric.getAutoNumericElement(this);
+                        if (anInstance) {
+                            anInstance.set(_response.data.debt); // Set nilai baru, misal 10000
+                        }
+                    });
+                    $('.submit-kasbon').find('input[name="instalment"]').each(function () {
+                        const anInstance = AutoNumeric.getAutoNumericElement(this);
+                        if (anInstance) {
+                            anInstance.set(_response.data.instalment); // Set nilai baru, misal 10000
+                        }
+                    });
+                }
+
+            });
 
             var anElement = new AutoNumeric.multiple('.number',{decimalPlaces:0,minimumValue: 0,decimalCharacter: ',', digitGroupSeparator : "."});
             $('input[name="date"]').daterangepicker({

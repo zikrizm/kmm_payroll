@@ -38,7 +38,7 @@
         // **
         // * get token zkteco ----->
         // *
-        let res = await ApiService.get_token_zkteco();
+        // let res = await ApiService.get_token_zkteco();
     }
 
     // async function get_modal(idWorkSection) {

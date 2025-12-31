@@ -24,7 +24,7 @@
                 </div>
                 <section class="flex flex-col gap-1">
                     <select class="select2-department hidden" name="">
-                        <option value="" selected>Semua bagian</option>
+                        <option value="" disabled>Semua bagian</option>
                         @foreach ($department_bios ?? [] as $department)
                         <option value="{{ $department['id'] }}">{{ $department['dept_name'] }}</option>
                         @endforeach
@@ -125,8 +125,20 @@
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
+
+        $('.select2-department').select2();  
+        $('.select2-department').show();
+        $('.select2-department').on('select2:select', function (e) {
+            delete dataParams.page;
+            get_table({department_code: this.value});
+        });
+
+                    var defaultStartDate = "{{ $start_date ?? '' }}";
+            var defaultEndDate = "{{ $end_date ?? '' }}";
+
         get_table({
             q: $('.search-data-input').val(),
+                department_code: $('.select2-department').val(),
             start_date: convertLocalTimezone(moment().startOf('week'), 'DD-MM-YYYY'),
             end_date: convertLocalTimezone(moment().endOf('week'), 'DD-MM-YYYY')
         });
