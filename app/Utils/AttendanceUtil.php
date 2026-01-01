@@ -412,6 +412,30 @@ class AttendanceUtil extends Util
         $emp_code,
     ) {
         if(empty($department_shift)) return $attendance_employee;
+        $start_date_range = Carbon::parse($range_dates->first()['date']);
+        $end_date_range = Carbon::parse($range_dates->last()['date']);
+        $business_id = Session::get('business_id');
+
+        $operationals = Operational::where('business_id', $business_id)
+            ->whereBetween('date', [$start_date_range->format('Y-m-d'), $end_date_range->format('Y-m-d')])
+            ->where('dept_id', $department_shift->dept_id)
+            ->with(['operational_has_timetables.timetable' => fn($q) => $q->select(
+                'id', 'name', 
+                'check_in', 'check_out', 
+                'check_in_min', 'check_in_plus', 
+                'check_out_min', 'check_out_plus', 
+                'check_in_plusmn', 'check_out_plusmn', 
+                'warning_check_in_min', 'warning_check_in_plus', 
+                'warning_check_out_min', 'warning_check_out_plus',  
+                'cross_day', 'work_time', 'is_without_break', 
+                'ot_roundone_hr', 'ot_roundhalf_hr', 'ot_period', 
+                'ot_pay', 'enable_extra_pay', 'extra_pay', 
+                'duration_count_one_shift', 'duration_ot_limit', 
+                'duration_rice_shift'
+            )])
+            ->get()
+            ->keyBy('date');
+
         $masaJedaAbsensi = 6;
 
         $attendance_employee_timetable =  collect([]);
@@ -423,21 +447,31 @@ class AttendanceUtil extends Util
                 $date = Carbon::parse($range_date['date']);
                 $date_string = $date->format('Y-m-d');
     
-                // $dayOfWeek =  $date->dayOfWeek; 
-                $dayOfWeek = $range_date['holiday']['status']? 0: $date->dayOfWeek; 
-                $shiftday = $department_shift->shiftdays->firstWhere('code_day', $dayOfWeek);
+                $timetables_source = collect([]);
+                $operational = $operationals->get($date_string);
+
+                if ($operational) {
+                    $timetables_source = $operational->operational_has_timetables->sortBy('timetable.check_in');
+                } else {
+                    $dayOfWeek = $range_date['holiday']['status']? 0: $date->dayOfWeek; 
+                    $shiftday = $department_shift->shiftdays->firstWhere('code_day', $dayOfWeek);
+                    if ($shiftday) {
+                        $timetables_source = $shiftday->shiftday_has_timetables;
+                    }
+                }
+                
                 // Log::info($date);
 
                 $date_attendances = collect($attendance_employee->get($date_string, collect()));
 
                 // Log::info($date_attendances);
     
-                if (!$shiftday) continue;
+                if ($timetables_source->isEmpty()) continue;
     
                 $attendance_timetable = collect([]);
                 $selected_timetable = null;
 
-                foreach ($shiftday->shiftday_has_timetables as $shiftday_has_timetable) {
+                foreach ($timetables_source as $shiftday_has_timetable) {
                     $timetable = $shiftday_has_timetable->timetable;
     
                     if($date_attendances->isEmpty()) break;
