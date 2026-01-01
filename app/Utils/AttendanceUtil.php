@@ -1424,7 +1424,7 @@ class AttendanceUtil extends Util
 
                     }
 
-                    if (count($attendance_data['operational_status_list']) != 0 && $attendance_data['operational_status_list'][0]['lb_status']) {
+                    if ($attendance_data['operational_status_list']->contains('lb_status', true)) {
                         $result['text_value'] .= ' LB';
                     }
                     // if ($attendance_data['operational']['lb_status']) {
@@ -1441,7 +1441,7 @@ class AttendanceUtil extends Util
                         $result['text_value'] =  '1/2 (' . $attendance_data['total_jl'] . ')';
                     }
 
-                    if (count($attendance_data['operational_status_list']) != 0 && $attendance_data['operational_status_list'][0]['lb_status']) {
+                    if ($attendance_data['operational_status_list']->contains('lb_status', true)) {
                         $result['text_value'] .= ' LB';
                     }
                     // if ($attendance_data['operational']['lb_status']) {
@@ -1455,7 +1455,7 @@ class AttendanceUtil extends Util
             } else if ($attendance_data['overtime_included']) {
                 $result['text_value'] = (string)($attendance_data['total_jl']);
             }
-        } else if ($attendance_data['total_jl'] == 0 && $attendance_data['total_hk'] == 0 && count($attendance_data['operational_status_list']) != 0 && $attendance_data['operational_status_list'][0]['lb_status']) {
+        } else if ($attendance_data['total_jl'] == 0 && $attendance_data['total_hk'] == 0 && $attendance_data['operational_status_list']->contains('lb_status', true)) {
             $result['text_value'] = 'LB';
         } else if ($attendance_data['total_jl'] == 0 && $attendance_data['total_hk'] == 0) {
             if($attendance_data['is_holiday']) {
