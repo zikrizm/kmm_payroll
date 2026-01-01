@@ -1499,7 +1499,7 @@ class AttendanceUtil extends Util
             foreach ($employee_dept_group as $key_dept_id => $employees) {
                 $department = $list_department->where('id', $key_dept_id)->first();
                 $department_shift = $shifts->where('dept_id', $key_dept_id)->first();
-                $department_operational = $operationals->where('dept_id', $key_dept_id)->get();
+                $vis = $operationals->where('dept_id', $key_dept_id)->get();
 
                 $attendance_reports = collect([
                     'department' => $department,

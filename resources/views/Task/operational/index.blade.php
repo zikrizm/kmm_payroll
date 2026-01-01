@@ -284,7 +284,6 @@
         }
 
         async function get_card_operational(isRange,date, dept_id) {
-            console.log("is running")
             let _response = await (new NetworkUtils()).emitter('GET', '/get-operational-timetable-card', {isRange, dept_id, date}, {})
             hideAllHintText();
             if (_response.response < 200 || _response.response >= 300) {
