@@ -13,6 +13,7 @@ use App\Services\Api\ApiServices;
 use Illuminate\Support\Facades\Log;
 use App\Models\OperationalHasTimetable;
 use App\Models\RequestTask;
+use App\Models\Timetable;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
 
@@ -257,6 +258,8 @@ class OperationalController extends Controller
             $departments = collect($this->apiService->get_departments([]));
             $operational = Operational::where('id', $operational)->with('operational_has_timetables.timetable')->first();
             $dept_bios = $this->apiService->get_departments(["page_size" => 999]);
+            $all_timetables = Timetable::where('business_id', Session::get('business_id'))->get();
+
             if (!empty($operational)) {
                 $timetable_cards = [];
                 $timetables = [];
@@ -271,7 +274,7 @@ class OperationalController extends Controller
                     'is_range' => false,
                     'timetables' => $timetables,
                 ];
-                $render = view('Task.operational.edit', compact('operational', 'dept_bios', 'timetable_cards'))->render();
+                $render = view('Task.operational.edit', compact('operational', 'dept_bios', 'timetable_cards', 'all_timetables'))->render();
                 return $this->buildRes->RESPONSE_REQ('success', $render, null);
             } else {
                 return $this->buildRes->RESPONSE_REQ('error', null, ['error' => ["Jadwal untuk tanggal {$date->format('d-m-Y')} tidak tersedia"]]);
@@ -391,6 +394,8 @@ class OperationalController extends Controller
 
         try {
             Log::info($request);
+            $business_id = Session::get('business_id');
+            $all_timetables = Timetable::where('business_id', $business_id)->get();
             $dept_id = null;
             $dept_bio = $this->apiService->read_department($request->dept_id);
             if (empty($dept_bio['parent_dept'])) {
@@ -430,7 +435,7 @@ class OperationalController extends Controller
                                 'timetables' => $timetables
                             ];
                         }
-                        $render = view('Task.operational.cards.deparment_card', compact('timetable_cards'))->render();
+                        $render = view('Task.operational.cards.deparment_card', compact('timetable_cards', 'all_timetables'))->render();
                         return $this->buildRes->RESPONSE_REQ('success', $render, null);
                     } else {
                         return $this->buildRes->RESPONSE_REQ('error', null, ['error' => ["Salah satu atau beberapa Jadwal dalam range {$start_date->format('d-m-Y')} - {$end_date->format('d-m-Y')} udah tersedia"]]);
@@ -454,7 +459,7 @@ class OperationalController extends Controller
                             'is_range' => false,
                             'timetables' => $timetables
                         ];
-                        $render = view('Task.operational.cards.deparment_card', compact('timetable_cards'))->render();
+                        $render = view('Task.operational.cards.deparment_card', compact('timetable_cards', 'all_timetables'))->render();
                         return $this->buildRes->RESPONSE_REQ('success', $render, null);
                     } else {
                         return $this->buildRes->RESPONSE_REQ('error', null, ['error' => ["Jadwal untuk tanggal {$date->format('d-m-Y')} sudah tersedia"]]);

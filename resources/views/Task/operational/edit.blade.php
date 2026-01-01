@@ -32,26 +32,29 @@
                     <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Tanggal
                         operasional*</label>
                     {!! FormCustom::input('date', date('d-m-Y', strtotime($operational->date)), [
-                    'placeholder' => 'Pilih tanggal operasional',
-                    'class' => 'operational_date',
-                    'readonly' => true,
-                    'block_input' => true,
-                    'prefixiconname' => 'calendar',
+                        'placeholder' => 'Pilih tanggal operasional',
+                        'class' => 'operational_date',
+                        'readonly' => true,
+                        'block_input' => true,
+                        'prefixiconname' => 'calendar',
                     ]) !!}
                 </section>
                 <section class="flex flex-col gap-1 flex-2">
                     <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Bagian*</label>
-                    <select class="select2-department" name="department" >
+                    <select class="select2-department" name="department">
                         <option value="" disabled selected>Silahkan Pilih</option>
                         @foreach ($dept_bios['data'] as $item)
-                        <option value="{{ $item['id'] }}" @selected($item['id']==$operational->dept_id)>
-                            {{ $item['dept_name'] }}</option>
+                            <option value="{{ $item['id'] }}" @selected($item['id'] == $operational->dept_id)>
+                                {{ $item['dept_name'] }}</option>
                         @endforeach
                     </select>
                     <label class="font-normal text-xs text-red-500 xs/max:text-xs department hint-text"></label>
                 </section>
                 <div id="timetable-content">
-                    @include('Task.operational.cards.deparment_card', ['timetable_cards' => $timetable_cards])
+                    @include('Task.operational.cards.deparment_card', [
+                        'timetable_cards' => $timetable_cards,
+                        'all_timetables' => $all_timetables ?? [],
+                    ])
                 </div>
             </main>
             <hr>

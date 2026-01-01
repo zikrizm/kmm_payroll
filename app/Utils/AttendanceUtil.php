@@ -449,7 +449,7 @@ class AttendanceUtil extends Util
                 $operational = $operationals->get($date_string);
 
                 if ($operational) {
-                    $timetables_source = $operational->operational_has_timetables->sortBy('timetable.check_in');
+                    $timetables_source = $operational->operational_has_timetables->where('status', 'active')->sortBy('timetable.check_in');
                 } else {
                     $dayOfWeek = $range_date['holiday']['status']? 0: $date->dayOfWeek; 
                     $shiftday = $department_shift->shiftdays->firstWhere('code_day', $dayOfWeek);
