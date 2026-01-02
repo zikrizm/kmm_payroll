@@ -1615,7 +1615,20 @@ class AttendanceUtil extends Util
 
                             if($timetable_attendances->isNotEmpty()) {
                                 foreach ($timetable_attendances as $key => $attendances) {
-                                    $timetable = $shiftday->shiftday_has_timetables->where('timetable.id', $key)->first()->timetable;
+                                    $timetable = null;
+                                    if(!empty($operational)) {
+                                        $timetable_operational = $operational->operational_has_timetables
+                                            ->where('timetable_id', $key)
+                                            ->where('status', 'active')
+                                            ->first();
+                                        if(!empty($timetable_operational)) $timetable = $timetable_operational->timetable;
+                                    }
+
+                                    if(empty($timetable)) {
+                                        $shiftday_has_timetable = $shiftday->shiftday_has_timetables->where('timetable.id', $key)->first();
+                                        if (empty($shiftday_has_timetable)) continue;
+                                        $timetable = $shiftday_has_timetable->timetable;
+                                    }
     
                                     $shift_data = $this->shiftCheck($employee, $range_date, $attendances, $timetable);
                                     if(!empty($shift_data['timetable'])) {
