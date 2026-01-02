@@ -71,7 +71,7 @@
                     <div class="group px-2 py-1 h-[65px]">
                         <div class="h-full border rounded flex justify-between flex-col p-2 relative hover:bg-gray-50 ">
                             <p class="text-gray-700 font-medium text-sm truncate w-[135px] break-words">{{ $item_op->department->dept_name }}</p>
-                            <div class="flex items-center flex-wrap gap-0.5 flex-1 ">
+                            <div class="flex items-center gap-0.5 flex-1" style="flex-wrap: wrap;">
                                 @foreach ($item_op->operational_has_timetables as $item_timetable)
                                 <div
                                     class="tooltip-custom cursor-pointer flex items-center gap-1 rounded-xl px-1 py w-max {{ !empty($item_timetable->ot_limit) ? 'border':'' }} {{ $item_timetable->status == 'active'? 'border-green-100 text-green-700': 'border-red-100 text-red-700' }}">
