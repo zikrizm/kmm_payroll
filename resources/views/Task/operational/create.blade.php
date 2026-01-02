@@ -40,8 +40,8 @@
                     ]) !!}
                 </section>
                 <section class="flex flex-col gap-1">
-                    <select class="select2-department" name="department">
-                        <option value="" disabled selected>Silahkan Pilih Bagian</option>
+                    <select class="select2-department" name="department[]" multiple>
+                        <option value="" disabled>Silahkan Pilih Bagian</option>
                         @foreach ($departments['data'] ?? [] as $item)
                             <option value="{{ $item['id'] }}">{{ $item['dept_name'] }}</option>
                         @endforeach

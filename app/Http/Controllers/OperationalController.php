@@ -162,61 +162,82 @@ class OperationalController extends Controller
             } else {
                 $request_data = $request->only(['date', 'department', 'shift']);
                 $business_id = Session::get('business_id');
-                $dept_bio = $this->apiService->read_department($request_data['department']);
-                $parent_dept_id = null;
-                if (empty($dept_bio['parent_dept'])) {
-                    $parent_dept_id = $dept_bio['id'];
-                } else {
-                    $parent_dept_id = $dept_bio['parent_dept']['id'];
-                }
+                
+                $departments = $request_data['department'];
+                if(!is_array($departments)) $departments = [$departments];
 
-                $rangedate = explode(' - ', $request['date']);
-                $dates = [];
-                if (count($rangedate) > 1) {
-                    $start_date = Carbon::parse(trim($rangedate[0]));
-                    $end_date = Carbon::parse(trim($rangedate[1]));
-                    $dates = $this->util->generateDateRange($start_date, $end_date);
-                    $operational = Operational::where('dept_id', $request->dept_id)->whereBetween('date', [$start_date, $end_date])->first();
-                } else {
-                    $date = Carbon::parse($request_data['date']);
-                    $dates[] = $date->format('Y-m-d');
-                    $operational = Operational::where('dept_id', $request_data['department'])->where('date', $date)->first();
-                }
+                $processed = false;
+                $errors = [];
 
-                // Log::info(response()->json($request_data['shift']));
-
-                if (empty($operational) && !empty($request_data['shift'])) {
-                    foreach ($request_data['shift'] as $key => $shift) {
-                        $date = Carbon::parse($dates[$key]);
-                        $operational = new Operational([
-                            'business_id' => $business_id,
-                            'date' => $date,
-                            'dept_id' => $request_data['department'],
-                            'parent_dept_id' => $parent_dept_id,
-                            'day_name' => Carbon::create($date)->locale('id_ID')->dayName,
-                            'created_user' => auth()->user()->id,
-                            'updated_user' => auth()->user()->id,
-                        ]);
-                        $operational->save();
-
-                        foreach ($shift['timetables'] as $key => $value) {
-                            // ** create operational has timetable
-                            $operational_has_timetable = new OperationalHasTimetable([
-                                'operational_id' => $operational->id,
-                                'timetable_id' => $value['timetable_id'],
-                                'ot_limit' => (!empty($value['status']) && $value['status'] == -1) ? $value['ot_limit'] : 0,
-                                'status' => (!empty($value['status']) && $value['status'] == -1) ? 'active' : 'inactive',
+                foreach ($departments as $dept_id) {
+                    $dept_bio = $this->apiService->read_department($dept_id);
+                    $parent_dept_id = null;
+                    if (empty($dept_bio['parent_dept'])) {
+                        $parent_dept_id = $dept_bio['id'];
+                    } else {
+                        $parent_dept_id = $dept_bio['parent_dept']['id'];
+                    }
+    
+                    $rangedate = explode(' - ', $request['date']);
+                    $dates = [];
+                    if (count($rangedate) > 1) {
+                        $start_date = Carbon::parse(trim($rangedate[0]));
+                        $end_date = Carbon::parse(trim($rangedate[1]));
+                        $dates = $this->util->generateDateRange($start_date, $end_date);
+                        $operational = Operational::where('dept_id', $dept_id)->whereBetween('date', [$start_date, $end_date])->first();
+                    } else {
+                        $date = Carbon::parse($request_data['date']);
+                        $dates[] = $date->format('Y-m-d');
+                        $operational = Operational::where('dept_id', $dept_id)->where('date', $date)->first();
+                    }
+    
+                    // Log::info(response()->json($request_data['shift']));
+    
+                    if (empty($operational) && !empty($request_data['shift'])) {
+                        foreach ($request_data['shift'] as $key => $shift) {
+                            $date = Carbon::parse($dates[$key]);
+                            $operational = new Operational([
+                                'business_id' => $business_id,
+                                'date' => $date,
+                                'dept_id' => $dept_id,
+                                'parent_dept_id' => $parent_dept_id,
+                                'day_name' => Carbon::create($date)->locale('id_ID')->dayName,
+                                'created_user' => auth()->user()->id,
+                                'updated_user' => auth()->user()->id,
                             ]);
-                            $operational_has_timetable->save();
+                            $operational->save();
+    
+                            foreach ($shift['timetables'] as $key => $value) {
+                                // ** create operational has timetable
+                                $operational_has_timetable = new OperationalHasTimetable([
+                                    'operational_id' => $operational->id,
+                                    'timetable_id' => $value['timetable_id'],
+                                    'ot_limit' => (!empty($value['status']) && $value['status'] == -1) ? $value['ot_limit'] : 0,
+                                    'status' => (!empty($value['status']) && $value['status'] == -1) ? 'active' : 'inactive',
+                                ]);
+                                $operational_has_timetable->save();
+                            }
+                        }
+                        $processed = true;
+                    } else {
+                         // Collect errors only if we haven't processed anything, or maybe just return first error?
+                         // For now, let's just log or accumulate errors if critical.
+                         // But keeping original behavior: return error if operational exists.
+                         // However, with multiple departments, if ONE works and ONE fails, we might want to let the working one pass.
+                         // Current logic: process what we can. 
+                         $dept_name = $dept_bio['dept_name'] ?? '';
+                         if (count($rangedate) > 1) {
+                            $errors[] = "Jadwal {$dept_name} dalam range {$start_date->format('d-m-Y')} - {$end_date->format('d-m-Y')} sudah tersedia";
+                        } else {
+                            $errors[] = "Jadwal {$dept_name} untuk tanggal {$date->format('d-m-Y')} sudah tersedia";
                         }
                     }
-                    return $this->buildRes->RESPONSE_REQ('success', null,  ['success' => ['Add operational succesfully']]);
+                }
+
+                if($processed) {
+                     return $this->buildRes->RESPONSE_REQ('success', null,  ['success' => ['Add operational succesfully']]);
                 } else {
-                    if (count($rangedate) > 1) {
-                        return $this->buildRes->RESPONSE_REQ('error', null, ['error' => ["Salah satu atau beberapa Jadwal dalam range {$start_date->format('d-m-Y')} - {$end_date->format('d-m-Y')} udah tersedia"]]);
-                    } else {
-                        return $this->buildRes->RESPONSE_REQ('error', null, ['error' => ["Jadwal untuk tanggal {$date->format('d-m-Y')} sudah tersedia"]]);
-                    }
+                     return $this->buildRes->RESPONSE_REQ('error', null, ['error' => $errors]);
                 }
             }
         } catch (\Exception $e) {
