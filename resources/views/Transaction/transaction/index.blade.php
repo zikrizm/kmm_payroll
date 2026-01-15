@@ -1,42 +1,63 @@
 @extends('layouts.app')
 @section('title', 'Absensi Karyawan')
 @section('css')
-<style></style>
+    <style></style>
 @endsection
 @section('content')
-<div class="flex flex-col gap-6 flex-1 h-full overflow-auto bg-white px-8 pt-8 pb-12">
-    <header class="flex justify-between items-start">
-        <div class="flex flex-col gap-1">
-            <p class="text-3xl font-medium text-gray-900">Absensi Karyawan</p>
-            <p class="text-base font-normal text-gray-500">Pengaturan kehadiran setiap karyawan.</p>
-        </div>
-        <div>
-            <button onclick="get_modal()" class="flex items-center gap-2.5 px-4 py-2 text-gray-500 text-sm font-medium 
-                flex items-center border border-gray-200 shadow-sm rounded-lg">
-                <x-icon icon="plus" width=18 height=18 viewBox="20 20" />
-                Tambah absensi
-            </button>
-        </div>
-    </header>
-    <hr>
-    <div class="flex justify-between">
-        <div class="flex items-center gap-2">
-            <div class="w-96">
-                {!! FormCustom::input('header-date', null, [ 'placeholder' => 'Silahkan pilih tanggal absen',
-                'class' => 'date_input', 'readonly' => true, 'prefixiconname' => 'calendar' ]) !!}
+    <div class="flex flex-col gap-6 flex-1 h-full overflow-auto bg-white px-8 pt-8 pb-12">
+        <header class="flex justify-between items-start">
+            <div class="flex flex-col gap-1">
+                <p class="text-3xl font-medium text-gray-900">Absensi Karyawan</p>
+                <p class="text-base font-normal text-gray-500">Pengaturan kehadiran setiap karyawan.</p>
             </div>
-            <button id="export" href="{{ route('transaction.transactionExport') }}" class="flex items-center gap-2.5 px-4 py-2 text-gray-500 text-sm font-medium 
+            <div>
+                <button onclick="get_modal()"
+                    class="flex items-center gap-2.5 px-4 py-2 text-gray-500 text-sm font-medium 
                 flex items-center border border-gray-200 shadow-sm rounded-lg">
-                <x-icon icon="download" width=18 height=18 viewBox="20 20" />
-                Export
-            </button>
+                    <x-icon icon="plus" width=18 height=18 viewBox="20 20" />
+                    Tambah absensi
+                </button>
+            </div>
+        </header>
+        <hr>
+        <div class="flex justify-between">
+            <div class="flex items-center gap-2">
+                <div class="w-96">
+                    {!! FormCustom::input('header-date', null, [
+                        'placeholder' => 'Silahkan pilih tanggal absen',
+                        'class' => 'date_input',
+                        'readonly' => true,
+                        'prefixiconname' => 'calendar',
+                    ]) !!}
+                </div>
+                <button id="export" href="{{ route('transaction.transactionExport') }}"
+                    class="flex items-center gap-2.5 px-4 py-2 text-gray-500 text-sm font-medium 
+                flex items-center border border-gray-200 shadow-sm rounded-lg">
+                    <x-icon icon="download" width=18 height=18 viewBox="20 20" />
+                    Export
+                </button>
+            </div>
+            <div class="flex items-center gap-2">
+                <div class="relative flex items-center h-9 w-full min-w-[180px] max-w-[280px]">
+                    <div
+                        class="absolute left-0 flex h-full w-9 items-center justify-center text-center text-sm text-gray-500">
+                        <span class="">
+                            <x-icon icon="search" width="16" height="16" viewBox="20 20" />
+                        </span>
+                    </div>
+                    <input placeholder="Cari absensi karyawan"
+                        class="search-data-input focus:shadow-xs/focused(4px-primary) h-full w-full rounded-lg border border-gray-300 pl-9 pr-2.5 text-sm shadow-sm focus:border-violet-300 focus:outline-none focus:ring-0" />
+                </div>
+                <button id="search-button"
+                    class="flex items-center gap-2.5 rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-500 shadow-sm hover:bg-gray-50">
+                    Cari
+                </button>
+            </div>
         </div>
-        <x-ui.search-data placeholder="Cari absensi karyawan" url="{{ route('transaction.index') }}" />
+        <div class="table-content"></div>
+        <x-ui.confirm-modal class="submit-delete-transaction"></x-ui.confirm-modal>
     </div>
-    <div class="table-content"></div>
-    <x-ui.confirm-modal class="submit-delete-transaction"></x-ui.confirm-modal>
-</div>
-<script type="application/javascript">
+    <script type="application/javascript">
     let dataParams = {};
 
     window.addEventListener('DOMContentLoaded', (event) => {
@@ -53,11 +74,11 @@
         $('#export').click(() => {
             console.log("jalan ke sini")
             var searchQuery = $('.search-data-input').val(); // q
-        var startDate = convertLocalTimezone(moment().startOf('week'), 'YYYY-MM-DD'); // start_time
-        var endDate = convertLocalTimezone(moment().endOf('week'), 'YYYY-MM-DD'); // end_time
+            var startDate = convertLocalTimezone(moment().startOf('week'), 'YYYY-MM-DD'); // start_time
+            var endDate = convertLocalTimezone(moment().endOf('week'), 'YYYY-MM-DD'); // end_time
 
-        // Bangun URL dengan parameter ter-encode
-        var url = "{{ route('transaction.transactionExport') }}" + "?q=" + encodeURIComponent(searchQuery) +
+            // Bangun URL dengan parameter ter-encode
+            var url = "{{ route('transaction.transactionExport') }}" + "?q=" + encodeURIComponent(searchQuery) +
                   "&date%5Bstart_time%5D=" + encodeURIComponent(startDate) +
                   "&date%5Bend_time%5D=" + encodeURIComponent(endDate);
                    window.location.href = url;
@@ -95,11 +116,10 @@
             });
         });
 
-        $(".search-data-input").on('keyup', debounce(function(e) {
-            if(e.key == 'Shift') return 0;
+        $('#search-button').on('click', function() {
             delete dataParams.page;
-            onInit( { q: this.value });
-        }, 250));
+            onInit({ q: $('.search-data-input').val() });
+        });
     });
 
     async function onInit(data) {
