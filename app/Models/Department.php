@@ -16,6 +16,20 @@ class Department extends Model
      */
     protected $guarded = ['id'];
 
+    const STATUS_ACTIVE = 'active';
+    const STATUS_INACTIVE = 'inactive';
+
+    /**
+     * Scope a query to only include active departments.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('status', self::STATUS_ACTIVE);
+    }
+
     /**
      * Get the user that owns the work section.
      */

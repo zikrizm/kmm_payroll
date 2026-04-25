@@ -29,6 +29,7 @@ use App\Models\SalaryArchivePerday;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
+use App\Utils\AttendanceUtil;
 
 class PayrollReportController extends Controller
 {
@@ -36,7 +37,7 @@ class PayrollReportController extends Controller
     private $buildRes;
     private $util;
 
-    public function __construct(ApiServices $apiService, Util $util, ResponseUtil $buildRes)
+    public function __construct(ApiServices $apiService, AttendanceUtil $util, ResponseUtil $buildRes)
     {
         $this->apiService = $apiService;
         $this->buildRes = $buildRes;
@@ -120,7 +121,7 @@ class PayrollReportController extends Controller
             $attendance_devices[] = $itemAttendanceM->toArray();
         }
 
-        $department_bios = collect($this->apiService->get_departments(["page_size" => 999])['data']);
+        $department_bios = collect($this->util->getDepartment());
         $shifts = Shift::where('business_id', $business_id)->get();
 
         $attendance_reports = [];
@@ -564,8 +565,8 @@ class PayrollReportController extends Controller
                 return $this->buildRes->RESPONSE_REQ('success', $render, null);
             }
 
-            $department_bios = collect($this->apiService->get_departments(['page_size' => 999])['data']);
-            return  view('Report.payroll_report.index', compact('department_bios'));
+                $department_bios = collect($this->util->getDepartment());
+                return  view('Report.payroll_report.index', compact('department_bios'));
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
 
@@ -589,7 +590,7 @@ class PayrollReportController extends Controller
             $start_date = Carbon::parse($request->start_date);
             $end_date = Carbon::parse($request->end_date);
             $dates = $this->util->generateDateRange($start_date, $end_date);
-            $departments = $this->apiService->get_departments(['page_size' => 999])['data'];
+            $departments = $this->util->getDepartment();
 
             $render = view('Report.payroll_report.calculation', compact('dates', 'departments'))->render();
             return $this->buildRes->RESPONSE_REQ('success', $render, null);

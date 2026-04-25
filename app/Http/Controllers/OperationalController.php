@@ -16,6 +16,7 @@ use App\Models\RequestTask;
 use App\Models\Timetable;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
+use App\Utils\AttendanceUtil;
 
 class OperationalController extends Controller
 {
@@ -23,7 +24,7 @@ class OperationalController extends Controller
     private $buildRes;
     private $util;
 
-    public function __construct(ApiServices $apiService, Util $util, ResponseUtil $buildRes)
+    public function __construct(ApiServices $apiService, AttendanceUtil $util, ResponseUtil $buildRes)
     {
         $this->apiService = $apiService;
         $this->buildRes = $buildRes;
@@ -49,7 +50,7 @@ class OperationalController extends Controller
                 $start_date = Carbon::parse($request['date']['start_date']);
                 $end_date = Carbon::parse($request['date']['end_date']);
                 $dates = $this->util->generateDateRange($start_date, $end_date);
-                $dept_bios = $this->apiService->get_departments(['page_size' => 999])['data'];
+                $dept_bios = $this->util->getDepartment();
                 $position_bios = $this->apiService->get_positions(['page_size' => 999])['data'];
                 $holidays = Holiday::whereBetween('start_date', [$start_date, $end_date])->orWhereBetween('start_date', [$start_date, $end_date])->get();
                 $operationals = Operational::where('business_id', $business_id)->whereBetween('date', [$start_date, $end_date])
@@ -130,7 +131,7 @@ class OperationalController extends Controller
 
         try {
             $date = (!empty($request['date'])) ? Carbon::parse($request['date'])->format('Y-m-d') : null;
-            $departments = collect($this->apiService->get_departments(['page_size' => 999]));
+            $departments = collect($this->util->getDepartment());
             $render = view('Task.operational.create', compact('departments', 'date'))->render();
 
             return $this->buildRes->RESPONSE_REQ('success', $render, null);
@@ -276,9 +277,9 @@ class OperationalController extends Controller
 
         try {
             $date = Carbon::parse($request->date);
-            $departments = collect($this->apiService->get_departments([]));
+            $departments = collect(["data" => $this->util->getDepartment()]);
             $operational = Operational::where('id', $operational)->with('operational_has_timetables.timetable')->first();
-            $dept_bios = $this->apiService->get_departments(["page_size" => 999]);
+            $dept_bios = ["data" => $this->util->getDepartment()];
             $all_timetables = Timetable::where('business_id', Session::get('business_id'))->get();
 
             if (!empty($operational)) {
@@ -391,7 +392,7 @@ class OperationalController extends Controller
         }
 
         try {
-            $departments = collect($this->apiService->get_departments([])['data']);
+            $departments = collect($this->util->getDepartment());
             $temp = $departments;
             $departments = [];
             foreach ($temp as $e) {

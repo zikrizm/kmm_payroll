@@ -107,7 +107,7 @@ class TSOController extends Controller
                 }
             }
 
-            $department_bios = collect($this->service->get_departments(['page_size' => 999])['data']);
+            $department_bios = collect($this->attendanceUtil->getDepartment());
             return view('task.tso.index', compact('department_bios', 'department_code', 'start_date', 'end_date'));
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());

@@ -23,6 +23,9 @@
                 <th class='px-3 py-3 text-left cursor-pointer'>
                     <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Uang libur</p>
                 </th>
+                <th class='px-3 py-3 text-left cursor-pointer'>
+                    <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Status</p>
+                </th>
                 @canany(['department.update', 'department.delete'])
                 <th class='px-3 py-3 text-left text-gray-500 text-xs font-medium'></th>
                 @endcanany
@@ -55,6 +58,13 @@
                     @convert($item['sitting_money'])
                     @else
                     -
+                    @endif
+                </td>
+                <td class='px-3 py text-gray-500 text-sm'>
+                    @if (($item['status'] ?? 'active') == 'active')
+                    <span class="px-2 py-1 text-xs font-medium text-green-700 bg-green-100 rounded-full">Active</span>
+                    @else
+                    <span class="px-2 py-1 text-xs font-medium text-red-700 bg-red-100 rounded-full">Inactive</span>
                     @endif
                 </td>
                 @canany(['department.update', 'department.delete'])

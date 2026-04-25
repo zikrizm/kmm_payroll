@@ -45,6 +45,14 @@
                     </select>
                     <label class="font-normal text-xs text-red-500 xs/max:text-xs parent_dept hint-text"></label>
                 </section>
+                <section class="flex flex-col gap-1">
+                    <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Status*</label>
+                    <select class="select2" name="status">
+                        <option value="active" selected>Active</option>
+                        <option value="inactive">Inactive</option>
+                    </select>
+                    <label class="font-normal text-xs text-red-500 xs/max:text-xs status hint-text"></label>
+                </section>
                 <div class="flex items-start gap-2.5">
                     <span class="pt-0.5">
                         {!! FormCustom::checkbox('still_paid', -1) !!}

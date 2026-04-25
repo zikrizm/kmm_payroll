@@ -24,6 +24,7 @@ use Illuminate\Support\Facades\Validator;
 use Maatwebsite\Excel\Validators\ValidationException;
 use Maatwebsite\Excel\Exceptions\NoTypeDetectedException;
 use App\Imports\EmployeeImportTemplate;
+use App\Utils\AttendanceUtil;
 
 
 
@@ -33,7 +34,7 @@ class EmployeeController extends Controller
     private $buildRes;
     private $util;
 
-    public function __construct(ApiServices $apiService, Util $util, ResponseUtil $buildRes)
+    public function __construct(ApiServices $apiService, ResponseUtil $buildRes, AttendanceUtil $util)
     {
         $this->apiService = $apiService;
         $this->buildRes = $buildRes;
@@ -122,7 +123,7 @@ class EmployeeController extends Controller
         }
 
         try {
-            $departments = $this->apiService->get_departments(["page_size" => 999]);
+            $departments = ["data" => $this->util->getDepartment()];
             $areas = $this->apiService->get_areas(["page_size" => 999]);
             $positions = $this->apiService->get_positions(["page_size" => 999]);
 
@@ -304,7 +305,7 @@ class EmployeeController extends Controller
                 $employee['payment_period'] = $employeeDB->payment_period ?? null;
                 $employee['position'] = $employeeDB->employee_has_position ?? [];
 
-                $departments = $this->apiService->get_departments(["page_size" => 999]);
+                $departments = ["data" => $this->util->getDepartment()];
                 $areas = $this->apiService->get_areas(["page_size" => 999]);
                 $positions = $this->apiService->get_positions(["page_size" => 999]);
                 $render = view('Employee.employee.edit', compact('employee', 'departments', 'areas', 'positions'))->render();

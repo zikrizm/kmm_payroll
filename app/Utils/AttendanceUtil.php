@@ -331,7 +331,7 @@ class AttendanceUtil extends Util
         $page_size = $this->service->get_departments([])["count"];
         $list_department_bios = collect($this->service->get_departments(["page_size" => $page_size])['data']);
 
-        $list_department_db = Department::select('id as dept_id', 'dept_id as id', 'sitting_money', 'still_paid')->get();
+        $list_department_db = Department::select('id as dept_id', 'dept_id as id', 'sitting_money', 'still_paid', 'status')->get();
 
         $departments = $list_department_bios->map(function ($item) use ($list_department_db) {
             $department_db = $list_department_db->firstWhere('id', $item['id']);
@@ -339,10 +339,10 @@ class AttendanceUtil extends Util
                 return array_merge($item, $department_db->toArray());
             }
 
-            return $item;
+            return array_merge($item, ['status' => 'active']);
         });
 
-        return $departments;
+        return $departments->where('status', 'active');
     }
 
     public function getEmployee(
