@@ -471,16 +471,46 @@ class AttendanceUtil extends Util
                 return $logTime->between($nightLimits['check_in_limit_min'], $nightLimits['check_in_limit_plus']);
             });
 
-            if (!$hadNightCheckIn) {
-                continue;
+            $inNightCheckoutWindow = $punchTime->between(
+                $nightLimits['check_out_limit_min'],
+                $nightLimits['check_out_limit_ot'],
+            );
+
+            if ($hadNightCheckIn && $inNightCheckoutWindow) {
+                return true;
             }
 
-            if ($punchTime->between($nightLimits['check_out_limit_min'], $nightLimits['check_out_limit_ot'])) {
+            $hadPrevEveningActivity = $prevDateAttendance->contains(function ($log) use ($nightLimits) {
+                $logTime = Carbon::parse($log['punch_time']);
+                return $logTime->hour >= 17
+                    || $logTime->between($nightLimits['check_in_limit_min'], $nightLimits['check_out_limit_ot']);
+            });
+
+            if ($hadPrevEveningActivity && $inNightCheckoutWindow) {
                 return true;
             }
         }
 
         return false;
+    }
+
+    private function countDayShiftMiddlePunchesBefore(
+        Collection $dateAttendances,
+        array $dayLimits,
+        Carbon $beforeTime,
+    ): int {
+        return $dateAttendances->filter(function ($log) use ($dayLimits, $beforeTime) {
+            $logTime = Carbon::parse($log['punch_time']);
+
+            if (!$logTime->lt($beforeTime) || !$logTime->gt($dayLimits['check_in_limit_plus'])) {
+                return false;
+            }
+
+            return !(
+                $logTime->between($dayLimits['check_in_limit_min'], $dayLimits['check_in_limit_plus'])
+                || $logTime->between($dayLimits['check_out_limit_min'], $dayLimits['check_out_limit_plus'])
+            );
+        })->count();
     }
 
     private function shouldSkipNightShiftCheckInAnchor(
@@ -519,7 +549,11 @@ class AttendanceUtil extends Util
                 continue;
             }
 
-            if ($punchTime->gte($dayLimits['check_out'])) {
+            if ($punchTime->lt($dayLimits['check_out'])) {
+                continue;
+            }
+
+            if ($this->countDayShiftMiddlePunchesBefore($dateAttendances, $dayLimits, $punchTime) >= 2) {
                 return true;
             }
         }
