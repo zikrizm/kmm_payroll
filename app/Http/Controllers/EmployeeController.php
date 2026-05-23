@@ -298,6 +298,7 @@ class EmployeeController extends Controller
         try {
             $employee = $this->apiService->get_employees(['emp_code' => $employee]);
             if (!empty($employee['data'])) {
+                Log::info($employee['data']);
                 $employee = $employee['data'][0];
 
                 $employeeDB = Employee::where('emp_id', $employee['id'])->with('employee_has_position')->first();

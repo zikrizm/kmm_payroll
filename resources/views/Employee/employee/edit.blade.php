@@ -87,7 +87,8 @@
                                             class='object-cover h-full w-full overflow-hidden' id="photo_preview">
                                         @else
                                         <img src="{{config('constants.api_zkteco')}}{{ $employee['photo'] }}"
-                                            class='object-cover h-full w-full overflow-hidden' id="photo_preview">
+                                            class='object-cover h-full w-full overflow-hidden' id="photo_preview"
+                                            onerror="this.style.display='none'">
                                         @endif
 
                                     </span>
