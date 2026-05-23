@@ -410,6 +410,8 @@ class AttendanceUtil extends Util
             ->addDays($timetable->cross_day ?? 0);
 
         return [
+            'check_in' => $check_in,
+            'check_out' => $check_out,
             'check_in_limit_min' => $check_in->copy()->subMinutes($timetable->check_in_min),
             'check_in_limit_plus' => $check_in->copy()->addMinutes($timetable->check_in_plus),
             'check_out_limit_min' => $check_out->copy()->subMinutes($timetable->check_out_min),
@@ -418,11 +420,77 @@ class AttendanceUtil extends Util
         ];
     }
 
+    private function hasPrevDayDayShiftCheckout(
+        Carbon $date,
+        Collection $prevDateAttendance,
+        Collection $timetablesSource,
+    ): bool {
+        $prevDate = $date->copy()->subDay();
+
+        foreach ($timetablesSource as $item) {
+            $dayTimetable = $item->timetable;
+            if ($dayTimetable->cross_day ?? 0) {
+                continue;
+            }
+
+            $dayLimits = $this->getTimetableWindowLimits($prevDate, $dayTimetable);
+
+            if ($prevDateAttendance->contains(function ($log) use ($dayLimits) {
+                $logTime = Carbon::parse($log['punch_time']);
+                return $logTime->between($dayLimits['check_out_limit_min'], $dayLimits['check_out_limit_ot']);
+            })) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function isCrossDayShiftCheckout(
+        Carbon $punchTime,
+        Carbon $date,
+        Collection $prevDateAttendance,
+        Collection $timetablesSource,
+    ): bool {
+        if ($punchTime->hour >= 12) {
+            return false;
+        }
+
+        $prevDate = $date->copy()->subDay();
+
+        foreach ($timetablesSource as $item) {
+            $nightTimetable = $item->timetable;
+            if (!($nightTimetable->cross_day ?? 0)) {
+                continue;
+            }
+
+            $nightLimits = $this->getTimetableWindowLimits($prevDate, $nightTimetable);
+
+            $hadNightCheckIn = $prevDateAttendance->contains(function ($log) use ($nightLimits) {
+                $logTime = Carbon::parse($log['punch_time']);
+                return $logTime->between($nightLimits['check_in_limit_min'], $nightLimits['check_in_limit_plus']);
+            });
+
+            if (!$hadNightCheckIn) {
+                continue;
+            }
+
+            if ($punchTime->between($nightLimits['check_out_limit_min'], $nightLimits['check_out_limit_ot'])) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     private function shouldSkipCheckInAnchor(
         Carbon $punchTime,
         Carbon $checkInLimitMin,
         Collection $prevDateAttendance,
         Collection $priorSameDayAttendances,
+        Carbon $date,
+        Timetable $currentTimetable,
+        Collection $timetablesSource,
         int $masaJedaHours = 6,
     ): bool {
         $masaJedaStart = $checkInLimitMin->copy()->subHours($masaJedaHours);
@@ -445,17 +513,19 @@ class AttendanceUtil extends Util
             return true;
         }
 
-        if ($punchTime->hour < 12) {
-            $hasPrevDayEveningLog = $prevDateAttendance->contains(function ($log) {
-                return Carbon::parse($log['punch_time'])->hour >= 17;
-            });
-
-            if ($hasPrevDayEveningLog) {
-                return true;
-            }
+        if ($currentTimetable->cross_day ?? 0) {
+            return false;
         }
 
-        return false;
+        if ($punchTime->hour >= 12) {
+            return false;
+        }
+
+        if ($this->hasPrevDayDayShiftCheckout($date, $prevDateAttendance, $timetablesSource)) {
+            return false;
+        }
+
+        return $this->isCrossDayShiftCheckout($punchTime, $date, $prevDateAttendance, $timetablesSource);
     }
 
     private function isPunchCheckInForOtherTimetable(
@@ -553,6 +623,9 @@ class AttendanceUtil extends Util
                     $limits['check_in_limit_min'],
                     $prevDateAttendance,
                     $priorSameDay,
+                    $date,
+                    $timetable,
+                    $timetablesSource,
                     $masaJedaHours,
                 )) {
                     $priorSameDay->push($attendance);
@@ -560,7 +633,9 @@ class AttendanceUtil extends Util
                 }
             } else {
                 if ($this->isPunchCheckInForOtherTimetable($punchTime, $timetable, $date, $timetablesSource)) {
-                    continue;
+                    if ($punchTime->lt($limits['check_out'])) {
+                        continue;
+                    }
                 }
             }
 
