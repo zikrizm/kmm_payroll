@@ -403,6 +403,248 @@ class AttendanceUtil extends Util
         return $filtered;
     }
 
+    private function getTimetableWindowLimits(Carbon $date, Timetable $timetable): array
+    {
+        $check_in = Carbon::parse($date->format('Y-m-d') . ' ' . $timetable->check_in);
+        $check_out = Carbon::parse($date->format('Y-m-d') . ' ' . $timetable->check_out)
+            ->addDays($timetable->cross_day ?? 0);
+
+        return [
+            'check_in_limit_min' => $check_in->copy()->subMinutes($timetable->check_in_min),
+            'check_in_limit_plus' => $check_in->copy()->addMinutes($timetable->check_in_plus),
+            'check_out_limit_min' => $check_out->copy()->subMinutes($timetable->check_out_min),
+            'check_out_limit_plus' => $check_out->copy()->addMinutes($timetable->check_out_plus),
+            'check_out_limit_ot' => $check_out->copy()->addHours($timetable->duration_ot_limit ?? 0),
+        ];
+    }
+
+    private function shouldSkipCheckInAnchor(
+        Carbon $punchTime,
+        Carbon $checkInLimitMin,
+        Collection $prevDateAttendance,
+        Collection $priorSameDayAttendances,
+        int $masaJedaHours = 6,
+    ): bool {
+        $masaJedaStart = $checkInLimitMin->copy()->subHours($masaJedaHours);
+
+        $hasLogInMasaJeda = $prevDateAttendance->contains(function ($log) use ($masaJedaStart, $checkInLimitMin) {
+            $logTime = Carbon::parse($log['punch_time']);
+            return $logTime->between($masaJedaStart, $checkInLimitMin);
+        });
+
+        if ($hasLogInMasaJeda) {
+            return true;
+        }
+
+        $hasLogInMasaJeda = $priorSameDayAttendances->contains(function ($log) use ($masaJedaStart, $checkInLimitMin) {
+            $logTime = Carbon::parse($log['punch_time']);
+            return $logTime->between($masaJedaStart, $checkInLimitMin);
+        });
+
+        if ($hasLogInMasaJeda) {
+            return true;
+        }
+
+        if ($punchTime->hour < 12) {
+            $hasPrevDayEveningLog = $prevDateAttendance->contains(function ($log) {
+                return Carbon::parse($log['punch_time'])->hour >= 17;
+            });
+
+            if ($hasPrevDayEveningLog) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function isPunchCheckInForOtherTimetable(
+        Carbon $punchTime,
+        Timetable $currentTimetable,
+        Carbon $date,
+        Collection $timetablesSource,
+    ): bool {
+        foreach ($timetablesSource as $item) {
+            $other = $item->timetable;
+            if ($other->id === $currentTimetable->id) {
+                continue;
+            }
+
+            $limits = $this->getTimetableWindowLimits($date, $other);
+            if ($punchTime->between($limits['check_in_limit_min'], $limits['check_in_limit_plus'])) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function hasBreakPunchesBetween(
+        Collection $punches,
+        array $limits,
+    ): bool {
+        if ($punches->count() <= 2) {
+            return false;
+        }
+
+        $middlePunches = $punches->filter(function ($item) use ($limits) {
+            $punchTime = Carbon::parse($item['punch_time']);
+
+            if ($punchTime->gt($limits['check_out_limit_ot'])) {
+                return false;
+            }
+
+            return !(
+                $punchTime->between($limits['check_in_limit_min'], $limits['check_in_limit_plus'])
+                || $punchTime->between($limits['check_out_limit_min'], $limits['check_out_limit_plus'])
+            );
+        });
+
+        return $middlePunches->count() >= 2;
+    }
+
+    private function isValidTimetableGroup(
+        Collection $collectedPunches,
+        Timetable $timetable,
+        array $limits,
+    ): bool {
+        if ($collectedPunches->isEmpty()) {
+            return false;
+        }
+
+        $firstPunch = Carbon::parse($collectedPunches->first()['punch_time']);
+        if (!$firstPunch->between($limits['check_in_limit_min'], $limits['check_in_limit_plus'])) {
+            return false;
+        }
+
+        if ($timetable->is_without_break) {
+            return $collectedPunches->count() >= 2;
+        }
+
+        return $this->hasBreakPunchesBetween($collectedPunches, $limits);
+    }
+
+    private function collectPunchesForTimetable(
+        Collection $dateAttendances,
+        Timetable $timetable,
+        Carbon $date,
+        Collection $timetablesSource,
+        Collection $prevDateAttendance,
+        int $masaJedaHours,
+    ): Collection {
+        $limits = $this->getTimetableWindowLimits($date, $timetable);
+        $collected = collect();
+        $priorSameDay = collect();
+
+        foreach ($dateAttendances as $attendance) {
+            $punchTime = Carbon::parse($attendance['punch_time']);
+
+            if ($punchTime->lt($limits['check_in_limit_min']) || $punchTime->gt($limits['check_out_limit_ot'])) {
+                continue;
+            }
+
+            if ($collected->isEmpty()) {
+                if (!$punchTime->between($limits['check_in_limit_min'], $limits['check_in_limit_plus'])) {
+                    continue;
+                }
+
+                if ($this->shouldSkipCheckInAnchor(
+                    $punchTime,
+                    $limits['check_in_limit_min'],
+                    $prevDateAttendance,
+                    $priorSameDay,
+                    $masaJedaHours,
+                )) {
+                    $priorSameDay->push($attendance);
+                    continue;
+                }
+            } else {
+                if ($this->isPunchCheckInForOtherTimetable($punchTime, $timetable, $date, $timetablesSource)) {
+                    continue;
+                }
+            }
+
+            $collected->push($attendance);
+            $priorSameDay->push($attendance);
+        }
+
+        return $collected;
+    }
+
+    private function fetchCrossDayPunches(
+        Timetable $timetable,
+        Carbon $date,
+        array $limits,
+        Collection $attendanceEmployee,
+    ): Collection {
+        $checkOut = Carbon::parse($date->format('Y-m-d') . ' ' . $timetable->check_out)
+            ->addDays($timetable->cross_day ?? 0);
+
+        $diffDays = $limits['check_out_limit_ot']->copy()->startOfDay()
+            ->diffInDays($checkOut->copy()->startOfDay());
+        $crossDay = $diffDays + ($timetable->cross_day ?? 0);
+
+        if ($crossDay <= 0) {
+            return collect();
+        }
+
+        $crossDayPunches = collect();
+        $nextDate = $date->copy();
+
+        for ($i = 0; $i < $crossDay; $i++) {
+            $nextDate = $nextDate->addDay();
+            $nextDateString = $nextDate->format('Y-m-d');
+
+            $nextDateAttendance = $attendanceEmployee->get($nextDateString, collect());
+            if ($nextDateAttendance->isEmpty()) {
+                continue;
+            }
+
+            foreach ($nextDateAttendance as $attendance) {
+                $punchTime = Carbon::parse($attendance['punch_time']);
+                if ($punchTime->lte($limits['check_out_limit_ot'])) {
+                    $crossDayPunches->push($attendance);
+                }
+            }
+        }
+
+        return $crossDayPunches;
+    }
+
+    private function removeCrossDayPunchesFromEmployee(
+        Collection $crossDayPunches,
+        Collection $attendanceEmployee,
+    ): void {
+        if ($crossDayPunches->isEmpty()) {
+            return;
+        }
+
+        $crossDayTimestamps = $crossDayPunches
+            ->map(fn ($item) => Carbon::parse($item['punch_time'])->timestamp)
+            ->all();
+
+        foreach ($attendanceEmployee as $dateString => $dayAttendances) {
+            $attendanceEmployee[$dateString] = collect($dayAttendances)->reject(function ($attendance) use ($crossDayTimestamps) {
+                return in_array(Carbon::parse($attendance['punch_time'])->timestamp, $crossDayTimestamps, true);
+            })->values();
+        }
+    }
+
+    private function removePunchesFromCollection(Collection $pool, Collection $toRemove): Collection
+    {
+        if ($toRemove->isEmpty()) {
+            return $pool;
+        }
+
+        $removeTimestamps = $toRemove
+            ->map(fn ($item) => Carbon::parse($item['punch_time'])->timestamp)
+            ->all();
+
+        return $pool->reject(function ($attendance) use ($removeTimestamps) {
+            return in_array(Carbon::parse($attendance['punch_time'])->timestamp, $removeTimestamps, true);
+        })->values();
+    }
+
     public function attendanceTimetableGrouping(
         ?Shift $department_shift = null,
         Collection $attendance_employee,
@@ -436,273 +678,98 @@ class AttendanceUtil extends Util
 
         $masaJedaAbsensi = 6;
 
-        $attendance_employee_timetable =  collect([]);
-        // if($emp_code == '250313') {
-            $range_date_count = count($range_dates);
-            foreach ($range_dates as $iDate => $range_date) {
-                if ($iDate == $range_date_count - 1) continue;
+        $attendance_employee_timetable = collect([]);
 
-                $date = Carbon::parse($range_date['date']);
-                $date_string = $date->format('Y-m-d');
-    
-                $timetables_source = collect([]);
-                $operational = $operationals->get($date_string);
-
-                if ($operational) {
-                    $timetables_source = $operational->operational_has_timetables->where('status', 'active')->sortBy('timetable.check_in');
-                } else {
-                    $dayOfWeek = $range_date['holiday']['status']? 0: $date->dayOfWeek; 
-                    $shiftday = $department_shift->shiftdays->firstWhere('code_day', $dayOfWeek);
-                    if ($shiftday) {
-                        $timetables_source = $shiftday->shiftday_has_timetables;
-                    }
-                }
-                
-                // Log::info($date);
-
-                $date_attendances = collect($attendance_employee->get($date_string, collect()));
-
-                // Log::info($date_attendances);
-    
-                if ($timetables_source->isEmpty()) continue;
-    
-                $attendance_timetable = collect([]);
-                $selected_timetable = null;
-
-                foreach ($timetables_source as $shiftday_has_timetable) {
-                    $timetable = $shiftday_has_timetable->timetable;
-    
-                    if($date_attendances->isEmpty()) break;
-    
-                    $check_in = Carbon::parse($date->format('Y-m-d'). " " .$timetable->check_in);
-                    $check_out = Carbon::parse($date->format('Y-m-d'). " " .$timetable->check_out)
-                        ->addDays($timetable->cross_day ?? 0);
-        
-                    $check_in_limit_min = $check_in->copy()->subMinutes($timetable->check_in_min);
-                    $check_in_limit_plus = $check_in->copy()->addMinutes($timetable->check_in_plus);
-                    $check_out_limit_min = $check_out->copy()->subMinutes($timetable->check_out_min);
-                    $check_out_limit_plus = $check_out->copy()->addMinutes($timetable->check_out_plus);
-        
-                    $check_out_limit_ot = $check_out->copy()->addHours($timetable->duration_ot_limit ?? 0);
-                    // Log::info($check_in_limit_min);
-                    // Log::info($check_in_limit_plus);
-
-                    foreach ($date_attendances as $key => $attendance) {
-                        $punch_time = Carbon::parse($attendance['punch_time']);
-                        if($punch_time->between($check_in_limit_min, $check_in_limit_plus)) {
-                            // Log::info($key);
-                            // Log::info($attendance);
-
-                            if($key == 0) {
-                                $prev_date = $date->copy()->subDay();
-                                $prev_date_string = $prev_date->format('Y-m-d');
-                                $prev_date_attendance = $attendance_employee->get($prev_date_string, collect());
-
-                                $masa_jeda_start = $check_in_limit_min->copy()->subHours($masaJedaAbsensi);
-
-                                $hasLogInMasaJeda = $prev_date_attendance->contains(function ($log) use ($masa_jeda_start, $punch_time, $check_in_limit_min) {
-                                    $log_time = Carbon::parse($log['punch_time']);
-                                    return $log_time->between($masa_jeda_start, $check_in_limit_min);
-                                });
-
-                    
-                                if ($hasLogInMasaJeda) continue;
-                            } else {
-                                // Cek log dari tanggal yang sama
-                                $curr_date_string = $date->format('Y-m-d');
-                                $curr_date_attendance = $attendance_employee->get($curr_date_string, collect());
-
-                                // Ambil log sebelum index sekarang
-                                $masa_jeda_start = $check_in_limit_min->copy()->subHours($masaJedaAbsensi);
-
-                                $hasLogInMasaJeda = collect($curr_date_attendance->slice(0, $key))->contains(function ($log) use ($masa_jeda_start, $punch_time, $check_in_limit_min) {
-                                    $log_time = Carbon::parse($log['punch_time']);
-                                    return $log_time->between($masa_jeda_start, $check_in_limit_min);
-                                });
-
-                                if ($hasLogInMasaJeda) continue;
-                            }
-
-                            // Log::info($check_in_limit_min);
-                            // Log::info($check_in_limit_plus);
-                            // Log::info($attendance);
-
-                            $selected_timetable = $timetable; 
-                            break;
-                        }
-                    }
-
-                    if($selected_timetable) {
-                        break;
-                    }
-                }
-
-                if($selected_timetable) {
-                    $check_in = Carbon::parse($date->format('Y-m-d'). " " .$selected_timetable->check_in);
-                    $check_out = Carbon::parse($date->format('Y-m-d'). " " .$selected_timetable->check_out)
-                        ->addDays($selected_timetable->cross_day ?? 0);
-        
-                    $check_in_limit_min = $check_in->copy()->subMinutes($selected_timetable->check_in_min);
-                    $check_in_limit_plus = $check_in->copy()->addMinutes($selected_timetable->check_in_plus);
-                    $check_out_limit_min = $check_out->copy()->subMinutes($selected_timetable->check_out_min);
-                    $check_out_limit_plus = $check_out->copy()->addMinutes($selected_timetable->check_out_plus);
-        
-                    $check_out_limit_ot = $check_out->copy()->addHours($selected_timetable->duration_ot_limit ?? 0);
-
-                    $date_attendances = $date_attendances->reject(function ($attendance, $index) use (
-                        $selected_timetable, $attendance_timetable, $check_in_limit_min, $check_in_limit_plus, $check_out_limit_min, $check_out_limit_plus, $check_out_limit_ot,
-                    ) {
-                        $punch_time = Carbon::parse($attendance['punch_time']);
-                        $is_delete = false;
-    
-                        if($punch_time->gte($check_in_limit_min) && $punch_time->lte($check_out_limit_ot)) {
-                            $existing = $attendance_timetable->get($selected_timetable->id, collect());
-                            if($existing->count() == 0) {
-                                if($punch_time->between($check_in_limit_min, $check_in_limit_plus)) {
-                                    $existing->push($attendance);
-                                    $is_delete = true;
-                                } else {
-                                    $is_delete = false;
-                                }
-                            } else {
-                                $existing->push($attendance);
-                                $is_delete = true;
-                            }
-    
-                            if($existing->isNotEmpty()) {
-                                $attendance_timetable->put($selected_timetable->id, $existing);
-                            }
-                        }
-    
-                        return $is_delete;
-                    });
-
-                    $diff_days = $check_out_limit_ot->copy()->startOfDay()->diffInDays($check_out->copy()->startOfDay());
-                    $cross_day = $diff_days + ($selected_timetable->cross_day ?? 0);
-    
-                    if($cross_day > 0 && $attendance_timetable->get($selected_timetable->id, collect())->count() > 0) {
-                        $next_date = $date->copy();
-                        
-                        for ($i = 0; $i < $cross_day; $i++) { 
-                            $next_date = $next_date->addDay();
-                            $next_date_string = $next_date->format('Y-m-d');
-    
-                            $next_date_attendance = $attendance_employee->get($next_date_string, collect());
-                            if($next_date_attendance->isEmpty()) continue;
-    
-                            $attendance_employee[$next_date_string] = $next_date_attendance->reject(function ($attendance) use (
-                                $selected_timetable, $attendance_timetable, $check_in_limit_min, $check_in_limit_plus, $check_out_limit_min, $check_out_limit_plus, $check_out_limit_ot,
-                            ) {
-                                $punch_time = Carbon::parse($attendance['punch_time']);
-                                if($punch_time->lte($check_out_limit_ot)) {
-                                    $existing = $attendance_timetable->get($selected_timetable->id, collect());
-                                    $existing->push($attendance);
-            
-                                    $attendance_timetable->put($selected_timetable->id, $existing);
-                                    return true;
-                                }
-            
-                                return false;
-                            });
-                        }
-                    }
-                }
-    
-                // Log::info($attendance_timetable);
-                $attendance_employee_timetable->put($date_string, $attendance_timetable);
+        $range_date_count = count($range_dates);
+        foreach ($range_dates as $iDate => $range_date) {
+            if ($iDate == $range_date_count - 1) {
+                continue;
             }
-        // } else {
-            // $range_date_count = count($range_dates);
-            // foreach ($range_dates as $iDate => $range_date) {
-            //     if ($iDate >= $range_date_count - 1) continue;
-    
-            //     $date = Carbon::parse($range_date['date']);
-            //     $date_string = $date->format('Y-m-d');
-    
-            //     $shiftday = $department_shift->shiftdays->firstWhere('code_day', $date->dayOfWeek);
-            //     $date_attendances = collect($attendance_employee->get($date_string, collect()));
-    
-            //     if (!$shiftday) continue;
-    
-            //     $attendance_timetable = collect([]);
-            //     foreach ($shiftday->shiftday_has_timetables as $shiftday_has_timetable) {
-            //         $timetable = $shiftday_has_timetable->timetable;
-    
-            //         if($date_attendances->isEmpty()) break;
-    
-            //         $check_in = Carbon::parse($date->format('Y-m-d'). " " .$timetable->check_in);
-            //         $check_out = Carbon::parse($date->format('Y-m-d'). " " .$timetable->check_out)
-            //             ->addDays($timetable->cross_day ?? 0);
-        
-            //         $check_in_limit_min = $check_in->copy()->subMinutes($timetable->check_in_min);
-            //         $check_in_limit_plus = $check_in->copy()->addMinutes($timetable->check_in_plus);
-            //         $check_out_limit_min = $check_out->copy()->subMinutes($timetable->check_out_min);
-            //         $check_out_limit_plus = $check_out->copy()->addMinutes($timetable->check_out_plus);
-        
-            //         $check_out_limit_ot = $check_out->copy()->addHours($timetable->duration_ot_limit ?? 0);
-    
-            //         $date_attendances = $date_attendances->reject(function ($attendance, $index) use (
-            //             $timetable, $attendance_timetable, $check_in_limit_min, $check_in_limit_plus, $check_out_limit_min, $check_out_limit_plus, $check_out_limit_ot,
-            //         ) {
-            //             $punch_time = Carbon::parse($attendance['punch_time']);
-            //             $is_delete = false;
-    
-            //             if($punch_time->gte($check_in_limit_min) && $punch_time->lte($check_out_limit_ot)) {
-            //                 $existing = $attendance_timetable->get($timetable->id, collect());
-            //                 if($existing->count() == 0) {
-            //                     if($punch_time->between($check_in_limit_min, $check_in_limit_plus)) {
-            //                         $existing->push($attendance);
-            //                         $is_delete = true;
-            //                     } else {
-            //                         $is_delete = false;
-            //                     }
-            //                 } else {
-            //                     $existing->push($attendance);
-            //                     $is_delete = true;
-            //                 }
-    
-            //                 if($existing->isNotEmpty()) {
-            //                     $attendance_timetable->put($timetable->id, $existing);
-            //                 }
-            //             }
-    
-            //             return $is_delete;
-            //         });
-    
-            //         $diff_days = $check_out_limit_ot->copy()->startOfDay()->diffInDays($check_out->copy()->startOfDay());
-            //         $cross_day = $diff_days + ($timetable->cross_day ?? 0);
-    
-            //         if($cross_day > 0 && $attendance_timetable->get($timetable->id, collect())->count() > 0) {
-            //             $next_date = $date->copy();
-                        
-            //             for ($i = 0; $i < $cross_day; $i++) { 
-            //                 $next_date = $next_date->addDay();
-            //                 $next_date_string = $next_date->format('Y-m-d');
-    
-            //                 $next_date_attendance = $attendance_employee->get($next_date_string, collect());
-            //                 if($next_date_attendance->isEmpty()) continue;
-    
-            //                 $attendance_employee[$next_date_string] = $next_date_attendance->reject(function ($attendance) use (
-            //                     $timetable, $attendance_timetable, $check_in_limit_min, $check_in_limit_plus, $check_out_limit_min, $check_out_limit_plus, $check_out_limit_ot,
-            //                 ) {
-            //                     $punch_time = Carbon::parse($attendance['punch_time']);
-            //                     if($punch_time->lte($check_out_limit_ot)) {
-            //                         $existing = $attendance_timetable->get($timetable->id, collect());
-            //                         $existing->push($attendance);
-            
-            //                         $attendance_timetable->put($timetable->id, $existing);
-            //                         return true;
-            //                     }
-            
-            //                     return false;
-            //                 });
-            //             }
-            //         }
-            //     }
-    
-            //     $attendance_employee_timetable->put($date_string, $attendance_timetable);
-            // }
-        // }
+
+            $date = Carbon::parse($range_date['date']);
+            $date_string = $date->format('Y-m-d');
+
+            $timetables_source = collect([]);
+            $operational = $operationals->get($date_string);
+
+            if ($operational) {
+                $timetables_source = $operational->operational_has_timetables
+                    ->where('status', 'active')
+                    ->sortBy([
+                        fn ($item) => -($item->timetable->cross_day ?? 0),
+                        fn ($item) => $item->timetable->check_in,
+                    ])
+                    ->values();
+            } else {
+                $dayOfWeek = $range_date['holiday']['status'] ? 0 : $date->dayOfWeek;
+                $shiftday = $department_shift->shiftdays->firstWhere('code_day', $dayOfWeek);
+                if ($shiftday) {
+                    $timetables_source = $shiftday->shiftday_has_timetables
+                        ->sortBy([
+                            fn ($item) => -($item->timetable->cross_day ?? 0),
+                            fn ($item) => $item->timetable->check_in,
+                        ])
+                        ->values();
+                }
+            }
+
+            $date_attendances = collect($attendance_employee->get($date_string, collect()));
+
+            if ($timetables_source->isEmpty()) {
+                continue;
+            }
+
+            $attendance_timetable = collect([]);
+            $prev_date_string = $date->copy()->subDay()->format('Y-m-d');
+            $prev_date_attendance = collect($attendance_employee->get($prev_date_string, collect()));
+
+            foreach ($timetables_source as $timetableSourceItem) {
+                $timetable = $timetableSourceItem->timetable;
+
+                if ($date_attendances->isEmpty()) {
+                    break;
+                }
+
+                if ($attendance_timetable->has($timetable->id)) {
+                    continue;
+                }
+
+                $limits = $this->getTimetableWindowLimits($date, $timetable);
+
+                $collectedPunches = $this->collectPunchesForTimetable(
+                    $date_attendances,
+                    $timetable,
+                    $date,
+                    $timetables_source,
+                    $prev_date_attendance,
+                    $masaJedaAbsensi,
+                );
+
+                if ($collectedPunches->isEmpty()) {
+                    continue;
+                }
+
+                $crossDayPunches = $this->fetchCrossDayPunches(
+                    $timetable,
+                    $date,
+                    $limits,
+                    $attendance_employee,
+                );
+
+                $groupPunches = $collectedPunches->merge($crossDayPunches)->values();
+
+                if (!$this->isValidTimetableGroup($groupPunches, $timetable, $limits)) {
+                    continue;
+                }
+
+                $attendance_timetable->put($timetable->id, $groupPunches);
+
+                $date_attendances = $this->removePunchesFromCollection($date_attendances, $collectedPunches);
+                $this->removeCrossDayPunchesFromEmployee($crossDayPunches, $attendance_employee);
+            }
+
+            $attendance_employee_timetable->put($date_string, $attendance_timetable);
+        }
 
         return $attendance_employee_timetable;
     }
