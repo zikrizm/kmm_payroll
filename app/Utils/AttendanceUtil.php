@@ -494,6 +494,12 @@ class AttendanceUtil extends Util
         return false;
     }
 
+    private function isBreakPunchInShiftWindow(Carbon $punchTime, array $limits): bool
+    {
+        return $punchTime->gt($limits['check_in_limit_plus'])
+            && $punchTime->lt($limits['check_out_limit_min']);
+    }
+
     private function countDayShiftMiddlePunchesBefore(
         Collection $dateAttendances,
         array $dayLimits,
@@ -502,14 +508,8 @@ class AttendanceUtil extends Util
         return $dateAttendances->filter(function ($log) use ($dayLimits, $beforeTime) {
             $logTime = Carbon::parse($log['punch_time']);
 
-            if (!$logTime->lt($beforeTime) || !$logTime->gt($dayLimits['check_in_limit_plus'])) {
-                return false;
-            }
-
-            return !(
-                $logTime->between($dayLimits['check_in_limit_min'], $dayLimits['check_in_limit_plus'])
-                || $logTime->between($dayLimits['check_out_limit_min'], $dayLimits['check_out_limit_plus'])
-            );
+            return $logTime->lt($beforeTime)
+                && $this->isBreakPunchInShiftWindow($logTime, $dayLimits);
         })->count();
     }
 
@@ -638,14 +638,7 @@ class AttendanceUtil extends Util
         $middlePunches = $punches->filter(function ($item) use ($limits) {
             $punchTime = Carbon::parse($item['punch_time']);
 
-            if ($punchTime->gt($limits['check_out_limit_ot'])) {
-                return false;
-            }
-
-            return !(
-                $punchTime->between($limits['check_in_limit_min'], $limits['check_in_limit_plus'])
-                || $punchTime->between($limits['check_out_limit_min'], $limits['check_out_limit_plus'])
-            );
+            return $this->isBreakPunchInShiftWindow($punchTime, $limits);
         });
 
         return $middlePunches->count() >= 2;
@@ -988,10 +981,13 @@ class AttendanceUtil extends Util
         }
 
         if($attendance_count > 2) {
-            $break_time_attendance = $attendances->filter(function ($item) use ($check_in_limit_min, $check_in_limit_plus, $check_out_limit_min, $check_out_limit_plus){
+            $limits = [
+                'check_in_limit_plus' => $check_in_limit_plus,
+                'check_out_limit_min' => $check_out_limit_min,
+            ];
+            $break_time_attendance = $attendances->filter(function ($item) use ($limits) {
                 $punch_time = Carbon::parse($item['punch_time']);
-                return !($punch_time->between($check_in_limit_min, $check_in_limit_plus) || $punch_time->between($check_out_limit_min, $check_out_limit_plus))
-                    && $punch_time->lte($check_out_limit_plus);
+                return $this->isBreakPunchInShiftWindow($punch_time, $limits);
             });
 
             $break_time_attendance_count = $break_time_attendance->count();
