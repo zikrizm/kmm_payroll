@@ -483,6 +483,50 @@ class AttendanceUtil extends Util
         return false;
     }
 
+    private function shouldSkipNightShiftCheckInAnchor(
+        Carbon $punchTime,
+        Carbon $date,
+        Collection $dateAttendances,
+        Collection $prevDateAttendance,
+        Collection $timetablesSource,
+    ): bool {
+        foreach ($timetablesSource as $item) {
+            $dayTimetable = $item->timetable;
+            if ($dayTimetable->cross_day ?? 0) {
+                continue;
+            }
+
+            $dayLimits = $this->getTimetableWindowLimits($date, $dayTimetable);
+
+            $hasDayShiftMorningCheckIn = $dateAttendances->contains(function ($log) use ($dayLimits, $date, $dayTimetable, $timetablesSource, $prevDateAttendance) {
+                $logTime = Carbon::parse($log['punch_time']);
+                if (!$logTime->between($dayLimits['check_in_limit_min'], $dayLimits['check_in_limit_plus'])) {
+                    return false;
+                }
+
+                return !$this->shouldSkipCheckInAnchor(
+                    $logTime,
+                    $dayLimits['check_in_limit_min'],
+                    $prevDateAttendance,
+                    collect(),
+                    $date,
+                    $dayTimetable,
+                    $timetablesSource,
+                );
+            });
+
+            if (!$hasDayShiftMorningCheckIn) {
+                continue;
+            }
+
+            if ($punchTime->gte($dayLimits['check_out'])) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     private function shouldSkipCheckInAnchor(
         Carbon $punchTime,
         Carbon $checkInLimitMin,
@@ -618,7 +662,11 @@ class AttendanceUtil extends Util
                     continue;
                 }
 
-                if ($this->shouldSkipCheckInAnchor(
+                if ($timetable->cross_day ?? 0) {
+                    if ($this->shouldSkipNightShiftCheckInAnchor($punchTime, $date, $dateAttendances, $prevDateAttendance, $timetablesSource)) {
+                        continue;
+                    }
+                } elseif ($this->shouldSkipCheckInAnchor(
                     $punchTime,
                     $limits['check_in_limit_min'],
                     $prevDateAttendance,
@@ -675,10 +723,16 @@ class AttendanceUtil extends Util
                 continue;
             }
 
-            foreach ($nextDateAttendance as $attendance) {
+            foreach ($nextDateAttendance->sortBy('punch_time') as $attendance) {
                 $punchTime = Carbon::parse($attendance['punch_time']);
-                if ($punchTime->lte($limits['check_out_limit_ot'])) {
-                    $crossDayPunches->push($attendance);
+                if ($punchTime->gt($limits['check_out_limit_ot'])) {
+                    continue;
+                }
+
+                $crossDayPunches->push($attendance);
+
+                if ($punchTime->between($limits['check_out_limit_min'], $limits['check_out_limit_plus'])) {
+                    break;
                 }
             }
         }
@@ -771,7 +825,7 @@ class AttendanceUtil extends Util
                 $timetables_source = $operational->operational_has_timetables
                     ->where('status', 'active')
                     ->sortBy([
-                        fn ($item) => -($item->timetable->cross_day ?? 0),
+                        fn ($item) => $item->timetable->cross_day ?? 0,
                         fn ($item) => $item->timetable->check_in,
                     ])
                     ->values();
@@ -781,7 +835,7 @@ class AttendanceUtil extends Util
                 if ($shiftday) {
                     $timetables_source = $shiftday->shiftday_has_timetables
                         ->sortBy([
-                            fn ($item) => -($item->timetable->cross_day ?? 0),
+                            fn ($item) => $item->timetable->cross_day ?? 0,
                             fn ($item) => $item->timetable->check_in,
                         ])
                         ->values();
