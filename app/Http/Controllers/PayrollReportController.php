@@ -40,6 +40,22 @@ class PayrollReportController extends Controller
         $this->util = $util;
     }
 
+    private function departmentCodesFromRequest(Request $request): string|array|null
+    {
+        $codes = $request->input('department_codes');
+        if (is_array($codes)) {
+            $filtered = array_values(array_filter($codes));
+            return empty($filtered) ? null : $filtered;
+        }
+
+        $code = $request->input('department_code');
+        if (empty($code)) {
+            return null;
+        }
+
+        return is_array($code) ? array_values(array_filter($code)) : $code;
+    }
+
     /**
      * Display a listing of the resource.
      *
@@ -55,7 +71,7 @@ class PayrollReportController extends Controller
         }
 
         $business_id = Session::get('business_id');
-        $department_code = $request['department_code'];
+        $department_codes = $this->departmentCodesFromRequest($request);
         $start_date = $request['start_date'];
         $end_date = $request['end_date'];
 
@@ -78,7 +94,7 @@ class PayrollReportController extends Controller
                         $end_date_work_day,
                         $start_date_overtime,
                         $end_date_overtime,
-                        $request['department_code'],
+                        $this->departmentCodesFromRequest($request),
                     );
 
                     $render = view('report.payroll_report.table', compact('result', 'start_date_work_day', 'end_date_work_day', 'start_date_overtime', 'end_date_overtime'))->render();
@@ -90,7 +106,10 @@ class PayrollReportController extends Controller
             }
 
             $department_bios = collect($this->service->get_departments(['page_size' => 999])['data']);
-            return view('report.payroll_report.index', compact('department_bios', 'department_code', 'start_date', 'end_date'));
+            if (!is_array($department_codes)) {
+                $department_codes = $department_codes ? [$department_codes] : [];
+            }
+            return view('report.payroll_report.index', compact('department_bios', 'department_codes', 'start_date', 'end_date'));
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
 
@@ -117,13 +136,29 @@ class PayrollReportController extends Controller
             $end_date = Carbon::parse($request->end_date);
             $start_date_format = Carbon::createFromFormat('d-m-Y', $request->start_date);
             $end_date_format = Carbon::createFromFormat('d-m-Y', $request->end_date);
-            $department_code = $request->department_code;
+            $department_codes = $this->departmentCodesFromRequest($request);
             $dates = $this->util->generateDateRange($start_date, $end_date);
-            $departments = $this->service->get_departments(['page_size' => 999, 'dept_code' => $department_code])['data'];
+            $all_departments = collect($this->service->get_departments(['page_size' => 999])['data']);
+            if (is_array($department_codes)) {
+                $departments = $all_departments->whereIn('dept_code', $department_codes)->values()->all();
+            } elseif ($department_codes) {
+                $departments = $this->service->get_departments(['page_size' => 999, 'dept_code' => $department_codes])['data'];
+            } else {
+                $departments = $all_departments->all();
+            }
 
-            $salary_archive = SalaryArchiveTh::whereDate('start_date_work_day', $start_date_format->format('Y-m-d'))->whereDate('end_date_work_day', $end_date_format->format('Y-m-d'))->where('dept_code', $request->department_code)->first();
+            $salary_archive_query = SalaryArchiveTh::whereDate('start_date_work_day', $start_date_format->format('Y-m-d'))
+                ->whereDate('end_date_work_day', $end_date_format->format('Y-m-d'));
+            if (is_array($department_codes)) {
+                $salary_archive = (clone $salary_archive_query)->whereIn('dept_code', $department_codes)->first();
+            } elseif ($department_codes) {
+                $salary_archive = $salary_archive_query->where('dept_code', $department_codes)->first();
+            } else {
+                $salary_archive = $salary_archive_query->first();
+            }
+
             if (empty($salary_archive)) {
-                $render = view('report.payroll_report.calculation', compact('dates', 'start_date', 'end_date',  'departments', 'department_code'))->render();
+                $render = view('report.payroll_report.calculation', compact('dates', 'start_date', 'end_date', 'departments', 'department_codes'))->render();
                 return $this->buildRes->RESPONSE_REQ('success', $render, null);
             } else {
                 $render = view('report.payroll_report.invalid_calculation', compact('salary_archive'))->render();
@@ -166,7 +201,7 @@ class PayrollReportController extends Controller
                     $end_date_work_day,
                     $start_date_overtime,
                     $end_date_overtime,
-                    $request['department_code'],
+                    $this->departmentCodesFromRequest($request),
                 );
 
                 DB::beginTransaction();

@@ -1,7 +1,11 @@
 @extends('layouts.app')
 @section('title', 'Laporan Penggajian')
 @section('css')
-    <style></style>
+    <style>
+        .select2-payroll-dept-filter .select2-selection__clear {
+            display: none !important;
+        }
+    </style>
 @endsection
 @section('content')
     <div class="flex flex-col gap-6 flex-1 h-full overflow-auto bg-white px-8 pt-8 pb-12">
@@ -22,15 +26,16 @@
                         'prefixiconname' => 'calendar',
                     ]) !!}
                 </div>
-                <section class="flex flex-col gap-1">
-                    <select class="select2-department hidden" name="">
-                        <option value="" disabled>Semua bagian</option>
+                <section class="flex flex-col gap-1 min-w-72 max-w-md select2-payroll-dept-filter">
+                    <select class="select2-payroll-dept hidden" name="department_codes[]" multiple="multiple"
+                        data-placeholder="Pilih bagian (kosong = semua)">
                         @foreach ($department_bios ?? [] as $department)
-                            <option value="{{ $department['dept_code'] }}" @selected($department['dept_code'] === $department_code)>
+                            <option value="{{ $department['dept_code'] }}"
+                                @selected(in_array($department['dept_code'], $department_codes ?? [], true))>
                                 {{ $department['dept_name'] }}</option>
                         @endforeach
                     </select>
-                    <label class="font-normal text-xs text-red-500 xs/max:text-xs parent_dept hint-text"></label>
+                    <label class="font-normal text-xs text-gray-500 parent_dept hint-text">Bisa pilih lebih dari satu bagian</label>
                 </section>
                 <button onclick="get_modal()"
                     class="truncate flex items-center gap-2.5 px-4 h-[36px] mb-1 text-gray-500 text-sm font-medium  flex items-center border border-gray-200 shadow-sm rounded-lg">
@@ -40,7 +45,7 @@
             </div>
             <div class="flex items-center gap-3">
                 <x-ui.search-data placeholder="Cari penggajian" url="{{ route('payroll-report.index') }}" />
-                <button type="button" onclick="onInit({})"
+                <button type="button" onclick="refreshPayrollTable()"
                     class="flex items-center gap-2.5 text-sm px-4 py-1.5 rounded-lg border text-gray-700 ">
                     <x-icon icon="refresh-cw" width=20 height=20 viewBox="20 20" />
                 </button>
@@ -52,15 +57,82 @@
 
     <script type="application/javascript">
     let dataParams = {};
+    let departmentFilterPending = false;
+
+    function selectedPayrollDepartmentCodes() {
+        return $('.select2-payroll-dept').val() || [];
+    }
+
+    function applyPayrollDepartmentFilter() {
+        departmentFilterPending = false;
+        delete dataParams.page;
+        onInit({ department_codes: selectedPayrollDepartmentCodes() });
+    }
+
+    function commitPayrollDepartmentFilterOnUnfocus() {
+        if (!departmentFilterPending) {
+            return;
+        }
+        const $container = $('.select2-payroll-dept').next('.select2-container');
+        if ($container.hasClass('select2-container--open')) {
+            return;
+        }
+        if ($(document.activeElement).closest('.select2-payroll-dept-filter .select2-container').length) {
+            return;
+        }
+        applyPayrollDepartmentFilter();
+    }
+
+    function refreshPayrollTable() {
+        departmentFilterPending = false;
+        delete dataParams.page;
+        onInit({
+            q: $('.search-data-input').val(),
+            department_codes: selectedPayrollDepartmentCodes(),
+        });
+    }
+
+    function buildQueryString(params) {
+        const qs = new URLSearchParams();
+        Object.entries(params).forEach(([key, value]) => {
+            if (value === null || value === undefined || value === '') return;
+            if (Array.isArray(value)) {
+                value.filter(Boolean).forEach((item) => qs.append('department_codes[]', item));
+                return;
+            }
+            qs.set(key, value);
+        });
+        return qs.toString();
+    }
 
         window.addEventListener('DOMContentLoaded', (event) => {
             $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
 
-            $('.select2-department').select2();  
-            $('.select2-department').show();
-            $('.select2-department').on('select2:select', function (e) {
-                delete dataParams.page;
-                onInit({department_code: this.value});
+            const $deptSelect = $('.select2-payroll-dept');
+            $deptSelect.select2({
+                width: '100%',
+                allowClear: false,
+                placeholder: 'Pilih bagian (kosong = semua)',
+            });
+            $deptSelect.show();
+            $deptSelect.on('change', function () {
+                departmentFilterPending = true;
+            });
+
+            $deptSelect.next('.select2-container').on('focusout', function () {
+                setTimeout(commitPayrollDepartmentFilterOnUnfocus, 0);
+            });
+
+            $(document).on('blur', '.select2-payroll-dept-filter .select2-search__field', function () {
+                setTimeout(commitPayrollDepartmentFilterOnUnfocus, 0);
+            });
+
+            $(document).on('keydown', '.select2-payroll-dept-filter .select2-search__field', function (e) {
+                if (e.key !== 'Enter' || !departmentFilterPending) {
+                    return;
+                }
+                e.preventDefault();
+                applyPayrollDepartmentFilter();
             });
 
             var defaultStartDate = "{{ $start_date ?? '' }}";
@@ -68,7 +140,7 @@
 
             onInit({
                 q: $('.search-data-input').val(),
-                department_code: $('.select2-department').val(),
+                department_codes: selectedPayrollDepartmentCodes(),
                 start_date: convertLocalTimezone(defaultStartDate || moment().startOf('week'), 'DD-MM-YYYY'), 
                 end_date: convertLocalTimezone(defaultEndDate || moment().endOf('week'), 'DD-MM-YYYY')
             });
@@ -95,10 +167,11 @@
                 var dateFormat = 'DD-MM-YYYY';
 
                 delete dataParams.page;
-                onInit({ 
+                onInit({
                     q: $('.search-data-input').val(),
-                    start_date: convertLocalTimezone(start, dateFormat), 
-                    end_date: convertLocalTimezone(end, dateFormat)
+                    start_date: convertLocalTimezone(start, dateFormat),
+                    end_date: convertLocalTimezone(end, dateFormat),
+                    department_codes: selectedPayrollDepartmentCodes(),
                 });
             });
 
@@ -116,7 +189,7 @@
             // *
             dataParams = { ...dataParams, ...data };
             
-            const queryString = new URLSearchParams(dataParams).toString();
+            const queryString = buildQueryString(dataParams);
 
             // Update URL tanpa refresh halaman
             const newUrl = window.location.pathname + "?" + queryString;
@@ -150,7 +223,7 @@
             var res = await ApiService.get_modal('/payroll-report/create', { 
                 start_date: start_date.format('DD-MM-YYYY'),
                 end_date: end_date.format('DD-MM-YYYY'),
-                department_code: $('.select2-department').val()
+                department_codes: selectedPayrollDepartmentCodes()
             });
 
             $('#kalkulasi').on('click', function(e) {

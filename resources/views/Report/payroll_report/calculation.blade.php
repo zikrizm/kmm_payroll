@@ -3,7 +3,13 @@
     <!-- {{ csrf_field() }} -->
     <input type="hidden" name="start_date" value="{{ $start_date->format('d-m-Y') }}">
     <input type="hidden" name="end_date" value="{{ $end_date->format('d-m-Y') }}">
-    <input type="hidden" name="department_code" value="{{ $department_code }}">
+    @if (is_array($department_codes ?? null))
+        @foreach ($department_codes as $dept_code)
+            <input type="hidden" name="department_codes[]" value="{{ $dept_code }}">
+        @endforeach
+    @elseif (!empty($department_codes))
+        <input type="hidden" name="department_code" value="{{ $department_codes }}">
+    @endif
     <section id="container-modal-calculate"
         class="flex flex-col gap-8 py-4 w-[440px] bg-white border max-h-[95vh] overflow-y-auto overflow-x-hidden relative rounded-lg duration-300">
         <div class="flex items-center gap-5 px-4 relative">
