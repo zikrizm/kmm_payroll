@@ -1,4 +1,4 @@
-@if (!empty($result) && isset($result['departments']))
+@if (($result['departments'] ?? collect())->isNotEmpty())
     <div class="w-full overflow-auto overflow-y-hidden flex-1">
         <div class="grid gap-5 grid-cols-3 xl/max:grid-cols-2 lg/max:grid-cols-1 w-max items-start">
             @foreach ($result['departments'] as $department)
@@ -228,20 +228,20 @@
                 @endforeach
             @endforeach
         </div>
+    </div>
 @else
-    <div class="h-full w-full flex justify-center items-center py-16">
-        <div class="flex flex-col items-start justify-start gap-4">
-            <span>
-                <x-icon icon="alert-triangle" width=50 height=50 viewBox="20 20" />
-            </span>
-            <div class="text-left">
-                <p class="text-2xl font-semibold">Kartu absensi tidak ada</p>
-                <p>Silahkan pilih bagian terlebih dahulu</p>
-            </div>
+<div class="h-full w-full flex justify-center items-center">
+    <div class="flex flex-col items-start justify-start gap-4">
+        <span>
+            <x-icon icon="alert-triangle" width=50 height=50 viewBox="20 20" />
+        </span>
+        <div class="text-left">
+            <p class="text-2xl font-semibold">Laporan tidak ada</p>
+            <p>Silahkan pilih bagian terlebih dahulu</p>
         </div>
     </div>
-@endif
 </div>
+@endif
 <script>
     // Mendapatkan semua gambar dengan class 'image'
     var images = document.querySelectorAll('.image');
