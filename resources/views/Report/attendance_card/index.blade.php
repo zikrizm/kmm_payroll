@@ -105,6 +105,7 @@
         $('.select2-dept').select2({
             width: '100%',
             allowClear: false,
+            closeOnSelect: false,
             placeholder: 'Pilih bagian (kosong = semua)',
         });
         $('.select2-dept').show();

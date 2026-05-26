@@ -112,6 +112,7 @@
             $deptSelect.select2({
                 width: '100%',
                 allowClear: false,
+                closeOnSelect: false,
                 placeholder: 'Pilih bagian (kosong = semua)',
             });
             $deptSelect.show();
