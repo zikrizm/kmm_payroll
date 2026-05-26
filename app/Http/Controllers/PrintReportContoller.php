@@ -39,6 +39,27 @@ class PrintReportContoller extends Controller
         $this->attendanceUtil = $attendanceUtil;
     }
 
+    private function departmentCodesFromPrintRequest(Request $request): string|array|null
+    {
+        if ($request->has('department_codes')) {
+            $codes = $request->input('department_codes');
+            if (!is_array($codes)) {
+                $codes = ($codes !== null && $codes !== '') ? [$codes] : [];
+            }
+            $filtered = array_values(array_filter($codes, fn ($code) => $code !== null && $code !== ''));
+
+            return empty($filtered) ? null : $filtered;
+        }
+
+        if ($request->filled('department_code')) {
+            $code = $request->input('department_code');
+
+            return is_array($code) ? array_values(array_filter($code)) : $code;
+        }
+
+        return null;
+    }
+
     public function getMergeAttendance(Carbon $start_date, Carbon $end_date)
     {
         // MERGE DATA ATTENDANCE
@@ -1289,14 +1310,7 @@ class PrintReportContoller extends Controller
                 $start_date_overtime = Carbon::createFromFormat('d-m-Y', $request['start_date'])->subDays($business->pending_day);
                 $end_date_overtime = Carbon::createFromFormat('d-m-Y', $request['end_date'])->subDays($business->pending_day);
 
-                $departmentCodes = $request->input('department_codes');
-                if (is_array($departmentCodes)) {
-                    $departmentCodes = array_values(array_filter($departmentCodes)) ?: null;
-                } elseif ($request->filled('department_code')) {
-                    $departmentCodes = $request->input('department_code');
-                } else {
-                    $departmentCodes = null;
-                }
+                $departmentCodes = $this->departmentCodesFromPrintRequest($request);
 
                 if ($departmentCodes === null) {
                     $result = collect([

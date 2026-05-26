@@ -379,11 +379,25 @@ class AttendanceUtil extends Util
         }
 
         $codes = is_array($departmentCodes) ? $departmentCodes : [$departmentCodes];
-        $codes = array_values(array_filter($codes));
+        $codes = array_values(array_filter($codes, fn ($code) => $code !== null && $code !== ''));
+
+        if (empty($codes)) {
+            return collect();
+        }
+
+        $departments = $this->getDepartment();
 
         return collect($codes)
-            ->map(fn ($code) => collect($this->service->get_departments(['dept_code' => $code])['data'])->first())
+            ->map(function ($code) use ($departments) {
+                $byCode = $departments->firstWhere('dept_code', (string) $code);
+                if (!empty($byCode)) {
+                    return $byCode;
+                }
+
+                return $departments->firstWhere('id', is_numeric($code) ? (int) $code : $code);
+            })
             ->filter()
+            ->unique('id')
             ->values();
     }
 
