@@ -12,15 +12,7 @@
                             <div class="flex items-end absolute top-[5px] w-full">
                                 <hr class="flex-1 border-[1.5px] bg-black rounded ">
                                 <div class="w-14 h-14 bg-white mb-[-10px] rounded-full overflow-hidden">
-                                    @if (!empty($employee['employee']['photo']))
-                                        <img class="image w-full h-full object-cover"
-                                            src="{{ config('constants.api_zkteco') }}{{ $employee['employee']['photo'] }}"
-                                            alt="">
-                                    @else
-                                        <img class="w-full h-full object-cover"
-                                            src="{{ config('constants.api_zkteco') }}/files/nophoto.gif" alt=""
-                                            onerror="this.parentElement.style.width='0';">
-                                    @endif
+                                    <x-employee-photo :photo="$employee['employee']['photo'] ?? null" />
                                 </div>
                                 <hr class="w-10 border-[1.5px] bg-black rounded ">
                             </div>
@@ -242,15 +234,3 @@
     </div>
 </div>
 @endif
-<script>
-    // Mendapatkan semua gambar dengan class 'image'
-    var images = document.querySelectorAll('.image');
-
-    // Menambahkan event error pada setiap gambar
-    images.forEach(function(img) {
-        img.onerror = function() {
-            // Jika terjadi error, ubah URL gambar
-            img.src = img.src.replace('auth_files/photo', 'auth_files/biophoto');
-        };
-    });
-</script>
