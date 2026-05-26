@@ -31,14 +31,14 @@
                 </div>
                 <section class="flex flex-col gap-1 min-w-72 max-w-md select2-dept-filter">
                     <select class="select2-dept hidden" name="department_codes[]" multiple="multiple"
-                        data-placeholder="Pilih bagian (kosong = semua)">
+                        data-placeholder="Pilih bagian">
                         @foreach ($department_bios ?? [] as $department)
                             <option value="{{ $department['dept_code'] }}"
                                 @selected(in_array($department['dept_code'], $department_codes ?? [], true))>
                                 {{ $department['dept_name'] }}</option>
                         @endforeach
                     </select>
-                    <label class="font-normal text-xs text-gray-500 parent_dept hint-text">Bisa pilih lebih dari satu bagian</label>
+                    <label class="font-normal text-xs text-gray-500 parent_dept hint-text">Pilih minimal satu bagian untuk menampilkan kartu absensi</label>
                 </section>
                 <a id="card-attendance" target="_blank"
                     class="flex items-center gap-2.5 text-sm px-4 py-1.5 rounded-lg border text-gray-700 ">
@@ -63,7 +63,22 @@
     let departmentFilterPending = false;
 
     function selectedDepartmentCodes() {
-        return $('.select2-dept').val() || [];
+        const val = $('.select2-dept').val();
+        if (val === null || val === undefined) {
+            return [];
+        }
+        return Array.isArray(val) ? val : [val];
+    }
+
+    function syncDepartmentSelectFromUrl() {
+        const $deptSelect = $('.select2-dept');
+        const deptCodesFromUrl = new URLSearchParams(window.location.search).getAll('department_codes[]');
+        if (deptCodesFromUrl.length) {
+            $deptSelect.val(deptCodesFromUrl).trigger('change');
+        } else {
+            $deptSelect.val(null).trigger('change');
+        }
+        departmentFilterPending = false;
     }
 
     function applyDepartmentFilter() {
@@ -102,14 +117,15 @@
             }
         });    
 
-        $('.select2-dept').select2({
+        const $deptSelect = $('.select2-dept');
+        $deptSelect.select2({
             width: '100%',
             allowClear: false,
             closeOnSelect: false,
-            placeholder: 'Pilih bagian (kosong = semua)',
+            placeholder: 'Pilih bagian',
         });
-        $('.select2-dept').show();
-        const $deptSelect = $('.select2-dept');
+        $deptSelect.show();
+        syncDepartmentSelectFromUrl();
         $deptSelect.on('change', function () {
             departmentFilterPending = true;
         });
@@ -197,6 +213,9 @@
         // * Build data params table ----->
         // *
         dataParams = { ...dataParams, ...data };
+        if ('department_codes' in data && (!data.department_codes || !data.department_codes.length)) {
+            delete dataParams.department_codes;
+        }
         $('#card-attendance').attr('href',
             '/print/card-attendance?' + buildQueryString({
                 department_codes: dataParams.department_codes || [],

@@ -228,6 +228,18 @@
                 @endforeach
             @endforeach
         </div>
+@else
+    <div class="h-full w-full flex justify-center items-center py-16">
+        <div class="flex flex-col items-start justify-start gap-4">
+            <span>
+                <x-icon icon="alert-triangle" width=50 height=50 viewBox="20 20" />
+            </span>
+            <div class="text-left">
+                <p class="text-2xl font-semibold">Kartu absensi tidak ada</p>
+                <p>Silahkan pilih bagian terlebih dahulu</p>
+            </div>
+        </div>
+    </div>
 @endif
 </div>
 <script>

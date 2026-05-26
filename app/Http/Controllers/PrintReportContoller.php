@@ -1298,13 +1298,20 @@ class PrintReportContoller extends Controller
                     $departmentCodes = null;
                 }
 
-                $result = $this->attendanceUtil->getAttendance(
-                    $start_date_work_day,
-                    $end_date_work_day,
-                    $start_date_overtime,
-                    $end_date_overtime,
-                    $departmentCodes,
-                );
+                if ($departmentCodes === null) {
+                    $result = collect([
+                        'departments' => collect(),
+                        'range_dates' => collect(),
+                    ]);
+                } else {
+                    $result = $this->attendanceUtil->getAttendance(
+                        $start_date_work_day,
+                        $end_date_work_day,
+                        $start_date_overtime,
+                        $end_date_overtime,
+                        $departmentCodes,
+                    );
+                }
 
                 return view('print.card_attendance', compact('result', 'start_date_work_day', 'end_date_work_day', 'start_date_overtime', 'end_date_overtime'));
             } else {
