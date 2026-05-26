@@ -72,6 +72,20 @@
         onInit({ department_codes: selectedDepartmentCodes() });
     }
 
+    function commitDepartmentFilterOnUnfocus() {
+        if (!departmentFilterPending) {
+            return;
+        }
+        const $container = $('.select2-dept').next('.select2-container');
+        if ($container.hasClass('select2-container--open')) {
+            return;
+        }
+        if ($(document.activeElement).closest('.select2-dept-filter .select2-container').length) {
+            return;
+        }
+        applyDepartmentFilter();
+    }
+
     function refreshAttendanceTable() {
         departmentFilterPending = false;
         delete dataParams.page;
@@ -94,23 +108,24 @@
             placeholder: 'Pilih bagian (kosong = semua)',
         });
         $('.select2-dept').show();
-        $('.select2-dept').on('change', function () {
+        const $deptSelect = $('.select2-dept');
+        $deptSelect.on('change', function () {
             departmentFilterPending = true;
         });
 
-        $('.select2-dept').on('select2:close', function () {
-            if (!departmentFilterPending) {
-                return;
-            }
-            applyDepartmentFilter();
+        $deptSelect.next('.select2-container').on('focusout', function () {
+            setTimeout(commitDepartmentFilterOnUnfocus, 0);
         });
 
-        $(document).on('keydown', '.select2-search__field', function (e) {
+        $(document).on('blur', '.select2-dept-filter .select2-search__field', function () {
+            setTimeout(commitDepartmentFilterOnUnfocus, 0);
+        });
+
+        $(document).on('keydown', '.select2-dept-filter .select2-search__field', function (e) {
             if (e.key !== 'Enter' || !departmentFilterPending) {
                 return;
             }
             e.preventDefault();
-            $('.select2-dept').select2('close');
             applyDepartmentFilter();
         });
 
