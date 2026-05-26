@@ -72,13 +72,30 @@
 
     function syncDepartmentSelectFromUrl() {
         const $deptSelect = $('.select2-dept');
-        const deptCodesFromUrl = new URLSearchParams(window.location.search).getAll('department_codes[]');
-        if (deptCodesFromUrl.length) {
-            $deptSelect.val(deptCodesFromUrl).trigger('change');
-        } else {
-            $deptSelect.val(null).trigger('change');
-        }
+        const deptCodesFromUrl = new URLSearchParams(window.location.search)
+            .getAll('department_codes[]')
+            .filter(Boolean);
         departmentFilterPending = false;
+        $deptSelect.val(deptCodesFromUrl.length ? deptCodesFromUrl : []);
+    }
+
+    function buildAttendanceCardRequestParams(override = {}) {
+        const params = { ...dataParams, ...override };
+        delete params.department_codes;
+
+        let codes = [];
+        if (Object.prototype.hasOwnProperty.call(override, 'department_codes')) {
+            codes = override.department_codes ?? [];
+        } else {
+            codes = selectedDepartmentCodes();
+        }
+        codes = (Array.isArray(codes) ? codes : [codes]).filter(Boolean);
+
+        if (codes.length) {
+            params.department_codes = codes;
+        }
+
+        return params;
     }
 
     function applyDepartmentFilter() {
@@ -151,9 +168,8 @@
 
         onInit({
             q: $('.search-data-input').val(),
-            department_codes: selectedDepartmentCodes(),
-            start_date: convertLocalTimezone(defaultStartDate || moment().startOf('week'), 'DD-MM-YYYY'), 
-            end_date: convertLocalTimezone(defaultEndDate || moment().endOf('week'), 'DD-MM-YYYY')
+            start_date: convertLocalTimezone(defaultStartDate || moment().startOf('week'), 'DD-MM-YYYY'),
+            end_date: convertLocalTimezone(defaultEndDate || moment().endOf('week'), 'DD-MM-YYYY'),
         });
 
         $('input[name="date"]').daterangepicker({
@@ -181,7 +197,6 @@
             onInit({
                 start_date: convertLocalTimezone(start, dateFormat),
                 end_date: convertLocalTimezone(end, dateFormat),
-                department_codes: selectedDepartmentCodes(),
             });
         });
 
@@ -212,28 +227,27 @@
         // **
         // * Build data params table ----->
         // *
-        dataParams = { ...dataParams, ...data };
-        if ('department_codes' in data && (!data.department_codes || !data.department_codes.length)) {
-            delete dataParams.department_codes;
-        }
+        const requestParams = buildAttendanceCardRequestParams(data);
+        dataParams = { ...requestParams };
+
         $('#card-attendance').attr('href',
             '/print/card-attendance?' + buildQueryString({
-                department_codes: dataParams.department_codes || [],
-                start_date: dataParams.start_date,
-                end_date: dataParams.end_date,
+                department_codes: requestParams.department_codes || [],
+                start_date: requestParams.start_date,
+                end_date: requestParams.end_date,
             })
         );
 
-        const queryString = buildQueryString(dataParams);
-
-        // Update URL tanpa refresh halaman
-        const newUrl = window.location.pathname + "?" + queryString;
-        history.replaceState(null, "", newUrl);
+        const queryString = buildQueryString(requestParams);
+        const newUrl = queryString
+            ? `${window.location.pathname}?${queryString}`
+            : window.location.pathname;
+        history.replaceState(null, '', newUrl);
     
         // **
         // * get table ----->
         // *
-        var res = await ApiService.get_table('/attendance-card', dataParams);
+        var res = await ApiService.get_table('/attendance-card', requestParams);
         $('.table-content').html(res);
 
         $('#loading-block-document').hide();

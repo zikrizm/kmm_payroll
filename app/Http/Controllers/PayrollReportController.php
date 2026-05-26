@@ -42,18 +42,23 @@ class PayrollReportController extends Controller
 
     private function departmentCodesFromRequest(Request $request): string|array|null
     {
-        $codes = $request->input('department_codes');
-        if (is_array($codes)) {
-            $filtered = array_values(array_filter($codes));
+        if ($request->has('department_codes')) {
+            $codes = $request->input('department_codes');
+            if (!is_array($codes)) {
+                $codes = ($codes !== null && $codes !== '') ? [$codes] : [];
+            }
+            $filtered = array_values(array_filter($codes, fn ($code) => $code !== null && $code !== ''));
+
             return empty($filtered) ? null : $filtered;
         }
 
-        $code = $request->input('department_code');
-        if (empty($code)) {
-            return null;
+        if ($request->filled('department_code')) {
+            $code = $request->input('department_code');
+
+            return is_array($code) ? array_values(array_filter($code)) : $code;
         }
 
-        return is_array($code) ? array_values(array_filter($code)) : $code;
+        return null;
     }
 
     private function emptyPayrollAttendanceResult(
