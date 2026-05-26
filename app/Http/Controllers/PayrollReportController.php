@@ -56,6 +56,24 @@ class PayrollReportController extends Controller
         return is_array($code) ? array_values(array_filter($code)) : $code;
     }
 
+    private function emptyPayrollAttendanceResult(
+        Carbon $start_date_work_day,
+        Carbon $end_date_work_day,
+        Carbon $start_date_overtime,
+        Carbon $end_date_overtime
+    ): \Illuminate\Support\Collection {
+        return collect([
+            'departments' => collect(),
+            'range_dates' => collect(),
+            'start_date' => min($start_date_work_day, $start_date_overtime),
+            'end_date' => max($end_date_work_day, $end_date_overtime),
+            'start_date_work_day' => $start_date_work_day,
+            'end_date_work_day' => $end_date_work_day,
+            'start_date_overtime' => $start_date_overtime,
+            'end_date_overtime' => $end_date_overtime,
+        ]);
+    }
+
     /**
      * Display a listing of the resource.
      *
@@ -89,13 +107,23 @@ class PayrollReportController extends Controller
                     $start_date_overtime = Carbon::createFromFormat('d-m-Y', $request['start_date'])->subDays($business->pending_day);
                     $end_date_overtime = Carbon::createFromFormat('d-m-Y', $request['end_date'])->subDays($business->pending_day);
 
-                    $result = $this->attendanceUtil->getAttendance(
-                        $start_date_work_day,
-                        $end_date_work_day,
-                        $start_date_overtime,
-                        $end_date_overtime,
-                        $this->departmentCodesFromRequest($request),
-                    );
+                    $filter_department_codes = $this->departmentCodesFromRequest($request);
+                    if ($filter_department_codes === null) {
+                        $result = $this->emptyPayrollAttendanceResult(
+                            $start_date_work_day,
+                            $end_date_work_day,
+                            $start_date_overtime,
+                            $end_date_overtime,
+                        );
+                    } else {
+                        $result = $this->attendanceUtil->getAttendance(
+                            $start_date_work_day,
+                            $end_date_work_day,
+                            $start_date_overtime,
+                            $end_date_overtime,
+                            $filter_department_codes,
+                        );
+                    }
 
                     $render = view('report.payroll_report.table', compact('result', 'start_date_work_day', 'end_date_work_day', 'start_date_overtime', 'end_date_overtime'))->render();
                     return $this->buildRes->RESPONSE_REQ('success', $render, null);

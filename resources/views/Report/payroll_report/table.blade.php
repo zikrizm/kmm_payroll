@@ -3,7 +3,7 @@
     <div class="flex items-start justify-between pl-10 pr-20">
         <div class="border pl-2 pr-6 py-1">
             <p class="text-xs">
-                Bagian: {{ $department['department']['dept_name'] }}
+                Bagian: {{ $department['department']['dept_name'] ?? '-' }}
             </p>
         </div>
         <div class="flex flex-col gap-1">
@@ -270,7 +270,7 @@
         </span>
         <div class="text-left">
             <p class="text-2xl font-semibold">Laporan tidak ada</p>
-            <p>Silahkan pilih bagian lainnya</p>
+            <p>Silahkan pilih bagian terlebih dahulu</p>
         </div>
     </div>
 </div>
