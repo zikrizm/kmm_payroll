@@ -36,6 +36,22 @@ class AttendanceReportCardController extends Controller
         $this->util = $util;
     }
 
+    private function departmentCodesFromRequest(Request $request): string|array|null
+    {
+        $codes = $request->input('department_codes');
+        if (is_array($codes)) {
+            $filtered = array_values(array_filter($codes));
+            return empty($filtered) ? null : $filtered;
+        }
+
+        $code = $request->input('department_code');
+        if (empty($code)) {
+            return null;
+        }
+
+        return is_array($code) ? array_values(array_filter($code)) : $code;
+    }
+
     /**
      * Display a listing of the resource.
      *
@@ -50,7 +66,7 @@ class AttendanceReportCardController extends Controller
 
         try {
             $business_id = Session::get('business_id');
-            $department_code = $request['department_code'];
+            $department_codes = $this->departmentCodesFromRequest($request);
             $start_date = $request['start_date'];
             $end_date = $request['end_date'];
 
@@ -72,7 +88,7 @@ class AttendanceReportCardController extends Controller
                         $end_date_work_day,
                         $start_date_overtime,
                         $end_date_overtime,
-                        $request['department_code'],
+                        $department_codes,
                     );
 
                     $render = view('Report.attendance_card.table', compact('result', 'start_date_work_day', 'end_date_work_day', 'start_date_overtime', 'end_date_overtime'))->render();
@@ -84,7 +100,10 @@ class AttendanceReportCardController extends Controller
             }
 
             $department_bios = collect($this->attendanceUtil->getDepartment());
-            return  view('Report.attendance_card.index', compact('department_bios', 'department_code', 'start_date', 'end_date'));
+            if (!is_array($department_codes)) {
+                $department_codes = $department_codes ? [$department_codes] : [];
+            }
+            return view('Report.attendance_card.index', compact('department_bios', 'department_codes', 'start_date', 'end_date'));
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
 

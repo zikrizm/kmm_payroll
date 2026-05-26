@@ -127,10 +127,11 @@ class AttendanceUtil extends Util
         Carbon $end_date_overtime,
         array|null $list_emp_code,
         Collection $list_device = null,
-        array|null $department
+        Collection|array|null $departments = null
     ) {
         $start_date = min($start_date_work_day, $start_date_overtime)->copy()->subDay();
         $end_date = max($end_date_work_day, $end_date_overtime)->copy()->addDay();
+        $departments = $this->normalizeDepartmentsCollection($departments);
 
         $list_attendance_db = Transaction::whereBetween('punch_time', [$start_date, $end_date])->orderBy('punch_time', 'ASC')->get();
 
@@ -162,10 +163,17 @@ class AttendanceUtil extends Util
         //     ];
         // });
 
-        if (!empty($department)) {
-            $page_size = $this->service->get_transaction_reports(["start_date" =>  $start_date_new->format('Y-m-d'), "end_date" =>  $end_date_new->format('Y-m-d'), "departments" => $department['id']])['count'];
+        if ($departments->isNotEmpty()) {
+            $departmentIds = $this->departmentsApiIds($departments);
+            $page_size = $this->service->get_transaction_reports([
+                'start_date' => $start_date_new->format('Y-m-d'),
+                'end_date' => $end_date_new->format('Y-m-d'),
+                'departments' => $departmentIds,
+            ])['count'];
             $list_attendance_bios = collect($this->service->get_transaction_reports(array_merge(['page_size' => $page_size], [
-                "start_date" => $start_date_new->format('Y-m-d'), "end_date" => $end_date_new->format('Y-m-d'), "departments" => $department['id'],
+                'start_date' => $start_date_new->format('Y-m-d'),
+                'end_date' => $end_date_new->format('Y-m-d'),
+                'departments' => $departmentIds,
             ]))['data']);
 
             $list_attendance_bios = $list_attendance_bios->map(function ($item) {
@@ -232,12 +240,13 @@ class AttendanceUtil extends Util
         return $attendances;
     }
 
-    public function getShift(array|null $department) {
+    public function getShift(Collection|array|null $departments = null) {
         $business_id = Session::get('business_id');
+        $departments = $this->normalizeDepartmentsCollection($departments);
 
         $shifts = Shift::where('business_id', $business_id);
-        if (!empty($department)) {
-            $shifts = $shifts->where('dept_id', $department['id']);
+        if ($departments->isNotEmpty()) {
+            $shifts = $shifts->whereIn('dept_id', $departments->pluck('id'));
         }
 
         $shifts = $shifts->with([
@@ -275,17 +284,18 @@ class AttendanceUtil extends Util
         Carbon $end_date_work_day,
         Carbon $start_date_overtime,
         Carbon $end_date_overtime,
-        array|null $department
+        Collection|array|null $departments = null
     ) {
         $start_date = min($start_date_work_day, $start_date_overtime)->subDay();
         $end_date = max($end_date_work_day, $end_date_overtime)->addDay();
+        $departments = $this->normalizeDepartmentsCollection($departments);
 
         $business_id = Session::get('business_id');
         $operationals = Operational::where('business_id', $business_id)
             ->whereBetween('date', [$start_date, $end_date]);
 
-        if (!empty($department)) {
-            $operationals = $operationals->where('dept_id', $department['id']);
+        if ($departments->isNotEmpty()) {
+            $operationals = $operationals->whereIn('dept_id', $departments->pluck('id'));
         }
 
         return $operationals->get();
@@ -345,19 +355,63 @@ class AttendanceUtil extends Util
         return $departments->where('status', 'active');
     }
 
+    private function normalizeDepartmentsCollection(Collection|array|null $departments): Collection
+    {
+        if (empty($departments)) {
+            return collect();
+        }
+
+        if ($departments instanceof Collection) {
+            return $departments->filter()->values();
+        }
+
+        if (isset($departments['id'])) {
+            return collect([$departments]);
+        }
+
+        return collect($departments)->filter()->values();
+    }
+
+    private function resolveDepartmentsFromCodes(string|array|null $departmentCodes): Collection
+    {
+        if (empty($departmentCodes)) {
+            return collect();
+        }
+
+        $codes = is_array($departmentCodes) ? $departmentCodes : [$departmentCodes];
+        $codes = array_values(array_filter($codes));
+
+        return collect($codes)
+            ->map(fn ($code) => collect($this->service->get_departments(['dept_code' => $code])['data'])->first())
+            ->filter()
+            ->values();
+    }
+
+    private function departmentsApiIds(Collection $departments): ?string
+    {
+        $ids = $departments->pluck('id')->filter()->unique()->values();
+
+        return $ids->isEmpty() ? null : $ids->implode(',');
+    }
+
     public function getEmployee(
-        array|null $department = null, 
-        Collection $list_department = null, 
+        Collection|array|null $departments = null,
+        Collection $list_department = null,
         Collection $list_position = null
     ) {
         $list_department = $list_department ?? collect();
         $list_position = $list_position ?? collect();
-        
+        $departments = $this->normalizeDepartmentsCollection($departments);
+
         $list_employee_bios = collect();
 
-        if (!empty($department)) {
-            $page_size = $this->service->get_employees(["department" => $department['id']])["count"];
-            $list_employee_bios = collect($this->service->get_employees(["page_size" => $page_size, "department" => $department['id']])['data']);
+        if ($departments->isNotEmpty()) {
+            $departmentIds = $this->departmentsApiIds($departments);
+            $page_size = $this->service->get_employees(['departments' => $departmentIds])['count'];
+            $list_employee_bios = collect($this->service->get_employees([
+                'page_size' => $page_size,
+                'departments' => $departmentIds,
+            ])['data']);
         } else {
             $page_size = $this->service->get_employees([])["count"];
             $list_employee_bios = collect($this->service->get_employees(["page_size" => $page_size])['data']);
@@ -1705,7 +1759,7 @@ class AttendanceUtil extends Util
         Carbon $end_date_work_day = null,
         Carbon $start_date_overtime = null,
         Carbon $end_date_overtime = null,
-        string|null $department_code = null
+        string|array|null $department_codes = null
     ) {
         try {
             if (!$start_date_work_day || !$end_date_work_day || !$start_date_overtime || !$end_date_overtime) {
@@ -1719,23 +1773,20 @@ class AttendanceUtil extends Util
             $list_position = $this->getPosition();
             $list_device = $this->getDevice();
 
-            $department_bios = null;
-            if ($department_code) {
-                $department_bios = collect($this->service->get_departments(["dept_code" => $department_code])['data'])->first();
-            }
+            $departments_bios = $this->resolveDepartmentsFromCodes($department_codes);
 
-            $list_employee = $this->getEmployee($department_bios, $list_department, $list_position);
+            $list_employee = $this->getEmployee($departments_bios, $list_department, $list_position);
             $employee_dept_group = $list_employee->groupBy([fn ($item) => $item['department']['id']]);
             $list_emp_code = $employee_dept_group
                 ->flatMap(fn($employees) => collect($employees)->pluck('emp_code'))
                 ->all();
 
             $range_dates = $this->getRangeDate($start_date_work_day->copy(), $end_date_work_day->copy(), $start_date_overtime->copy(), $end_date_overtime->copy());
-            $attendances = $this->getMergeAttendance($start_date_work_day->copy(), $end_date_work_day->copy(), $start_date_overtime->copy(), $end_date_overtime->copy(), $list_emp_code, $list_device, $department_bios);
+            $attendances = $this->getMergeAttendance($start_date_work_day->copy(), $end_date_work_day->copy(), $start_date_overtime->copy(), $end_date_overtime->copy(), $list_emp_code, $list_device, $departments_bios);
             $attendance_grouping = $this->groupingAttendance($attendances);
 
-            $shifts = $this->getShift($department_bios);
-            $operationals = $this->getOperationals($start_date_work_day->copy(), $end_date_work_day->copy(), $start_date_overtime->copy(), $end_date_overtime->copy(), $department_bios);
+            $shifts = $this->getShift($departments_bios);
+            $operationals = $this->getOperationals($start_date_work_day->copy(), $end_date_work_day->copy(), $start_date_overtime->copy(), $end_date_overtime->copy(), $departments_bios);
 
             $range_dates_filter = $range_dates->filter(fn ($item) => !$item['is_addition_date'])->values();
 
@@ -2011,7 +2062,7 @@ class AttendanceUtil extends Util
                     $attendance_report_employee_data['final_total_for_payroll'] = $attendance_report_employee_data['final_total'] ;
 
                     // kasbon
-                    $calculated_loan = $this->calculatedLoan($start_date_work_day, $end_date_work_day, $department_bios, $employee, $attendance_report_employee_data['final_total']);
+                    $calculated_loan = $this->calculatedLoan($start_date_work_day, $end_date_work_day, $department, $employee, $attendance_report_employee_data['final_total']);
                     $attendance_report_employee_data['employee_debt_id'] = $calculated_loan['employee_debt_id'];
 
                     $attendance_report_employee_data['total_loan_paid'] += $calculated_loan['total_loan_paid'];

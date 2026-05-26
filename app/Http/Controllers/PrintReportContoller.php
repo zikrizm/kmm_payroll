@@ -1289,12 +1289,21 @@ class PrintReportContoller extends Controller
                 $start_date_overtime = Carbon::createFromFormat('d-m-Y', $request['start_date'])->subDays($business->pending_day);
                 $end_date_overtime = Carbon::createFromFormat('d-m-Y', $request['end_date'])->subDays($business->pending_day);
 
+                $departmentCodes = $request->input('department_codes');
+                if (is_array($departmentCodes)) {
+                    $departmentCodes = array_values(array_filter($departmentCodes)) ?: null;
+                } elseif ($request->filled('department_code')) {
+                    $departmentCodes = $request->input('department_code');
+                } else {
+                    $departmentCodes = null;
+                }
+
                 $result = $this->attendanceUtil->getAttendance(
                     $start_date_work_day,
                     $end_date_work_day,
                     $start_date_overtime,
                     $end_date_overtime,
-                    $request['department_code'],
+                    $departmentCodes,
                 );
 
                 return view('print.card_attendance', compact('result', 'start_date_work_day', 'end_date_work_day', 'start_date_overtime', 'end_date_overtime'));

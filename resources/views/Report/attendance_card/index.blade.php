@@ -25,15 +25,16 @@
                         'prefixiconname' => 'calendar',
                     ]) !!}
                 </div>
-                <section class="flex flex-col gap-1 w-max">
-                    <select class="select2-dept hidden" name="dept">
-                        <option value="" disabled>Semua bagian</option>
+                <section class="flex flex-col gap-1 min-w-72 max-w-md">
+                    <select class="select2-dept hidden" name="department_codes[]" multiple="multiple"
+                        data-placeholder="Pilih bagian (kosongkan = semua)">
                         @foreach ($department_bios ?? [] as $department)
-                            <option value="{{ $department['dept_code'] }}" @selected($department['dept_code'] === $department_code)>
+                            <option value="{{ $department['dept_code'] }}"
+                                @selected(in_array($department['dept_code'], $department_codes ?? [], true))>
                                 {{ $department['dept_name'] }}</option>
                         @endforeach
                     </select>
-                    <label class="font-normal text-xs text-red-500 xs/max:text-xs parent_dept hint-text"></label>
+                    <label class="font-normal text-xs text-gray-500 parent_dept hint-text">Bisa pilih lebih dari satu bagian</label>
                 </section>
                 <a id="card-attendance" target="_blank"
                     class="flex items-center gap-2.5 text-sm px-4 py-1.5 rounded-lg border text-gray-700 ">
@@ -62,12 +63,15 @@
             }
         });    
 
-        $('.select2-dept').select2();
+        $('.select2-dept').select2({
+            width: '100%',
+            allowClear: true,
+            placeholder: 'Pilih bagian (kosongkan = semua)',
+        });
         $('.select2-dept').show();
-        $('.select2-dept').on('select2:select', function (e) {
+        $('.select2-dept').on('change', function () {
             delete dataParams.page;
-
-            onInit({department_code: $(this).val()})
+            onInit({ department_codes: $(this).val() || [] });
         });
 
         var defaultStartDate = "{{ $start_date ?? '' }}";
@@ -75,7 +79,7 @@
 
         onInit({
             q: $('.search-data-input').val(),
-            department_code: $('.select2-dept').val(),
+            department_codes: $('.select2-dept').val() || [],
             start_date: convertLocalTimezone(defaultStartDate || moment().startOf('week'), 'DD-MM-YYYY'), 
             end_date: convertLocalTimezone(defaultEndDate || moment().endOf('week'), 'DD-MM-YYYY')
         });
@@ -116,6 +120,19 @@
         }, 250));
     });
     
+    function buildQueryString(params) {
+        const qs = new URLSearchParams();
+        Object.entries(params).forEach(([key, value]) => {
+            if (value === null || value === undefined || value === '') return;
+            if (Array.isArray(value)) {
+                value.filter(Boolean).forEach((item) => qs.append('department_codes[]', item));
+                return;
+            }
+            qs.set(key, value);
+        });
+        return qs.toString();
+    }
+
     async function onInit(data) {
         $('#loading-block-document').show();
 
@@ -123,11 +140,15 @@
         // * Build data params table ----->
         // *
         dataParams = { ...dataParams, ...data };
-        $('#card-attendance').attr('href', 
-            `/print/card-attendance?department_code=${dataParams.department_code}&start_date=${dataParams.start_date}&end_date=${dataParams.end_date}` 
+        $('#card-attendance').attr('href',
+            '/print/card-attendance?' + buildQueryString({
+                department_codes: dataParams.department_codes || [],
+                start_date: dataParams.start_date,
+                end_date: dataParams.end_date,
+            })
         );
 
-        const queryString = new URLSearchParams(dataParams).toString();
+        const queryString = buildQueryString(dataParams);
 
         // Update URL tanpa refresh halaman
         const newUrl = window.location.pathname + "?" + queryString;
