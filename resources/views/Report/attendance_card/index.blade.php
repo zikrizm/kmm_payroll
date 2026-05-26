@@ -44,7 +44,7 @@
             </div>
             <div class="flex items-center gap-3">
                 <x-ui.search-data placeholder="Cari absensi" url="{{ route('attendance-report.index') }}" />
-                <button type="button" onclick="onInit({})"
+                <button type="button" onclick="refreshAttendanceTable()"
                     class="flex items-center gap-2.5 text-sm px-4 py-1.5 rounded-lg border text-gray-700 ">
                     <x-icon icon="refresh-cw" width=20 height=20 viewBox="20 20" />
                 </button>
@@ -56,6 +56,27 @@
 
     <script type="application/javascript">
     let dataParams = {};
+    let departmentFilterPending = false;
+
+    function selectedDepartmentCodes() {
+        return $('.select2-dept').val() || [];
+    }
+
+    function applyDepartmentFilter() {
+        departmentFilterPending = false;
+        delete dataParams.page;
+        onInit({ department_codes: selectedDepartmentCodes() });
+    }
+
+    function refreshAttendanceTable() {
+        departmentFilterPending = false;
+        delete dataParams.page;
+        onInit({
+            q: $('.search-data-input').val(),
+            department_codes: selectedDepartmentCodes(),
+        });
+    }
+
     window.addEventListener('DOMContentLoaded', (event) => {
         $.ajaxSetup({
             headers: {
@@ -70,8 +91,28 @@
         });
         $('.select2-dept').show();
         $('.select2-dept').on('change', function () {
-            delete dataParams.page;
-            onInit({ department_codes: $(this).val() || [] });
+            const codes = $(this).val() || [];
+            if (codes.length === 0) {
+                departmentFilterPending = true;
+                return;
+            }
+            applyDepartmentFilter();
+        });
+
+        $('.select2-dept').on('select2:close', function () {
+            if (!departmentFilterPending) {
+                return;
+            }
+            applyDepartmentFilter();
+        });
+
+        $(document).on('keydown', '.select2-search__field', function (e) {
+            if (e.key !== 'Enter' || !departmentFilterPending) {
+                return;
+            }
+            e.preventDefault();
+            $('.select2-dept').select2('close');
+            applyDepartmentFilter();
         });
 
         var defaultStartDate = "{{ $start_date ?? '' }}";
@@ -79,7 +120,7 @@
 
         onInit({
             q: $('.search-data-input').val(),
-            department_codes: $('.select2-dept').val() || [],
+            department_codes: selectedDepartmentCodes(),
             start_date: convertLocalTimezone(defaultStartDate || moment().startOf('week'), 'DD-MM-YYYY'), 
             end_date: convertLocalTimezone(defaultEndDate || moment().endOf('week'), 'DD-MM-YYYY')
         });
@@ -106,9 +147,10 @@
             var dateFormat = 'DD-MM-YYYY';
 
             delete dataParams.page;
-            onInit({ 
+            onInit({
                 start_date: convertLocalTimezone(start, dateFormat),
-                end_date: convertLocalTimezone(end, dateFormat)
+                end_date: convertLocalTimezone(end, dateFormat),
+                department_codes: selectedDepartmentCodes(),
             });
         });
 
