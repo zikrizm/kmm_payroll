@@ -28,14 +28,14 @@
                 </div>
                 <section class="flex flex-col gap-1 min-w-72 max-w-md select2-payroll-dept-filter">
                     <select class="select2-payroll-dept hidden" name="department_codes[]" multiple="multiple"
-                        data-placeholder="Pilih bagian (kosong = semua)">
+                        data-placeholder="Pilih bagian">
                         @foreach ($department_bios ?? [] as $department)
                             <option value="{{ $department['dept_code'] }}"
                                 @selected(in_array($department['dept_code'], $department_codes ?? [], true))>
                                 {{ $department['dept_name'] }}</option>
                         @endforeach
                     </select>
-                    <label class="font-normal text-xs text-gray-500 parent_dept hint-text">Bisa pilih lebih dari satu bagian</label>
+                    <label class="font-normal text-xs text-gray-500 parent_dept hint-text">Pilih minimal satu bagian untuk menampilkan laporan</label>
                 </section>
                 <button onclick="get_modal()"
                     class="truncate flex items-center gap-2.5 px-4 h-[36px] mb-1 text-gray-500 text-sm font-medium  flex items-center border border-gray-200 shadow-sm rounded-lg">
@@ -60,7 +60,22 @@
     let departmentFilterPending = false;
 
     function selectedPayrollDepartmentCodes() {
-        return $('.select2-payroll-dept').val() || [];
+        const val = $('.select2-payroll-dept').val();
+        if (val === null || val === undefined) {
+            return [];
+        }
+        return Array.isArray(val) ? val : [val];
+    }
+
+    function syncPayrollDepartmentSelectFromUrl() {
+        const $deptSelect = $('.select2-payroll-dept');
+        const deptCodesFromUrl = new URLSearchParams(window.location.search).getAll('department_codes[]');
+        if (deptCodesFromUrl.length) {
+            $deptSelect.val(deptCodesFromUrl).trigger('change');
+        } else {
+            $deptSelect.val(null).trigger('change');
+        }
+        departmentFilterPending = false;
     }
 
     function applyPayrollDepartmentFilter() {
@@ -113,9 +128,10 @@
                 width: '100%',
                 allowClear: false,
                 closeOnSelect: false,
-                placeholder: 'Pilih bagian (kosong = semua)',
+                placeholder: 'Pilih bagian',
             });
             $deptSelect.show();
+            syncPayrollDepartmentSelectFromUrl();
             $deptSelect.on('change', function () {
                 departmentFilterPending = true;
             });
