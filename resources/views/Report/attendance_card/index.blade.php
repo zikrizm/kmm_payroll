@@ -1,7 +1,11 @@
 @extends('layouts.app')
 @section('title', 'Kartu absensi')
 @section('css')
-    <style></style>
+    <style>
+        .select2-dept-filter .select2-selection__clear {
+            display: none !important;
+        }
+    </style>
 @endsection
 @section('content')
     <div class="flex flex-col gap-6 flex-1 h-full overflow-auto bg-white px-8 pt-8 pb-12">
@@ -25,9 +29,9 @@
                         'prefixiconname' => 'calendar',
                     ]) !!}
                 </div>
-                <section class="flex flex-col gap-1 min-w-72 max-w-md">
+                <section class="flex flex-col gap-1 min-w-72 max-w-md select2-dept-filter">
                     <select class="select2-dept hidden" name="department_codes[]" multiple="multiple"
-                        data-placeholder="Pilih bagian (kosongkan = semua)">
+                        data-placeholder="Pilih bagian (kosong = semua)">
                         @foreach ($department_bios ?? [] as $department)
                             <option value="{{ $department['dept_code'] }}"
                                 @selected(in_array($department['dept_code'], $department_codes ?? [], true))>
@@ -86,17 +90,12 @@
 
         $('.select2-dept').select2({
             width: '100%',
-            allowClear: true,
-            placeholder: 'Pilih bagian (kosongkan = semua)',
+            allowClear: false,
+            placeholder: 'Pilih bagian (kosong = semua)',
         });
         $('.select2-dept').show();
         $('.select2-dept').on('change', function () {
-            const codes = $(this).val() || [];
-            if (codes.length === 0) {
-                departmentFilterPending = true;
-                return;
-            }
-            applyDepartmentFilter();
+            departmentFilterPending = true;
         });
 
         $('.select2-dept').on('select2:close', function () {
