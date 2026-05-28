@@ -621,7 +621,16 @@ class AttendanceUtil extends Util
                 continue;
             }
 
-            if ($this->countDayShiftMiddlePunchesBefore($dateAttendances, $dayLimits, $punchTime) >= 2) {
+            $dayShiftPunchesUntilNightAnchor = $dateAttendances
+                ->filter(function ($log) use ($dayLimits, $punchTime) {
+                    $logTime = Carbon::parse($log['punch_time']);
+
+                    return $logTime->between($dayLimits['check_in_limit_min'], $dayLimits['check_out_limit_ot'])
+                        && $logTime->lte($punchTime);
+                })
+                ->values();
+
+            if ($this->isValidTimetableGroup($dayShiftPunchesUntilNightAnchor, $dayTimetable, $dayLimits)) {
                 return true;
             }
         }
