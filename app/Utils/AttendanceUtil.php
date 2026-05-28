@@ -726,11 +726,23 @@ class AttendanceUtil extends Util
             return false;
         }
 
+        $hasCheckoutPunchInWindow = $collectedPunches->contains(function ($item) use ($limits) {
+            $punchTime = Carbon::parse($item['punch_time']);
+
+            return $punchTime->between($limits['check_out_limit_min'], $limits['check_out_limit_plus']);
+        });
+
         if ($timetable->is_without_break) {
-            return $collectedPunches->count() >= 2;
+            return $collectedPunches->count() >= 2 && $hasCheckoutPunchInWindow;
         }
 
-        return $this->hasBreakPunchesBetween($collectedPunches, $limits);
+        // Tahap 1: jika ada break yang valid, group langsung dianggap valid.
+        if ($this->hasBreakPunchesBetween($collectedPunches, $limits)) {
+            return true;
+        }
+
+        // Tahap 2 (fallback): tanpa break tetap valid jika punch pulang cocok window checkout timetable.
+        return $collectedPunches->count() >= 2 && $hasCheckoutPunchInWindow;
     }
 
     private function collectPunchesForTimetable(
