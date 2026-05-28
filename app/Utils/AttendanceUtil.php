@@ -588,6 +588,27 @@ class AttendanceUtil extends Util
         Collection $prevDateAttendance,
         Collection $timetablesSource,
     ): bool {
+        $hasNightFollowUpActivity = false;
+        foreach ($timetablesSource as $nightItem) {
+            $nightTimetable = $nightItem->timetable;
+            if (!($nightTimetable->cross_day ?? 0)) {
+                continue;
+            }
+
+            $nightLimits = $this->getTimetableWindowLimits($date, $nightTimetable);
+            $nightFollowUpCount = $dateAttendances->filter(function ($log) use ($punchTime, $nightLimits) {
+                $logTime = Carbon::parse($log['punch_time']);
+
+                return $logTime->gt($punchTime)
+                    && $logTime->between($nightLimits['check_in_limit_min'], $nightLimits['check_out_limit_ot']);
+            })->count();
+
+            if ($nightFollowUpCount > 0) {
+                $hasNightFollowUpActivity = true;
+                break;
+            }
+        }
+
         foreach ($timetablesSource as $item) {
             $dayTimetable = $item->timetable;
             if ($dayTimetable->cross_day ?? 0) {
@@ -634,12 +655,8 @@ class AttendanceUtil extends Util
                 continue;
             }
 
-            // Khusus untuk timetable yang wajib break, jangan skip shift malam
-            // kalau belum ada minimal 2 punch break sebelum anchor malam.
-            if (
-                !$dayTimetable->is_without_break
-                && $this->countDayShiftMiddlePunchesBefore($dateAttendances, $dayLimits, $punchTime) < 2
-            ) {
+            // Jika ada aktivitas lanjutan malam (mis. 22:xx, 23:xx), biarkan diproses sebagai shift malam.
+            if ($hasNightFollowUpActivity) {
                 continue;
             }
 
