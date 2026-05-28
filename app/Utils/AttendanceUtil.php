@@ -1232,6 +1232,13 @@ class AttendanceUtil extends Util
 
                 $date_attendances = $this->removePunchesFromCollection($date_attendances, $collectedPunches);
                 $this->removeCrossDayPunchesFromEmployee($crossDayPunches, $attendance_employee);
+
+                // First valid wins: hanya satu timetable valid per tanggal.
+                $this->logGrouping('TIMETABLE_STOP: first valid wins', [
+                    'timetable_id' => $timetable->id,
+                    'timetable_name' => $timetable->name,
+                ]);
+                break;
             }
 
             $this->logGrouping('HARI_HASIL', [
