@@ -630,9 +630,20 @@ class AttendanceUtil extends Util
                 })
                 ->values();
 
-            if ($this->isValidTimetableGroup($dayShiftPunchesUntilNightAnchor, $dayTimetable, $dayLimits)) {
-                return true;
+            if (!$this->isValidTimetableGroup($dayShiftPunchesUntilNightAnchor, $dayTimetable, $dayLimits)) {
+                continue;
             }
+
+            // Khusus untuk timetable yang wajib break, jangan skip shift malam
+            // kalau belum ada minimal 2 punch break sebelum anchor malam.
+            if (
+                !$dayTimetable->is_without_break
+                && $this->countDayShiftMiddlePunchesBefore($dateAttendances, $dayLimits, $punchTime) < 2
+            ) {
+                continue;
+            }
+
+            return true;
         }
 
         return false;
