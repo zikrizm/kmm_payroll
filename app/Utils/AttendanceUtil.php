@@ -36,6 +36,9 @@ class AttendanceUtil extends Util
     private $service;
     public $slug_week = ['Mgg', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
 
+    /** @var array<string, mixed>|null Konteks log debug grouping */
+    private ?array $groupingLogContext = null;
+
     /**
      * Initializes the Attendance.
      *
@@ -488,6 +491,57 @@ class AttendanceUtil extends Util
         ];
     }
 
+    private function beginGroupingLog(?string $empCode): void
+    {
+        $this->groupingLogContext = [
+            'emp_code' => $empCode,
+        ];
+    }
+
+    private function endGroupingLog(): void
+    {
+        $this->groupingLogContext = null;
+    }
+
+    private function withGroupingLogContext(array $context): void
+    {
+        if ($this->groupingLogContext === null) {
+            return;
+        }
+
+        $this->groupingLogContext = array_merge($this->groupingLogContext, $context);
+    }
+
+    private function logGrouping(string $step, array $data = []): void
+    {
+        if ($this->groupingLogContext === null) {
+            return;
+        }
+
+        Log::info('[ATTENDANCE_GROUPING] ' . $step, array_merge($this->groupingLogContext, $data));
+    }
+
+    private function formatLimitsForLog(array $limits): array
+    {
+        return [
+            'check_in' => $limits['check_in']->format('H:i'),
+            'check_out' => $limits['check_out']->format('H:i'),
+            'check_in_limit_min' => $limits['check_in_limit_min']->format('H:i'),
+            'check_in_limit_plus' => $limits['check_in_limit_plus']->format('H:i'),
+            'check_out_limit_min' => $limits['check_out_limit_min']->format('H:i'),
+            'check_out_limit_plus' => $limits['check_out_limit_plus']->format('H:i'),
+            'check_out_limit_ot' => $limits['check_out_limit_ot']->format('H:i'),
+        ];
+    }
+
+    private function punchTimesFromCollection(Collection $punches): array
+    {
+        return $punches
+            ->map(fn ($item) => Carbon::parse($item['punch_time'])->format('Y-m-d H:i'))
+            ->values()
+            ->all();
+    }
+
     private function hasPrevDayDayShiftCheckout(
         Carbon $date,
         Collection $prevDateAttendance,
@@ -657,11 +711,27 @@ class AttendanceUtil extends Util
 
             // Jika ada aktivitas lanjutan malam (mis. 22:xx, 23:xx), biarkan diproses sebagai shift malam.
             if ($hasNightFollowUpActivity) {
+                $this->logGrouping('NIGHT_ANCHOR_SKIP: ada aktivitas malam lanjutan setelah anchor', [
+                    'anchor_punch' => $punchTime->format('Y-m-d H:i'),
+                    'day_timetable_id' => $dayTimetable->id,
+                    'day_timetable_name' => $dayTimetable->name,
+                ]);
                 continue;
             }
 
+            $this->logGrouping('NIGHT_ANCHOR_SKIP: shift pagi sudah valid sebelum anchor malam', [
+                'anchor_punch' => $punchTime->format('Y-m-d H:i'),
+                'day_timetable_id' => $dayTimetable->id,
+                'day_punches' => $this->punchTimesFromCollection($dayShiftPunchesUntilNightAnchor),
+            ]);
+
             return true;
         }
+
+        $this->logGrouping('NIGHT_ANCHOR_TAKE: tidak di-skip', [
+            'anchor_punch' => $punchTime->format('Y-m-d H:i'),
+            'has_night_follow_up' => $hasNightFollowUpActivity,
+        ]);
 
         return false;
     }
@@ -754,12 +824,28 @@ class AttendanceUtil extends Util
         Timetable $timetable,
         array $limits,
     ): bool {
+        $punchTimes = $this->punchTimesFromCollection($collectedPunches);
+        $logBase = [
+            'timetable_id' => $timetable->id,
+            'timetable_name' => $timetable->name,
+            'is_without_break' => (bool) $timetable->is_without_break,
+            'cross_day' => (int) ($timetable->cross_day ?? 0),
+            'punches' => $punchTimes,
+            'windows' => $this->formatLimitsForLog($limits),
+        ];
+
         if ($collectedPunches->isEmpty()) {
+            $this->logGrouping('VALIDASI_GAGAL: tidak ada punch', $logBase);
+
             return false;
         }
 
         $firstPunch = Carbon::parse($collectedPunches->first()['punch_time']);
         if (!$firstPunch->between($limits['check_in_limit_min'], $limits['check_in_limit_plus'])) {
+            $this->logGrouping('VALIDASI_GAGAL: punch pertama di luar window check-in', array_merge($logBase, [
+                'first_punch' => $firstPunch->format('Y-m-d H:i'),
+            ]));
+
             return false;
         }
 
@@ -770,16 +856,30 @@ class AttendanceUtil extends Util
         });
 
         if ($timetable->is_without_break) {
-            return $collectedPunches->count() >= 2 && $hasCheckoutPunchInWindow;
+            $valid = $collectedPunches->count() >= 2 && $hasCheckoutPunchInWindow;
+            $this->logGrouping($valid ? 'VALIDASI_OK: tanpa istirahat (>=2 punch + checkout)' : 'VALIDASI_GAGAL: tanpa istirahat', array_merge($logBase, [
+                'punch_count' => $collectedPunches->count(),
+                'has_checkout_in_window' => $hasCheckoutPunchInWindow,
+            ]));
+
+            return $valid;
         }
 
         // Tahap 1: jika ada break yang valid, group langsung dianggap valid.
         if ($this->hasBreakPunchesBetween($collectedPunches, $limits)) {
+            $this->logGrouping('VALIDASI_OK: tahap 1 (ada istirahat valid)', $logBase);
+
             return true;
         }
 
         // Tahap 2 (fallback): tanpa break tetap valid jika punch pulang cocok window checkout timetable.
-        return $collectedPunches->count() >= 2 && $hasCheckoutPunchInWindow;
+        $valid = $collectedPunches->count() >= 2 && $hasCheckoutPunchInWindow;
+        $this->logGrouping($valid ? 'VALIDASI_OK: tahap 2 fallback (tanpa istirahat, checkout cocok)' : 'VALIDASI_GAGAL: tahap 2 fallback', array_merge($logBase, [
+            'punch_count' => $collectedPunches->count(),
+            'has_checkout_in_window' => $hasCheckoutPunchInWindow,
+        ]));
+
+        return $valid;
     }
 
     private function collectPunchesForTimetable(
@@ -796,18 +896,34 @@ class AttendanceUtil extends Util
 
         foreach ($dateAttendances as $attendance) {
             $punchTime = Carbon::parse($attendance['punch_time']);
+            $punchLabel = $punchTime->format('Y-m-d H:i');
 
             if ($punchTime->lt($limits['check_in_limit_min']) || $punchTime->gt($limits['check_out_limit_ot'])) {
+                $this->logGrouping('COLLECT_SKIP: di luar window shift', [
+                    'punch' => $punchLabel,
+                    'timetable_id' => $timetable->id,
+                    'timetable_name' => $timetable->name,
+                ]);
                 continue;
             }
 
             if ($collected->isEmpty()) {
                 if (!$punchTime->between($limits['check_in_limit_min'], $limits['check_in_limit_plus'])) {
+                    $this->logGrouping('COLLECT_SKIP: bukan anchor check-in', [
+                        'punch' => $punchLabel,
+                        'timetable_id' => $timetable->id,
+                        'timetable_name' => $timetable->name,
+                    ]);
                     continue;
                 }
 
                 if ($timetable->cross_day ?? 0) {
                     if ($this->shouldSkipNightShiftCheckInAnchor($punchTime, $date, $dateAttendances, $prevDateAttendance, $timetablesSource)) {
+                        $this->logGrouping('COLLECT_SKIP: skip anchor shift malam', [
+                            'punch' => $punchLabel,
+                            'timetable_id' => $timetable->id,
+                            'timetable_name' => $timetable->name,
+                        ]);
                         continue;
                     }
                 } elseif ($this->shouldSkipCheckInAnchor(
@@ -820,20 +936,40 @@ class AttendanceUtil extends Util
                     $timetablesSource,
                     $masaJedaHours,
                 )) {
+                    $this->logGrouping('COLLECT_SKIP: skip anchor (masa jeda / cross-day pagi)', [
+                        'punch' => $punchLabel,
+                        'timetable_id' => $timetable->id,
+                        'timetable_name' => $timetable->name,
+                    ]);
                     $priorSameDay->push($attendance);
                     continue;
                 }
             } else {
                 if ($this->isPunchCheckInForOtherTimetable($punchTime, $timetable, $date, $timetablesSource)) {
                     if ($punchTime->lt($limits['check_out'])) {
+                        $this->logGrouping('COLLECT_SKIP: check-in timetable lain', [
+                            'punch' => $punchLabel,
+                            'timetable_id' => $timetable->id,
+                        ]);
                         continue;
                     }
                 }
             }
 
+            $this->logGrouping('COLLECT_TAKE', [
+                'punch' => $punchLabel,
+                'timetable_id' => $timetable->id,
+                'timetable_name' => $timetable->name,
+            ]);
             $collected->push($attendance);
             $priorSameDay->push($attendance);
         }
+
+        $this->logGrouping('COLLECT_HASIL', [
+            'timetable_id' => $timetable->id,
+            'timetable_name' => $timetable->name,
+            'punches' => $this->punchTimesFromCollection($collected),
+        ]);
 
         return $collected;
     }
@@ -925,6 +1061,13 @@ class AttendanceUtil extends Util
         $emp_code,
     ) {
         if(empty($department_shift)) return $attendance_employee;
+
+        $this->beginGroupingLog($emp_code);
+        $this->logGrouping('MULAI_GROUPING', [
+            'dept_id' => $department_shift->dept_id,
+            'date_range' => $range_dates->pluck('date')->values()->all(),
+        ]);
+
         $start_date_range = Carbon::parse($range_dates->first()['date']);
         $end_date_range = Carbon::parse($range_dates->last()['date']);
         $business_id = Session::get('business_id');
@@ -992,6 +1135,19 @@ class AttendanceUtil extends Util
                 continue;
             }
 
+            $this->withGroupingLogContext(['date' => $date_string]);
+            $this->logGrouping('HARI_MULAI', [
+                'punches_hari_ini' => $this->punchTimesFromCollection($date_attendances),
+                'urutan_timetable' => $timetables_source->map(fn ($item) => [
+                    'id' => $item->timetable->id,
+                    'name' => $item->timetable->name,
+                    'cross_day' => (int) ($item->timetable->cross_day ?? 0),
+                    'check_in' => $item->timetable->check_in,
+                    'check_out' => $item->timetable->check_out,
+                    'is_without_break' => (bool) $item->timetable->is_without_break,
+                ])->values()->all(),
+            ]);
+
             $attendance_timetable = collect([]);
             $prev_date_string = $date->copy()->subDay()->format('Y-m-d');
             $prev_date_attendance = collect($attendance_employee->get($prev_date_string, collect()));
@@ -1000,6 +1156,7 @@ class AttendanceUtil extends Util
                 $timetable = $timetableSourceItem->timetable;
 
                 if ($date_attendances->isEmpty()) {
+                    $this->logGrouping('HARI_SELESAI: punch habis dipakai timetable sebelumnya');
                     break;
                 }
 
@@ -1008,6 +1165,12 @@ class AttendanceUtil extends Util
                 }
 
                 $limits = $this->getTimetableWindowLimits($date, $timetable);
+                $this->logGrouping('TIMETABLE_CEK', [
+                    'timetable_id' => $timetable->id,
+                    'timetable_name' => $timetable->name,
+                    'windows' => $this->formatLimitsForLog($limits),
+                    'sisa_punch' => $this->punchTimesFromCollection($date_attendances),
+                ]);
 
                 $collectedPunches = $this->collectPunchesForTimetable(
                     $date_attendances,
@@ -1019,6 +1182,10 @@ class AttendanceUtil extends Util
                 );
 
                 if ($collectedPunches->isEmpty()) {
+                    $this->logGrouping('TIMETABLE_LOLOS: tidak ada punch terkumpul', [
+                        'timetable_id' => $timetable->id,
+                        'timetable_name' => $timetable->name,
+                    ]);
                     continue;
                 }
 
@@ -1030,19 +1197,42 @@ class AttendanceUtil extends Util
                 );
 
                 $groupPunches = $collectedPunches->merge($crossDayPunches)->values();
+                if ($crossDayPunches->isNotEmpty()) {
+                    $this->logGrouping('CROSS_DAY_DITAMBAH', [
+                        'timetable_id' => $timetable->id,
+                        'cross_day_punches' => $this->punchTimesFromCollection($crossDayPunches),
+                        'group_punches' => $this->punchTimesFromCollection($groupPunches),
+                    ]);
+                }
 
                 if (!$this->isValidTimetableGroup($groupPunches, $timetable, $limits)) {
                     continue;
                 }
 
                 $attendance_timetable->put($timetable->id, $groupPunches);
+                $this->logGrouping('TIMETABLE_TERPAKAI', [
+                    'timetable_id' => $timetable->id,
+                    'timetable_name' => $timetable->name,
+                    'group_punches' => $this->punchTimesFromCollection($groupPunches),
+                ]);
 
                 $date_attendances = $this->removePunchesFromCollection($date_attendances, $collectedPunches);
                 $this->removeCrossDayPunchesFromEmployee($crossDayPunches, $attendance_employee);
             }
 
+            $this->logGrouping('HARI_HASIL', [
+                'timetable_terpakai' => $attendance_timetable->map(fn ($punches, $tid) => [
+                    'timetable_id' => $tid,
+                    'punches' => $this->punchTimesFromCollection($punches),
+                ])->values()->all(),
+                'sisa_punch' => $this->punchTimesFromCollection($date_attendances),
+            ]);
+
             $attendance_employee_timetable->put($date_string, $attendance_timetable);
         }
+
+        $this->logGrouping('SELESAI_GROUPING');
+        $this->endGroupingLog();
 
         return $attendance_employee_timetable;
     }
