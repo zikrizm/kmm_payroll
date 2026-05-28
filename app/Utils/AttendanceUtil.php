@@ -729,7 +729,7 @@ class AttendanceUtil extends Util
         $hasCheckoutPunchInWindow = $collectedPunches->contains(function ($item) use ($limits) {
             $punchTime = Carbon::parse($item['punch_time']);
 
-            return $punchTime->between($limits['check_out_limit_min'], $limits['check_out_limit_plus']);
+            return $punchTime->between($limits['check_out_limit_min'], $limits['check_out_limit_ot']);
         });
 
         if ($timetable->is_without_break) {
