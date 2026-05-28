@@ -542,6 +542,18 @@ class AttendanceUtil extends Util
             ->all();
     }
 
+    private function sortTimetablesSource(Collection $timetablesSource): Collection
+    {
+        return $timetablesSource
+            ->sortBy(function ($item) {
+                $timetable = $item->timetable;
+                $checkIn = Carbon::parse($timetable->check_in)->format('His');
+
+                return sprintf('%01d-%06s', (int) ($timetable->cross_day ?? 0), $checkIn);
+            })
+            ->values();
+    }
+
     private function hasPrevDayDayShiftCheckout(
         Carbon $date,
         Collection $prevDateAttendance,
@@ -945,11 +957,22 @@ class AttendanceUtil extends Util
                     continue;
                 }
             } else {
+                if ($collected->isEmpty()) {
+                    $this->logGrouping('COLLECT_SKIP: bukan anchor, group belum punya check-in', [
+                        'punch' => $punchLabel,
+                        'timetable_id' => $timetable->id,
+                        'timetable_name' => $timetable->name,
+                    ]);
+                    continue;
+                }
+
                 if ($this->isPunchCheckInForOtherTimetable($punchTime, $timetable, $date, $timetablesSource)) {
-                    if ($punchTime->lt($limits['check_out'])) {
-                        $this->logGrouping('COLLECT_SKIP: check-in timetable lain', [
+                    $isCheckoutForCurrent = $punchTime->between($limits['check_out_limit_min'], $limits['check_out_limit_ot']);
+                    if (!$isCheckoutForCurrent && $punchTime->lt($limits['check_out'])) {
+                        $this->logGrouping('COLLECT_SKIP: check-in timetable lain (bukan checkout shift ini)', [
                             'punch' => $punchLabel,
                             'timetable_id' => $timetable->id,
+                            'timetable_name' => $timetable->name,
                         ]);
                         continue;
                     }
@@ -1109,23 +1132,14 @@ class AttendanceUtil extends Util
             $operational = $operationals->get($date_string);
 
             if ($operational) {
-                $timetables_source = $operational->operational_has_timetables
-                    ->where('status', 'active')
-                    ->sortBy([
-                        fn ($item) => $item->timetable->cross_day ?? 0,
-                        fn ($item) => $item->timetable->check_in,
-                    ])
-                    ->values();
+                $timetables_source = $this->sortTimetablesSource(
+                    $operational->operational_has_timetables->where('status', 'active')->values(),
+                );
             } else {
                 $dayOfWeek = $range_date['holiday']['status'] ? 0 : $date->dayOfWeek;
                 $shiftday = $department_shift->shiftdays->firstWhere('code_day', $dayOfWeek);
                 if ($shiftday) {
-                    $timetables_source = $shiftday->shiftday_has_timetables
-                        ->sortBy([
-                            fn ($item) => $item->timetable->cross_day ?? 0,
-                            fn ($item) => $item->timetable->check_in,
-                        ])
-                        ->values();
+                    $timetables_source = $this->sortTimetablesSource($shiftday->shiftday_has_timetables);
                 }
             }
 
