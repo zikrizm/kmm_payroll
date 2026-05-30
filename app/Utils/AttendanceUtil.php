@@ -491,6 +491,32 @@ class AttendanceUtil extends Util
         ];
     }
 
+    private function resolveCheckOutLimitBreakTime(
+        Carbon $checkOutLimitMin,
+        bool $isWithoutBreak,
+        int $durationBreakTime,
+        bool $hasBreakPunches,
+    ): Carbon {
+        $limit = $checkOutLimitMin->copy();
+
+        if ($isWithoutBreak || !$hasBreakPunches) {
+            $limit->subMinutes($durationBreakTime);
+        }
+
+        return $limit;
+    }
+
+    private function getTimetableDurationBreakTime(Timetable $timetable, ?array $employee = null): int
+    {
+        $duration = $timetable->timetable_has_break_time->sum(fn ($item) => $item->break_time->duration ?? 0);
+
+        if (!empty($employee['position']) && $employee['position']['enable_extra_break_time'] && !empty($employee['position']['extra_break_time'])) {
+            $duration += $employee['position']['extra_break_time'];
+        }
+
+        return $duration;
+    }
+
     private function beginGroupingLog(?string $empCode): void
     {
         $this->groupingLogContext = [
@@ -861,10 +887,19 @@ class AttendanceUtil extends Util
             return false;
         }
 
-        $hasCheckoutPunchInWindow = $collectedPunches->contains(function ($item) use ($limits) {
+        $durationBreakTime = $this->getTimetableDurationBreakTime($timetable);
+        $hasBreakPunches = $this->hasBreakPunchesBetween($collectedPunches, $limits);
+        $effectiveCheckOutMin = $this->resolveCheckOutLimitBreakTime(
+            $limits['check_out_limit_min'],
+            (bool) $timetable->is_without_break,
+            $durationBreakTime,
+            $hasBreakPunches,
+        );
+
+        $hasCheckoutPunchInWindow = $collectedPunches->contains(function ($item) use ($limits, $effectiveCheckOutMin) {
             $punchTime = Carbon::parse($item['punch_time']);
 
-            return $punchTime->between($limits['check_out_limit_min'], $limits['check_out_limit_ot']);
+            return $punchTime->between($effectiveCheckOutMin, $limits['check_out_limit_ot']);
         });
 
         if ($timetable->is_without_break) {
@@ -967,7 +1002,16 @@ class AttendanceUtil extends Util
                 }
 
                 if ($this->isPunchCheckInForOtherTimetable($punchTime, $timetable, $date, $timetablesSource)) {
-                    $isCheckoutForCurrent = $punchTime->between($limits['check_out_limit_min'], $limits['check_out_limit_ot']);
+                    $checkoutMin = $limits['check_out_limit_min'];
+                    if ($timetable->is_without_break) {
+                        $checkoutMin = $this->resolveCheckOutLimitBreakTime(
+                            $limits['check_out_limit_min'],
+                            true,
+                            $this->getTimetableDurationBreakTime($timetable),
+                            false,
+                        );
+                    }
+                    $isCheckoutForCurrent = $punchTime->between($checkoutMin, $limits['check_out_limit_ot']);
                     if (!$isCheckoutForCurrent && $punchTime->lt($limits['check_out'])) {
                         $this->logGrouping('COLLECT_SKIP: check-in timetable lain (bukan checkout shift ini)', [
                             'punch' => $punchLabel,
@@ -1332,16 +1376,14 @@ class AttendanceUtil extends Util
         $result['break_time']['start_punch'] = $first_break_time ? $first_break_time['punch_time'] : null;
         $result['break_time']['end_punch'] = $last_break_time ? $last_break_time['punch_time'] : null;
 
-        $duration_break_time = $timetable->timetable_has_break_time->sum(fn($item) => $item->break_time->duration ?? 0);
-        if(!empty($employee['position']) && $employee['position']['enable_extra_break_time'] && !empty($employee['position']['extra_break_time'])) {
-            $duration_break_time += $employee['position']['extra_break_time'];
-        }
-
-        $check_out_limit_break_time = $check_out_limit_min->copy();
-        // check apakah ada absensi istrahat
-        if(!$timetable->is_without_break && (empty($result['break_time']['start_punch']) || empty($result['break_time']['end_punch']))) {
-            $check_out_limit_break_time->subMinutes($duration_break_time);
-        }
+        $duration_break_time = $this->getTimetableDurationBreakTime($timetable, $employee);
+        $hasBreakPunches = !empty($result['break_time']['start_punch']) && !empty($result['break_time']['end_punch']);
+        $check_out_limit_break_time = $this->resolveCheckOutLimitBreakTime(
+            $check_out_limit_min,
+            (bool) $timetable->is_without_break,
+            $duration_break_time,
+            $hasBreakPunches,
+        );
        
         if(!empty($result['working']['start_punch']) && !empty($result['working']['end_punch'])) {
             $start_punch = Carbon::parse($result['working']['start_punch']);
@@ -1501,12 +1543,13 @@ class AttendanceUtil extends Util
                 
                 $check_out = Carbon::parse($date_string ." ". $shift_data['timetable']['check_out'])->addDays($shift_data['timetable']['cross_day'] ?? 0);
                 $check_out_limit_min = $check_out->copy()->subMinutes($shift_data['timetable']['check_out_min']);
-                $check_out_limit_break_time = $check_out_limit_min->copy();
-                if(empty($shift_data['break_time']['start_punch']) || empty($shift_data['break_time']['end_punch'])) {
-                    if(!$shift_data['timetable']['is_without_break']) {
-                        $check_out_limit_break_time->subMinutes($duration_break_time);
-                    }
-                }
+                $hasBreakPunches = !empty($shift_data['break_time']['start_punch']) && !empty($shift_data['break_time']['end_punch']);
+                $check_out_limit_break_time = $this->resolveCheckOutLimitBreakTime(
+                    $check_out_limit_min,
+                    (bool) $shift_data['timetable']['is_without_break'],
+                    $duration_break_time,
+                    $hasBreakPunches,
+                );
 
                 if ($shift_data['total_shifted_overtime'] > 0) {
                     $total_overtime = $shift_data['total_jl'] * ($shift_data['total_shifted_overtime'] + 1);
@@ -1723,10 +1766,13 @@ class AttendanceUtil extends Util
         $check_out_limit_plus = $check_out->copy()->addMinutes($shift_data['timetable']['check_out_plus']);
 
         $duration_break_time = $shift_data['timetable']['duration_break_time'];
-        $check_out_limit_break_time = $check_out_limit_min->copy();
-        if($shift_data['timetable']['is_without_break']) {
-            $check_out_limit_break_time->subMinutes($duration_break_time);
-        }
+        $hasBreakPunches = !empty($shift_data['break_time']['start_punch']) && !empty($shift_data['break_time']['end_punch']);
+        $check_out_limit_break_time = $this->resolveCheckOutLimitBreakTime(
+            $check_out_limit_min,
+            (bool) $shift_data['timetable']['is_without_break'],
+            $duration_break_time,
+            $hasBreakPunches,
+        );
 
         $start_punch = Carbon::parse($shift_data['working']['start_punch']);
         $end_punch = Carbon::parse($shift_data['working']['end_punch']);
