@@ -206,7 +206,11 @@
                 submitBtn.text('Nonaktifkan');
             }
 
-            await ApiService.get_confirm('.submit-toggle-shift-status', '/shift/' + shiftId + '/toggle-status', { status: newStatus }, () => {
+            const formData = new FormData();
+            formData.append('status', newStatus);
+            formData.append('_token', $('meta[name="csrf-token"]').attr('content'));
+
+            await ApiService.get_confirm('.submit-toggle-shift-status', '/shift/' + shiftId + '/toggle-status', formData, () => {
                 onInit({ q: $('.search-data-input').val() });
             });
         }
