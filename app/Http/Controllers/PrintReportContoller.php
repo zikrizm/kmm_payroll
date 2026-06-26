@@ -695,7 +695,7 @@ class PrintReportContoller extends Controller
                     ->whereBetween('date', [$start_date->copy()->subDays($business->pending_day), $end_date])->get();
 
                 // GET SHIFTS
-                $shifts = Shift::where('business_id', $business_id);
+                $shifts = Shift::where('business_id', $business_id)->active();
                 if (!empty($department_code)) {
                     $shifts = $shifts->where('dept_id', $department_query['id']);
                 }

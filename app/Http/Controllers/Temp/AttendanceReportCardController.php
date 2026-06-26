@@ -244,7 +244,7 @@ class AttendanceReportCardController extends Controller
                 $holidays = Holiday::where('business_id', $business_id)->whereBetween('start_date', array($start_time, $end_time))
                     ->orWhereBetween('end_date', array($start_time, $end_time))->get();
                 // ** get shift data dari database local
-                $shifts = Shift::where('business_id', $business_id)->with(['shiftday.shiftday_has_timetable'])->get();
+                $shifts = Shift::where('business_id', $business_id)->active()->with(['shiftday.shiftday_has_timetable'])->get();
                 // ** get operational data dari database local
                 $operationals = Operational::where('business_id', $business_id)->whereBetween('date', [$start_time, $end_time])
                     ->with('operational_has_timetables.timetable.timetable_has_break_time.break_time')->get()->groupBy(function ($item) {

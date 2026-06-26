@@ -398,7 +398,7 @@ class AttendanceReportController extends Controller
                 $filter['page_size'] = $transactions_count;
                 $transactions = $this->apiService->get_transactions($filter);
 
-                $shifts = Shift::where('business_id', $business_id)->where('dept_id', $employee['department']['id'])->with(
+                $shifts = Shift::where('business_id', $business_id)->where('dept_id', $employee['department']['id'])->active()->with(
                     ['shiftday' => function ($query) {
                         $query->with(['shiftday_has_timetable' => function ($query) {
                             $query->with(['timetable']);

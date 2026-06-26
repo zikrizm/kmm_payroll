@@ -16,6 +16,9 @@
                 <th class='px-3 py-3 text-left cursor-pointer'>
                     <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Department</p>
                 </th>
+                <th class='px-3 py-3 text-left cursor-pointer'>
+                    <p class="text-xs font-medium text-gray-500 truncate cursor-pointer">Status</p>
+                </th>
                 @canany(['shift.update', 'shift.delete'])
                 <th class='px-3 py-3 text-left text-gray-500 text-xs font-medium'></th>
                 @endcanany
@@ -39,6 +42,37 @@
                 </td>
                 <td class='px-3 py text-gray-500 text-sm'>
                     {{ $item->department['dept_name'] ?? '' }}
+                </td>
+                <td class='px-3 py text-gray-500 text-sm'>
+                    @if (($item->status ?? 'active') == 'active')
+                    @can('shift.update')
+                    <button type="button"
+                        class="px-2 py-1 text-xs font-medium text-green-700 bg-green-100 rounded-full cursor-pointer hover:bg-green-200"
+                        data-shift-id="{{ $item->id }}"
+                        data-shift-name="{{ $item->name }}"
+                        data-dept-name="{{ $item->department['dept_name'] ?? '' }}"
+                        data-status="active"
+                        onclick="open_status_confirm(this)">
+                        Active
+                    </button>
+                    @else
+                    <span class="px-2 py-1 text-xs font-medium text-green-700 bg-green-100 rounded-full">Active</span>
+                    @endcan
+                    @else
+                    @can('shift.update')
+                    <button type="button"
+                        class="px-2 py-1 text-xs font-medium text-red-700 bg-red-100 rounded-full cursor-pointer hover:bg-red-200"
+                        data-shift-id="{{ $item->id }}"
+                        data-shift-name="{{ $item->name }}"
+                        data-dept-name="{{ $item->department['dept_name'] ?? '' }}"
+                        data-status="inactive"
+                        onclick="open_status_confirm(this)">
+                        Inactive
+                    </button>
+                    @else
+                    <span class="px-2 py-1 text-xs font-medium text-red-700 bg-red-100 rounded-full">Inactive</span>
+                    @endcan
+                    @endif
                 </td>
                 @canany(['shift.update', 'shift.delete'])
                 <td class='px-3 py'>

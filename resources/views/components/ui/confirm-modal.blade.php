@@ -10,7 +10,7 @@
                     <x-icon icon="x" width=16 height=16 viewBox="20 20" />
                 </button>
                 <div class="flex flex-col gap-8 xs/max:gap-6">
-                    <form autocomplete="off" class="{{ $class }}" action="void:0" method="DELETE">
+                    <form autocomplete="off" class="{{ $class }}" action="void:0" method="{{ $method }}">
                         @csrf
                         <!-- {{ csrf_field() }} -->
                         <main class="p-4 pt-6 flex flex-col xs/max:gap-6 gap-12">
@@ -32,7 +32,7 @@
                                 class="modal-close shadow text-gray-500 bg-white hover:bg-gray-100 focus:ring-2 focus:ring-gray-300 rounded-lg xs/max:rounded-md border border-gray-200 text-sm xs/max:text-xs font-medium xs/max:px-4 px-6 xs/max:py-1.5 py-2 hover:text-gray-900 focus:z-10">
                                 Cancel</button>
                             <button type="submit"
-                                class="text-white shadow bg-violet-600 hover:bg-violet-700 focus:ring-2 focus:ring-violet-700 font-medium rounded-lg xs/max:rounded-md text-sm xs/max:text-xs inline-flex items-center xs/max:px-4 px-6 xs/max:py-1.5 py-2 text-center">Delete</button>
+                                class="text-white shadow bg-violet-600 hover:bg-violet-700 focus:ring-2 focus:ring-violet-700 font-medium rounded-lg xs/max:rounded-md text-sm xs/max:text-xs inline-flex items-center xs/max:px-4 px-6 xs/max:py-1.5 py-2 text-center">{{ $submitLabel }}</button>
                         </footer>
                     </form>
                 </div>

@@ -425,7 +425,7 @@ class OperationalController extends Controller
             } else {
                 $dept_id = $dept_bio['parent_dept']['id'];
             }
-            $shift = Shift::where('dept_id', $dept_id)->with('shiftday.shiftday_has_timetable.timetable')->first();
+            $shift = Shift::where('business_id', $business_id)->where('dept_id', $dept_id)->active()->with('shiftday.shiftday_has_timetable.timetable')->first();
             if (!empty($shift)) {
                 $rangedate = explode(' - ', $request['date']);
                 if (count($rangedate) > 1) {

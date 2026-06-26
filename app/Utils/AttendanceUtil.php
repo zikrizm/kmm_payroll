@@ -247,7 +247,7 @@ class AttendanceUtil extends Util
         $business_id = Session::get('business_id');
         $departments = $this->normalizeDepartmentsCollection($departments);
 
-        $shifts = Shift::where('business_id', $business_id);
+        $shifts = Shift::where('business_id', $business_id)->active();
         if ($departments->isNotEmpty()) {
             $shifts = $shifts->whereIn('dept_id', $departments->pluck('id'));
         }

@@ -101,10 +101,10 @@ class ShiftController extends Controller
         try {
             $business_id = Session::get('business_id');
             $timetables = Timetable::where('business_id', $business_id)->with(['timetable_has_break_time'])->get();
-            $onlyParentDept = $this->_get_department_not_used();
-            $shifts = Shift::where('business_id', $business_id)->get();
+            $dept_count = $this->apiService->get_departments([]);
+            $departments = $this->apiService->get_departments(['page_size' => $dept_count['count']])['data'];
 
-            $render = view('Shift.shift.create', compact('timetables', 'onlyParentDept'))->render();
+            $render = view('Shift.shift.create', compact('timetables', 'departments'))->render();
 
             return $this->buildRes->RESPONSE_REQ('success', $render, null);
         } catch (\Exception $e) {
@@ -131,8 +131,10 @@ class ShiftController extends Controller
             if ($validator->fails()) {
                 return $this->buildRes->RESPONSE_REQ('error', null, $validator->errors());
             } else {
+                $business_id = Session::get('business_id');
                 $shift_data = $request->only(['name', 'dept_id', 'timetables']);
-                $shift_data['business_id'] = Session::get('business_id');
+                $shift_data['business_id'] = $business_id;
+                $shift_data['status'] = Shift::resolveStatusForNew($business_id, (int) $shift_data['dept_id']);
                 $shift = new Shift($shift_data);
                 $shift->save();
 
@@ -300,38 +302,70 @@ class ShiftController extends Controller
     }
 
 
-    public function _get_department_not_used()
+    /**
+     * Toggle shift active/inactive status.
+     *
+     * @param  Shift  $shift
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function toggleStatus(Shift $shift, Request $request)
     {
-        $business_id = Session::get('business_id');
-        $shifts = Shift::where('business_id', $business_id)->get();
-        $departments = $this->apiService->get_departments(['page_size' => 999]);
-        $onlyParentDept = [];
-
-        foreach ($departments['data'] as $department) {
-            if (count($shifts) != 0) {
-                $first = $shifts->firstWhere('dept_id', $department['id']);
-                if (empty($first)) {
-                    $onlyParentDept[] = $department;
-                }
-            } else {
-                $onlyParentDept[] = $department;
-            }
-
-            // if (empty($department['parent_dept'])) {
-            //     if (count($shifts) != 0) {
-            //         $first = $shifts->firstWhere('dept_id', $department['id']);
-            //         if (empty($first)) {
-            //             $onlyParentDept[] = $department;
-            //         }
-            //     } else {
-            //         $onlyParentDept[] = $department;
-            //     }
-            // }
+        if (!auth()->user()->can('shift.update') || !$request->ajax()) {
+            abort(403, 'Unauthorized action.');
         }
 
-        return $onlyParentDept;
-    }
+        try {
+            $validator = Validator::make($request->all(), [
+                'status' => 'required|in:active,inactive',
+            ]);
 
+            if ($validator->fails()) {
+                return $this->buildRes->RESPONSE_REQ('error', null, $validator->errors());
+            }
+
+            $business_id = Session::get('business_id');
+            if ($shift->business_id != $business_id) {
+                abort(403, 'Unauthorized action.');
+            }
+
+            $newStatus = $request->input('status');
+            $deactivatedShift = null;
+
+            if ($newStatus === Shift::STATUS_ACTIVE) {
+                if ($shift->status !== Shift::STATUS_ACTIVE) {
+                    $deactivatedShift = Shift::where('business_id', $business_id)
+                        ->where('dept_id', $shift->dept_id)
+                        ->where('status', Shift::STATUS_ACTIVE)
+                        ->where('id', '!=', $shift->id)
+                        ->first();
+
+                    $shift->activateForDepartment();
+                }
+            } else {
+                $shift->update(['status' => Shift::STATUS_INACTIVE]);
+            }
+
+            ActivityLog::created_activity(
+                'CRUD shift',
+                'User ' . auth()->user()->username . ' changed shift status to ' . $newStatus
+            );
+
+            $message = $newStatus === Shift::STATUS_ACTIVE
+                ? 'Shift berhasil diaktifkan.'
+                : 'Shift berhasil dinonaktifkan.';
+
+            if ($deactivatedShift) {
+                $message .= ' Shift "' . $deactivatedShift->name . '" otomatis dinonaktifkan.';
+            }
+
+            return $this->buildRes->RESPONSE_REQ('success', null, ['success' => [$message]]);
+        } catch (\Exception $e) {
+            Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
+
+            return $this->buildRes->RESPONSE_REQ('error', null, ['error' => 'something wrong']);
+        }
+    }
 
     /**
      * Rules validation shift.
