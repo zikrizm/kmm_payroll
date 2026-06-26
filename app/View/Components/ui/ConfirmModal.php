@@ -9,6 +9,9 @@ class ConfirmModal extends Component
     public $title;
     public $subTitle;
     public $class;
+    public $method;
+    public $submitLabel;
+
     /**
      * Create a new component instance.
      *
@@ -18,10 +21,14 @@ class ConfirmModal extends Component
         $title = 'Confirmation',
         $subTitle = 'Are you sure you want to delete this data?',
         $class = null,
+        $method = 'DELETE',
+        $submitLabel = 'Delete',
     ) {
         $this->title = $title;
         $this->subTitle = $subTitle;
         $this->class = $class ?? '';
+        $this->method = $method;
+        $this->submitLabel = $submitLabel;
     }
 
 

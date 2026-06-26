@@ -22,6 +22,13 @@
     <x-ui.search-data placeholder="Cari shift" url="{{ route('shift.index') }}" />
     <div class="table-content"></div>
     <x-ui.confirm-modal class="submit-delete-shift"></x-ui.confirm-modal>
+    <x-ui.confirm-modal
+        title="Ubah Status Shift"
+        subTitle=""
+        class="submit-toggle-shift-status"
+        method="POST"
+        submitLabel="Konfirmasi">
+    </x-ui.confirm-modal>
 </div>
 
 <script type="application/javascript">
@@ -176,5 +183,32 @@
             onInit();
         })
     }
+
+        async function open_status_confirm(el) {
+            const shiftId = el.dataset.shiftId;
+            const shiftName = el.dataset.shiftName;
+            const deptName = el.dataset.deptName;
+            const currentStatus = el.dataset.status;
+            const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
+
+            const modal = $('.confirmation-modal-submit-toggle-shift-status');
+            const titleEl = modal.find('p.text-xl.font-semibold');
+            const subtitleEl = modal.find('p.mb-2.text-sm');
+            const submitBtn = modal.find('button[type=submit]');
+
+            if (newStatus === 'active') {
+                titleEl.text('Aktifkan Shift');
+                subtitleEl.text(`Shift "${shiftName}" akan diaktifkan. Shift active saat ini untuk bagian "${deptName}" akan dinonaktifkan otomatis.`);
+                submitBtn.text('Aktifkan');
+            } else {
+                titleEl.text('Nonaktifkan Shift');
+                subtitleEl.text(`Shift "${shiftName}" akan dinonaktifkan. Bagian "${deptName}" mungkin tidak memiliki shift active.`);
+                submitBtn.text('Nonaktifkan');
+            }
+
+            await ApiService.get_confirm('.submit-toggle-shift-status', '/shift/' + shiftId + '/toggle-status', { status: newStatus }, () => {
+                onInit({ q: $('.search-data-input').val() });
+            });
+        }
 </script>
 @endsection

@@ -122,7 +122,7 @@ class PayrollReportController extends Controller
         }
 
         $department_bios = collect($this->util->getDepartment());
-        $shifts = Shift::where('business_id', $business_id)->get();
+        $shifts = Shift::where('business_id', $business_id)->active()->get();
 
         $attendance_reports = [];
         Log::info("===============PEMISAH-PEMISAH-PEMISAH-PEMISAH-PEMISAH================");

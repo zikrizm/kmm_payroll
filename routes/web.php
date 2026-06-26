@@ -97,6 +97,7 @@ Route::middleware(['auth'])->group(function () {
     // * shift
     Route::resource('shift', 'ShiftController', ['except' => ['update']]);
     Route::post('/shift/{shift}', 'ShiftController@update')->name('shift.update');
+    Route::post('/shift/{shift}/toggle-status', 'ShiftController@toggleStatus')->name('shift.toggle-status');
     // * holiday
     Route::resource('holiday', 'HolidayController', ['except' => ['update']]);
     Route::post('/holiday/{holiday}', 'HolidayController@update')->name('holiday.update');

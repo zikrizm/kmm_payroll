@@ -36,7 +36,7 @@
                     <section class="flex flex-col gap-1 flex-1">
                         <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Bagian*</label>
                         <select class="select2" name="dept_id">
-                            @foreach ($onlyParentDept as $item)
+                            @foreach ($departments as $item)
                             <option value="{{ $item['id'] }}">{{ $item['dept_name'] }}</option>
                             @endforeach
                         </select>

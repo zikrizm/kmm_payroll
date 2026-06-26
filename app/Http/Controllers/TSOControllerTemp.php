@@ -105,7 +105,7 @@ class TSOController extends Controller
         // $attens_groupings = $attendance_devices->sortBy('punch_time')->groupBy(function ($item) {
         //     return Carbon::parse($item['punch_time'])->format('Y-m-d') . '(' . $item['emp'] . ')';
         // });
-        $shifts = Shift::where('business_id', $business_id)->get();
+        $shifts = Shift::where('business_id', $business_id)->active()->get();
         $department_bios = collect($this->apiService->get_departments(["page_size" => 999])['data']);
         $attens_groupings = $attendance_devices->sortBy('punch_time')->groupBy([function ($item) {
             return "emp_id_{$item['emp']} - emp_code_{$item['emp_code']}";

@@ -78,7 +78,7 @@ class WorkSectionController extends Controller
 
         try {
             $business_id = Session::get('business_id');
-            $shifts = Shift::where('business_id', $business_id)->where('status', 'active')->get();
+            $shifts = Shift::where('business_id', $business_id)->active()->get();
             $render = view('work_section.create', compact('shifts'))->render();
 
             return $this->buildRes->RESPONSE_REQ('success', $render, null);
@@ -152,7 +152,7 @@ class WorkSectionController extends Controller
 
         try {
             $business_id = Session::get('business_id');
-            $shifts = Shift::where('business_id', $business_id)->where('status', 'active')->get();
+            $shifts = Shift::where('business_id', $business_id)->active()->get();
             $render = view('work_section.edit', compact('work_section', 'shifts'))->render();
 
             return $this->buildRes->RESPONSE_REQ('success', $render, null);
