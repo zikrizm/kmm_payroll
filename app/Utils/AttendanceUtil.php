@@ -491,6 +491,13 @@ class AttendanceUtil extends Util
         ];
     }
 
+    private function getCheckoutCollectUpperLimit(array $limits): Carbon
+    {
+        return $limits['check_out_limit_ot']->gt($limits['check_out_limit_plus'])
+            ? $limits['check_out_limit_ot']
+            : $limits['check_out_limit_plus'];
+    }
+
     private function resolveCheckOutLimitBreakTime(
         Carbon $checkOutLimitMin,
         bool $isWithoutBreak,
@@ -896,10 +903,11 @@ class AttendanceUtil extends Util
             $hasBreakPunches,
         );
 
-        $hasCheckoutPunchInWindow = $collectedPunches->contains(function ($item) use ($limits, $effectiveCheckOutMin) {
+        $checkoutCollectUpperLimit = $this->getCheckoutCollectUpperLimit($limits);
+        $hasCheckoutPunchInWindow = $collectedPunches->contains(function ($item) use ($checkoutCollectUpperLimit, $effectiveCheckOutMin) {
             $punchTime = Carbon::parse($item['punch_time']);
 
-            return $punchTime->between($effectiveCheckOutMin, $limits['check_out_limit_ot']);
+            return $punchTime->between($effectiveCheckOutMin, $checkoutCollectUpperLimit);
         });
 
         if ($timetable->is_without_break) {
@@ -938,6 +946,7 @@ class AttendanceUtil extends Util
         int $masaJedaHours,
     ): Collection {
         $limits = $this->getTimetableWindowLimits($date, $timetable);
+        $checkoutCollectUpperLimit = $this->getCheckoutCollectUpperLimit($limits);
         $collected = collect();
         $priorSameDay = collect();
 
@@ -945,7 +954,7 @@ class AttendanceUtil extends Util
             $punchTime = Carbon::parse($attendance['punch_time']);
             $punchLabel = $punchTime->format('Y-m-d H:i');
 
-            if ($punchTime->lt($limits['check_in_limit_min']) || $punchTime->gt($limits['check_out_limit_ot'])) {
+            if ($punchTime->lt($limits['check_in_limit_min']) || $punchTime->gt($checkoutCollectUpperLimit)) {
                 $this->logGrouping('COLLECT_SKIP: di luar window shift', [
                     'punch' => $punchLabel,
                     'timetable_id' => $timetable->id,
@@ -1011,7 +1020,7 @@ class AttendanceUtil extends Util
                             false,
                         );
                     }
-                    $isCheckoutForCurrent = $punchTime->between($checkoutMin, $limits['check_out_limit_ot']);
+                    $isCheckoutForCurrent = $punchTime->between($checkoutMin, $checkoutCollectUpperLimit);
                     if (!$isCheckoutForCurrent && $punchTime->lt($limits['check_out'])) {
                         $this->logGrouping('COLLECT_SKIP: check-in timetable lain (bukan checkout shift ini)', [
                             'punch' => $punchLabel,
@@ -1049,8 +1058,9 @@ class AttendanceUtil extends Util
     ): Collection {
         $checkOut = Carbon::parse($date->format('Y-m-d') . ' ' . $timetable->check_out)
             ->addDays($timetable->cross_day ?? 0);
+        $checkoutCollectUpperLimit = $this->getCheckoutCollectUpperLimit($limits);
 
-        $diffDays = $limits['check_out_limit_ot']->copy()->startOfDay()
+        $diffDays = $checkoutCollectUpperLimit->copy()->startOfDay()
             ->diffInDays($checkOut->copy()->startOfDay());
         $crossDay = $diffDays + ($timetable->cross_day ?? 0);
 
@@ -1072,7 +1082,7 @@ class AttendanceUtil extends Util
 
             foreach ($nextDateAttendance->sortBy('punch_time') as $attendance) {
                 $punchTime = Carbon::parse($attendance['punch_time']);
-                if ($punchTime->gt($limits['check_out_limit_ot'])) {
+                if ($punchTime->gt($checkoutCollectUpperLimit)) {
                     continue;
                 }
 
