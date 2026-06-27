@@ -167,22 +167,8 @@
             });
             if(id) {
                 $('.select2-department').select2().attr("disabled", true)
-                $('input[name="select_all_timetable"]').on('change', function(e) {
-                    var isChecked = $(this).is(':checked');
-                    $('.timetable_status').prop('checked', isChecked);
-                    $('.ot-limit-content').each(function(e) {
-                        if(isChecked) {
-                            if ($(this).is(':hidden')) $(this).toggle('hidden');
-                        } else {
-                            if (!$(this).is(':hidden')) $(this).toggle('hidden');
-                        }
-                        
-                    })
-                })
-                $('.timetable_status').on('change', function(e) {
-                    $(this).closest('tr').find('.ot-limit-content').toggle('hidden');
-                })
-            };
+            }
+            initOperationalTimetableCard();
             
             $('.select2-department').on('change', async function (e) {
                 var date = null;
@@ -293,6 +279,57 @@
             })
         }
 
+        function initOperationalTimetableCard() {
+            $('input[name="select_all_timetable"]').off('change').on('change', function() {
+                const isChecked = $(this).is(':checked');
+                const $table = $(this).closest('table');
+                $table.find('.timetable_status').prop('checked', isChecked);
+                $table.find('.ot-limit-content').each(function() {
+                    if (isChecked) {
+                        if ($(this).is(':hidden')) $(this).toggle('hidden');
+                    } else if (!$(this).is(':hidden')) {
+                        $(this).toggle('hidden');
+                    }
+                });
+            });
+
+            $('.timetable_status').off('change').on('change', function() {
+                $(this).closest('tr').find('.ot-limit-content').toggle('hidden');
+            });
+
+            $('.toggle-extra-timetable').off('click').on('click', function() {
+                const $wrapper = $(this).closest('.timetable-table-wrapper');
+                const expanded = $wrapper.attr('data-extras-expanded') === 'true';
+                $wrapper.attr('data-extras-expanded', expanded ? 'false' : 'true');
+                $wrapper.find($(this).data('target')).toggleClass('hidden');
+                $(this).text(expanded ? 'Lihat Semua Jadwal' : 'Sembunyikan Jadwal Lain');
+            });
+
+            $('.timetable-search-input').off('input').on('input', function() {
+                const query = $(this).val().trim().toLowerCase();
+                const $wrapper = $(this).closest('.timetable-table-wrapper');
+                const extrasExpanded = $wrapper.attr('data-extras-expanded') === 'true';
+
+                $wrapper.find('tbody .timetable-row').each(function() {
+                    const $row = $(this);
+                    const searchText = ($row.data('search') || $row.text()).toString().toLowerCase();
+                    const isMatch = !query || searchText.includes(query);
+                    const isExtra = $row.hasClass('extra-timetable-row');
+
+                    if (!query) {
+                        if (isExtra) {
+                            $row.toggleClass('hidden', !extrasExpanded);
+                        } else {
+                            $row.removeClass('hidden');
+                        }
+                        return;
+                    }
+
+                    $row.toggleClass('hidden', !isMatch);
+                });
+            });
+        }
+
         async function get_card_operational(isRange,date, dept_id) {
             let _response = await (new NetworkUtils()).emitter('GET', '/get-operational-timetable-card', {isRange, dept_id, date}, {})
             hideAllHintText();
@@ -313,21 +350,7 @@
                     $('#timetable-content').toggle('hidden');
                 }
 
-                $('input[name="select_all_timetable"]').on('change', function(e) {
-                    var isChecked = $(this).is(':checked');
-                    $(this).closest('table').find('.timetable_status').prop('checked', isChecked)
-                    $(this).closest('table').find('.ot-limit-content').each(function(e) {
-                        if(isChecked) {
-                            if ($(this).is(':hidden')) $(this).toggle('hidden');
-                        } else {
-                            if (!$(this).is(':hidden')) $(this).toggle('hidden');
-                        }
-                        
-                    })
-                })
-                $('.timetable_status').on('change', function(e) {
-                    $(this).closest('tr').find('.ot-limit-content').toggle('hidden');
-                })
+                initOperationalTimetableCard();
             }
         }
 </script>
