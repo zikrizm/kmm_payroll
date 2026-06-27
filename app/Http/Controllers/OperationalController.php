@@ -131,7 +131,7 @@ class OperationalController extends Controller
 
         try {
             $date = (!empty($request['date'])) ? Carbon::parse($request['date'])->format('Y-m-d') : null;
-            $departments = collect($this->util->getDepartment());
+            $departments = ['data' => $this->util->getDepartment()];
             $render = view('Task.operational.create', compact('departments', 'date'))->render();
 
             return $this->buildRes->RESPONSE_REQ('success', $render, null);
