@@ -82,11 +82,12 @@
                                         ? $all_timetables->whereNotIn('id', $existing_ids)
                                         : collect([]);
                                     $start_index = count($item['timetables']);
+                                    $show_extra_by_default = count($item['timetables']) === 0 && $extra_timetables->isNotEmpty();
                                 @endphp
 
                                 @foreach ($extra_timetables as $extra_timetable)
                                     <tr
-                                        class='hover:bg-gray-50 border-b border-gray-200 cursor-pointer h-12 hidden extra-timetable-{{ $key }}'>
+                                        class='hover:bg-gray-50 border-b border-gray-200 cursor-pointer h-12 {{ $show_extra_by_default ? '' : 'hidden' }} extra-timetable-{{ $key }}'>
                                         <td class='text-left'>
                                             <div class="flex items-center">
                                                 <input type="hidden" value="{{ $extra_timetable->id }}"
@@ -124,7 +125,7 @@
                                 @endforeach
                             </tbody>
                         </table>
-                        @if ($extra_timetables->isNotEmpty())
+                        @if ($extra_timetables->isNotEmpty() && !$show_extra_by_default)
                             <div class="p-2 text-center border-t border-gray-200">
                                 <button type="button"
                                     class="text-xs text-blue-500 hover:text-blue-700 hover:underline font-medium"

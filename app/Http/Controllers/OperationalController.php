@@ -81,9 +81,11 @@ class OperationalController extends Controller
                 }
 
                 $operationals = $operationals->map(function ($element) use ($dept_bios) {
-                    $element = $element->map(function ($e_op) use ($dept_bios, $element) {
-                        $is_same = array_search($e_op->dept_id, array_column($dept_bios, 'id'));
-                        if ($is_same != '') $e_op['department'] = (object)$dept_bios[$is_same];
+                    $element = $element->map(function ($e_op) use ($dept_bios) {
+                        $department = $dept_bios->firstWhere('id', $e_op->dept_id);
+                        if (!empty($department)) {
+                            $e_op['department'] = (object) $department;
+                        }
                         return $e_op;
                     });
                     return $element;
@@ -426,20 +428,20 @@ class OperationalController extends Controller
                 $dept_id = $dept_bio['parent_dept']['id'];
             }
             $shift = Shift::where('business_id', $business_id)->where('dept_id', $dept_id)->active()->with('shiftday.shiftday_has_timetable.timetable')->first();
-            if (!empty($shift)) {
-                $rangedate = explode(' - ', $request['date']);
-                if (count($rangedate) > 1) {
-                    $start_date = Carbon::parse(trim($rangedate[0]));
-                    $end_date = Carbon::parse(trim($rangedate[1]));
-                    $holidays = Holiday::whereBetween('start_date', [$start_date, $end_date])->orWhereBetween('start_date', [$start_date, $end_date])->get();
-                    $operational = Operational::where('dept_id', $request->dept_id)->whereBetween('date', [$start_date, $end_date])->first();
-                    $dates = $this->util->generateDateRange($start_date, $end_date);
-                    $timetable_cards = [];
-                    if (empty($operational)) {
-                        foreach ($dates as $key => $item_date) {
-                            $date = Carbon::parse($item_date);
-                            $code_day = $date->dayOfWeek;
-                            $timetables = [];
+            $rangedate = explode(' - ', $request['date']);
+            if (count($rangedate) > 1) {
+                $start_date = Carbon::parse(trim($rangedate[0]));
+                $end_date = Carbon::parse(trim($rangedate[1]));
+                $holidays = Holiday::whereBetween('start_date', [$start_date, $end_date])->orWhereBetween('start_date', [$start_date, $end_date])->get();
+                $operational = Operational::where('dept_id', $request->dept_id)->whereBetween('date', [$start_date, $end_date])->first();
+                $dates = $this->util->generateDateRange($start_date, $end_date);
+                $timetable_cards = [];
+                if (empty($operational)) {
+                    foreach ($dates as $key => $item_date) {
+                        $date = Carbon::parse($item_date);
+                        $code_day = $date->dayOfWeek;
+                        $timetables = [];
+                        if (!empty($shift)) {
                             foreach ($shift->shiftday as $key => $value) {
                                 $is_holiday = $holidays->search(function ($item, $key) use ($date) {
                                     $holi_start = Carbon::parse($item->start_date);
@@ -451,44 +453,44 @@ class OperationalController extends Controller
                                     $timetables = array_column($value->shiftday_has_timetable->toArray(), 'timetable');
                                 }
                             }
-                            $timetable_cards[] = [
-                                'date' => $date,
-                                'is_range' => true,
-                                'timetables' => $timetables
-                            ];
                         }
-                        $render = view('Task.operational.cards.deparment_card', compact('timetable_cards', 'all_timetables'))->render();
-                        return $this->buildRes->RESPONSE_REQ('success', $render, null);
-                    } else {
-                        return $this->buildRes->RESPONSE_REQ('error', null, ['error' => ["Salah satu atau beberapa Jadwal dalam range {$start_date->format('d-m-Y')} - {$end_date->format('d-m-Y')} udah tersedia"]]);
+                        $timetable_cards[] = [
+                            'date' => $date,
+                            'is_range' => true,
+                            'timetables' => $timetables
+                        ];
                     }
+                    $render = view('Task.operational.cards.deparment_card', compact('timetable_cards', 'all_timetables'))->render();
+                    return $this->buildRes->RESPONSE_REQ('success', $render, null);
                 } else {
-                    $date = Carbon::parse($request->date);
-                    $holidays = Holiday::where('start_date', '<=', $date)
-                        ->where('end_date', '>=', $date)->get();
-                    $operational = Operational::where('dept_id', $request->dept_id)->where('date', $date)->first();
-                    $timetable_cards = [];
-                    if (empty($operational)) {
-                        $code_day = $date->dayOfWeek;
-                        $timetables = [];
+                    return $this->buildRes->RESPONSE_REQ('error', null, ['error' => ["Salah satu atau beberapa Jadwal dalam range {$start_date->format('d-m-Y')} - {$end_date->format('d-m-Y')} udah tersedia"]]);
+                }
+            } else {
+                $date = Carbon::parse($request->date);
+                $holidays = Holiday::where('start_date', '<=', $date)
+                    ->where('end_date', '>=', $date)->get();
+                $operational = Operational::where('dept_id', $request->dept_id)->where('date', $date)->first();
+                $timetable_cards = [];
+                if (empty($operational)) {
+                    $code_day = $date->dayOfWeek;
+                    $timetables = [];
+                    if (!empty($shift)) {
                         foreach ($shift->shiftday as $key => $value) {
                             if (!empty($holidays) && $holidays->count() ? $value->code_day == 0 : $code_day == $value->code_day) {
                                 $timetables = array_column($value->shiftday_has_timetable->toArray(), 'timetable');
                             }
                         }
-                        $timetable_cards[] = [
-                            'date' => $date,
-                            'is_range' => false,
-                            'timetables' => $timetables
-                        ];
-                        $render = view('Task.operational.cards.deparment_card', compact('timetable_cards', 'all_timetables'))->render();
-                        return $this->buildRes->RESPONSE_REQ('success', $render, null);
-                    } else {
-                        return $this->buildRes->RESPONSE_REQ('error', null, ['error' => ["Jadwal untuk tanggal {$date->format('d-m-Y')} sudah tersedia"]]);
                     }
+                    $timetable_cards[] = [
+                        'date' => $date,
+                        'is_range' => false,
+                        'timetables' => $timetables
+                    ];
+                    $render = view('Task.operational.cards.deparment_card', compact('timetable_cards', 'all_timetables'))->render();
+                    return $this->buildRes->RESPONSE_REQ('success', $render, null);
+                } else {
+                    return $this->buildRes->RESPONSE_REQ('error', null, ['error' => ["Jadwal untuk tanggal {$date->format('d-m-Y')} sudah tersedia"]]);
                 }
-            } else {
-                return $this->buildRes->RESPONSE_REQ('error', null, ['error' => ['Jadwal shift untuk bagian ini belum diatur, mohon diatur terlebih dahulu']]);
             }
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
