@@ -17,7 +17,21 @@
                         </div>
                     </div>
                     <hr>
-                    <div class="overflow-auto overflow-y-hidden border border-gray-200 rounded-lg shadow-sm ml-5">
+                    @php
+                        $existing_ids = collect($item['timetables'])->pluck('id')->toArray();
+                        $extra_timetables = isset($all_timetables)
+                            ? $all_timetables->whereNotIn('id', $existing_ids)
+                            : collect([]);
+                        $start_index = count($item['timetables']);
+                        $show_extra_by_default = count($item['timetables']) === 0 && $extra_timetables->isNotEmpty();
+                    @endphp
+                    <div class="timetable-table-wrapper overflow-auto overflow-y-hidden border border-gray-200 rounded-lg shadow-sm ml-5"
+                        data-extras-expanded="{{ $show_extra_by_default ? 'true' : 'false' }}">
+                        <div class="px-3 py-2 border-b border-gray-200 bg-white sticky top-0 z-10">
+                            <input type="text"
+                                class="timetable-search-input w-full rounded-lg border border-gray-300 px-3 py-1.5 text-xs text-gray-700 placeholder:text-gray-400 focus:border-violet-300 focus:outline-none focus:ring-0"
+                                placeholder="Cari jadwal...">
+                        </div>
                         <table class='table border-collapse w-full'>
                             <thead class='border-b border-gray-200 bg-gray-50'>
                                 <tr class=''>
@@ -35,7 +49,15 @@
                             </thead>
                             <tbody>
                                 @foreach ($item['timetables'] as $key_timetable => $item_timetable)
-                                    <tr class='hover:bg-gray-50 border-b border-gray-200 cursor-pointer h-12'>
+                                    @php
+                                        $timetableSearchText = strtolower(
+                                            ($item_timetable['name'] ?? '') . ' ' .
+                                            date('H:i', strtotime($item_timetable['check_in'])) . ' ' .
+                                            date('H:i', strtotime($item_timetable['check_out']))
+                                        );
+                                    @endphp
+                                    <tr class='timetable-row hover:bg-gray-50 border-b border-gray-200 cursor-pointer h-12'
+                                        data-search="{{ $timetableSearchText }}">
                                         <td class='text-left'>
                                             <div class="flex items-center">
                                                 <input type="hidden" value="{{ $item_timetable['id'] }}"
@@ -76,18 +98,17 @@
                                         </td>
                                     </tr>
                                 @endforeach
-                                @php
-                                    $existing_ids = collect($item['timetables'])->pluck('id')->toArray();
-                                    $extra_timetables = isset($all_timetables)
-                                        ? $all_timetables->whereNotIn('id', $existing_ids)
-                                        : collect([]);
-                                    $start_index = count($item['timetables']);
-                                    $show_extra_by_default = count($item['timetables']) === 0 && $extra_timetables->isNotEmpty();
-                                @endphp
-
                                 @foreach ($extra_timetables as $extra_timetable)
+                                    @php
+                                        $extraSearchText = strtolower(
+                                            ($extra_timetable->name ?? '') . ' ' .
+                                            date('H:i', strtotime($extra_timetable->check_in)) . ' ' .
+                                            date('H:i', strtotime($extra_timetable->check_out))
+                                        );
+                                    @endphp
                                     <tr
-                                        class='hover:bg-gray-50 border-b border-gray-200 cursor-pointer h-12 {{ $show_extra_by_default ? '' : 'hidden' }} extra-timetable-{{ $key }}'>
+                                        class='timetable-row extra-timetable-row extra-timetable-{{ $key }} hover:bg-gray-50 border-b border-gray-200 cursor-pointer h-12 {{ $show_extra_by_default ? '' : 'hidden' }}'
+                                        data-search="{{ $extraSearchText }}">
                                         <td class='text-left'>
                                             <div class="flex items-center">
                                                 <input type="hidden" value="{{ $extra_timetable->id }}"
@@ -128,8 +149,8 @@
                         @if ($extra_timetables->isNotEmpty() && !$show_extra_by_default)
                             <div class="p-2 text-center border-t border-gray-200">
                                 <button type="button"
-                                    class="text-xs text-blue-500 hover:text-blue-700 hover:underline font-medium"
-                                    onclick="let rows = document.querySelectorAll('.extra-timetable-{{ $key }}'); rows.forEach(el => el.classList.toggle('hidden')); this.innerText = rows[0].classList.contains('hidden') ? 'Lihat Semua Jadwal' : 'Sembunyikan Jadwal Lain';">Lihat
+                                    class="toggle-extra-timetable text-xs text-blue-500 hover:text-blue-700 hover:underline font-medium"
+                                    data-target=".extra-timetable-{{ $key }}">Lihat
                                     Semua Jadwal</button>
                             </div>
                         @endif
