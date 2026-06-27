@@ -674,10 +674,10 @@ class ApiServices extends NetworkUtils
         ];
         $res = $this->emitter('GET', "/att/api/transactionReport/", $data);
         if ($res['response'] < 200 || $res['response'] >= 300) {
-            // throw new ResponseExeception($res['msg']);
-        } else {
-            return !empty($res['data']) ? $res['data'] : [['data'=> []]];
+            return ['count' => 0, 'data' => []];
         }
+
+        return !empty($res['data']) ? $res['data'] : ['count' => 0, 'data' => []];
     }
 
     public function get_transactions($data)
@@ -694,10 +694,10 @@ class ApiServices extends NetworkUtils
 
         $res = $this->emitter('GET', "/iclock/api/transactions/", $data);
         if ($res['response'] < 200 || $res['response'] >= 300) {
-            // throw new ResponseExeception($res['msg']);
-        } else {
-            return !empty($res['data']) ? $res['data'] : [['data'=> []]];
+            return ['count' => 0, 'data' => []];
         }
+
+        return !empty($res['data']) ? $res['data'] : ['count' => 0, 'data' => []];
     }
 
     public function read_transaction($id)
