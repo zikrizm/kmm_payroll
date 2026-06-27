@@ -1587,7 +1587,7 @@ class AttendanceUtil extends Util
                     // OPERATIONAL HADIR, KARYAWAN HADIR TETAPI TIDAK SESUAI DENGAN SHIFT
                     $result['status'] = false;
                     $result['info'] = 'Absensi tidak sesuai operational';
-                    $result['overtime_adjustment'] = $lembur - $timetable_operational->ot_limit;
+                    $result['overtime_adjustment'] = $total_overtime - $timetable_operational->ot_limit;
                 }
             } else {
                 $result['status'] = false;
