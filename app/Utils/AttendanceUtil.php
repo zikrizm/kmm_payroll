@@ -547,11 +547,13 @@ class AttendanceUtil extends Util
 
     private function logGrouping(string $step, array $data = []): void
     {
-        if ($this->groupingLogContext === null) {
-            return;
-        }
+        return;
 
-        Log::info('[ATTENDANCE_GROUPING] ' . $step, array_merge($this->groupingLogContext, $data));
+        // if ($this->groupingLogContext === null) {
+        //     return;
+        // }
+
+        // Log::info('[ATTENDANCE_GROUPING] ' . $step, array_merge($this->groupingLogContext, $data));
     }
 
     private function formatLimitsForLog(array $limits): array
