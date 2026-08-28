@@ -24,12 +24,15 @@ class ApiServices extends NetworkUtils
                 'password' => $zkteco_setting->password,
             ];
 
-            $res = $this->emitter('POST', "/jwt-api-token-auth/", $data);
+            $res = $this->emitter('POST', '/jwt-api-token-auth/', $data, false);
+            if (!$res || !isset($res['response'])) {
+                throw new Exception('Failed to connect to bio time API');
+            }
             if ($res['response'] < 200 || $res['response'] >= 300) {
                 throw new Exception(serialize($res['msg']));
-            } else {
-                return $res;
             }
+
+            return $res;
         } else {
             return $this->buildRes->RESPONSE_REQ('error', null, 'No user logged into bio time API');
         }
@@ -39,7 +42,7 @@ class ApiServices extends NetworkUtils
     {
         // YIYlNRqnJ9lt6431uK7vfHYXyuvcW1E0kvOe3pGazs3u9eZJ0iMGvtcr5DN65EMr
         $client = new Client();
-        $request = new Psr7\Request('GET', config('constants.api_zkteco') . '/vlRegister/', ['Cookie' => 'csrftoken=']);
+        $request = new Psr7\Request('GET', config('constants.api_zkteco_internal') . '/vlRegister/', ['Cookie' => 'csrftoken=']);
         $res = $client->sendAsync($request)->wait();
         $cookie = $res->getHeaderLine('Set-Cookie');
         // Cookie::queue(Cookie::make('csrftoken_zkteco', explode('=', explode(';', $cookie)[0])[1], 60));
@@ -50,7 +53,7 @@ class ApiServices extends NetworkUtils
     {
         $this->get_csrftoken();
         $client = new Client();
-        $request = new Psr7\Request('GET', config('constants.api_zkteco') . '/vlRegister/', ['Cookie' => 'csrftoken=' . $this->csrftoken_zkteco]);
+        $request = new Psr7\Request('GET', config('constants.api_zkteco_internal') . '/vlRegister/', ['Cookie' => 'csrftoken=' . $this->csrftoken_zkteco]);
         $res = $client->sendAsync($request)->wait();
         $content = $res->getBody();
 
