@@ -33,7 +33,7 @@ class NetworkUtils
      */
     public function __construct(ResponseUtil $buildRes)
     {
-        $this->api_zkteco = config('constants.api_zkteco');
+        $this->api_zkteco = config('constants.api_zkteco_internal');
         $this->buildRes = $buildRes;
     }
 
@@ -46,42 +46,50 @@ class NetworkUtils
      *
      * @return
      */
-    public function emitter($method, $url, $data)
+    public function emitter($method, $url, $data, $withAuth = true)
     {
         try {
             // **
             // * HTTP CLIENT HEADER ----->
             // *
 
-            $token = 'JWT ' . Session::get('token_zkteco');
-            $headers = [
-                'Content-Type' => 'application/json',
-                'Authorization' => $token,
-            ];
+            $headers = ['Content-Type' => 'application/json'];
+            if ($withAuth && Session::get('token_zkteco')) {
+                $headers['Authorization'] = 'JWT ' . Session::get('token_zkteco');
+            }
+            $requestUrl = $this->api_zkteco . $url;
+            Log::info('[ZKTeco] Request', [
+                'method' => $method,
+                'url' => $requestUrl,
+                'http_host' => request()->getHost(),
+            ]);
+
             if (strtolower($method) == 'get') {
                 // **
                 // * HTTP CLIENT GET ----->
                 // *
                 $res = Http::withHeaders($headers)->timeout(20)
-                    ->get($this->api_zkteco . $url, $data);
+                    ->get($requestUrl, $data);
             } else if (strtolower($method) == 'post') {
                 // **
                 // * HTTP CLIENT POST ----->
                 // *
                 $res = Http::withHeaders($headers)->timeout(20)
-                    ->post($this->api_zkteco . $url, $data);
+                    ->post($requestUrl, $data);
             } else if (strtolower($method) == 'put') {
                 // **
                 // * HTTP CLIENT PUT ----->
                 // *
                 $res = Http::withHeaders($headers)->timeout(20)
-                    ->put($this->api_zkteco . $url, $data);
+                    ->put($requestUrl, $data);
             } else if (strtolower($method) == 'delete') {
                 // **
                 // * HTTP CLIENT DELETE ----->
                 // *
                 $res = Http::withHeaders($headers)->timeout(20)
-                    ->delete($this->api_zkteco . $url, $data);
+                    ->delete($requestUrl, $data);
+            } else {
+                return $this->buildRes->RESPONSE_REQ('error', null, ['something_wrong' => ['Unsupported HTTP method']]);
             }
 
             // Log::info(Session::get('token_zkteco'));
@@ -100,7 +108,8 @@ class NetworkUtils
             // *
             return $this->buildRes->RESPONSE_REQ('error', null, ['connection_timeout' => ['Not connected to bio time API']]);
         } catch (Exception $e) {
-            $return_list = $this->buildRes->RESPONSE_REQ('error', null, ['something_wrong' => ['Something wrong']]);
+            Log::emergency('File:' . $e->getFile() . ' Line:' . $e->getLine() . ' Message:' . $e->getMessage());
+            return $this->buildRes->RESPONSE_REQ('error', null, ['something_wrong' => ['Something wrong']]);
         }
     }
 

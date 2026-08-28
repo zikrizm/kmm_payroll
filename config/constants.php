@@ -1,5 +1,25 @@
 <?php
 
+$zktecoPort = env('ZKTECO_PORT', '8000');
+
+// Server-side calls (token, sync) always hit BioTime locally — avoids Tailscale hairpin failures.
+$zktecoInternalHost = env('ZKTECO_HOST', '127.0.0.1');
+$zktecoInternalUrl = 'http://' . $zktecoInternalHost . ':' . $zktecoPort;
+
+// Browser/client URL follows how the user opened the payroll app (LAN, Tailscale, etc.).
+$zktecoRawHost = $_SERVER['HTTP_HOST'] ?? '127.0.0.1';
+$zktecoHost = parse_url('http://' . $zktecoRawHost, PHP_URL_HOST) ?: '127.0.0.1';
+$zktecoPublicIp = gethostbyname($zktecoHost);
+
+if (in_array(strtolower($zktecoHost), ['localhost', '127.0.0.1'], true)
+    && !empty($_SERVER['SERVER_ADDR'])
+    && !in_array($_SERVER['SERVER_ADDR'], ['127.0.0.1', '::1'], true)
+) {
+    $zktecoPublicIp = $_SERVER['SERVER_ADDR'];
+}
+
+$zktecoPublicUrl = 'http://' . $zktecoPublicIp . ':' . $zktecoPort;
+
 return [
 
     /*
@@ -8,12 +28,10 @@ return [
     |--------------------------------------------------------------------------
     |List of all constants for the app
     */
-    // 'api_zkteco' => 'http://127.0.0.1:8000',
-    // 'api' => 'http://127.0.0.1:8000',
-    // 'zkt_port' => '8000',
-    'api_zkteco' => 'http://'.parse_url($_SERVER['HTTP_HOST'], PHP_URL_HOST) . ':8000',
-    'api' => 'http://'. parse_url($_SERVER['HTTP_HOST'], PHP_URL_HOST) . ':8000',
- 
+    'api_zkteco_internal' => $zktecoInternalUrl,
+    'api_zkteco' => $zktecoPublicUrl,
+    'api' => $zktecoInternalUrl,
+
     'langs' => [
         'en' => ['full_name' => 'English', 'short_name' => 'English'],
         'es' => ['full_name' => 'Spanish - Español', 'short_name' => 'Spanish'],

@@ -82,10 +82,21 @@ class LoginController extends Controller
 
         Session::put('business_id', $user->business->id);
 
-        $res = $this->apiService->get_token_zkteco();
-        $token = $res['data']['token'];
+        try {
+            $res = $this->apiService->get_token_zkteco();
+            if (!empty($res['data']['token'])) {
+                Session::put('token_zkteco', $res['data']['token']);
+            } else {
+                Log::warning('ZKTeco token missing in API response', ['response' => $res]);
+            }
+        } catch (\Exception $e) {
+            Log::emergency('File:' . $e->getFile() . ' Line:' . $e->getLine() . ' Message:' . $e->getMessage());
+            Auth::logout();
 
-        Session::put('token_zkteco', $token);
+            return redirect('/login')->withErrors([
+                'username' => 'Gagal terhubung ke BioTime API. Pastikan layanan BioTime berjalan.',
+            ]);
+        }
         // $permissionNames = $user->getAllPermissions();
 
         // if (count($permissionNames) == 2 && $permissionNames[0]['name'] == 'employee-photo.view' && $permissionNames[1]['name'] == 'employee-photo.create') {
