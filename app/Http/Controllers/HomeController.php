@@ -31,6 +31,7 @@ class HomeController extends Controller
         $this->apiService = $service;
         $this->buildRes = $buildRes;
         $this->middleware('auth');
+        $this->middleware('zkteco.token');
     }
 
     /**

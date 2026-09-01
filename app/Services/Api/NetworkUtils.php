@@ -7,6 +7,7 @@ use GuzzleHttp\Psr7;
 use GuzzleHttp\Client;
 use App\Utils\ResponseUtil;
 use App\Exceptions\ApiException;
+use App\Exceptions\ZktecoTokenExpiredException;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Session;
@@ -98,10 +99,13 @@ class NetworkUtils
             // Log::info($res->failed());
 
             $data = json_decode($res->body(), true);
+            $this->rejectIfZktecoUnauthorized($res->status(), $data, $withAuth);
             if ($res->failed()) {
                 return $this->buildRes->RESPONSE_REQ('error', null, $data);
             }
             return $this->buildRes->RESPONSE_REQ('success', $data, null);
+        } catch (ZktecoTokenExpiredException $e) {
+            throw $e;
         } catch (ConnectionException $e) {
             // **
             // * HTTP CLIENT TIMEOUT ----->
@@ -160,6 +164,7 @@ class NetworkUtils
             // Log::info($res->getBody());
 
             $data = json_decode($res->getBody(), true);
+            $this->rejectIfZktecoUnauthorized($res->getStatusCode(), $data);
             if ($res->getStatusCode() >= 300) {
                 // is HTTP status code (for non-exceptions) 
                 $statusCode = $res->getStatusCode();
@@ -167,6 +172,8 @@ class NetworkUtils
             } else {
                 return $this->buildRes->RESPONSE_REQ('success', $data, null);
             }
+        } catch (ZktecoTokenExpiredException $e) {
+            throw $e;
         } catch (TooManyRedirectsException $e) {
             // handle too many redirects
         } catch (ClientException | ServerException $e) {
@@ -175,6 +182,8 @@ class NetworkUtils
             if ($e->hasResponse()) {
                 // is HTTP status code, e.g. 500 
                 $statusCode = $e->getResponse()->getStatusCode();
+                $body = json_decode((string) $e->getResponse()->getBody(), true);
+                $this->rejectIfZktecoUnauthorized($statusCode, $body);
             }
         } catch (ConnectException $e) {
             // ConnectException - A GuzzleHttp\Exception\ConnectException exception is thrown in the event of a networking error. This may be any libcurl error, including certificate problems
@@ -189,5 +198,57 @@ class NetworkUtils
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
         }
+    }
+
+    /**
+     * Logout and abort when BioTime rejects the JWT.
+     * Login token requests ($withAuth = false) are not treated as session expiry.
+     *
+     * @param  mixed  $status
+     * @param  mixed  $body
+     * @param  bool  $withAuth
+     * @return void
+     *
+     * @throws \App\Exceptions\ZktecoTokenExpiredException
+     */
+    private function rejectIfZktecoUnauthorized($status, $body, bool $withAuth = true): void
+    {
+        if (!$this->isZktecoUnauthorized($status, $body, $withAuth)) {
+            return;
+        }
+
+        ZktecoTokenExpiredException::flushSession(request());
+        throw new ZktecoTokenExpiredException();
+    }
+
+    /**
+     * @param  mixed  $status
+     * @param  mixed  $body
+     * @param  bool  $withAuth
+     * @return bool
+     */
+    private function isZktecoUnauthorized($status, $body, bool $withAuth = true): bool
+    {
+        if (!$withAuth) {
+            return false;
+        }
+
+        if ((int) $status === 401) {
+            return true;
+        }
+
+        $haystack = '';
+        if (is_array($body) || is_object($body)) {
+            $haystack = json_encode($body) ?: '';
+        } elseif (is_string($body)) {
+            $haystack = $body;
+        }
+
+        $haystack = strtolower($haystack);
+
+        return str_contains($haystack, 'signature has expired')
+            || str_contains($haystack, 'token is expired')
+            || str_contains($haystack, 'invalid token')
+            || str_contains($haystack, 'authentication credentials were not provided');
     }
 }
