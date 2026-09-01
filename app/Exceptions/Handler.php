@@ -2,7 +2,9 @@
 
 namespace App\Exceptions;
 
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
+use Illuminate\Session\TokenMismatchException;
 use Throwable;
 
 class Handler extends ExceptionHandler
@@ -22,7 +24,7 @@ class Handler extends ExceptionHandler
      * @var array<int, class-string<\Throwable>>
      */
     protected $dontReport = [
-        //
+        ZktecoTokenExpiredException::class,
     ];
 
     /**
@@ -45,6 +47,18 @@ class Handler extends ExceptionHandler
     {
         $this->reportable(function (Throwable $e) {
             //
+        });
+
+        $this->renderable(function (ZktecoTokenExpiredException $e, $request) {
+            return ZktecoTokenExpiredException::logoutAndRespond($request, $e->getMessage());
+        });
+
+        $this->renderable(function (AuthenticationException $e, $request) {
+            return ZktecoTokenExpiredException::logoutAndRespond($request);
+        });
+
+        $this->renderable(function (TokenMismatchException $e, $request) {
+            return ZktecoTokenExpiredException::logoutAndRespond($request);
         });
     }
 }

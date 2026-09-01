@@ -64,5 +64,6 @@ class Kernel extends HttpKernel
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
         'only.ajax' => \App\Http\Middleware\OnlyAjax::class,
+        'zkteco.token' => \App\Http\Middleware\EnsureZktecoTokenIsValid::class,
     ];
 }

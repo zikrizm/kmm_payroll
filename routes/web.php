@@ -31,7 +31,7 @@ Route::get('/', 'HomeController@index')->name('home.index');
 Route::get('/business/register', 'BusinessController@getBusinessRegister')->name('business.index.register');
 Route::post('/business/register', 'BusinessController@storeBusinessRegister')->name('business.store.register');
 
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'zkteco.token'])->group(function () {
     Route::get('/home', 'HomeController@index')->name('home.index');
     Route::get('/get-token-zkteco', 'HomeController@get_token_zkteco')->name('get_token_zkteco')->middleware('only.ajax');
     Route::get('/upload_csv', 'HelperController@upload_csv')->name('upload_csv');
