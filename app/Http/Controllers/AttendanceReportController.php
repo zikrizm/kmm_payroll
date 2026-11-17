@@ -6,6 +6,7 @@ use App\Utils\Util;
 use App\Models\Shift;
 use App\Models\Transaction;
 use App\Utils\ResponseUtil;
+use App\Utils\AttendanceUtil;
 use App\Models\EmployeeDebt;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -19,12 +20,87 @@ class AttendanceReportController extends Controller
     private $apiService;
     private $buildRes;
     private $util;
+    private $attendanceUtil;
 
-    public function __construct(ApiServices $apiService, Util $util, ResponseUtil $buildRes)
+    public function __construct(ApiServices $apiService, Util $util, AttendanceUtil $attendanceUtil, ResponseUtil $buildRes)
     {
         $this->apiService = $apiService;
         $this->buildRes = $buildRes;
         $this->util = $util;
+        $this->attendanceUtil = $attendanceUtil;
+    }
+
+    private function departmentCodesFromRequest(Request $request): ?array
+    {
+        if ($request->has('department_codes')) {
+            $codes = $request->input('department_codes');
+            if (!is_array($codes)) {
+                $codes = ($codes !== null && $codes !== '') ? [$codes] : [];
+            }
+            $filtered = array_values(array_filter($codes, fn ($code) => $code !== null && $code !== ''));
+
+            return empty($filtered) ? null : $filtered;
+        }
+
+        if ($request->filled('department_code')) {
+            $code = $request->input('department_code');
+            if (is_array($code)) {
+                $filtered = array_values(array_filter($code));
+
+                return empty($filtered) ? null : $filtered;
+            }
+
+            return [$code];
+        }
+
+        return null;
+    }
+
+    private function departmentApiIdsFromCodes(?array $departmentCodes): ?string
+    {
+        if (empty($departmentCodes)) {
+            return null;
+        }
+
+        $departments = collect($this->attendanceUtil->getDepartment());
+        $ids = collect($departmentCodes)
+            ->map(function ($code) use ($departments) {
+                $byCode = $departments->firstWhere('dept_code', (string) $code);
+                if ($byCode) {
+                    return $byCode['id'] ?? null;
+                }
+
+                $byId = $departments->firstWhere('id', is_numeric($code) ? (int) $code : $code);
+
+                return $byId['id'] ?? null;
+            })
+            ->filter()
+            ->unique()
+            ->values();
+
+        return $ids->isEmpty() ? null : $ids->implode(',');
+    }
+
+    private function resolveAttendanceReportDateRange(Request $request): array
+    {
+        if ($request->filled('start_date') && $request->filled('end_date')) {
+            $start = Carbon::createFromFormat('d-m-Y', $request->input('start_date'))->startOfDay();
+            $end = Carbon::createFromFormat('d-m-Y', $request->input('end_date'))->endOfDay();
+
+            return [$start, $end];
+        }
+
+        if (!empty($request->input('attendance_report_date'))) {
+            $start = Carbon::parse($request->attendance_report_date['start_time'])->startOfDay();
+            $end = Carbon::parse($request->attendance_report_date['end_time'])->addHours(1)->endOfDay();
+
+            return [$start, $end];
+        }
+
+        $start = Carbon::now()->startOfWeek()->startOfDay();
+        $end = Carbon::now()->endOfWeek()->endOfDay();
+
+        return [$start, $end];
     }
 
     /**
@@ -41,9 +117,11 @@ class AttendanceReportController extends Controller
 
         try {
             $business_id = Session::get('business_id');
-            if (request()->ajax()) {
-                $filter = [];
+            $department_codes = $this->departmentCodesFromRequest($request);
+            $start_date = $request->input('start_date');
+            $end_date = $request->input('end_date');
 
+            if (request()->ajax()) {
                 $page = 1;
                 if (!empty($request->input('page'))) {
                     $page = (int)$request->page;
@@ -54,34 +132,53 @@ class AttendanceReportController extends Controller
                     $search = $request->q;
                 }
 
-                if (!empty($request->input('attendance_report_date'))) {
-                    $start_time = Carbon::parse($request->attendance_report_date['start_time']);
-                    $end_time = Carbon::parse($request->attendance_report_date['end_time']);
-                    $filter['start_time'] = $start_time->hour(0)->minute(0)->second(0)->format('Y-m-d H:i:s');
-                    $filter['end_time'] = $end_time->addHours(1)->hour(23)->minute(59)->second(59)->format('Y-m-d H:i:s');
-                    // $attenDBs = Transaction::whereBetween('punch_time', [$filter['start_time'], $filter['end_time']])->get();
-                    $attenDBs = Transaction::whereBetween('punch_time', [$filter['start_time'], $filter['end_time']])
-                        ->orderBy('punch_time', 'desc')
-                        ->get();
+                [$startCarbon, $endCarbon] = $this->resolveAttendanceReportDateRange($request);
+                $reportFilter = [
+                    'start_date' => $startCarbon->format('Y-m-d'),
+                    'end_date' => $endCarbon->format('Y-m-d'),
+                ];
+                $departmentIds = $this->departmentApiIdsFromCodes(
+                    is_array($department_codes) ? $department_codes : ($department_codes ? [$department_codes] : null)
+                );
+                if (!empty($departmentIds)) {
+                    $reportFilter['departments'] = $departmentIds;
                 }
 
-                // $atten_count = $this->apiService->get_transactions($filter)['count'];
-                // $filter['page_size'] = $atten_count;
-                // $attens = collect($this->apiService->get_transactions($filter)['data']);
-                $atten_bio_count = $this->apiService->get_transactions($filter)['count'];
-                $atten_datas = $this->apiService->get_transactions(array_merge(['page_size' => $atten_bio_count], $filter));
-                $atten_bios = !empty($atten_datas['data'])? collect($atten_datas['data']):collect();
-                foreach ($attenDBs as $key => $value) {
-                    $value['id'] = $value['emp'];
-                    $atten_bios[] = $value->toArray();
+                $attenDBs = Transaction::whereBetween('punch_time', [
+                    $startCarbon->format('Y-m-d H:i:s'),
+                    $endCarbon->format('Y-m-d H:i:s'),
+                ])
+                    ->orderBy('punch_time', 'desc')
+                    ->get();
+
+                $atten_datas = $this->apiService->get_transaction_reports($reportFilter) ?? ['count' => 0, 'data' => []];
+                $atten_bio_count = $atten_datas['count'] ?? 0;
+                if ($atten_bio_count > 0) {
+                    $atten_datas = $this->apiService->get_transaction_reports(array_merge(['page_size' => $atten_bio_count], $reportFilter))
+                        ?? ['count' => 0, 'data' => []];
                 }
-                // $shifts = Shift::where('business_id', $business_id)->with(
-                //     ['shiftday' => function ($query) {
-                //         $query->with(['shiftday_has_timetable' => function ($query) {
-                //             $query->with(['timetable']);
-                //         }]);
-                //     }]
-                // )->get();
+                $atten_bios = collect($atten_datas['data'] ?? [])->map(function ($item) {
+                    $punchTime = $item['punch_time'] ?? null;
+                    if (!empty($item['att_date']) && !empty($item['punch_time']) && !str_contains((string) $item['punch_time'], '-')) {
+                        $punchTime = $item['att_date'] . ' ' . $item['punch_time'] . (strlen((string) $item['punch_time']) <= 5 ? ':00' : '');
+                    }
+
+                    return [
+                        'id' => $item['id'] ?? null,
+                        'emp' => $item['emp'] ?? $item['emp_code'] ?? null,
+                        'emp_code' => $item['emp_code'] ?? null,
+                        'first_name' => $item['first_name'] ?? null,
+                        'last_name' => $item['last_name'] ?? null,
+                        'department' => $item['dept_name'] ?? $item['department'] ?? null,
+                        'punch_time' => $punchTime,
+                    ];
+                });
+
+                foreach ($attenDBs as $value) {
+                    $row = $value->toArray();
+                    $row['id'] = $row['emp'] ?? $row['id'] ?? null;
+                    $atten_bios->push($row);
+                }
 
                 $attendance_reports = [];
                 $attens_groupings = $this->_group_by_date_and_emp($atten_bios);
@@ -90,7 +187,7 @@ class AttendanceReportController extends Controller
                     $item_last = $items[count($items) - 1];
                     $diff_time = Carbon::parse($item_first['punch_time'])->diff(Carbon::parse($item_last['punch_time']));
                     if (!empty($search)) {
-                        if (str_contains(strtolower($item_first['first_name']), strtolower($search))) {
+                        if (str_contains(strtolower($item_first['first_name'] ?? ''), strtolower($search))) {
                             $attendance_reports[] =  [
                                 "id" => $item_first['id'],
                                 "emp_code" => $item_first['emp_code'],
@@ -130,46 +227,18 @@ class AttendanceReportController extends Controller
                     'currentPage' => $page,
                 ]);
 
-                // $attendance_reports['data'] = $attendance_reports['data']->map(function ($element) use ($shifts) {
-                //     $check_in = Carbon::parse($element['first_punch'])->format('H:i:s');
-                //     $check_out = Carbon::parse($element['last_punch'])->format('H:i:s');
-                //     $code_day = Carbon::parse($element['att_date'])->dayOfWeek;
-
-                //     foreach ($shifts as $shift) {
-                //         foreach ($shift->shiftday as $shiftday) {
-                //             foreach ($shiftday->shiftday_has_timetable as $keyHas => $shiftdayHas) {
-                //                 $in = Carbon::createFromTimeString($shiftdayHas->timetable->in_time);
-                //                 $out = Carbon::createFromTimeString($shiftdayHas->timetable->out_time);
-                //                 $punchIn = Carbon::createFromTimeString($check_in);
-                //                 $punchOut = Carbon::createFromTimeString($check_out);
-
-                //                 // // check apakah out lebih kecil dari in, klo ya tambah 1 hari
-                //                 // if ($out->lessThan($in)) {
-                //                 //     $punch->addDay();
-                //                 //     $out->addDay();
-                //                 // }
-
-                //                 if ($code_day == $shiftday->code_day) {
-                //                     if ($punchIn->lt($in->addHour())) {
-                //                         $element['shift']['id'] = $shift->id;
-                //                         $element['shift']['name'] = $shift->name;
-                //                     }
-                //                     $element['shift']['weekday'] = $shiftday->name;
-                //                 }
-                //             }
-                //         }
-                //     }
-
-                //     return $element;
-                // });
-
                 $order = null;
                 $render =  view('Report.attendance_report.table', compact('attendance_reports', 'order'))->render();
 
                 return $this->buildRes->RESPONSE_REQ('success', $render, null);
             }
 
-            return  view('Report.attendance_report.index');
+            $department_bios = collect($this->attendanceUtil->getDepartment());
+            if (!is_array($department_codes)) {
+                $department_codes = $department_codes ? [$department_codes] : [];
+            }
+
+            return view('Report.attendance_report.index', compact('department_bios', 'department_codes', 'start_date', 'end_date'));
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
 
@@ -538,10 +607,14 @@ class AttendanceReportController extends Controller
     {
         $return = array();
         foreach ($array as $val) {
+            if (empty($val['punch_time'])) {
+                continue;
+            }
             $date = Carbon::parse($val['punch_time'])->format('Y-m-d');
-            if (!empty($date)) {
-                $return[$date . '-' . $val['emp']][] = $val;
-                usort($return[$date . '-' . $val['emp']], function ($a, $b) {
+            $empKey = $val['emp'] ?? $val['emp_code'] ?? null;
+            if (!empty($date) && $empKey !== null && $empKey !== '') {
+                $return[$date . '-' . $empKey][] = $val;
+                usort($return[$date . '-' . $empKey], function ($a, $b) {
                     return strtotime($a['punch_time']) - strtotime($b['punch_time']);
                 });
             }
