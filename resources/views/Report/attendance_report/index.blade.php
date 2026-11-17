@@ -206,6 +206,8 @@
     });
 
     async function onInit(data) {
+        $('#loading-block-document').show();
+
         const requestParams = buildAttendanceReportRequestParams(data);
         dataParams = { ...requestParams };
 
@@ -221,6 +223,8 @@
 
         var res = await ApiService.get_table('/attendance-report', requestParams);
         $('.table-content').html(res);
+
+        $('#loading-block-document').hide();
 
         $('.pagination-button').on('click', function() {
             onInit({...dataParams, page: parseInt($(this).data('pagination-page'))})
