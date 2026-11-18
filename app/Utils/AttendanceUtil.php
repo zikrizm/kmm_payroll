@@ -1321,10 +1321,13 @@ class AttendanceUtil extends Util
         Collection $attendances,
         Timetable $timetable,
     ) {
+        $empCode = $employee['emp_code'] ?? null;
+        $debugEmp = $empCode === '190612';
+
         $result = collect([
             'key' => $range_date['key'],
             'date' => $range_date['date'],
-            'emp_code' => $employee['emp_code'] ?? null,
+            'emp_code' => $empCode,
             'emp_name' => trim(($employee['first_name'] ?? '') . ' ' . ($employee['last_name'] ?? '')),
             'timetable' => null,
             'working' => collect(['start_punch' => null, 'end_punch' => null, "status" => false, "info" => null]),
@@ -1350,6 +1353,25 @@ class AttendanceUtil extends Util
         $check_in_limit_plus = $check_in->copy()->addMinutes($timetable->check_in_plus);
         $check_out_limit_min = $check_out->copy()->subMinutes($timetable->check_out_min);
         $check_out_limit_plus = $check_out->copy()->addMinutes($timetable->check_out_plus);
+
+        if ($debugEmp) {
+            Log::info('[SHIFT_CHECK][190612] START', [
+                'date' => $date_string,
+                'timetable_id' => $timetable->id,
+                'timetable_name' => $timetable->name,
+                'check_in_window' => [
+                    $check_in_limit_min->format('Y-m-d H:i'),
+                    $check_in_limit_plus->format('Y-m-d H:i'),
+                ],
+                'check_out_window' => [
+                    $check_out_limit_min->format('Y-m-d H:i'),
+                    $check_out_limit_plus->format('Y-m-d H:i'),
+                ],
+                'work_time' => $work_time,
+                'punches' => $attendances->map(fn ($item) => $item['punch_time'] ?? null)->values()->all(),
+                'attendance_count' => $attendances->count(),
+            ]);
+        }
 
         $warning_check_in_limit_min = $check_in->copy()->subMinutes($timetable->warning_check_in_min);
         $warning_check_in_limit_plus = $check_in->copy()->addMinutes($timetable->warning_check_in_plus);
@@ -1524,7 +1546,20 @@ class AttendanceUtil extends Util
                 $result['break_time']['info'] = 'Terdapat absensi di waktu istrahat, padahal dijadwal tidak ada';
             }
         }
-        
+
+        if ($debugEmp) {
+            Log::info('[SHIFT_CHECK][190612] RESULT', [
+                'date' => $date_string,
+                'timetable_set' => !empty($result['timetable']),
+                'timetable_name' => $result['timetable']['name'] ?? null,
+                'start_punch' => $result['working']['start_punch'],
+                'end_punch' => $result['working']['end_punch'],
+                'working_status' => $result['working']['status'],
+                'working_info' => $result['working']['info'],
+                'check_in_limit_min' => $check_in_limit_min->format('Y-m-d H:i'),
+                'check_in_limit_plus' => $check_in_limit_plus->format('Y-m-d H:i'),
+            ]);
+        }
 
         return $result;
     }
