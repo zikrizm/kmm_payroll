@@ -913,30 +913,53 @@ class AttendanceUtil extends Util
         });
 
         if ($timetable->is_without_break) {
-            $valid = $collectedPunches->count() >= 2 && $hasCheckoutPunchInWindow;
-            $this->logGrouping($valid ? 'VALIDASI_OK: tanpa istirahat (>=2 punch + checkout)' : 'VALIDASI_GAGAL: tanpa istirahat', array_merge($logBase, [
+            if ($collectedPunches->count() >= 2 && $hasCheckoutPunchInWindow) {
+                $this->logGrouping('VALIDASI_OK: tanpa istirahat (>=2 punch + checkout)', array_merge($logBase, [
+                    'punch_count' => $collectedPunches->count(),
+                    'has_checkout_in_window' => $hasCheckoutPunchInWindow,
+                ]));
+
+                return true;
+            }
+        } else {
+            // Tahap 1: jika ada break yang valid, group langsung dianggap valid.
+            if ($this->hasBreakPunchesBetween($collectedPunches, $limits)) {
+                $this->logGrouping('VALIDASI_OK: tahap 1 (ada istirahat valid)', $logBase);
+
+                return true;
+            }
+
+            // Tahap 2 (fallback): tanpa break tetap valid jika punch pulang cocok window checkout timetable.
+            if ($collectedPunches->count() >= 2 && $hasCheckoutPunchInWindow) {
+                $this->logGrouping('VALIDASI_OK: tahap 2 fallback (tanpa istirahat, checkout cocok)', array_merge($logBase, [
+                    'punch_count' => $collectedPunches->count(),
+                    'has_checkout_in_window' => $hasCheckoutPunchInWindow,
+                ]));
+
+                return true;
+            }
+        }
+
+        // Tahap 3: setengah hari — check-in valid + durasi kerja >= setengah work_time.
+        $lastPunch = Carbon::parse($collectedPunches->last()['punch_time']);
+        $workingDuration = $firstPunch->diffInMinutes($lastPunch);
+        $halfWorkTime = ($timetable->work_time ?? 0) / 2;
+        $isHalfDay = $collectedPunches->count() >= 2 && $workingDuration >= $halfWorkTime;
+
+        $this->logGrouping(
+            $isHalfDay ? 'VALIDASI_OK: tahap 3 setengah hari' : 'VALIDASI_GAGAL: tahap 3 setengah hari',
+            array_merge($logBase, [
                 'punch_count' => $collectedPunches->count(),
+                'first_punch' => $firstPunch->format('Y-m-d H:i'),
+                'last_punch' => $lastPunch->format('Y-m-d H:i'),
+                'working_duration' => $workingDuration,
+                'work_time' => $timetable->work_time,
+                'half_work_time' => $halfWorkTime,
                 'has_checkout_in_window' => $hasCheckoutPunchInWindow,
-            ]));
+            ])
+        );
 
-            return $valid;
-        }
-
-        // Tahap 1: jika ada break yang valid, group langsung dianggap valid.
-        if ($this->hasBreakPunchesBetween($collectedPunches, $limits)) {
-            $this->logGrouping('VALIDASI_OK: tahap 1 (ada istirahat valid)', $logBase);
-
-            return true;
-        }
-
-        // Tahap 2 (fallback): tanpa break tetap valid jika punch pulang cocok window checkout timetable.
-        $valid = $collectedPunches->count() >= 2 && $hasCheckoutPunchInWindow;
-        $this->logGrouping($valid ? 'VALIDASI_OK: tahap 2 fallback (tanpa istirahat, checkout cocok)' : 'VALIDASI_GAGAL: tahap 2 fallback', array_merge($logBase, [
-            'punch_count' => $collectedPunches->count(),
-            'has_checkout_in_window' => $hasCheckoutPunchInWindow,
-        ]));
-
-        return $valid;
+        return $isHalfDay;
     }
 
     private function collectPunchesForTimetable(
