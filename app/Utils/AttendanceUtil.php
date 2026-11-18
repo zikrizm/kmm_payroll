@@ -2250,7 +2250,39 @@ class AttendanceUtil extends Util
                     ]);
 
                     $attendance_employees = $attendance_grouping->get($employee['emp_code'], collect());
+
+                    if (($employee['emp_code'] ?? null) === '190612') {
+                        Log::info('[ATTENDANCE_GROUPING][190612] BEFORE', [
+                            'emp_code' => $employee['emp_code'],
+                            'dept_id' => $department_shift->dept_id ?? null,
+                            'has_shift' => !empty($department_shift),
+                            'raw_punches_by_date' => $attendance_employees->map(function ($dayPunches, $date) {
+                                return [
+                                    'date' => $date,
+                                    'punches' => collect($dayPunches)->map(fn ($item) => $item['punch_time'] ?? null)->values()->all(),
+                                ];
+                            })->values()->all(),
+                        ]);
+                    }
+
                     $attendance_employee_timetables = $this->attendanceTimetableGrouping($department_shift, $attendance_employees, $range_dates, $employee['emp_code']);
+
+                    if (($employee['emp_code'] ?? null) === '190612') {
+                        Log::info('[ATTENDANCE_GROUPING][190612] attendance_employee_timetables', [
+                            'emp_code' => $employee['emp_code'],
+                            'is_empty' => $attendance_employee_timetables->isEmpty(),
+                            'dates' => $attendance_employee_timetables->keys()->values()->all(),
+                            'data' => $attendance_employee_timetables->map(function ($timetableGroups, $date) {
+                                return collect($timetableGroups)->map(function ($punches, $timetableId) {
+                                    return [
+                                        'timetable_id' => $timetableId,
+                                        'punch_count' => collect($punches)->count(),
+                                        'punches' => collect($punches)->map(fn ($item) => $item['punch_time'] ?? null)->values()->all(),
+                                    ];
+                                })->all();
+                            })->all(),
+                        ]);
+                    }
 
                     $calculated_job_bonus = $this->calculatedJobBonus($employee, $start_date_work_day->copy(), $end_date_work_day->copy(), $start_date_overtime->copy(), $end_date_overtime->copy());
                     $attendance_report_employee_data['total_job_bonus'] += $calculated_job_bonus['total_job_bonus'];
