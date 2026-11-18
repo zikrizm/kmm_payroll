@@ -1275,7 +1275,22 @@ class AttendanceUtil extends Util
                     ]);
                 }
 
-                if (!$this->isValidTimetableGroup($groupPunches, $timetable, $limits)) {
+                $isValidTimetableGroup = $this->isValidTimetableGroup($groupPunches, $timetable, $limits);
+
+                if (($this->groupingLogContext['emp_code'] ?? null) === '190612') {
+                    Log::info('[ATTENDANCE_GROUPING][190612] isValidTimetableGroup', [
+                        'date' => $date_string,
+                        'timetable_id' => $timetable->id,
+                        'timetable_name' => $timetable->name,
+                        'is_valid' => $isValidTimetableGroup,
+                        'is_without_break' => (bool) $timetable->is_without_break,
+                        'work_time' => $timetable->work_time,
+                        'windows' => $this->formatLimitsForLog($limits),
+                        'group_punches' => $this->punchTimesFromCollection($groupPunches),
+                    ]);
+                }
+
+                if (!$isValidTimetableGroup) {
                     continue;
                 }
 
