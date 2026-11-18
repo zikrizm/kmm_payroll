@@ -1791,6 +1791,16 @@ class AttendanceUtil extends Util
         $start_punch = Carbon::parse($shift_data['working']['start_punch']);
         $end_punch = Carbon::parse($shift_data['working']['end_punch']);
 
+        if($shift_data['emp_code'] == '190612') {
+            Log::info('[HALF_DAY_CHECK]', [
+                'emp_code' => $shift_data['emp_code'] ?? null,
+                'emp_name' => $shift_data['emp_name'] ?? null,
+                'date' => $date_string,
+                'timetable' => $shift_data['timetable']['name'] ?? null,
+                'start_punch' => $start_punch->format('Y-m-d H:i:s'),
+                'end_punch' => $end_punch->format('Y-m-d H:i:s'),
+            ]);
+        }
         // Log::info($check_out);
         // Log::info($shift_data['timetable']);
         // Log::info($check_out_limit_min);
