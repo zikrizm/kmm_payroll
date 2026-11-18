@@ -1324,6 +1324,8 @@ class AttendanceUtil extends Util
         $result = collect([
             'key' => $range_date['key'],
             'date' => $range_date['date'],
+            'emp_code' => $employee['emp_code'] ?? null,
+            'emp_name' => trim(($employee['first_name'] ?? '') . ' ' . ($employee['last_name'] ?? '')),
             'timetable' => null,
             'working' => collect(['start_punch' => null, 'end_punch' => null, "status" => false, "info" => null]),
             'break_time' => collect(['start_punch' => null, 'end_punch' => null, "status" => false, "info" => null]),
@@ -1805,7 +1807,24 @@ class AttendanceUtil extends Util
                 }
             } else {
                 $working_duration = $start_punch->diffInMinutes($end_punch);
-                if($working_duration >= ($work_time / 2)) {
+                $half_work_time = $work_time / 2;
+                $is_half_day = $working_duration >= $half_work_time;
+
+                Log::info('[HALF_DAY_CHECK]', [
+                    'emp_code' => $shift_data['emp_code'] ?? null,
+                    'emp_name' => $shift_data['emp_name'] ?? null,
+                    'date' => $date_string,
+                    'timetable' => $shift_data['timetable']['name'] ?? null,
+                    'start_punch' => $start_punch->format('Y-m-d H:i:s'),
+                    'end_punch' => $end_punch->format('Y-m-d H:i:s'),
+                    'working_duration' => $working_duration,
+                    'work_time' => $work_time,
+                    'half_work_time' => $half_work_time,
+                    'check_out_limit_break_time' => $check_out_limit_break_time->format('Y-m-d H:i:s'),
+                    'is_half_day' => $is_half_day,
+                ]);
+
+                if($is_half_day) {
                     $result['total_hk'] += 0.5;
 
                     if($shift_data['timetable']['enable_extra_pay']) {
