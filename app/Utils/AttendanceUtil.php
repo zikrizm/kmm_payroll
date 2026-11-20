@@ -922,21 +922,30 @@ class AttendanceUtil extends Util
             return $valid;
         }
 
-        // Tahap 1: jika ada break yang valid, group langsung dianggap valid.
-        if ($this->hasBreakPunchesBetween($collectedPunches, $limits)) {
-            $this->logGrouping('VALIDASI_OK: tahap 1 (ada istirahat valid)', $logBase);
+        // Penuh: wajib ada pasangan punch istirahat (mengikuti setting is_without_break = false).
+        if ($hasBreakPunches) {
+            $this->logGrouping('VALIDASI_OK: penuh (ada istirahat valid)', $logBase);
 
             return true;
         }
 
-        // Tahap 2 (fallback): tanpa break tetap valid jika punch pulang cocok window checkout timetable.
-        $valid = $collectedPunches->count() >= 2 && $hasCheckoutPunchInWindow;
-        $this->logGrouping($valid ? 'VALIDASI_OK: tahap 2 fallback (tanpa istirahat, checkout cocok)' : 'VALIDASI_GAGAL: tahap 2 fallback', array_merge($logBase, [
+        // Setengah hari: aktivitas setelah zona datang + durasi >= work_time / 2.
+        $lastPunch = Carbon::parse($collectedPunches->last()['punch_time']);
+        $workingDuration = $firstPunch->diffInMinutes($lastPunch);
+        $halfWorkTime = ((int) ($timetable->work_time ?? 0)) / 2;
+        $hasActivityAfterCheckIn = $collectedPunches->contains(function ($item) use ($limits) {
+            return Carbon::parse($item['punch_time'])->gt($limits['check_in_limit_plus']);
+        });
+
+        $validHalfDay = $hasActivityAfterCheckIn && $halfWorkTime > 0 && $workingDuration >= $halfWorkTime;
+        $this->logGrouping($validHalfDay ? 'VALIDASI_OK: setengah hari' : 'VALIDASI_GAGAL: tanpa istirahat / belum setengah hari', array_merge($logBase, [
             'punch_count' => $collectedPunches->count(),
-            'has_checkout_in_window' => $hasCheckoutPunchInWindow,
+            'working_duration' => $workingDuration,
+            'half_work_time' => $halfWorkTime,
+            'has_activity_after_check_in' => $hasActivityAfterCheckIn,
         ]));
 
-        return $valid;
+        return $validHalfDay;
     }
 
     private function collectPunchesForTimetable(
@@ -1052,29 +1061,69 @@ class AttendanceUtil extends Util
         return $collected;
     }
 
+    private function isPunchInDayShiftCheckInWindow(
+        Carbon $punchTime,
+        Carbon $date,
+        Collection $timetablesSource,
+    ): bool {
+        foreach ($timetablesSource as $item) {
+            $other = $item->timetable;
+            if ($other->cross_day ?? 0) {
+                continue;
+            }
+
+            $dayLimits = $this->getTimetableWindowLimits($date, $other);
+            if ($punchTime->between($dayLimits['check_in_limit_min'], $dayLimits['check_in_limit_plus'])) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function getCrossDayHardUpperLimit(
+        Carbon $nextDate,
+        Collection $timetablesSource,
+    ): Carbon {
+        $hardUpper = null;
+
+        foreach ($timetablesSource as $item) {
+            $other = $item->timetable;
+            if (!($other->cross_day ?? 0)) {
+                continue;
+            }
+
+            $nightLimits = $this->getTimetableWindowLimits($nextDate, $other);
+            if ($hardUpper === null || $nightLimits['check_in_limit_min']->lt($hardUpper)) {
+                $hardUpper = $nightLimits['check_in_limit_min']->copy();
+            }
+        }
+
+        if ($hardUpper === null) {
+            return $nextDate->copy()->setTime(12, 0, 0);
+        }
+
+        return $hardUpper;
+    }
+
     private function fetchCrossDayPunches(
         Timetable $timetable,
         Carbon $date,
         array $limits,
         Collection $attendanceEmployee,
+        Collection $collectedPunches,
+        Collection $timetablesSource,
     ): Collection {
-        $checkOut = Carbon::parse($date->format('Y-m-d') . ' ' . $timetable->check_out)
-            ->addDays($timetable->cross_day ?? 0);
-        $checkoutCollectUpperLimit = $this->getCheckoutCollectUpperLimit($limits);
-
-        $diffDays = $checkoutCollectUpperLimit->copy()->startOfDay()
-            ->diffInDays($checkOut->copy()->startOfDay());
-        $crossDay = $diffDays + ($timetable->cross_day ?? 0);
-
+        $crossDay = (int) ($timetable->cross_day ?? 0);
         if ($crossDay <= 0) {
             return collect();
         }
 
+        $officialUpper = $this->getCheckoutCollectUpperLimit($limits);
         $crossDayPunches = collect();
-        $nextDate = $date->copy();
 
         for ($i = 0; $i < $crossDay; $i++) {
-            $nextDate = $nextDate->addDay();
+            $nextDate = $date->copy()->addDays($i + 1);
             $nextDateString = $nextDate->format('Y-m-d');
 
             $nextDateAttendance = $attendanceEmployee->get($nextDateString, collect());
@@ -1082,10 +1131,36 @@ class AttendanceUtil extends Util
                 continue;
             }
 
+            $hardUpper = $this->getCrossDayHardUpperLimit($nextDate, $timetablesSource);
+
             foreach ($nextDateAttendance->sortBy('punch_time') as $attendance) {
                 $punchTime = Carbon::parse($attendance['punch_time']);
-                if ($punchTime->gt($checkoutCollectUpperLimit)) {
-                    continue;
+
+                if ($punchTime->gte($hardUpper)) {
+                    break;
+                }
+
+                $soFar = $collectedPunches->merge($crossDayPunches)->values();
+                $inDayShiftCheckIn = $this->isPunchInDayShiftCheckInWindow(
+                    $punchTime,
+                    $nextDate,
+                    $timetablesSource,
+                );
+
+                if ($punchTime->gt($officialUpper)) {
+                    // Lewat window checkout resmi: hanya boleh ambil punch datang shift siang
+                    // sebagai penutup malam jika istirahat grup sudah lengkap.
+                    if ($inDayShiftCheckIn && $this->hasBreakPunchesBetween($soFar, $limits)) {
+                        $crossDayPunches->push($attendance);
+                    }
+                    break;
+                }
+
+                if ($inDayShiftCheckIn) {
+                    if ($this->hasBreakPunchesBetween($soFar, $limits)) {
+                        $crossDayPunches->push($attendance);
+                    }
+                    break;
                 }
 
                 $crossDayPunches->push($attendance);
@@ -1264,6 +1339,8 @@ class AttendanceUtil extends Util
                     $date,
                     $limits,
                     $attendance_employee,
+                    $collectedPunches,
+                    $timetables_source,
                 );
 
                 $groupPunches = $collectedPunches->merge($crossDayPunches)->values();
