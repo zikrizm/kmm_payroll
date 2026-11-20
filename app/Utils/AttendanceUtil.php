@@ -922,27 +922,38 @@ class AttendanceUtil extends Util
             return $valid;
         }
 
-        // Penuh: wajib ada pasangan punch istirahat (mengikuti setting is_without_break = false).
-        if ($hasBreakPunches) {
-            $this->logGrouping('VALIDASI_OK: penuh (ada istirahat valid)', $logBase);
+        // Penuh: istirahat lengkap + ada punch pulang (di window checkout / setelah zona istirahat).
+        if ($hasBreakPunches && ($hasCheckoutPunchInWindow || $collectedPunches->contains(function ($item) use ($limits) {
+            return Carbon::parse($item['punch_time'])->gte($limits['check_out_limit_min']);
+        }))) {
+            $this->logGrouping('VALIDASI_OK: penuh (istirahat + pulang)', $logBase);
 
             return true;
         }
 
-        // Setengah hari: aktivitas setelah zona datang + durasi >= work_time / 2.
+        // Setengah hari: aktivitas setelah datang, durasi >= work_time/2, dan last punch
+        // masih sebelum window pulang penuh (bukan menyeret punch shift lain / malam).
         $lastPunch = Carbon::parse($collectedPunches->last()['punch_time']);
         $workingDuration = $firstPunch->diffInMinutes($lastPunch);
         $halfWorkTime = ((int) ($timetable->work_time ?? 0)) / 2;
         $hasActivityAfterCheckIn = $collectedPunches->contains(function ($item) use ($limits) {
             return Carbon::parse($item['punch_time'])->gt($limits['check_in_limit_plus']);
         });
+        $leftBeforeFullCheckout = $lastPunch->lt($limits['check_out_limit_min']);
 
-        $validHalfDay = $hasActivityAfterCheckIn && $halfWorkTime > 0 && $workingDuration >= $halfWorkTime;
+        $validHalfDay = $hasActivityAfterCheckIn
+            && $leftBeforeFullCheckout
+            && $halfWorkTime > 0
+            && $workingDuration >= $halfWorkTime;
+
         $this->logGrouping($validHalfDay ? 'VALIDASI_OK: setengah hari' : 'VALIDASI_GAGAL: tanpa istirahat / belum setengah hari', array_merge($logBase, [
             'punch_count' => $collectedPunches->count(),
             'working_duration' => $workingDuration,
             'half_work_time' => $halfWorkTime,
             'has_activity_after_check_in' => $hasActivityAfterCheckIn,
+            'left_before_full_checkout' => $leftBeforeFullCheckout,
+            'has_break_punches' => $hasBreakPunches,
+            'has_checkout_in_window' => $hasCheckoutPunchInWindow,
         ]));
 
         return $validHalfDay;
@@ -1021,25 +1032,15 @@ class AttendanceUtil extends Util
                     continue;
                 }
 
+                // Punch yang cocok sebagai check-in timetable lain jangan diserap
+                // sebagai "checkout OT" shift ini (mis. 18:59 malam masuk ke shift pagi).
                 if ($this->isPunchCheckInForOtherTimetable($punchTime, $timetable, $date, $timetablesSource)) {
-                    $checkoutMin = $limits['check_out_limit_min'];
-                    if ($timetable->is_without_break) {
-                        $checkoutMin = $this->resolveCheckOutLimitBreakTime(
-                            $limits['check_out_limit_min'],
-                            true,
-                            $this->getTimetableDurationBreakTime($timetable),
-                            false,
-                        );
-                    }
-                    $isCheckoutForCurrent = $punchTime->between($checkoutMin, $checkoutCollectUpperLimit);
-                    if (!$isCheckoutForCurrent && $punchTime->lt($limits['check_out'])) {
-                        $this->logGrouping('COLLECT_SKIP: check-in timetable lain (bukan checkout shift ini)', [
-                            'punch' => $punchLabel,
-                            'timetable_id' => $timetable->id,
-                            'timetable_name' => $timetable->name,
-                        ]);
-                        continue;
-                    }
+                    $this->logGrouping('COLLECT_SKIP: check-in timetable lain', [
+                        'punch' => $punchLabel,
+                        'timetable_id' => $timetable->id,
+                        'timetable_name' => $timetable->name,
+                    ]);
+                    continue;
                 }
             }
 
