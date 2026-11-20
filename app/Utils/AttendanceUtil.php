@@ -1035,14 +1035,32 @@ class AttendanceUtil extends Util
                 }
 
                 // Punch yang cocok sebagai check-in timetable lain jangan diserap
-                // sebagai "checkout OT" shift ini (mis. 18:59 malam masuk ke shift pagi).
+                // sebagai "checkout OT" shift ini (mis. 07:09 + 18:59 malam).
+                // Pengecualian: group sudah punya pasangan istirahat dan punch ini
+                // sudah melewati batas checkout → itu pulang shift ini (bukan datang malam),
+                // mis. 06:58, 12:59, 13:56, 19:05.
                 if ($this->isPunchCheckInForOtherTimetable($punchTime, $timetable, $date, $timetablesSource)) {
-                    $this->logGrouping('COLLECT_SKIP: check-in timetable lain', [
+                    $canUseAsCheckout = $this->hasBreakPunchesBetween($collected, $limits)
+                        && $punchTime->gte($limits['check_out_limit_min']);
+
+                    if (!$canUseAsCheckout) {
+                        $this->logGrouping('COLLECT_SKIP: check-in timetable lain', [
+                            'punch' => $punchLabel,
+                            'timetable_id' => $timetable->id,
+                            'timetable_name' => $timetable->name,
+                        ]);
+                        continue;
+                    }
+
+                    $this->logGrouping('COLLECT_TAKE: pulang overlap window check-in lain', [
                         'punch' => $punchLabel,
                         'timetable_id' => $timetable->id,
                         'timetable_name' => $timetable->name,
                     ]);
-                    continue;
+                    $collected->push($attendance);
+                    $priorSameDay->push($attendance);
+                    // Stop: jangan serap punch lanjutan milik shift lain.
+                    break;
                 }
             }
 
