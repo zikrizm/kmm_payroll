@@ -268,7 +268,7 @@ class AttendanceUtil extends Util
                     'cross_day', 'work_time', 'is_without_break', 
                     'ot_roundone_hr', 'ot_roundhalf_hr', 'ot_period', 
                     'ot_pay', 'enable_extra_pay', 'extra_pay', 
-                    'duration_count_one_shift', 'duration_ot_limit', 
+                    'duration_count_one_shift', 'duration_ot_limit', 'duration_ot_limit_plus',
                     'duration_rice_shift'
                 ),
         ])->get();
@@ -487,7 +487,9 @@ class AttendanceUtil extends Util
             'check_in_limit_plus' => $check_in->copy()->addMinutes($timetable->check_in_plus),
             'check_out_limit_min' => $check_out->copy()->subMinutes($timetable->check_out_min),
             'check_out_limit_plus' => $check_out->copy()->addMinutes($timetable->check_out_plus),
-            'check_out_limit_ot' => $check_out->copy()->addHours($timetable->duration_ot_limit ?? 0),
+            'check_out_limit_ot' => $check_out->copy()
+                ->addHours($timetable->duration_ot_limit ?? 0)
+                ->addMinutes($timetable->duration_ot_limit_plus ?? 0),
         ];
     }
 
@@ -1234,7 +1236,7 @@ class AttendanceUtil extends Util
                 'cross_day', 'work_time', 'is_without_break', 
                 'ot_roundone_hr', 'ot_roundhalf_hr', 'ot_period', 
                 'ot_pay', 'enable_extra_pay', 'extra_pay', 
-                'duration_count_one_shift', 'duration_ot_limit', 
+                'duration_count_one_shift', 'duration_ot_limit', 'duration_ot_limit_plus',
                 'duration_rice_shift'
             )])
             ->get()

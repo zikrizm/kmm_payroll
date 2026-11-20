@@ -702,7 +702,7 @@ class PrintReportContoller extends Controller
                 $shifts  = $shifts->with([
                     'shiftdays' => fn ($query) => $query->select('id', 'shift_id', 'code_day'),
                     'shiftdays.shiftday_has_timetables'  => fn ($query) => $query->select('id', 'shift_day_id', 'timetable_id'),
-                    'shiftdays.shiftday_has_timetables.timetable' => fn ($query) => $query->select('id', 'name', 'check_in', 'check_out', 'check_in_min', 'check_in_plus', 'check_out_min', 'check_out_plus', 'check_in_plusmn', 'check_out_plusmn', 'cross_day', 'work_time', 'is_without_break', 'ot_roundone_hr', 'ot_roundhalf_hr', 'ot_period', 'ot_pay', 'enable_extra_pay', 'extra_pay', 'duration_count_one_shift', 'duration_ot_limit', 'duration_rice_shift'),
+                    'shiftdays.shiftday_has_timetables.timetable' => fn ($query) => $query->select('id', 'name', 'check_in', 'check_out', 'check_in_min', 'check_in_plus', 'check_out_min', 'check_out_plus', 'check_in_plusmn', 'check_out_plusmn', 'cross_day', 'work_time', 'is_without_break', 'ot_roundone_hr', 'ot_roundhalf_hr', 'ot_period', 'ot_pay', 'enable_extra_pay', 'extra_pay', 'duration_count_one_shift', 'duration_ot_limit', 'duration_ot_limit_plus', 'duration_rice_shift'),
                 ])->get();
 
                 if ($attendances_grouping->isNotEmpty()) {
@@ -829,7 +829,7 @@ class PrintReportContoller extends Controller
 
                                                         if ($this->timetableCheck($range_date, $first_punch, $last_punch, $timetable)) {
                                                             $attendance_data['timetable'] = $timetable->toArray();
-                                                            $check_out_plus_duration_ot_limit =  $check_out->copy()->addHours($timetable->duration_ot_limit);
+                                                            $check_out_plus_duration_ot_limit =  $check_out->copy()->addHours($timetable->duration_ot_limit)->addMinutes($timetable->duration_ot_limit_plus ?? 0);
                                                             $attendance_date_time_cross = collect();
                                                             $attendance_date_time_uncross = collect();
                                                             if (!empty($attendance_employee->get($next_date->format('Y-m-d')))) {

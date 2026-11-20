@@ -265,7 +265,7 @@ class AttenOpReportController extends Controller
                                                     $timetable['check_in_plusmn'] = $shiftdayHas->timetable->check_in_plusmn;
                                                     $timetable['check_out_plusmn'] = $shiftdayHas->timetable->check_out_plusmn;
 
-                                                    $shift_check_out_plus_ot = Carbon::parse($date . $shiftdayHas->timetable->check_out)->addDays($shiftdayHas->timetable->cross_day ?? 0)->addHours($shiftdayHas->timetable->duration_ot_limit);
+                                                    $shift_check_out_plus_ot = Carbon::parse($date . $shiftdayHas->timetable->check_out)->addDays($shiftdayHas->timetable->cross_day ?? 0)->addHours($shiftdayHas->timetable->duration_ot_limit)->addMinutes($shiftdayHas->timetable->duration_ot_limit_plus ?? 0);
                                                     $shift_bagian_check_out_cross = Carbon::parse($date . $shiftdayHas->timetable->check_out)->addDays($shiftdayHas->timetable->cross_day ?? 0);
                                                     // Log::info("shift_bagian_check_out_cross {$shift_bagian_check_out_cross}");
                                                     // Log::info('cross_ss'.  Carbon::parse($date . $shiftdayHas->timetable->check_out)->addDays($shiftdayHas->timetable->cross_day ?? 0));

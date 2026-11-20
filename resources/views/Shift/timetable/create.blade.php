@@ -253,6 +253,17 @@
                                     'type' => 'number',
                                 ]) !!}
                             </section>
+                            <section class="flex flex-col gap-1">
+                                <label class="font-normal text-sm text-gray-500 xs/max:text-xs">Batas Setelah*</label>
+                                <div class="flex items-center gap-2">
+                                    {!! FormCustom::input('duration_ot_limit_plus', 0, [
+                                        'placeholder' => '-',
+                                        'prefixiconname' => 'plus',
+                                        'class' => 'plus-minus',
+                                    ]) !!}
+                                    <p class="text-sm font-normal text-gray-500">Menit</p>
+                                </div>
+                            </section>
                         </div>
                     </div>
                     <section class="flex flex-col gap-1 flex-1">

@@ -195,7 +195,7 @@ class TSOController extends Controller
                             $timeT_check_in_sub_plusmn = Carbon::parse($date . $timeT->check_in)->addMinutes($timeT->check_in_plusmn);
                             $timetable['check_in_plusmn'] = $timeT->check_in_plusmn;
                             $timetable['check_out_plusmn'] = $timeT->check_out_plusmn;
-                            $timeT_check_out_plus_ot = Carbon::parse($date . $timeT->check_out)->addDays($timeT->cross_day ?? 0)->addHours($timeT->duration_ot_limit);
+                            $timeT_check_out_plus_ot = Carbon::parse($date . $timeT->check_out)->addDays($timeT->cross_day ?? 0)->addHours($timeT->duration_ot_limit)->addMinutes($timeT->duration_ot_limit_plus ?? 0);
                             $timeT_check_out_cross = Carbon::parse($date . $timeT->check_out)->addDays($timeT->cross_day ?? 0);
                             if ($punch_check_in->between($timeT_check_in_add_plusmn, $timeT_check_in_sub_plusmn)) {
                                 $timetable['id'] = $timeT->id;

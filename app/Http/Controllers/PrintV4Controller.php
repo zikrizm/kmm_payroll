@@ -195,7 +195,7 @@ class PrintController extends Controller
 
         $check_in = Carbon::parse($date->format('Y-m-d') . $timetable->check_in);
         $check_out = Carbon::parse($date->format('Y-m-d') . $timetable->check_out);
-        $check_out_plus_ot =  $check_out->copy()->addHours($timetable->duration_ot_limit);
+        $check_out_plus_ot =  $check_out->copy()->addHours($timetable->duration_ot_limit)->addMinutes($timetable->duration_ot_limit_plus ?? 0);
 
         if ($first_punch->lt($check_in)) {
             $diffInSeconds = $first_punch->diffInSeconds($check_in);
@@ -367,7 +367,7 @@ class PrintController extends Controller
             $shifts  = $shifts->with([
                 'shiftdays' => fn ($query) => $query->select('id', 'shift_id', 'code_day'),
                 'shiftdays.shiftday_has_timetables'  => fn ($query) => $query->select('id', 'shift_day_id', 'timetable_id'),
-                'shiftdays.shiftday_has_timetables.timetable' => fn ($query) => $query->select('id', 'check_in', 'check_out', 'check_in_plusmn', 'check_out_plusmn', 'cross_day', 'work_time', 'is_without_break', 'ot_roundone_hr', 'ot_roundhalf_hr', 'ot_period', 'ot_pay', 'duration_count_one_shift', 'duration_ot_limit', 'duration_rice_shift'),
+                'shiftdays.shiftday_has_timetables.timetable' => fn ($query) => $query->select('id', 'check_in', 'check_out', 'check_in_plusmn', 'check_out_plusmn', 'cross_day', 'work_time', 'is_without_break', 'ot_roundone_hr', 'ot_roundhalf_hr', 'ot_period', 'ot_pay', 'duration_count_one_shift', 'duration_ot_limit', 'duration_ot_limit_plus', 'duration_rice_shift'),
             ])->get();
 
 
@@ -472,7 +472,7 @@ class PrintController extends Controller
 
                                                     $check_in_add_plusmn = $check_in->copy()->addMinutes($timetable->check_in_plusmn);
                                                     $check_in_sub_plusmn = $check_in->copy()->subMinutes($timetable->check_in_plusmn);
-                                                    $check_out_plus_duration_ot_limit =  $check_out->copy()->addHours($timetable->duration_ot_limit);
+                                                    $check_out_plus_duration_ot_limit =  $check_out->copy()->addHours($timetable->duration_ot_limit)->addMinutes($timetable->duration_ot_limit_plus ?? 0);
 
                                                     if (!empty($operational_date)) {
                                                         $operational_has_timetable = $operational_date->operational_has_timetables->where('timetable_id', $timetable->id)->values();

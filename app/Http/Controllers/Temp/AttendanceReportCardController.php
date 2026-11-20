@@ -83,7 +83,7 @@ class AttendanceReportCardController extends Controller
             $attens_groupings = $req_data['attens_groupings'];
             $next_date_index = $dates[$date_key + 1];
             if (!empty($attens_groupings[$next_date_index])) {
-                $punch_check_out_add_ot_limit = Carbon::createFromTimeString($timetable->check_out)->addHours($timetable->duration_ot_limit)->format('H:i:s');
+                $punch_check_out_add_ot_limit = Carbon::createFromTimeString($timetable->check_out)->addHours($timetable->duration_ot_limit)->addMinutes($timetable->duration_ot_limit_plus ?? 0)->format('H:i:s');
                 $punch_check_out_add_ot_limit = Carbon::createFromTimeString($punch_check_out_add_ot_limit);
 
                 foreach ($attens_groupings[$next_date_index] as $key_next_atten => $item) {
@@ -457,7 +457,7 @@ class AttendanceReportCardController extends Controller
                                                     $shift_bagian_check_in_add_plusmn = Carbon::parse($date . $shiftdayHas->timetable->check_in)->subMinutes($shiftdayHas->timetable->check_in_plusmn);
                                                     $shift_bagian_check_in_sub_plusmn = Carbon::parse($date . $shiftdayHas->timetable->check_in)->addMinutes($shiftdayHas->timetable->check_in_plusmn);
 
-                                                    $shift_check_out_plus_ot = Carbon::parse($date . $shiftdayHas->timetable->check_out)->addDays($shiftdayHas->timetable->cross_day ?? 0)->addHours($shiftdayHas->timetable->duration_ot_limit);
+                                                    $shift_check_out_plus_ot = Carbon::parse($date . $shiftdayHas->timetable->check_out)->addDays($shiftdayHas->timetable->cross_day ?? 0)->addHours($shiftdayHas->timetable->duration_ot_limit)->addMinutes($shiftdayHas->timetable->duration_ot_limit_plus ?? 0);
                                                     $shift_bagian_check_out_cross = Carbon::parse($date . $shiftdayHas->timetable->check_out)->addDays($shiftdayHas->timetable->cross_day ?? 0);
                                                     // Log::info("shift_bagian_check_out_cross {$shift_bagian_check_out_cross}");
                                                     // Log::info('cross_ss'.  Carbon::parse($date . $shiftdayHas->timetable->check_out)->addDays($shiftdayHas->timetable->cross_day ?? 0));

@@ -213,7 +213,7 @@ class PrintController extends Controller
 
         $check_in = Carbon::parse($date->format('Y-m-d') . $timetable->check_in);
         $check_out = Carbon::parse($date->format('Y-m-d') . $timetable->check_out);
-        $check_out_plus_ot =  $check_out->copy()->addHours($timetable->duration_ot_limit);
+        $check_out_plus_ot =  $check_out->copy()->addHours($timetable->duration_ot_limit)->addMinutes($timetable->duration_ot_limit_plus ?? 0);
 
         if ($first_punch->lt($check_in)) {
             $diffInMinute = explode(',', $first_punch->diffInMinutes($check_in, true));
@@ -438,7 +438,7 @@ class PrintController extends Controller
             $shifts  = $shifts->with([
                 'shiftdays' => fn ($query) => $query->select('id', 'shift_id', 'code_day'),
                 'shiftdays.shiftday_has_timetables'  => fn ($query) => $query->select('id', 'shift_day_id', 'timetable_id'),
-                'shiftdays.shiftday_has_timetables.timetable' => fn ($query) => $query->select('id', 'check_in', 'check_out', 'check_in_plusmn', 'check_out_plusmn', 'cross_day', 'work_time', 'is_without_break', 'ot_roundone_hr', 'ot_roundhalf_hr', 'ot_period', 'ot_pay', 'duration_count_one_shift', 'duration_ot_limit', 'duration_rice_shift'),
+                'shiftdays.shiftday_has_timetables.timetable' => fn ($query) => $query->select('id', 'check_in', 'check_out', 'check_in_plusmn', 'check_out_plusmn', 'cross_day', 'work_time', 'is_without_break', 'ot_roundone_hr', 'ot_roundhalf_hr', 'ot_period', 'ot_pay', 'duration_count_one_shift', 'duration_ot_limit', 'duration_ot_limit_plus', 'duration_rice_shift'),
             ])->get();
 
 
@@ -540,7 +540,7 @@ class PrintController extends Controller
                                                     $time_check_in_sub_plusmn = $check_in->copy()->addMinutes($timetable->check_in_plusmn);
                                                     if ($first_punch->between($time_check_in_sub_plusmn, $time_check_in_add_plusmn)) {
                                                         $attendance_data['timetable'] = ['id' => $timetable->id];
-                                                        $check_out_plus_duration_ot_limit =  $check_out->copy()->addHours($timetable->duration_ot_limit);
+                                                        $check_out_plus_duration_ot_limit =  $check_out->copy()->addHours($timetable->duration_ot_limit)->addMinutes($timetable->duration_ot_limit_plus ?? 0);
 
                                                         $attendance_date_time_cross = collect();
                                                         $attendance_date_time_uncross = collect();
@@ -638,7 +638,7 @@ class PrintController extends Controller
                                                         $time_check_out_add_plusmn = $check_in->copy()->subMinutes($timetable->check_out_plusmn);
                                                         $time_check_out_sub_plusmn = $check_in->copy()->addMinutes($timetable->check_out_plusmn);
 
-                                                        $time_check_out_plus_ot =  $check_out->copy()->addHours($timetable->duration_ot_limit);
+                                                        $time_check_out_plus_ot =  $check_out->copy()->addHours($timetable->duration_ot_limit)->addMinutes($timetable->duration_ot_limit_plus ?? 0);
                                                         $time_check_out_cross =  $check_out->copy()->addDays($timetable->cross_day ?? 0);
 
                                                         // $attendance_date_time_cross = collect();
@@ -810,7 +810,7 @@ class PrintController extends Controller
                                                     $time_check_out_add_plusmn = $check_in->copy()->subMinutes($timetable->check_out_plusmn);
                                                     $time_check_out_sub_plusmn = $check_in->copy()->addMinutes($timetable->check_out_plusmn);
 
-                                                    $time_check_out_plus_ot =  $check_out->copy()->addHours($timetable->duration_ot_limit);
+                                                    $time_check_out_plus_ot =  $check_out->copy()->addHours($timetable->duration_ot_limit)->addMinutes($timetable->duration_ot_limit_plus ?? 0);
                                                     $time_check_out_cross =  $check_out->copy()->addDays($timetable->cross_day ?? 0);
 
                                                     if ($first_punch->between($time_check_in_sub_plusmn, $time_check_in_add_plusmn)) {
@@ -925,6 +925,7 @@ class PrintController extends Controller
                                                         $last_punch = Carbon::parse($attendance_data['last_punch']);
                                                         $max_punch_checkout = Carbon::parse($date->format('Y-m-d') . $attendance_data['timetable']['check_out'])
                                                             ->addHours($attendance_data['timetable']['duration_ot_limit'] ?? 0)
+                                                            ->addMinutes($attendance_data['timetable']['duration_ot_limit_plus'] ?? 0)
                                                             ->addHours($timetable_operational->ot_limit ?? 0);
                                                         $shift_bagian_checkout_add_plusmn = Carbon::parse($date->format('Y-m-d') . $attendance_data['timetable']['check_out'])->subMinutes($attendance_data['timetable']['check_out_plusmn']);
                                                         $diff_checkout_in_hours = $max_punch_checkout->diffInHours($last_punch, false);

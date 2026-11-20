@@ -233,7 +233,7 @@ class PayrollReportController extends Controller
                             $timeT_check_out = Carbon::parse($date . $timeT->check_out);
                             $timeT_check_in_add_plusmn = $timeT_check_in->copy()->subMinutes($timeT->check_in_plusmn);
                             $timeT_check_in_sub_plusmn = $timeT_check_in->copy()->addMinutes($timeT->check_in_plusmn);
-                            $timeT_check_out_plus_ot =  $timeT_check_out->copy()->addDays($timeT->cross_day ?? 0)->addHours($timeT->duration_ot_limit);
+                            $timeT_check_out_plus_ot =  $timeT_check_out->copy()->addDays($timeT->cross_day ?? 0)->addHours($timeT->duration_ot_limit)->addMinutes($timeT->duration_ot_limit_plus ?? 0);
                             $timeT_check_out_cross =  $timeT_check_out->copy()->addDays($timeT->cross_day ?? 0);
                             $timetable['check_in_plusmn'] = $timeT->check_in_plusmn;
                             $timetable['check_out_plusmn'] = $timeT->check_out_plusmn;

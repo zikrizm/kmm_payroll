@@ -126,7 +126,7 @@ class TimetableController extends Controller
                     // 'warning_check_in_min', 'warning_check_in_plus',
                     // 'warning_check_out_min','warning_check_out_plus',
                     'cross_day', 'is_ot_rounding', 'ot_roundone_hr', 'ot_roundhalf_hr', 'break_times', 'is_without_break',
-                    'is_ot', 'ot_period', 'ot_pay', 'duration_count_one_shift', 'duration_ot_limit', 'is_ot_rice', 'duration_rice_shift',
+                    'is_ot', 'ot_period', 'ot_pay', 'duration_count_one_shift', 'duration_ot_limit', 'duration_ot_limit_plus', 'is_ot_rice', 'duration_rice_shift',
                     'enable_extra_pay','extra_pay', 
                 ]);
                 $timetable_data['business_id'] = $business_id;
@@ -162,6 +162,7 @@ class TimetableController extends Controller
                     $timetable_data['ot_pay'] = null;
                     $timetable_data['duration_count_one_shift'] = null;
                     $timetable_data['duration_ot_limit'] = null;
+                    $timetable_data['duration_ot_limit_plus'] = null;
                 }
                 if (empty($request->input('is_ot_rice'))) {
                     $timetable_data['duration_rice_shift'] = null;
@@ -279,7 +280,7 @@ class TimetableController extends Controller
                     // 'warning_check_in_min', 'warning_check_in_plus',
                     // 'warning_check_out_min','warning_check_out_plus',
                     'cross_day', 'is_ot_rounding', 'ot_roundone_hr', 'ot_roundhalf_hr', 'break_times', 'is_without_break',
-                    'is_ot', 'ot_period', 'ot_pay', 'duration_count_one_shift', 'duration_ot_limit', 'is_ot_rice', 'duration_rice_shift',
+                    'is_ot', 'ot_period', 'ot_pay', 'duration_count_one_shift', 'duration_ot_limit', 'duration_ot_limit_plus', 'is_ot_rice', 'duration_rice_shift',
                     'enable_extra_pay','extra_pay', 
                 ]);
                 $timetable_data['business_id'] = $business_id;
@@ -315,6 +316,7 @@ class TimetableController extends Controller
                     $timetable_data['ot_pay'] = null;
                     $timetable_data['duration_count_one_shift'] = null;
                     $timetable_data['duration_ot_limit'] = null;
+                    $timetable_data['duration_ot_limit_plus'] = null;
                 }
                 if (empty($request->input('is_ot_rice'))) {
                     $timetable_data['duration_rice_shift'] = null;
@@ -437,6 +439,7 @@ class TimetableController extends Controller
             'ot_pay' => ['nullable', new RequiredIf(request()->get('is_ot') == true)],
             'duration_count_one_shift' => ['nullable', new RequiredIf(request()->get('is_ot') == true), 'numeric', 'max:24'],
             'duration_ot_limit' => ['nullable', new RequiredIf(request()->get('is_ot') == true), 'numeric', 'max:24'],
+            'duration_ot_limit_plus' => ['nullable', new RequiredIf(request()->get('is_ot') == true), 'numeric'],
             'duration_rice_shift' => ['nullable', new RequiredIf(request()->get('is_ot_rice') == true), 'numeric', 'max:24'],
         ];
     }
