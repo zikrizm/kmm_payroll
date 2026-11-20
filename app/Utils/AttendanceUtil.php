@@ -1277,8 +1277,9 @@ class AttendanceUtil extends Util
 
                 $isValidTimetableGroup = $this->isValidTimetableGroup($groupPunches, $timetable, $limits);
 
-                if (($this->groupingLogContext['emp_code'] ?? null) === '190612') {
-                    Log::info('[ATTENDANCE_GROUPING][190612] isValidTimetableGroup', [
+                $groupingEmpCode = $this->groupingLogContext['emp_code'] ?? null;
+                if (in_array($groupingEmpCode, ['190612', '192339'], true)) {
+                    Log::info("[ATTENDANCE_GROUPING][{$groupingEmpCode}] isValidTimetableGroup", [
                         'date' => $date_string,
                         'timetable_id' => $timetable->id,
                         'timetable_name' => $timetable->name,
@@ -1337,7 +1338,7 @@ class AttendanceUtil extends Util
         Timetable $timetable,
     ) {
         $empCode = $employee['emp_code'] ?? null;
-        $debugEmp = $empCode === '190612';
+        $debugEmp = in_array($empCode, ['190612', '192339'], true);
 
         $result = collect([
             'key' => $range_date['key'],
@@ -1370,7 +1371,7 @@ class AttendanceUtil extends Util
         $check_out_limit_plus = $check_out->copy()->addMinutes($timetable->check_out_plus);
 
         if ($debugEmp) {
-            Log::info('[SHIFT_CHECK][190612] START', [
+            Log::info("[SHIFT_CHECK][{$empCode}] START", [
                 'date' => $date_string,
                 'timetable_id' => $timetable->id,
                 'timetable_name' => $timetable->name,
@@ -1563,7 +1564,7 @@ class AttendanceUtil extends Util
         }
 
         if ($debugEmp) {
-            Log::info('[SHIFT_CHECK][190612] RESULT', [
+            Log::info("[SHIFT_CHECK][{$empCode}] RESULT", [
                 'date' => $date_string,
                 'timetable_set' => !empty($result['timetable']),
                 'timetable_name' => $result['timetable']['name'] ?? null,
@@ -1841,7 +1842,7 @@ class AttendanceUtil extends Util
         $start_punch = Carbon::parse($shift_data['working']['start_punch']);
         $end_punch = Carbon::parse($shift_data['working']['end_punch']);
 
-        if($shift_data['emp_code'] == '190612') {
+        if (in_array($shift_data['emp_code'] ?? null, ['190612', '192339'], true)) {
             Log::info('[HALF_DAY_CHECK]', [
                 'emp_code' => $shift_data['emp_code'] ?? null,
                 'emp_name' => $shift_data['emp_name'] ?? null,
@@ -2266,8 +2267,8 @@ class AttendanceUtil extends Util
 
                     $attendance_employees = $attendance_grouping->get($employee['emp_code'], collect());
 
-                    if (($employee['emp_code'] ?? null) === '190612') {
-                        Log::info('[ATTENDANCE_GROUPING][190612] BEFORE', [
+                    if (in_array($employee['emp_code'] ?? null, ['190612', '192339'], true)) {
+                        Log::info("[ATTENDANCE_GROUPING][{$employee['emp_code']}] BEFORE", [
                             'emp_code' => $employee['emp_code'],
                             'dept_id' => $department_shift->dept_id ?? null,
                             'has_shift' => !empty($department_shift),
@@ -2282,8 +2283,8 @@ class AttendanceUtil extends Util
 
                     $attendance_employee_timetables = $this->attendanceTimetableGrouping($department_shift, $attendance_employees, $range_dates, $employee['emp_code']);
 
-                    if (($employee['emp_code'] ?? null) === '190612') {
-                        Log::info('[ATTENDANCE_GROUPING][190612] attendance_employee_timetables', [
+                    if (in_array($employee['emp_code'] ?? null, ['190612', '192339'], true)) {
+                        Log::info("[ATTENDANCE_GROUPING][{$employee['emp_code']}] attendance_employee_timetables", [
                             'emp_code' => $employee['emp_code'],
                             'is_empty' => $attendance_employee_timetables->isEmpty(),
                             'dates' => $attendance_employee_timetables->keys()->values()->all(),
