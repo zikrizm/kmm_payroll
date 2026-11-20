@@ -1356,7 +1356,7 @@ class AttendanceUtil extends Util
                 $isValidTimetableGroup = $this->isValidTimetableGroup($groupPunches, $timetable, $limits);
 
                 $groupingEmpCode = $this->groupingLogContext['emp_code'] ?? null;
-                if (in_array($groupingEmpCode, ['190612', '192339'], true)) {
+                if (in_array($groupingEmpCode, ['192341'], true)) {
                     Log::info("[ATTENDANCE_GROUPING][{$groupingEmpCode}] isValidTimetableGroup", [
                         'date' => $date_string,
                         'timetable_id' => $timetable->id,
@@ -1416,7 +1416,7 @@ class AttendanceUtil extends Util
         Timetable $timetable,
     ) {
         $empCode = $employee['emp_code'] ?? null;
-        $debugEmp = in_array($empCode, ['190612', '192339'], true);
+        $debugEmp = in_array($empCode, ['192341'], true);
 
         $result = collect([
             'key' => $range_date['key'],
@@ -1920,7 +1920,7 @@ class AttendanceUtil extends Util
         $start_punch = Carbon::parse($shift_data['working']['start_punch']);
         $end_punch = Carbon::parse($shift_data['working']['end_punch']);
 
-        if (in_array($shift_data['emp_code'] ?? null, ['190612', '192339'], true)) {
+        if (in_array($shift_data['emp_code'] ?? null, ['192341'], true)) {
             Log::info('[HALF_DAY_CHECK]', [
                 'emp_code' => $shift_data['emp_code'] ?? null,
                 'emp_name' => $shift_data['emp_name'] ?? null,
@@ -2345,7 +2345,7 @@ class AttendanceUtil extends Util
 
                     $attendance_employees = $attendance_grouping->get($employee['emp_code'], collect());
 
-                    if (in_array($employee['emp_code'] ?? null, ['190612', '192339'], true)) {
+                    if (in_array($employee['emp_code'] ?? null, ['192341'], true)) {
                         Log::info("[ATTENDANCE_GROUPING][{$employee['emp_code']}] BEFORE", [
                             'emp_code' => $employee['emp_code'],
                             'dept_id' => $department_shift->dept_id ?? null,
@@ -2361,7 +2361,7 @@ class AttendanceUtil extends Util
 
                     $attendance_employee_timetables = $this->attendanceTimetableGrouping($department_shift, $attendance_employees, $range_dates, $employee['emp_code']);
 
-                    if (in_array($employee['emp_code'] ?? null, ['190612', '192339'], true)) {
+                    if (in_array($employee['emp_code'] ?? null, ['192341'], true)) {
                         Log::info("[ATTENDANCE_GROUPING][{$employee['emp_code']}] attendance_employee_timetables", [
                             'emp_code' => $employee['emp_code'],
                             'is_empty' => $attendance_employee_timetables->isEmpty(),
