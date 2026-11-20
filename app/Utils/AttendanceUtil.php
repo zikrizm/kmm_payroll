@@ -1120,7 +1120,8 @@ class AttendanceUtil extends Util
             return collect();
         }
 
-        $officialUpper = $this->getCheckoutCollectUpperLimit($limits);
+        // Upper collect mengikuti batas OT (duration_ot_limit), bukan hanya check_out_plus.
+        $otUpper = $this->getCheckoutCollectUpperLimit($limits);
         $crossDayPunches = collect();
 
         for ($i = 0; $i < $crossDay; $i++) {
@@ -1132,7 +1133,9 @@ class AttendanceUtil extends Util
                 continue;
             }
 
-            $hardUpper = $this->getCrossDayHardUpperLimit($nextDate, $timetablesSource);
+            // Jangan menyeret sampai check-in malam berikutnya; juga hormati batas OT.
+            $nightHardUpper = $this->getCrossDayHardUpperLimit($nextDate, $timetablesSource);
+            $hardUpper = $otUpper->lt($nightHardUpper) ? $otUpper->copy() : $nightHardUpper->copy();
 
             foreach ($nextDateAttendance->sortBy('punch_time') as $attendance) {
                 $punchTime = Carbon::parse($attendance['punch_time']);
@@ -1148,15 +1151,9 @@ class AttendanceUtil extends Util
                     $timetablesSource,
                 );
 
-                if ($punchTime->gt($officialUpper)) {
-                    // Lewat window checkout resmi: hanya boleh ambil punch datang shift siang
-                    // sebagai penutup malam jika istirahat grup sudah lengkap.
-                    if ($inDayShiftCheckIn && $this->hasBreakPunchesBetween($soFar, $limits)) {
-                        $crossDayPunches->push($attendance);
-                    }
-                    break;
-                }
-
+                // Penutup lembur di zona datang shift siang: ambil lalu stop.
+                // Jangan stop hanya karena punch masuk window checkout normal (03:00–05:00),
+                // agar punch lembur ~07:xx tetap ikut selama masih di bawah duration_ot_limit.
                 if ($inDayShiftCheckIn) {
                     if ($this->hasBreakPunchesBetween($soFar, $limits)) {
                         $crossDayPunches->push($attendance);
@@ -1165,10 +1162,6 @@ class AttendanceUtil extends Util
                 }
 
                 $crossDayPunches->push($attendance);
-
-                if ($punchTime->between($limits['check_out_limit_min'], $limits['check_out_limit_plus'])) {
-                    break;
-                }
             }
         }
 
