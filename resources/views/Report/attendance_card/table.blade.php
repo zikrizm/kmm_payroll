@@ -88,8 +88,8 @@
                                                         </div>
                                                         <hr class="border-gray-200">
                                                         <div class="flex flex-col text-left w-full min-w-0">
-                                                            <div class="flex items-center border-b border-gray-200 pb-2">
-                                                                <p class="text-xs font-medium text-gray-500 w-[72px] shrink-0">
+                                                            <div class="flex items-center gap-4 border-b border-gray-200 pb-2">
+                                                                <p class="text-xs font-medium text-gray-500 w-[88px] shrink-0">
                                                                     Tanggal</p>
                                                                 <p class="text-xs font-medium text-gray-500 min-w-0 flex-1">
                                                                     Punch</p>
@@ -101,8 +101,8 @@
                                                                     $dayName = $dayNames[(int) date('w', $punchTimestamp)];
                                                                     $dateLabel = date('d/m/Y', $punchTimestamp);
                                                                 @endphp
-                                                                <div class="flex items-start border-b border-gray-100 py-2.5 w-full min-w-0">
-                                                                    <div class="w-[72px] shrink-0 pr-2 text-[10px] text-gray-700">
+                                                                <div class="flex items-start gap-4 border-b border-gray-100 py-2.5 w-full min-w-0">
+                                                                    <div class="w-[88px] shrink-0 text-[10px] text-gray-700">
                                                                         <div class="flex flex-col leading-tight">
                                                                             <span>{{ $dateLabel }}</span>
                                                                             <span class="text-[10px] text-gray-400">{{ $dayName }}</span>
@@ -113,14 +113,14 @@
                                                                             <div class="flex flex-wrap gap-1.5" style="flex-wrap: wrap;">
                                                                                 @foreach ($punch_times as $punch_time)
                                                                                     <span
-                                                                                        class="inline-flex items-center rounded border border-gray-200 bg-gray-50 px-1.5 py-0.5 text-[11px] text-gray-700"
+                                                                                        class="inline-flex items-center rounded border border-gray-200 bg-gray-50 px-1.5 py-0.5 text-[10px] text-gray-700"
                                                                                         style="flex: 0 0 auto;">
                                                                                         {{ $punch_time }}
                                                                                     </span>
                                                                                 @endforeach
                                                                             </div>
                                                                         @else
-                                                                            <span class="text-xs text-gray-400">—</span>
+                                                                            <span class="text-[10px] text-gray-400">—</span>
                                                                         @endif
                                                                     </div>
                                                                 </div>
