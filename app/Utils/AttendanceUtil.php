@@ -1061,18 +1061,28 @@ class AttendanceUtil extends Util
 
                 // Punch yang cocok sebagai check-in timetable lain jangan diserap
                 // sebagai "checkout OT" shift ini (mis. 07:09 + 18:59 malam).
-                // Pengecualian: group sudah punya pasangan istirahat dan punch ini
-                // sudah melewati batas checkout → itu pulang shift ini (bukan datang malam),
-                // mis. 06:58, 12:59, 13:56, 19:05.
+                // Pengecualian (pulang shift ini, masih dalam OT max):
+                //   A) sudah ada pasangan istirahat, ATAU
+                //   B) is_without_break dan sudah lewat check_out_min
+                // contoh Weekend: 06:57, 12:57, 13:52, 19:03 (OT sampai 20:00).
                 if ($this->isPunchCheckInForOtherTimetable($punchTime, $timetable, $date, $timetablesSource)) {
-                    $canUseAsCheckout = $this->hasBreakPunchesBetween($collected, $limits)
-                        && $punchTime->gte($limits['check_out_limit_min']);
+                    $pastCheckoutMin = $punchTime->gte($limits['check_out_limit_min']);
+                    $withinOtLimit = $punchTime->lte($checkoutCollectUpperLimit);
+                    $canUseAsCheckout = $pastCheckoutMin
+                        && $withinOtLimit
+                        && (
+                            $this->hasBreakPunchesBetween($collected, $limits)
+                            || (bool) $timetable->is_without_break
+                        );
 
                     if (!$canUseAsCheckout) {
                         $this->logGrouping('COLLECT_SKIP: check-in timetable lain', [
                             'punch' => $punchLabel,
                             'timetable_id' => $timetable->id,
                             'timetable_name' => $timetable->name,
+                            'past_checkout_min' => $pastCheckoutMin,
+                            'within_ot_limit' => $withinOtLimit,
+                            'is_without_break' => (bool) $timetable->is_without_break,
                         ]);
                         continue;
                     }
