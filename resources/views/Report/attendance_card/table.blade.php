@@ -34,39 +34,107 @@
                                         </table>
                                     </td>
                                     <td class="align-middle">
+                                        @php
+                                            $punchDialogId = 'punch-dialog-' . preg_replace(
+                                                '/[^A-Za-z0-9_-]/',
+                                                '',
+                                                ($department['department']['dept_code'] ?? 'd') . '-' . ($employee['employee']['emp_code'] ?? $loop->index)
+                                            );
+                                            $employeeName = trim(
+                                                ($employee['employee']['first_name'] ?? '') . ' ' . ($employee['employee']['last_name'] ?? '')
+                                            );
+                                            $departmentName = $department['department']['dept_name'] ?? '-';
+                                            $rangeDateLabel =
+                                                date('d-m-Y', strtotime($result['start_date_work_day'])) .
+                                                ' – ' .
+                                                date('d-m-Y', strtotime($result['end_date_work_day']));
+                                        @endphp
                                         <div class="flex items-center gap-1.5">
                                             <p class="text-gray-500 text-xs text-middle mt-0.5">
                                                 {{ date('d-m-Y', strtotime($result['start_date_work_day'])) }} -
                                                 {{ date('d-m-Y', strtotime($result['end_date_work_day'])) }}
                                             </p>
-                                            <div class="tooltip-custom tooltip-punches cursor-pointer text-gray-400 hover:text-gray-600">
+                                            <button type="button"
+                                                class="btn-open-punch-dialog inline-flex items-center justify-center text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded p-0.5"
+                                                data-punch-dialog="{{ $punchDialogId }}"
+                                                title="Daftar punch">
                                                 <x-icon icon="clock" width=12 height=12 viewBox="20 20" />
-                                                <div class="tooltip-custom-text tooltip-punches-panel border border-gray-200 shadow-sm p-2 rounded bg-white">
-                                                    <p class="text-[11px] font-medium text-gray-700 text-left w-full">Daftar Punch</p>
-                                                    <p class="text-[10px] text-gray-400 text-left w-full mb-1.5">
-                                                        {{ date('d-m-Y', strtotime($result['start_date_work_day'])) }} –
-                                                        {{ date('d-m-Y', strtotime($result['end_date_work_day'])) }}
-                                                    </p>
-                                                    <div class="tooltip-punches-list flex flex-col gap-1.5 w-full text-left">
-                                                        @forelse (($employee['punches_by_date'] ?? collect()) as $punch_date => $punch_times)
-                                                            <div class="flex flex-col gap-0.5">
-                                                                <p class="text-[10px] font-medium text-gray-600">
-                                                                    {{ date('d M Y', strtotime($punch_date)) }}
-                                                                </p>
-                                                                <p class="text-[10px] text-gray-500 leading-relaxed">
-                                                                    @if (!empty($punch_times))
-                                                                        {{ implode('  ', $punch_times) }}
-                                                                    @else
-                                                                        —
-                                                                    @endif
-                                                                </p>
+                                            </button>
+                                            <template id="{{ $punchDialogId }}">
+                                                <div
+                                                    class="bg-white w-[400px] max-w-[95vw] max-h-[90vh] overflow-y-auto overflow-x-hidden relative rounded-lg shadow-lg">
+                                                    <button type="button"
+                                                        class="absolute top-3 right-3 modal-close hover:bg-gray-100 text-gray-500 rounded p-2 z-10">
+                                                        <x-icon icon="x" width=16 height=16 viewBox="20 20" />
+                                                    </button>
+                                                    <div class="p-5 flex flex-col gap-4">
+                                                        <div class="flex items-start gap-3 pr-8">
+                                                            <div
+                                                                class="w-14 h-14 rounded-full overflow-hidden flex-shrink-0 border border-gray-200 bg-white">
+                                                                <x-employee-photo
+                                                                    :photo="$employee['employee']['photo'] ?? null" />
                                                             </div>
-                                                        @empty
-                                                            <p class="text-[10px] text-gray-400">Tidak ada punch</p>
-                                                        @endforelse
+                                                            <div class="flex flex-col gap-1 min-w-0 text-left">
+                                                                <p class="text-base font-semibold text-gray-900 leading-tight">
+                                                                    {{ $employeeName !== '' ? $employeeName : '-' }}
+                                                                </p>
+                                                                <div class="flex flex-col gap-0.5 text-xs text-gray-500">
+                                                                    <p><span class="text-gray-400">Bagian:</span>
+                                                                        {{ $departmentName }}</p>
+                                                                    <p><span class="text-gray-400">Tanggal:</span>
+                                                                        {{ $rangeDateLabel }}</p>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <hr class="border-gray-200">
+                                                        <div class="flex flex-col gap-2 text-left">
+                                                            <p class="text-sm font-medium text-gray-800">Daftar Punch</p>
+                                                            <table class="w-full border-collapse">
+                                                                <thead>
+                                                                    <tr class="border-b border-gray-200">
+                                                                        <th
+                                                                            class="text-left text-xs font-medium text-gray-500 py-2 w-28">
+                                                                            Tanggal</th>
+                                                                        <th
+                                                                            class="text-left text-xs font-medium text-gray-500 py-2">
+                                                                            Punch</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                    @forelse (($employee['punches_by_date'] ?? collect()) as $punch_date => $punch_times)
+                                                                        <tr class="border-b border-gray-100 align-top">
+                                                                            <td
+                                                                                class="text-xs text-gray-700 py-2.5 pr-3 whitespace-nowrap">
+                                                                                {{ date('d M Y', strtotime($punch_date)) }}
+                                                                            </td>
+                                                                            <td class="text-xs text-gray-600 py-2.5">
+                                                                                @if (!empty($punch_times))
+                                                                                    <div class="flex flex-wrap gap-1.5">
+                                                                                        @foreach ($punch_times as $punch_time)
+                                                                                            <span
+                                                                                                class="inline-flex items-center rounded border border-gray-200 bg-gray-50 px-1.5 py-0.5 text-[11px] text-gray-700">
+                                                                                                {{ $punch_time }}
+                                                                                            </span>
+                                                                                        @endforeach
+                                                                                    </div>
+                                                                                @else
+                                                                                    <span class="text-gray-400">—</span>
+                                                                                @endif
+                                                                            </td>
+                                                                        </tr>
+                                                                    @empty
+                                                                        <tr>
+                                                                            <td colspan="2"
+                                                                                class="text-xs text-gray-400 py-3">Tidak
+                                                                                ada punch</td>
+                                                                        </tr>
+                                                                    @endforelse
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
                                                     </div>
                                                 </div>
-                                            </div>
+                                            </template>
                                         </div>
                                     </td>
                                 </tr>

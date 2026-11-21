@@ -63,37 +63,6 @@
     visibility: visible;
 }
 
-/* Punch list tooltip on attendance card */
-.tooltip-punches {
-    align-items: center;
-    flex-shrink: 0;
-}
-
-.tooltip-punches .tooltip-punches-panel {
-    top: calc(100% + 8px);
-    right: 0;
-    left: auto;
-    bottom: auto;
-    width: 220px;
-    max-height: 240px;
-    overflow-y: auto;
-    text-align: left;
-    min-width: 220px;
-    z-index: 40;
-    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
-}
-
-.tooltip-punches .tooltip-punches-panel::after {
-    bottom: auto;
-    top: -6px;
-    right: 8px;
-    left: auto;
-    border-top: none;
-    border-bottom: solid 6px rgb(203 213 225);
-    border-left: solid 5px transparent;
-    border-right: solid 5px transparent;
-}
-
 .feather-16 {
     width: 16px;
     height: 16px;
