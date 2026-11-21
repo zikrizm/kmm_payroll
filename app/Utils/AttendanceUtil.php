@@ -549,13 +549,16 @@ class AttendanceUtil extends Util
 
     private function logGrouping(string $step, array $data = []): void
     {
-        return;
+        if ($this->groupingLogContext === null) {
+            return;
+        }
 
-        // if ($this->groupingLogContext === null) {
-        //     return;
-        // }
+        $empCode = $this->groupingLogContext['emp_code'] ?? null;
+        if (!in_array($empCode, ['192341'], true)) {
+            return;
+        }
 
-        // Log::info('[ATTENDANCE_GROUPING] ' . $step, array_merge($this->groupingLogContext, $data));
+        Log::info('[ATTENDANCE_GROUPING] ' . $step, array_merge($this->groupingLogContext, $data));
     }
 
     private function formatLimitsForLog(array $limits): array
@@ -618,15 +621,45 @@ class AttendanceUtil extends Util
         return false;
     }
 
+    private function hasDayShiftCheckInOnDate(
+        Collection $dateAttendance,
+        Carbon $date,
+        Collection $timetablesSource,
+    ): bool {
+        foreach ($timetablesSource as $item) {
+            $dayTimetable = $item->timetable;
+            if ($dayTimetable->cross_day ?? 0) {
+                continue;
+            }
+
+            $dayLimits = $this->getTimetableWindowLimits($date, $dayTimetable);
+            if ($dateAttendance->contains(function ($log) use ($dayLimits) {
+                $logTime = Carbon::parse($log['punch_time']);
+                return $logTime->between($dayLimits['check_in_limit_min'], $dayLimits['check_in_limit_plus']);
+            })) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     private function isCrossDayShiftCheckout(
         Carbon $punchTime,
         Carbon $date,
         Collection $prevDateAttendance,
         Collection $timetablesSource,
     ): bool {
-        // Hanya berbasis window timetable (check-in malam kemarin + checkout/OT malam),
-        // tanpa hardcode jam (mis. hour >= 12 / >= 17).
+        // Hanya berbasis window timetable:
+        // check-in malam kemarin yang BUKAN sisa shift siang + checkout/OT malam.
+        // Tanpa hardcode jam.
         $prevDate = $date->copy()->subDay();
+
+        // Kalau kemarin sudah ada datang shift siang, punch ~19:xx biasanya pulang/lembur
+        // siang (overlap window datang malam) — jangan anggap check-in malam.
+        if ($this->hasDayShiftCheckInOnDate($prevDateAttendance, $prevDate, $timetablesSource)) {
+            return false;
+        }
 
         foreach ($timetablesSource as $item) {
             $nightTimetable = $item->timetable;
