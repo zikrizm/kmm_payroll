@@ -62,12 +62,12 @@
                                             </button>
                                             <template id="{{ $punchDialogId }}">
                                                 <div
-                                                    class="bg-white w-[400px] max-w-[95vw] max-h-[90vh] overflow-y-auto overflow-x-hidden relative rounded-lg shadow-lg">
+                                                    class="bg-white w-[400px] max-w-[95vw] max-h-[90vh] overflow-y-auto overflow-x-hidden relative rounded-lg shadow-lg box-border">
                                                     <button type="button"
                                                         class="absolute top-3 right-3 modal-close hover:bg-gray-100 text-gray-500 rounded p-2 z-10">
                                                         <x-icon icon="x" width=16 height=16 viewBox="20 20" />
                                                     </button>
-                                                    <div class="p-5 flex flex-col gap-2.5">
+                                                    <div class="p-5 flex flex-col gap-2.5 w-full min-w-0 box-border">
                                                         <div class="flex items-start gap-3 pr-8">
                                                             <div
                                                                 class="w-14 h-14 rounded-full overflow-hidden flex-shrink-0 border border-gray-200 bg-white">
@@ -87,58 +87,46 @@
                                                             </div>
                                                         </div>
                                                         <hr class="border-gray-200">
-                                                        <div class="flex flex-col text-left">
-                                                            <table class="w-full table-fixed border-collapse">
-                                                                <thead>
-                                                                    <tr class="border-b border-gray-200">
-                                                                        <th
-                                                                            class="text-left text-xs font-medium text-gray-500 py-2 w-24">
-                                                                            Tanggal</th>
-                                                                        <th
-                                                                            class="text-left text-xs font-medium text-gray-500 py-2">
-                                                                            Punch</th>
-                                                                    </tr>
-                                                                </thead>
-                                                                <tbody>
-                                                                    @forelse (($employee['punches_by_date'] ?? collect()) as $punch_date => $punch_times)
-                                                                        @php
-                                                                            $dayNames = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
-                                                                            $punchTimestamp = strtotime($punch_date);
-                                                                            $dayName = $dayNames[(int) date('w', $punchTimestamp)];
-                                                                            $dateLabel = date('d/m/Y', $punchTimestamp);
-                                                                        @endphp
-                                                                        <tr class="border-b border-gray-100 align-top">
-                                                                            <td
-                                                                                class="text-[10px] text-gray-700 py-2.5 pr-3 whitespace-nowrap">
-                                                                                <div class="flex flex-col leading-tight">
-                                                                                    <span>{{ $dateLabel }}</span>
-                                                                                    <span class="text-[10px] text-gray-400">{{ $dayName }}</span>
-                                                                                </div>
-                                                                            </td>
-                                                                            <td class="text-xs text-gray-600 py-2.5 min-w-0">
-                                                                                @if (!empty($punch_times))
-                                                                                    <div class="flex flex-wrap gap-1.5">
-                                                                                        @foreach ($punch_times as $punch_time)
-                                                                                            <span
-                                                                                                class="inline-flex items-center shrink-0 rounded border border-gray-200 bg-gray-50 px-1.5 py-0.5 text-[11px] text-gray-700">
-                                                                                                {{ $punch_time }}
-                                                                                            </span>
-                                                                                        @endforeach
-                                                                                    </div>
-                                                                                @else
-                                                                                    <span class="text-gray-400">—</span>
-                                                                                @endif
-                                                                            </td>
-                                                                        </tr>
-                                                                    @empty
-                                                                        <tr>
-                                                                            <td colspan="2"
-                                                                                class="text-xs text-gray-400 py-3">Tidak
-                                                                                ada punch</td>
-                                                                        </tr>
-                                                                    @endforelse
-                                                                </tbody>
-                                                            </table>
+                                                        <div class="flex flex-col text-left w-full min-w-0">
+                                                            <div class="flex items-center border-b border-gray-200 pb-2">
+                                                                <p class="text-xs font-medium text-gray-500 w-[72px] shrink-0">
+                                                                    Tanggal</p>
+                                                                <p class="text-xs font-medium text-gray-500 min-w-0 flex-1">
+                                                                    Punch</p>
+                                                            </div>
+                                                            @forelse (($employee['punches_by_date'] ?? collect()) as $punch_date => $punch_times)
+                                                                @php
+                                                                    $dayNames = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+                                                                    $punchTimestamp = strtotime($punch_date);
+                                                                    $dayName = $dayNames[(int) date('w', $punchTimestamp)];
+                                                                    $dateLabel = date('d/m/Y', $punchTimestamp);
+                                                                @endphp
+                                                                <div class="flex items-start border-b border-gray-100 py-2.5 w-full min-w-0">
+                                                                    <div class="w-[72px] shrink-0 pr-2 text-[10px] text-gray-700">
+                                                                        <div class="flex flex-col leading-tight">
+                                                                            <span>{{ $dateLabel }}</span>
+                                                                            <span class="text-[10px] text-gray-400">{{ $dayName }}</span>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="min-w-0 flex-1 overflow-hidden">
+                                                                        @if (!empty($punch_times))
+                                                                            <div class="flex flex-wrap gap-1.5" style="flex-wrap: wrap;">
+                                                                                @foreach ($punch_times as $punch_time)
+                                                                                    <span
+                                                                                        class="inline-flex items-center rounded border border-gray-200 bg-gray-50 px-1.5 py-0.5 text-[11px] text-gray-700"
+                                                                                        style="flex: 0 0 auto;">
+                                                                                        {{ $punch_time }}
+                                                                                    </span>
+                                                                                @endforeach
+                                                                            </div>
+                                                                        @else
+                                                                            <span class="text-xs text-gray-400">—</span>
+                                                                        @endif
+                                                                    </div>
+                                                                </div>
+                                                            @empty
+                                                                <p class="text-xs text-gray-400 py-3">Tidak ada punch</p>
+                                                            @endforelse
                                                         </div>
                                                     </div>
                                                 </div>
