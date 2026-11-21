@@ -1003,33 +1003,13 @@ class AttendanceUtil extends Util
             $punchTime = Carbon::parse($attendance['punch_time']);
             $punchLabel = $punchTime->format('Y-m-d H:i');
 
-            if ($punchTime->lt($limits['check_in_limit_min'])) {
-                $this->logGrouping('COLLECT_SKIP: di luar window shift (sebelum check-in)', [
+            if ($punchTime->lt($limits['check_in_limit_min']) || $punchTime->gt($checkoutCollectUpperLimit)) {
+                $this->logGrouping('COLLECT_SKIP: di luar window shift', [
                     'punch' => $punchLabel,
                     'timetable_id' => $timetable->id,
                     'timetable_name' => $timetable->name,
                 ]);
                 continue;
-            }
-
-            $beyondOtUpper = $punchTime->gt($checkoutCollectUpperLimit);
-            // Punch lewat OT upper tapi overlap window datang shift lain: jangan dibuang
-            // di sini — biarkan aturan checkout di bawah yang memutuskan
-            // (kasus Weekend 19:03 vs datang malam, OT max / upper collect).
-            if ($beyondOtUpper) {
-                $maybeDayCheckoutOverlap = $collected->isNotEmpty()
-                    && $punchTime->gte($limits['check_out_limit_min'])
-                    && $this->isPunchCheckInForOtherTimetable($punchTime, $timetable, $date, $timetablesSource);
-
-                if (!$maybeDayCheckoutOverlap) {
-                    $this->logGrouping('COLLECT_SKIP: di luar window shift (lewat OT upper)', [
-                        'punch' => $punchLabel,
-                        'timetable_id' => $timetable->id,
-                        'timetable_name' => $timetable->name,
-                        'checkout_collect_upper' => $checkoutCollectUpperLimit->format('Y-m-d H:i'),
-                    ]);
-                    continue;
-                }
             }
 
             if ($collected->isEmpty()) {
@@ -1081,11 +1061,19 @@ class AttendanceUtil extends Util
 
                 // Punch yang cocok sebagai check-in timetable lain jangan diserap
                 // sebagai "checkout OT" shift ini (mis. 07:09 + 18:59 malam).
-                // Pengecualian pulang: sudah ada check-in + ≥1 aktivitas (count >= 2),
-                // dan sudah lewat check_out_min. Contoh Weekend: …13:52, 19:03.
+                // Pengecualian (pulang shift ini, masih dalam OT max):
+                //   A) sudah ada pasangan istirahat, ATAU
+                //   B) is_without_break dan sudah lewat check_out_min
+                // contoh Weekend: 06:57, 12:57, 13:52, 19:03 (OT sampai 20:00).
                 if ($this->isPunchCheckInForOtherTimetable($punchTime, $timetable, $date, $timetablesSource)) {
                     $pastCheckoutMin = $punchTime->gte($limits['check_out_limit_min']);
-                    $canUseAsCheckout = $pastCheckoutMin && $collected->count() >= 2;
+                    $withinOtLimit = $punchTime->lte($checkoutCollectUpperLimit);
+                    $canUseAsCheckout = $pastCheckoutMin
+                        && $withinOtLimit
+                        && (
+                            $this->hasBreakPunchesBetween($collected, $limits)
+                            || (bool) $timetable->is_without_break
+                        );
 
                     if (!$canUseAsCheckout) {
                         $this->logGrouping('COLLECT_SKIP: check-in timetable lain', [
@@ -1093,9 +1081,8 @@ class AttendanceUtil extends Util
                             'timetable_id' => $timetable->id,
                             'timetable_name' => $timetable->name,
                             'past_checkout_min' => $pastCheckoutMin,
-                            'collected_count' => $collected->count(),
-                            'beyond_ot_upper' => $beyondOtUpper,
-                            'checkout_collect_upper' => $checkoutCollectUpperLimit->format('Y-m-d H:i'),
+                            'within_ot_limit' => $withinOtLimit,
+                            'is_without_break' => (bool) $timetable->is_without_break,
                         ]);
                         continue;
                     }
@@ -1104,24 +1091,11 @@ class AttendanceUtil extends Util
                         'punch' => $punchLabel,
                         'timetable_id' => $timetable->id,
                         'timetable_name' => $timetable->name,
-                        'beyond_ot_upper' => $beyondOtUpper,
-                        'checkout_collect_upper' => $checkoutCollectUpperLimit->format('Y-m-d H:i'),
                     ]);
                     $collected->push($attendance);
                     $priorSameDay->push($attendance);
                     // Stop: jangan serap punch lanjutan milik shift lain.
                     break;
-                }
-
-                // Lewat OT upper dan bukan overlap yang diizinkan di atas → skip.
-                if ($beyondOtUpper) {
-                    $this->logGrouping('COLLECT_SKIP: di luar window shift (lewat OT upper)', [
-                        'punch' => $punchLabel,
-                        'timetable_id' => $timetable->id,
-                        'timetable_name' => $timetable->name,
-                        'checkout_collect_upper' => $checkoutCollectUpperLimit->format('Y-m-d H:i'),
-                    ]);
-                    continue;
                 }
             }
 
