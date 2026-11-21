@@ -88,11 +88,11 @@
                                                         </div>
                                                         <hr class="border-gray-200">
                                                         <div class="flex flex-col text-left">
-                                                            <table class="w-full border-collapse">
+                                                            <table class="w-full table-fixed border-collapse">
                                                                 <thead>
                                                                     <tr class="border-b border-gray-200">
                                                                         <th
-                                                                            class="text-left text-xs font-medium text-gray-500 py-2 w-28">
+                                                                            class="text-left text-xs font-medium text-gray-500 py-2 w-24">
                                                                             Tanggal</th>
                                                                         <th
                                                                             class="text-left text-xs font-medium text-gray-500 py-2">
@@ -115,12 +115,12 @@
                                                                                     <span class="text-[10px] text-gray-400">{{ $dayName }}</span>
                                                                                 </div>
                                                                             </td>
-                                                                            <td class="text-xs text-gray-600 py-2.5">
+                                                                            <td class="text-xs text-gray-600 py-2.5 min-w-0">
                                                                                 @if (!empty($punch_times))
                                                                                     <div class="flex flex-wrap gap-1.5">
                                                                                         @foreach ($punch_times as $punch_time)
                                                                                             <span
-                                                                                                class="inline-flex items-center rounded border border-gray-200 bg-gray-50 px-1.5 py-0.5 text-[11px] text-gray-700">
+                                                                                                class="inline-flex items-center shrink-0 rounded border border-gray-200 bg-gray-50 px-1.5 py-0.5 text-[11px] text-gray-700">
                                                                                                 {{ $punch_time }}
                                                                                             </span>
                                                                                         @endforeach
