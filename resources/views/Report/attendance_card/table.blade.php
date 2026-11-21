@@ -102,10 +102,17 @@
                                                                 </thead>
                                                                 <tbody>
                                                                     @forelse (($employee['punches_by_date'] ?? collect()) as $punch_date => $punch_times)
+                                                                        @php
+                                                                            $dayNames = ['Mgg', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
+                                                                            $dayName = $dayNames[(int) date('w', strtotime($punch_date))];
+                                                                        @endphp
                                                                         <tr class="border-b border-gray-100 align-top">
                                                                             <td
                                                                                 class="text-xs text-gray-700 py-2.5 pr-3 whitespace-nowrap">
-                                                                                {{ date('d M Y', strtotime($punch_date)) }}
+                                                                                <div class="flex flex-col leading-tight">
+                                                                                    <span>{{ date('d M Y', strtotime($punch_date)) }}</span>
+                                                                                    <span class="text-[10px] text-gray-400">{{ $dayName }}</span>
+                                                                                </div>
                                                                             </td>
                                                                             <td class="text-xs text-gray-600 py-2.5">
                                                                                 @if (!empty($punch_times))
@@ -210,16 +217,9 @@
                                     @forelse ($attendance['shifts'] as $key => $shift)
                                         <tr class='hover:bg-gray-50 border '>
                                             @if ($key == 0)
-                                                @php
-                                                    $dayNames = ['Mgg', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
-                                                    $dayName = $dayNames[(int) date('w', strtotime($attendance['date']))];
-                                                @endphp
                                                 <td rowspan="{{ count($attendance['shifts']) }}"
                                                     class="text-xs border text-center w-8 {{ $attendance['is_holiday'] ? 'text-red-500' : 'text-gray-500' }}">
-                                                    <div class="flex flex-col items-center leading-tight py-0.5">
-                                                        <span>{{ date('d', strtotime($attendance['date'])) }}</span>
-                                                        <span class="text-[9px] font-normal opacity-70">{{ $dayName }}</span>
-                                                    </div>
+                                                    {{ date('d', strtotime($attendance['date'])) }}
                                                 </td>
                                             @endif
                                             <td class='text-xs border text-gray-500 text-center w-12'>
@@ -268,17 +268,10 @@
                                             </td>
                                         </tr>
                                     @empty
-                                        @php
-                                            $dayNames = ['Mgg', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
-                                            $dayName = $dayNames[(int) date('w', strtotime($attendance['date']))];
-                                        @endphp
                                         <tr class='hover:bg-gray-50 border '>
                                             <td
                                                 class="text-xs border text-center w-8 {{ $attendance['is_holiday'] ? 'text-red-500' : 'text-gray-500' }}">
-                                                <div class="flex flex-col items-center leading-tight py-0.5">
-                                                    <span>{{ date('d', strtotime($attendance['date'])) }}</span>
-                                                    <span class="text-[9px] font-normal opacity-70">{{ $dayName }}</span>
-                                                </div>
+                                                {{ date('d', strtotime($attendance['date'])) }}
                                             </td>
                                             <td class='text-xs border text-gray-500 text-center w-12'>
                                                 -
