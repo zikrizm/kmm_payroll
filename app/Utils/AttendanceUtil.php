@@ -1213,21 +1213,21 @@ class AttendanceUtil extends Util
         return $crossDayPunches;
     }
 
-    private function removeCrossDayPunchesFromEmployee(
-        Collection $crossDayPunches,
+    private function removePunchesFromEmployee(
+        Collection $punches,
         Collection $attendanceEmployee,
     ): void {
-        if ($crossDayPunches->isEmpty()) {
+        if ($punches->isEmpty()) {
             return;
         }
 
-        $crossDayTimestamps = $crossDayPunches
+        $removeTimestamps = $punches
             ->map(fn ($item) => Carbon::parse($item['punch_time'])->timestamp)
             ->all();
 
         foreach ($attendanceEmployee as $dateString => $dayAttendances) {
-            $attendanceEmployee[$dateString] = collect($dayAttendances)->reject(function ($attendance) use ($crossDayTimestamps) {
-                return in_array(Carbon::parse($attendance['punch_time'])->timestamp, $crossDayTimestamps, true);
+            $attendanceEmployee[$dateString] = collect($dayAttendances)->reject(function ($attendance) use ($removeTimestamps) {
+                return in_array(Carbon::parse($attendance['punch_time'])->timestamp, $removeTimestamps, true);
             })->values();
         }
     }
@@ -1419,7 +1419,12 @@ class AttendanceUtil extends Util
                 ]);
 
                 $date_attendances = $this->removePunchesFromCollection($date_attendances, $collectedPunches);
-                $this->removeCrossDayPunchesFromEmployee($crossDayPunches, $attendance_employee);
+                // Hapus dari pool bersama juga (same-day + cross-day), supaya hari
+                // berikutnya tidak memakai ulang punch yang sudah masuk timetable valid.
+                $this->removePunchesFromEmployee(
+                    $collectedPunches->merge($crossDayPunches)->values(),
+                    $attendance_employee,
+                );
 
                 // First valid wins: hanya satu timetable valid per tanggal.
                 $this->logGrouping('TIMETABLE_STOP: first valid wins', [
