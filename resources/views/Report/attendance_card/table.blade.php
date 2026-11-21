@@ -34,9 +34,40 @@
                                         </table>
                                     </td>
                                     <td class="align-middle">
-                                        <p class="text-gray-500 text-xs text-middle mt-0.5">
-                                            {{ date('d-m-Y', strtotime($result['start_date_work_day'])) }} -
-                                            {{ date('d-m-Y', strtotime($result['end_date_work_day'])) }}
+                                        <div class="flex items-center gap-1.5">
+                                            <p class="text-gray-500 text-xs text-middle mt-0.5">
+                                                {{ date('d-m-Y', strtotime($result['start_date_work_day'])) }} -
+                                                {{ date('d-m-Y', strtotime($result['end_date_work_day'])) }}
+                                            </p>
+                                            <div class="tooltip-custom tooltip-punches cursor-pointer text-gray-400 hover:text-gray-600">
+                                                <x-icon icon="clock" width=12 height=12 viewBox="20 20" />
+                                                <div class="tooltip-custom-text tooltip-punches-panel border border-gray-200 shadow-sm p-2 rounded bg-white">
+                                                    <p class="text-[11px] font-medium text-gray-700 text-left w-full">Daftar Punch</p>
+                                                    <p class="text-[10px] text-gray-400 text-left w-full mb-1.5">
+                                                        {{ date('d-m-Y', strtotime($result['start_date_work_day'])) }} –
+                                                        {{ date('d-m-Y', strtotime($result['end_date_work_day'])) }}
+                                                    </p>
+                                                    <div class="tooltip-punches-list flex flex-col gap-1.5 w-full text-left">
+                                                        @forelse (($employee['punches_by_date'] ?? collect()) as $punch_date => $punch_times)
+                                                            <div class="flex flex-col gap-0.5">
+                                                                <p class="text-[10px] font-medium text-gray-600">
+                                                                    {{ date('d M Y', strtotime($punch_date)) }}
+                                                                </p>
+                                                                <p class="text-[10px] text-gray-500 leading-relaxed">
+                                                                    @if (!empty($punch_times))
+                                                                        {{ implode('  ', $punch_times) }}
+                                                                    @else
+                                                                        —
+                                                                    @endif
+                                                                </p>
+                                                            </div>
+                                                        @empty
+                                                            <p class="text-[10px] text-gray-400">Tidak ada punch</p>
+                                                        @endforelse
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </td>
                                 </tr>
                             </table>

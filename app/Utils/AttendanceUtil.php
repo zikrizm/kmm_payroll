@@ -2347,6 +2347,7 @@ class AttendanceUtil extends Util
                     $attendance_report_employee_data = collect([
                         'employee' => collect($employee),
                         'attendances' => collect(),
+                        'punches_by_date' => collect(),
                         'total_hk' => 0,
                         'total_jl' => 0,
                         'total_salary' => 0,
@@ -2366,6 +2367,31 @@ class AttendanceUtil extends Util
                     ]);
 
                     $attendance_employees = $attendance_grouping->get($employee['emp_code'], collect());
+
+                    $range_date_count_for_punches = count($range_dates);
+                    $punches_by_date = collect();
+                    foreach ($range_dates as $iDate => $range_date) {
+                        if ($range_date_count_for_punches - 1 == $iDate || !empty($range_date['is_addition_date'])) {
+                            continue;
+                        }
+
+                        $date_string = Carbon::parse($range_date['date'])->format('Y-m-d');
+                        $day_punches = collect($attendance_employees->get($date_string, collect()))
+                            ->map(function ($item) {
+                                if (empty($item['punch_time'])) {
+                                    return null;
+                                }
+
+                                return Carbon::parse($item['punch_time'])->format('H:i');
+                            })
+                            ->filter()
+                            ->sort()
+                            ->values()
+                            ->all();
+
+                        $punches_by_date->put($date_string, $day_punches);
+                    }
+                    $attendance_report_employee_data['punches_by_date'] = $punches_by_date;
 
                     if (in_array($employee['emp_code'] ?? null, ['192341'], true)) {
                         Log::info("[ATTENDANCE_GROUPING][{$employee['emp_code']}] BEFORE", [
