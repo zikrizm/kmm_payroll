@@ -104,14 +104,13 @@
                                                                     @forelse (($employee['punches_by_date'] ?? collect()) as $punch_date => $punch_times)
                                                                         @php
                                                                             $dayNames = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
-                                                                            $monthNames = ['jan', 'feb', 'mar', 'apr', 'mei', 'jun', 'jul', 'agu', 'sep', 'okt', 'nov', 'des'];
                                                                             $punchTimestamp = strtotime($punch_date);
                                                                             $dayName = $dayNames[(int) date('w', $punchTimestamp)];
-                                                                            $dateLabel = date('d', $punchTimestamp) . '/' . $monthNames[(int) date('n', $punchTimestamp) - 1] . '/' . date('Y', $punchTimestamp);
+                                                                            $dateLabel = date('d/m/Y', $punchTimestamp);
                                                                         @endphp
                                                                         <tr class="border-b border-gray-100 align-top">
                                                                             <td
-                                                                                class="text-[11px] text-gray-700 py-2.5 pr-3 whitespace-nowrap">
+                                                                                class="text-[10px] text-gray-700 py-2.5 pr-3 whitespace-nowrap">
                                                                                 <div class="flex flex-col leading-tight">
                                                                                     <span>{{ $dateLabel }}</span>
                                                                                     <span class="text-[10px] text-gray-400">{{ $dayName }}</span>
