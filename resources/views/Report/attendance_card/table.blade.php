@@ -67,7 +67,7 @@
                                                         class="absolute top-3 right-3 modal-close hover:bg-gray-100 text-gray-500 rounded p-2 z-10">
                                                         <x-icon icon="x" width=16 height=16 viewBox="20 20" />
                                                     </button>
-                                                    <div class="p-5 flex flex-col gap-4">
+                                                    <div class="p-5 flex flex-col gap-2.5">
                                                         <div class="flex items-start gap-3 pr-8">
                                                             <div
                                                                 class="w-14 h-14 rounded-full overflow-hidden flex-shrink-0 border border-gray-200 bg-white">
@@ -87,8 +87,7 @@
                                                             </div>
                                                         </div>
                                                         <hr class="border-gray-200">
-                                                        <div class="flex flex-col gap-2 text-left">
-                                                            <p class="text-sm font-medium text-gray-800">Daftar Punch</p>
+                                                        <div class="flex flex-col text-left">
                                                             <table class="w-full border-collapse">
                                                                 <thead>
                                                                     <tr class="border-b border-gray-200">
