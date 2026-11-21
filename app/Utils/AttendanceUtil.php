@@ -605,10 +605,11 @@ class AttendanceUtil extends Util
             }
 
             $dayLimits = $this->getTimetableWindowLimits($prevDate, $dayTimetable);
+            $dayCheckoutUpper = $this->getCheckoutCollectUpperLimit($dayLimits);
 
-            if ($prevDateAttendance->contains(function ($log) use ($dayLimits) {
+            if ($prevDateAttendance->contains(function ($log) use ($dayLimits, $dayCheckoutUpper) {
                 $logTime = Carbon::parse($log['punch_time']);
-                return $logTime->between($dayLimits['check_out_limit_min'], $dayLimits['check_out_limit_ot']);
+                return $logTime->between($dayLimits['check_out_limit_min'], $dayCheckoutUpper);
             })) {
                 return true;
             }
@@ -623,10 +624,8 @@ class AttendanceUtil extends Util
         Collection $prevDateAttendance,
         Collection $timetablesSource,
     ): bool {
-        if ($punchTime->hour >= 12) {
-            return false;
-        }
-
+        // Hanya berbasis window timetable (check-in malam kemarin + checkout/OT malam),
+        // tanpa hardcode jam (mis. hour >= 12 / >= 17).
         $prevDate = $date->copy()->subDay();
 
         foreach ($timetablesSource as $item) {
@@ -636,28 +635,23 @@ class AttendanceUtil extends Util
             }
 
             $nightLimits = $this->getTimetableWindowLimits($prevDate, $nightTimetable);
+            $nightCheckoutUpper = $this->getCheckoutCollectUpperLimit($nightLimits);
 
             $hadNightCheckIn = $prevDateAttendance->contains(function ($log) use ($nightLimits) {
                 $logTime = Carbon::parse($log['punch_time']);
                 return $logTime->between($nightLimits['check_in_limit_min'], $nightLimits['check_in_limit_plus']);
             });
 
-            $inNightCheckoutWindow = $punchTime->between(
-                $nightLimits['check_out_limit_min'],
-                $nightLimits['check_out_limit_ot'],
-            );
-
-            if ($hadNightCheckIn && $inNightCheckoutWindow) {
-                return true;
+            if (!$hadNightCheckIn) {
+                continue;
             }
 
-            $hadPrevEveningActivity = $prevDateAttendance->contains(function ($log) use ($nightLimits) {
-                $logTime = Carbon::parse($log['punch_time']);
-                return $logTime->hour >= 17
-                    || $logTime->between($nightLimits['check_in_limit_min'], $nightLimits['check_out_limit_ot']);
-            });
+            $inNightCheckoutWindow = $punchTime->between(
+                $nightLimits['check_out_limit_min'],
+                $nightCheckoutUpper,
+            );
 
-            if ($hadPrevEveningActivity && $inNightCheckoutWindow) {
+            if ($inNightCheckoutWindow) {
                 return true;
             }
         }
@@ -819,10 +813,8 @@ class AttendanceUtil extends Util
             return false;
         }
 
-        if ($punchTime->hour >= 12) {
-            return false;
-        }
-
+        // Kalau kemarin sudah ada pulang di window checkout/OT shift siang,
+        // punch pagi ini jangan dianggap sisa shift malam.
         if ($this->hasPrevDayDayShiftCheckout($date, $prevDateAttendance, $timetablesSource)) {
             return false;
         }
