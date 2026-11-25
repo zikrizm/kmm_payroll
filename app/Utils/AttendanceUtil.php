@@ -502,13 +502,14 @@ class AttendanceUtil extends Util
 
     private function resolveCheckOutLimitBreakTime(
         Carbon $checkOutLimitMin,
-        bool $isWithoutBreak,
         int $durationBreakTime,
         bool $hasBreakPunches,
     ): Carbon {
         $limit = $checkOutLimitMin->copy();
 
-        if ($isWithoutBreak || !$hasBreakPunches) {
+        // Pengurangan batas pulang hanya untuk karyawan yang tidak punya punch istirahat.
+        // Karyawan yang istirahat tidak mendapat pengurangan, walau timetable tanpa istirahat.
+        if (!$hasBreakPunches) {
             $limit->subMinutes($durationBreakTime);
         }
 
@@ -927,7 +928,6 @@ class AttendanceUtil extends Util
         $hasBreakPunches = $this->hasBreakPunchesBetween($collectedPunches, $limits);
         $effectiveCheckOutMin = $this->resolveCheckOutLimitBreakTime(
             $limits['check_out_limit_min'],
-            (bool) $timetable->is_without_break,
             $durationBreakTime,
             $hasBreakPunches,
         );
@@ -939,6 +939,17 @@ class AttendanceUtil extends Util
             return $punchTime->between($effectiveCheckOutMin, $checkoutCollectUpperLimit);
         });
 
+        // Prioritas 1: punch istirahat terbukti -> validasi penuh (istirahat + pulang),
+        // apa pun isi is_without_break.
+        if ($hasBreakPunches && ($hasCheckoutPunchInWindow || $collectedPunches->contains(function ($item) use ($limits) {
+            return Carbon::parse($item['punch_time'])->gte($limits['check_out_limit_min']);
+        }))) {
+            $this->logGrouping('VALIDASI_OK: penuh (istirahat + pulang)', $logBase);
+
+            return true;
+        }
+
+        // Prioritas 2: tidak ada punch istirahat, dan timetable membolehkan tanpa istirahat.
         if ($timetable->is_without_break) {
             $valid = $collectedPunches->count() >= 2 && $hasCheckoutPunchInWindow;
             $this->logGrouping($valid ? 'VALIDASI_OK: tanpa istirahat (>=2 punch + checkout)' : 'VALIDASI_GAGAL: tanpa istirahat', array_merge($logBase, [
@@ -947,15 +958,6 @@ class AttendanceUtil extends Util
             ]));
 
             return $valid;
-        }
-
-        // Penuh: istirahat lengkap + ada punch pulang (di window checkout / setelah zona istirahat).
-        if ($hasBreakPunches && ($hasCheckoutPunchInWindow || $collectedPunches->contains(function ($item) use ($limits) {
-            return Carbon::parse($item['punch_time'])->gte($limits['check_out_limit_min']);
-        }))) {
-            $this->logGrouping('VALIDASI_OK: penuh (istirahat + pulang)', $logBase);
-
-            return true;
         }
 
         // Setengah hari: aktivitas setelah datang, durasi >= work_time/2, dan last punch
@@ -1148,6 +1150,9 @@ class AttendanceUtil extends Util
         $otUpper = $this->getCheckoutCollectUpperLimit($limits);
         $crossDayPunches = collect();
 
+        // Bukti istirahat dihitung sekali dari punch hari yang sama (bukan dari punch lintas hari).
+        $hasBreakPunches = $this->hasBreakPunchesBetween($collectedPunches, $limits);
+
         for ($i = 0; $i < $crossDay; $i++) {
             $nextDate = $date->copy()->addDays($i + 1);
             $nextDateString = $nextDate->format('Y-m-d');
@@ -1168,24 +1173,50 @@ class AttendanceUtil extends Util
                     break;
                 }
 
-                $soFar = $collectedPunches->merge($crossDayPunches)->values();
                 $inDayShiftCheckIn = $this->isPunchInDayShiftCheckInWindow(
                     $punchTime,
                     $nextDate,
                     $timetablesSource,
                 );
 
-                // Penutup lembur di zona datang shift siang: ambil lalu stop.
-                // Jangan stop hanya karena punch masuk window checkout normal (03:00–05:00),
-                // agar punch lembur ~07:xx tetap ikut selama masih di bawah duration_ot_limit.
-                if ($inDayShiftCheckIn) {
-                    if ($this->hasBreakPunchesBetween($soFar, $limits)) {
-                        $crossDayPunches->push($attendance);
-                    }
+                if (!$inDayShiftCheckIn) {
+                    $crossDayPunches->push($attendance);
+                    continue;
+                }
+
+                // Punch ini berada di zona datang shift siang (kemungkinan check-in pagi hari berikutnya).
+                // Prioritas 1: istirahat terbukti -> karyawan memang di shift ini, ambil dan lanjut
+                // sampai batas (OT atau check-in malam berikutnya).
+                if ($hasBreakPunches) {
+                    $this->logGrouping('CROSS_DAY_AMBIL: istirahat terbukti, lanjut sampai batas', [
+                        'punch' => $punchTime->format('Y-m-d H:i'),
+                        'timetable_id' => $timetable->id,
+                        'timetable_name' => $timetable->name,
+                        'hard_upper' => $hardUpper->format('Y-m-d H:i'),
+                    ]);
+                    $crossDayPunches->push($attendance);
+                    continue;
+                }
+
+                // Prioritas 2: tanpa istirahat dan timetable membolehkan tanpa istirahat
+                // -> ambil punch pulang ini saja, lalu stop.
+                if ($timetable->is_without_break) {
+                    $this->logGrouping('CROSS_DAY_AMBIL: tanpa istirahat, ambil punch pulang lalu stop', [
+                        'punch' => $punchTime->format('Y-m-d H:i'),
+                        'timetable_id' => $timetable->id,
+                        'timetable_name' => $timetable->name,
+                    ]);
+                    $crossDayPunches->push($attendance);
                     break;
                 }
 
-                $crossDayPunches->push($attendance);
+                // Prioritas 3: tanpa istirahat dan wajib istirahat -> tidak diambil, stop.
+                $this->logGrouping('CROSS_DAY_STOP: zona datang shift siang, tanpa istirahat', [
+                    'punch' => $punchTime->format('Y-m-d H:i'),
+                    'timetable_id' => $timetable->id,
+                    'timetable_name' => $timetable->name,
+                ]);
+                break;
             }
         }
 
@@ -1532,7 +1563,6 @@ class AttendanceUtil extends Util
         $hasBreakPunches = !empty($result['break_time']['start_punch']) && !empty($result['break_time']['end_punch']);
         $check_out_limit_break_time = $this->resolveCheckOutLimitBreakTime(
             $check_out_limit_min,
-            (bool) $timetable->is_without_break,
             $duration_break_time,
             $hasBreakPunches,
         );
@@ -1711,7 +1741,6 @@ class AttendanceUtil extends Util
                 $hasBreakPunches = !empty($shift_data['break_time']['start_punch']) && !empty($shift_data['break_time']['end_punch']);
                 $check_out_limit_break_time = $this->resolveCheckOutLimitBreakTime(
                     $check_out_limit_min,
-                    (bool) $shift_data['timetable']['is_without_break'],
                     $duration_break_time,
                     $hasBreakPunches,
                 );
@@ -1934,7 +1963,6 @@ class AttendanceUtil extends Util
         $hasBreakPunches = !empty($shift_data['break_time']['start_punch']) && !empty($shift_data['break_time']['end_punch']);
         $check_out_limit_break_time = $this->resolveCheckOutLimitBreakTime(
             $check_out_limit_min,
-            (bool) $shift_data['timetable']['is_without_break'],
             $duration_break_time,
             $hasBreakPunches,
         );
