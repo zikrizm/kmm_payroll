@@ -1150,9 +1150,6 @@ class AttendanceUtil extends Util
         $otUpper = $this->getCheckoutCollectUpperLimit($limits);
         $crossDayPunches = collect();
 
-        // Bukti istirahat dihitung sekali dari punch hari yang sama (bukan dari punch lintas hari).
-        $hasBreakPunches = $this->hasBreakPunchesBetween($collectedPunches, $limits);
-
         for ($i = 0; $i < $crossDay; $i++) {
             $nextDate = $date->copy()->addDays($i + 1);
             $nextDateString = $nextDate->format('Y-m-d');
@@ -1183,6 +1180,13 @@ class AttendanceUtil extends Util
                     $crossDayPunches->push($attendance);
                     continue;
                 }
+
+                // Bukti istirahat dihitung dari gabungan punch hari yang sama + lintas hari
+                // yang sudah terkumpul sebelum zona datang shift siang (mis. istirahat 23:03 - 00:01).
+                $hasBreakPunches = $this->hasBreakPunchesBetween(
+                    $collectedPunches->merge($crossDayPunches),
+                    $limits,
+                );
 
                 // Punch ini berada di zona datang shift siang (kemungkinan check-in pagi hari berikutnya).
                 // Prioritas 1: istirahat terbukti -> karyawan memang di shift ini, ambil dan lanjut
