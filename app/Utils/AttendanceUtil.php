@@ -504,12 +504,15 @@ class AttendanceUtil extends Util
         Carbon $checkOutLimitMin,
         int $durationBreakTime,
         bool $hasBreakPunches,
+        bool $isWithoutBreak,
     ): Carbon {
         $limit = $checkOutLimitMin->copy();
 
-        // Pengurangan batas pulang hanya untuk karyawan yang tidak punya punch istirahat.
-        // Karyawan yang istirahat tidak mendapat pengurangan, walau timetable tanpa istirahat.
-        if (!$hasBreakPunches) {
+        // Batas pulang dikurangi durasi istirahat hanya jika:
+        // - tidak ada punch istirahat, dan
+        // - timetable mengaktifkan "Bisa tanpa istirahat" (is_without_break).
+        // Flag ini tidak memengaruhi validasi grup, hanya batas pulang.
+        if (!$hasBreakPunches && $isWithoutBreak) {
             $limit->subMinutes($durationBreakTime);
         }
 
@@ -782,7 +785,7 @@ class AttendanceUtil extends Util
                 })
                 ->values();
 
-            if (!$this->isValidTimetableGroup($dayShiftPunchesUntilNightAnchor, $dayTimetable, $dayLimits)) {
+            if ($this->resolveTimetableGroupLevel($dayShiftPunchesUntilNightAnchor, $dayTimetable, $dayLimits) === 0) {
                 continue;
             }
 
@@ -894,11 +897,23 @@ class AttendanceUtil extends Util
         return $middlePunches->count() >= 2;
     }
 
-    private function isValidTimetableGroup(
+    /**
+     * Menentukan level validasi sebuah grup punch untuk satu timetable.
+     *
+     * Level 1: ada punch istirahat dan pulang (hanya untuk timetable yang punya istirahat).
+     * Level 2: check-in valid dan pulang valid, tanpa bukti istirahat.
+     * Level 3: setengah hari.
+     * 0: tidak valid.
+     *
+     * Flag is_without_break tidak dipakai di sini. Flag hanya memengaruhi batas pulang
+     * lewat resolveCheckOutLimitBreakTime().
+     */
+    private function resolveTimetableGroupLevel(
         Collection $collectedPunches,
         Timetable $timetable,
         array $limits,
-    ): bool {
+        ?array $employee = null,
+    ): int {
         $punchTimes = $this->punchTimesFromCollection($collectedPunches);
         $logBase = [
             'timetable_id' => $timetable->id,
@@ -912,7 +927,7 @@ class AttendanceUtil extends Util
         if ($collectedPunches->isEmpty()) {
             $this->logGrouping('VALIDASI_GAGAL: tidak ada punch', $logBase);
 
-            return false;
+            return 0;
         }
 
         $firstPunch = Carbon::parse($collectedPunches->first()['punch_time']);
@@ -921,15 +936,16 @@ class AttendanceUtil extends Util
                 'first_punch' => $firstPunch->format('Y-m-d H:i'),
             ]));
 
-            return false;
+            return 0;
         }
 
-        $durationBreakTime = $this->getTimetableDurationBreakTime($timetable);
+        $durationBreakTime = $this->getTimetableDurationBreakTime($timetable, $employee);
         $hasBreakPunches = $this->hasBreakPunchesBetween($collectedPunches, $limits);
         $effectiveCheckOutMin = $this->resolveCheckOutLimitBreakTime(
             $limits['check_out_limit_min'],
             $durationBreakTime,
             $hasBreakPunches,
+            (bool) $timetable->is_without_break,
         );
 
         $checkoutCollectUpperLimit = $this->getCheckoutCollectUpperLimit($limits);
@@ -938,44 +954,55 @@ class AttendanceUtil extends Util
 
             return $punchTime->between($effectiveCheckOutMin, $checkoutCollectUpperLimit);
         });
-
-        // Prioritas 1: punch istirahat terbukti -> validasi penuh (istirahat + pulang),
-        // apa pun isi is_without_break.
-        if ($hasBreakPunches && ($hasCheckoutPunchInWindow || $collectedPunches->contains(function ($item) use ($limits) {
+        $hasPunchAtOrAfterFullCheckOut = $collectedPunches->contains(function ($item) use ($limits) {
             return Carbon::parse($item['punch_time'])->gte($limits['check_out_limit_min']);
-        }))) {
-            $this->logGrouping('VALIDASI_OK: penuh (istirahat + pulang)', $logBase);
+        });
+        $hasOwnBreakConfig = $timetable->timetable_has_break_time !== null
+            && $timetable->timetable_has_break_time->isNotEmpty();
 
-            return true;
+        // Level 1: punch istirahat terbukti + pulang. Timetable tanpa konfigurasi istirahat
+        // tidak boleh lolos level ini, walaupun punch-nya terlihat seperti istirahat.
+        if ($hasOwnBreakConfig && $hasBreakPunches && ($hasCheckoutPunchInWindow || $hasPunchAtOrAfterFullCheckOut)) {
+            $this->logGrouping('VALIDASI_LEVEL_1: istirahat + pulang', $logBase);
+
+            return 1;
         }
 
-        // Prioritas 2: tidak ada punch istirahat, dan timetable membolehkan tanpa istirahat.
-        if ($timetable->is_without_break) {
-            $valid = $collectedPunches->count() >= 2 && $hasCheckoutPunchInWindow;
-            $this->logGrouping($valid ? 'VALIDASI_OK: tanpa istirahat (>=2 punch + checkout)' : 'VALIDASI_GAGAL: tanpa istirahat', array_merge($logBase, [
+        // Level 2: check-in valid + pulang valid, tanpa bukti istirahat.
+        if ($collectedPunches->count() >= 2 && $hasCheckoutPunchInWindow) {
+            $this->logGrouping('VALIDASI_LEVEL_2: check-in + pulang tanpa istirahat', array_merge($logBase, [
                 'punch_count' => $collectedPunches->count(),
                 'has_checkout_in_window' => $hasCheckoutPunchInWindow,
             ]));
 
-            return $valid;
+            return 2;
         }
 
-        // Setengah hari: aktivitas setelah datang, durasi >= work_time/2, dan last punch
-        // masih sebelum window pulang penuh (bukan menyeret punch shift lain / malam).
+        // Level 3: setengah hari. Aktivitas setelah datang, durasi >= work_time/2,
+        // dan punch terakhir masih sebelum batas pulang efektif.
         $lastPunch = Carbon::parse($collectedPunches->last()['punch_time']);
         $workingDuration = $firstPunch->diffInMinutes($lastPunch);
         $halfWorkTime = ((int) ($timetable->work_time ?? 0)) / 2;
         $hasActivityAfterCheckIn = $collectedPunches->contains(function ($item) use ($limits) {
             return Carbon::parse($item['punch_time'])->gt($limits['check_in_limit_plus']);
         });
-        $leftBeforeFullCheckout = $lastPunch->lt($limits['check_out_limit_min']);
+        $leftBeforeFullCheckout = $lastPunch->lt($effectiveCheckOutMin);
 
         $validHalfDay = $hasActivityAfterCheckIn
             && $leftBeforeFullCheckout
             && $halfWorkTime > 0
             && $workingDuration >= $halfWorkTime;
 
-        $this->logGrouping($validHalfDay ? 'VALIDASI_OK: setengah hari' : 'VALIDASI_GAGAL: tanpa istirahat / belum setengah hari', array_merge($logBase, [
+        if ($validHalfDay) {
+            $this->logGrouping('VALIDASI_LEVEL_3: setengah hari', array_merge($logBase, [
+                'working_duration' => $workingDuration,
+                'half_work_time' => $halfWorkTime,
+            ]));
+
+            return 3;
+        }
+
+        $this->logGrouping('VALIDASI_GAGAL: tidak memenuhi level 1, 2, atau 3', array_merge($logBase, [
             'punch_count' => $collectedPunches->count(),
             'working_duration' => $workingDuration,
             'half_work_time' => $halfWorkTime,
@@ -985,7 +1012,7 @@ class AttendanceUtil extends Util
             'has_checkout_in_window' => $hasCheckoutPunchInWindow,
         ]));
 
-        return $validHalfDay;
+        return 0;
     }
 
     private function collectPunchesForTimetable(
@@ -1140,13 +1167,15 @@ class AttendanceUtil extends Util
         Collection $attendanceEmployee,
         Collection $collectedPunches,
         Collection $timetablesSource,
+        ?array $employee = null,
     ): Collection {
         $crossDay = (int) ($timetable->cross_day ?? 0);
         if ($crossDay <= 0) {
             return collect();
         }
 
-        // Upper collect mengikuti batas OT (duration_ot_limit), bukan hanya check_out_plus.
+        // Batas atas penarikan: max lembur shift malam (duration_ot_limit), dan tidak melewati
+        // check-in malam berikutnya.
         $otUpper = $this->getCheckoutCollectUpperLimit($limits);
         $crossDayPunches = collect();
 
@@ -1159,11 +1188,12 @@ class AttendanceUtil extends Util
                 continue;
             }
 
-            // Jangan menyeret sampai check-in malam berikutnya; juga hormati batas OT.
             $nightHardUpper = $this->getCrossDayHardUpperLimit($nextDate, $timetablesSource);
             $hardUpper = $otUpper->lt($nightHardUpper) ? $otUpper->copy() : $nightHardUpper->copy();
 
-            foreach ($nextDateAttendance->sortBy('punch_time') as $attendance) {
+            $sortedNext = $nextDateAttendance->sortBy('punch_time')->values();
+
+            foreach ($sortedNext as $index => $attendance) {
                 $punchTime = Carbon::parse($attendance['punch_time']);
 
                 if ($punchTime->gte($hardUpper)) {
@@ -1176,55 +1206,89 @@ class AttendanceUtil extends Util
                     $timetablesSource,
                 );
 
+                // Di luar window check-in shift siang: tidak ambigu, milik malam sampai batas lembur.
+                // Tap terlambat yang tidak sah untuk hari berikutnya juga ikut di sini.
                 if (!$inDayShiftCheckIn) {
                     $crossDayPunches->push($attendance);
                     continue;
                 }
 
-                // Bukti istirahat dihitung dari gabungan punch hari yang sama + lintas hari
-                // yang sudah terkumpul sebelum zona datang shift siang (mis. istirahat 23:03 - 00:01).
-                $hasBreakPunches = $this->hasBreakPunchesBetween(
-                    $collectedPunches->merge($crossDayPunches),
-                    $limits,
-                );
+                // Punch ambigu: berada di window check-in shift siang hari berikutnya.
 
-                // Punch ini berada di zona datang shift siang (kemungkinan check-in pagi hari berikutnya).
-                // Prioritas 1: istirahat terbukti -> karyawan memang di shift ini, ambil dan lanjut
-                // sampai batas (OT atau check-in malam berikutnya).
-                if ($hasBreakPunches) {
-                    $this->logGrouping('CROSS_DAY_AMBIL: istirahat terbukti, lanjut sampai batas', [
+                // Aturan 1: kalau diambil membuat grup malam valid di Level 1, ambil untuk malam.
+                $nightGroupWithPunch = $collectedPunches->merge($crossDayPunches)->push($attendance)->values();
+                if ($this->resolveTimetableGroupLevel($nightGroupWithPunch, $timetable, $limits, $employee) === 1) {
+                    $this->logGrouping('CROSS_DAY_AMBIL: aturan 1, malam Level 1 dengan punch ini', [
                         'punch' => $punchTime->format('Y-m-d H:i'),
                         'timetable_id' => $timetable->id,
                         'timetable_name' => $timetable->name,
-                        'hard_upper' => $hardUpper->format('Y-m-d H:i'),
                     ]);
                     $crossDayPunches->push($attendance);
                     continue;
                 }
 
-                // Prioritas 2: tanpa istirahat dan timetable membolehkan tanpa istirahat
-                // -> ambil punch pulang ini saja, lalu stop.
-                if ($timetable->is_without_break) {
-                    $this->logGrouping('CROSS_DAY_AMBIL: tanpa istirahat, ambil punch pulang lalu stop', [
+                // Aturan 2: kalau hari berikutnya membentuk grup valid dengan punch ini, punch
+                // milik hari berikutnya. Penarikan berhenti di sini.
+                $nextDayGroup = $sortedNext
+                    ->slice($index)
+                    ->filter(fn ($item) => Carbon::parse($item['punch_time'])->lt($hardUpper))
+                    ->values();
+
+                if ($this->isNextDayDayShiftGroupValid($nextDate, $nextDayGroup, $timetablesSource, $punchTime, $employee)) {
+                    $this->logGrouping('CROSS_DAY_STOP: aturan 2, hari berikutnya punya grup valid', [
                         'punch' => $punchTime->format('Y-m-d H:i'),
                         'timetable_id' => $timetable->id,
                         'timetable_name' => $timetable->name,
                     ]);
-                    $crossDayPunches->push($attendance);
-                    break;
+                    break 2;
                 }
 
-                // Prioritas 3: tanpa istirahat dan wajib istirahat -> tidak diambil, stop.
-                $this->logGrouping('CROSS_DAY_STOP: zona datang shift siang, tanpa istirahat', [
+                // Aturan 3: hari berikutnya tidak membentuk grup valid, punch diambil untuk malam
+                // sebagai pulang. Penarikan lanjut sampai batas lembur.
+                $this->logGrouping('CROSS_DAY_AMBIL: aturan 3, hari berikutnya tidak valid', [
                     'punch' => $punchTime->format('Y-m-d H:i'),
                     'timetable_id' => $timetable->id,
                     'timetable_name' => $timetable->name,
                 ]);
-                break;
+                $crossDayPunches->push($attendance);
             }
         }
 
         return $crossDayPunches;
+    }
+
+    /**
+     * Cek apakah punch ambigu (awal grup hari berikutnya) membentuk grup valid untuk
+     * salah satu shift siang di hari berikutnya.
+     */
+    private function isNextDayDayShiftGroupValid(
+        Carbon $nextDate,
+        Collection $nextDayGroup,
+        Collection $timetablesSource,
+        Carbon $punchTime,
+        ?array $employee,
+    ): bool {
+        if ($nextDayGroup->isEmpty()) {
+            return false;
+        }
+
+        foreach ($timetablesSource as $item) {
+            $dayTimetable = $item->timetable;
+            if ($dayTimetable->cross_day ?? 0) {
+                continue;
+            }
+
+            $dayLimits = $this->getTimetableWindowLimits($nextDate, $dayTimetable);
+            if (!$punchTime->between($dayLimits['check_in_limit_min'], $dayLimits['check_in_limit_plus'])) {
+                continue;
+            }
+
+            if ($this->resolveTimetableGroupLevel($nextDayGroup, $dayTimetable, $dayLimits, $employee) > 0) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private function removePunchesFromEmployee(
@@ -1266,6 +1330,7 @@ class AttendanceUtil extends Util
         Collection $attendance_employee,
         Collection $range_dates,
         $emp_code,
+        ?array $employee = null,
     ) {
         if(empty($department_shift)) return $attendance_employee;
 
@@ -1350,6 +1415,9 @@ class AttendanceUtil extends Util
             $prev_date_string = $date->copy()->subDay()->format('Y-m-d');
             $prev_date_attendance = collect($attendance_employee->get($prev_date_string, collect()));
 
+            // Semua timetable yang lolos diberi level. Pemilih tiga putaran dijalankan setelah loop.
+            $candidates = collect([]);
+
             foreach ($timetables_source as $timetableSourceItem) {
                 $timetable = $timetableSourceItem->timetable;
 
@@ -1394,6 +1462,7 @@ class AttendanceUtil extends Util
                     $attendance_employee,
                     $collectedPunches,
                     $timetables_source,
+                    $employee,
                 );
 
                 $groupPunches = $collectedPunches->merge($crossDayPunches)->values();
@@ -1405,15 +1474,15 @@ class AttendanceUtil extends Util
                     ]);
                 }
 
-                $isValidTimetableGroup = $this->isValidTimetableGroup($groupPunches, $timetable, $limits);
+                $level = $this->resolveTimetableGroupLevel($groupPunches, $timetable, $limits, $employee);
 
                 $groupingEmpCode = $this->groupingLogContext['emp_code'] ?? null;
                 if (in_array($groupingEmpCode, ['192341'], true)) {
-                    Log::info("[ATTENDANCE_GROUPING][{$groupingEmpCode}] isValidTimetableGroup", [
+                    Log::info("[ATTENDANCE_GROUPING][{$groupingEmpCode}] resolveTimetableGroupLevel", [
                         'date' => $date_string,
                         'timetable_id' => $timetable->id,
                         'timetable_name' => $timetable->name,
-                        'is_valid' => $isValidTimetableGroup,
+                        'level' => $level,
                         'is_without_break' => (bool) $timetable->is_without_break,
                         'work_time' => $timetable->work_time,
                         'windows' => $this->formatLimitsForLog($limits),
@@ -1421,31 +1490,51 @@ class AttendanceUtil extends Util
                     ]);
                 }
 
-                if (!$isValidTimetableGroup) {
+                if ($level <= 0) {
                     continue;
                 }
 
-                $attendance_timetable->put($timetable->id, $groupPunches);
+                $candidates->push([
+                    'timetable' => $timetable,
+                    'level' => $level,
+                    'collected' => $collectedPunches,
+                    'cross_day' => $crossDayPunches,
+                    'group' => $groupPunches,
+                ]);
+            }
+
+            // Tiga putaran lintas timetable: Level 1 untuk semua kandidat dulu, lalu Level 2,
+            // lalu Level 3. Di dalam satu level, urutan sortTimetablesSource() yang menentukan.
+            $selected = null;
+            foreach ([1, 2, 3] as $round) {
+                $selected = $candidates->firstWhere('level', $round);
+                if ($selected !== null) {
+                    break;
+                }
+            }
+
+            if ($selected !== null) {
+                $selectedTimetable = $selected['timetable'];
+                $attendance_timetable->put($selectedTimetable->id, $selected['group']);
                 $this->logGrouping('TIMETABLE_TERPAKAI', [
-                    'timetable_id' => $timetable->id,
-                    'timetable_name' => $timetable->name,
-                    'group_punches' => $this->punchTimesFromCollection($groupPunches),
+                    'timetable_id' => $selectedTimetable->id,
+                    'timetable_name' => $selectedTimetable->name,
+                    'level' => $selected['level'],
+                    'group_punches' => $this->punchTimesFromCollection($selected['group']),
                 ]);
 
-                $date_attendances = $this->removePunchesFromCollection($date_attendances, $collectedPunches);
+                $date_attendances = $this->removePunchesFromCollection($date_attendances, $selected['collected']);
                 // Hapus dari pool bersama juga (same-day + cross-day), supaya hari
-                // berikutnya tidak memakai ulang punch yang sudah masuk timetable valid.
+                // berikutnya tidak memakai ulang punch yang sudah masuk timetable terpilih.
                 $this->removePunchesFromEmployee(
-                    $collectedPunches->merge($crossDayPunches)->values(),
+                    $selected['collected']->merge($selected['cross_day'])->values(),
                     $attendance_employee,
                 );
 
-                // First valid wins: hanya satu timetable valid per tanggal.
-                $this->logGrouping('TIMETABLE_STOP: first valid wins', [
-                    'timetable_id' => $timetable->id,
-                    'timetable_name' => $timetable->name,
+                $this->logGrouping('TIMETABLE_STOP: pemenang putaran level ' . $selected['level'], [
+                    'timetable_id' => $selectedTimetable->id,
+                    'timetable_name' => $selectedTimetable->name,
                 ]);
-                break;
             }
 
             $this->logGrouping('HARI_HASIL', [
@@ -1569,6 +1658,7 @@ class AttendanceUtil extends Util
             $check_out_limit_min,
             $duration_break_time,
             $hasBreakPunches,
+            (bool) $timetable->is_without_break,
         );
        
         if(!empty($result['working']['start_punch']) && !empty($result['working']['end_punch'])) {
@@ -1747,6 +1837,7 @@ class AttendanceUtil extends Util
                     $check_out_limit_min,
                     $duration_break_time,
                     $hasBreakPunches,
+                    (bool) ($shift_data['timetable']['is_without_break'] ?? false),
                 );
 
                 if ($shift_data['total_shifted_overtime'] > 0) {
@@ -1969,6 +2060,7 @@ class AttendanceUtil extends Util
             $check_out_limit_min,
             $duration_break_time,
             $hasBreakPunches,
+            (bool) ($shift_data['timetable']['is_without_break'] ?? false),
         );
 
         $start_punch = Carbon::parse($shift_data['working']['start_punch']);
@@ -2046,12 +2138,12 @@ class AttendanceUtil extends Util
         $check_out = Carbon::parse($date_string . " " . $shift_data['timetable']['check_out']);
         $check_out_cross_day = $check_out->copy()->addDays($shift_data['timetable']['cross_day'] ?? 0);
 
-        $check_out_limit_break_time = $check_out_cross_day->copy();
-        if($shift_data['timetable']['is_without_break'] 
-            && empty($shift_data['break_time']['start_punch']) 
-            && empty($shift_data['break_time']['end_punch'])) {
-            $check_out_limit_break_time->subMinutes($shift_data['timetable']['duration_break_time']);
-        }
+        $check_out_limit_break_time = $this->resolveCheckOutLimitBreakTime(
+            $check_out_cross_day,
+            (int) ($shift_data['timetable']['duration_break_time'] ?? 0),
+            !empty($shift_data['break_time']['start_punch']) && !empty($shift_data['break_time']['end_punch']),
+            (bool) ($shift_data['timetable']['is_without_break'] ?? false),
+        );
         
         $start_punch = Carbon::parse($shift_data['working']['start_punch']);
         $end_punch = Carbon::parse($shift_data['working']['end_punch']);
@@ -2439,7 +2531,7 @@ class AttendanceUtil extends Util
                         ]);
                     }
 
-                    $attendance_employee_timetables = $this->attendanceTimetableGrouping($department_shift, $attendance_employees, $range_dates, $employee['emp_code']);
+                    $attendance_employee_timetables = $this->attendanceTimetableGrouping($department_shift, $attendance_employees, $range_dates, $employee['emp_code'], $employee);
 
                     if (in_array($employee['emp_code'] ?? null, ['192341'], true)) {
                         Log::info("[ATTENDANCE_GROUPING][{$employee['emp_code']}] attendance_employee_timetables", [

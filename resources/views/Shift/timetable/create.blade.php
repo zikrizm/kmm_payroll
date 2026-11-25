@@ -154,9 +154,9 @@
                                     {!! FormCustom::checkbox('is_without_break', true) !!}
                                 </span>
                                 <div class="flex flex-col gap-px">
-                                    <p class="font-medium text-sm text-gray-700">Bisa tanpa istirahat</p>
+                                    <p class="font-medium text-sm text-gray-700">Kurangi jam pulang jika tidak ada istirahat</p>
                                     <p class="font-normal text-sm text-gray-500">
-                                        Karyawan di perbolehkan untuk tidak istirahat
+                                        Jika karyawan tidak terdeteksi istirahat, batas pulang dikurangi durasi istirahat
                                     </p>
                                 </div>
                             </div>
