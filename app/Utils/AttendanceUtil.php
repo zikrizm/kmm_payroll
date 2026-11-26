@@ -2552,12 +2552,21 @@ class AttendanceUtil extends Util
             foreach ($employees as $employee) {
                 $attendance_employees = $attendance_grouping->get($employee['emp_code'], collect());
 
-                // Grouping menghabiskan punch milik tanggal sebelumnya. Sisa di pool
-                // ditambah punch yang sudah masuk grup tanggal dipilih (hari lengkap).
+                // Punch mentah tanggal D diambil sebelum grouping, karena grouping mengubah pool.
+                $raw_today = collect($attendance_employees->get($date_string, collect()))->values();
+
+                // Grouping hanya dipakai untuk tahu punch hari D yang sudah dipakai grup D-1 yang valid
+                // (pulang shift lintas hari). Selain itu semua punch hari D tetap kandidat absen masuk.
                 $timetable_groups = $this->attendanceTimetableGrouping($department_shift, $attendance_employees, $range_dates, $employee['emp_code'], $employee);
-                $grouped_today = collect($timetable_groups->get($date_string, collect()))->flatten(1);
-                $leftover_today = collect($attendance_employees->get($date_string, collect()));
-                $candidates = $leftover_today->merge($grouped_today)
+                $prev_date_string = $date->copy()->subDay()->format('Y-m-d');
+                $used_by_prev = collect($timetable_groups->get($prev_date_string, collect()))
+                    ->flatten(1)
+                    ->filter(fn ($item) => !empty($item['punch_time']) && Carbon::parse($item['punch_time'])->format('Y-m-d') === $date_string)
+                    ->map(fn ($item) => Carbon::parse($item['punch_time'])->timestamp)
+                    ->all();
+
+                $candidates = $raw_today
+                    ->reject(fn ($item) => in_array(Carbon::parse($item['punch_time'])->timestamp, $used_by_prev, true))
                     ->unique(fn ($item) => Carbon::parse($item['punch_time'])->format('Y-m-d H:i:s'))
                     ->sortBy(fn ($item) => Carbon::parse($item['punch_time'])->timestamp)
                     ->values();
@@ -2636,22 +2645,33 @@ class AttendanceUtil extends Util
      */
     private function matchLateBeyondWindow(Collection $schedule, Carbon $date, Collection $punches): ?array
     {
-        foreach ($punches as $item) {
-            if (empty($item['punch_time'])) {
-                continue;
-            }
+        // Punch sebelum window paling awal adalah sisa shift sebelumnya, bukan absen masuk.
+        $earliest_start = $schedule
+            ->map(fn (Timetable $timetable) => $this->getTimetableWindowLimits($date, $timetable)['check_in_limit_min'])
+            ->min();
+        if ($earliest_start === null) {
+            return null;
+        }
 
-            $punch = Carbon::parse($item['punch_time']);
+        // Hanya punch paling awal yang tersisa yang boleh dianggap absen masuk.
+        // Punch yang lebih sore bukan absen masuk, jadi tidak dicari satu per satu.
+        $first = $punches
+            ->filter(fn ($item) => !empty($item['punch_time']) && Carbon::parse($item['punch_time'])->gte($earliest_start))
+            ->first();
+        if ($first === null) {
+            return null;
+        }
 
-            foreach ($schedule as $timetable) {
-                $limits = $this->getTimetableWindowLimits($date, $timetable);
-                $upper = $limits['check_out_limit_min']->gt($limits['check_in_limit_plus'])
-                    ? $limits['check_out_limit_min']
-                    : $limits['check_out'];
+        $punch = Carbon::parse($first['punch_time']);
 
-                if ($punch->gt($limits['check_in_limit_plus']) && $punch->lt($upper)) {
-                    return ['timetable' => $timetable, 'punch' => $punch];
-                }
+        foreach ($schedule as $timetable) {
+            $limits = $this->getTimetableWindowLimits($date, $timetable);
+            $upper = $limits['check_out_limit_min']->gt($limits['check_in_limit_plus'])
+                ? $limits['check_out_limit_min']
+                : $limits['check_out'];
+
+            if ($punch->gt($limits['check_in_limit_plus']) && $punch->lt($upper)) {
+                return ['timetable' => $timetable, 'punch' => $punch];
             }
         }
 
