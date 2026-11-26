@@ -18,7 +18,7 @@ class WorkingReportController extends Controller
     private $attendanceUtil;
     private $util;
 
-    /** Status yang ditampilkan di laporan: telat masuk dan belum masuk. */
+    /** Hanya telat dan belum masuk yang sudah melewati batas disiplin. */
     private const SHOWN_STATUSES = ['telat', 'belum_masuk'];
 
     public function __construct(ApiServices $service, Util $util, AttendanceUtil $attendanceUtil, ResponseUtil $buildRes)
@@ -47,29 +47,23 @@ class WorkingReportController extends Controller
             $sort = $request->input('sort') === 'desc' ? 'desc' : 'asc';
 
             if (request()->ajax()) {
-                $departments = collect();
+                $rows = collect();
 
                 if ($request->filled('date')) {
                     $date_carbon = Carbon::createFromFormat('d-m-Y', $request['date'])->startOfDay();
                     $direction = $sort === 'desc' ? -1 : 1;
 
-                    $departments = $this->attendanceUtil
-                        ->getLateCheckInReport($date_carbon, $department_code)
-                        ->filter(fn ($row) => in_array($row['status'], self::SHOWN_STATUSES, true))
-                        ->groupBy(fn ($row) => $row['department']['id'])
-                        ->map(fn ($rows) => [
-                            'department' => $rows->first()['department'],
-                            'rows' => $rows
-                                ->sortBy(fn ($row) => [
-                                    $direction * (int) $row['late_minutes'],
-                                    $row['employee']['first_name'] ?? '',
-                                ])
-                                ->values(),
+                    $rows = $this->attendanceUtil
+                        ->getLateCheckInReport($date_carbon, $department_code ?: null)
+                        ->filter(fn ($row) => in_array($row['status'], self::SHOWN_STATUSES, true) && !$row['within_tolerance'])
+                        ->sortBy(fn ($row) => [
+                            $direction * (int) $row['late_minutes'],
+                            $row['employee']['first_name'] ?? '',
                         ])
                         ->values();
                 }
 
-                $render = view('Report.working_report.table', compact('departments', 'date'))->render();
+                $render = view('Report.working_report.table', compact('rows', 'date'))->render();
                 return $this->buildRes->RESPONSE_REQ('success', $render, null);
             }
 

@@ -8,7 +8,7 @@
         <header class="flex justify-between items-start">
             <div class="flex flex-col gap-1">
                 <p class="text-3xl font-medium text-gray-900">Laporan Absensi Tidak Disiplin</p>
-                <p class="text-base font-normal text-gray-500">Daftar karyawan yang telat masuk dan belum absen masuk pada tanggal yang dipilih.</p>
+                <p class="text-base font-normal text-gray-500">Daftar karyawan yang melewati batas disiplin pada tanggal yang dipilih.</p>
             </div>
             <div class="">
 
@@ -27,7 +27,7 @@
                 </div>
                 <section class="flex flex-col gap-1 w-max">
                     <select class="select2-dept hidden" name="dept">
-                        <option value="" disabled>Semua bagian</option>
+                        <option value="" @selected(empty($department_code))>Semua bagian</option>
                         @foreach ($department_bios ?? [] as $department)
                             <option value="{{ $department['dept_code'] }}" @selected($department['dept_code'] === $department_code)>
                                 {{ $department['dept_name'] }}</option>
@@ -39,11 +39,6 @@
                     <option value="asc" @selected(($sort ?? 'asc') === 'asc')>Telat terkecil</option>
                     <option value="desc" @selected(($sort ?? 'asc') === 'desc')>Telat terbesar</option>
                 </select>
-                <a id="card-working-export" target="_blank"
-                    class="flex  items-center gap-2.5 text-sm px-4 py-1.5 rounded-lg border text-gray-700">
-                    <x-icon icon="printer" width=16 height=16 viewBox="20 20" />
-                    <p style="white-space: nowrap;">Cetak kartu</p>
-                </a>
             </div>
             <div class="flex items-center gap-3">
                 <x-ui.search-data placeholder="Cari absensi" url="{{ route('working-report.index') }}" />
@@ -66,7 +61,7 @@
         });           
         $('.select2-dept').select2();
         $('.select2-dept').show();
-        $('.select2-dept').on('select2:select', function (e) {
+        $('.select2-dept').on('change', function () {
             delete dataParams.page;
 
             onInit({department_code: $(this).val()})
@@ -118,9 +113,6 @@
         // * Build data params table ----->
         // *
         dataParams = { ...dataParams, ...data };
-        $('#card-working-export').attr('href', 
-            `/print/card-working-report?department_code=${dataParams.department_code}&date=${dataParams.date}&sort=${dataParams.sort || 'asc'}` 
-        );
 
         const queryString = new URLSearchParams(dataParams).toString();
 

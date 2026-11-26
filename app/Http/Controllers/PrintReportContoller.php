@@ -1226,7 +1226,7 @@ class PrintReportContoller extends Controller
 
                 $departments = $this->attendanceUtil
                     ->getLateCheckInReport($date_carbon, $request['department_code'])
-                    ->filter(fn ($row) => in_array($row['status'], ['telat', 'belum_masuk'], true))
+                    ->filter(fn ($row) => in_array($row['status'], ['telat', 'belum_masuk'], true) && !$row['within_tolerance'])
                     ->groupBy(fn ($row) => $row['department']['id'])
                     ->map(fn ($rows) => [
                         'department' => $rows->first()['department'],

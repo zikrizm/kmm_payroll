@@ -2509,7 +2509,7 @@ class AttendanceUtil extends Util
         ]);
 
         if ($first_punch === null) {
-            if ($check_in->gt($now)) {
+            if ($now->lte($tolerance_until)) {
                 return null;
             }
 
