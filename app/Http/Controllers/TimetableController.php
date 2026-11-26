@@ -122,11 +122,8 @@ class TimetableController extends Controller
                     'name', 'check_in',  'check_out',
                     'check_in_plus', 'check_in_min',
                     'check_out_plus','check_out_min',
-                    'warning_check_in','warning_check_out',
-                    // 'warning_check_in_min', 'warning_check_in_plus',
-                    // 'warning_check_out_min','warning_check_out_plus',
-                    'cross_day', 'is_ot_rounding', 'ot_roundone_hr', 'ot_roundhalf_hr', 'break_times', 'is_without_break',
-                    'is_ot', 'ot_period', 'ot_pay', 'duration_count_one_shift', 'duration_ot_limit', 'duration_ot_limit_plus', 'is_ot_rice', 'duration_rice_shift',
+                    'cross_day', 'ot_roundone_hr', 'ot_roundhalf_hr', 'is_without_break',
+                    'ot_period', 'ot_pay', 'duration_count_one_shift', 'duration_ot_limit', 'duration_ot_limit_plus', 'duration_rice_shift',
                     'enable_extra_pay','extra_pay', 
                 ]);
                 $timetable_data['business_id'] = $business_id;
@@ -137,10 +134,10 @@ class TimetableController extends Controller
                 }
                 $timetable_data['work_time'] = $check_in->diffInMinutes($check_out);
 
-                $timetable_data['warning_check_in_min'] = $timetable_data['warning_check_in'];
-                $timetable_data['warning_check_in_plus'] = $timetable_data['warning_check_in'];
-                $timetable_data['warning_check_out_min'] = $timetable_data['warning_check_out'];
-                $timetable_data['warning_check_out_plus'] = $timetable_data['warning_check_out'];
+                $timetable_data['warning_check_in_min'] = $request->input('warning_check_in');
+                $timetable_data['warning_check_in_plus'] = $request->input('warning_check_in');
+                $timetable_data['warning_check_out_min'] = $request->input('warning_check_out');
+                $timetable_data['warning_check_out_plus'] = $request->input('warning_check_out');
 
                 if (!empty($request->input('is_ot_rounding'))) {
                     $timetable_data['ot_roundone_hr'] = !empty($timetable_data['ot_roundone_hr']) ? $timetable_data['ot_roundone_hr']:40;
@@ -157,12 +154,13 @@ class TimetableController extends Controller
                 }
                 if (!empty($request->input('is_ot'))) {
                     $timetable_data['ot_pay'] = str_replace('.', '', $timetable_data['ot_pay']);
+                    $timetable_data['duration_ot_limit_plus'] = $timetable_data['duration_ot_limit_plus'] ?? 0;
                 } else {
                     $timetable_data['ot_period'] = null;
                     $timetable_data['ot_pay'] = null;
                     $timetable_data['duration_count_one_shift'] = null;
                     $timetable_data['duration_ot_limit'] = null;
-                    $timetable_data['duration_ot_limit_plus'] = null;
+                    $timetable_data['duration_ot_limit_plus'] = 0;
                 }
                 if (empty($request->input('is_ot_rice'))) {
                     $timetable_data['duration_rice_shift'] = null;
@@ -173,7 +171,7 @@ class TimetableController extends Controller
 
                 if (!empty($request->input('break_times'))) {
                     // * Insert timetable has breaktime.
-                    foreach ($timetable_data['break_times']  as $item) {
+                    foreach ($request->input('break_times') as $item) {
                         $break_time = BreakTime::find($item);
                         if(!empty($break_time)) {
                             $timetable_data['work_time'] -= $break_time->duration;
@@ -186,7 +184,7 @@ class TimetableController extends Controller
 
                 if (!empty($request->input('break_times'))) {
                     // * Insert timetable has breaktime.
-                    foreach ($timetable_data['break_times']  as $item) {
+                    foreach ($request->input('break_times') as $item) {
                         $timetable_has_break_time_data = [
                             'business_id' => $business_id,
                             'timetable_id' => $timetable->id,
@@ -276,11 +274,8 @@ class TimetableController extends Controller
                     'name', 'check_in',  'check_out',
                     'check_in_plus', 'check_in_min',
                     'check_out_plus','check_out_min',
-                    'warning_check_in','warning_check_out',
-                    // 'warning_check_in_min', 'warning_check_in_plus',
-                    // 'warning_check_out_min','warning_check_out_plus',
-                    'cross_day', 'is_ot_rounding', 'ot_roundone_hr', 'ot_roundhalf_hr', 'break_times', 'is_without_break',
-                    'is_ot', 'ot_period', 'ot_pay', 'duration_count_one_shift', 'duration_ot_limit', 'duration_ot_limit_plus', 'is_ot_rice', 'duration_rice_shift',
+                    'cross_day', 'ot_roundone_hr', 'ot_roundhalf_hr', 'is_without_break',
+                    'ot_period', 'ot_pay', 'duration_count_one_shift', 'duration_ot_limit', 'duration_ot_limit_plus', 'duration_rice_shift',
                     'enable_extra_pay','extra_pay', 
                 ]);
                 $timetable_data['business_id'] = $business_id;
@@ -291,10 +286,10 @@ class TimetableController extends Controller
                 }
                 $timetable_data['work_time'] = $check_in->diffInMinutes($check_out);
 
-                $timetable_data['warning_check_in_min'] = $timetable_data['warning_check_in'];
-                $timetable_data['warning_check_in_plus'] = $timetable_data['warning_check_in'];
-                $timetable_data['warning_check_out_min'] = $timetable_data['warning_check_out'];
-                $timetable_data['warning_check_out_plus'] = $timetable_data['warning_check_out'];
+                $timetable_data['warning_check_in_min'] = $request->input('warning_check_in');
+                $timetable_data['warning_check_in_plus'] = $request->input('warning_check_in');
+                $timetable_data['warning_check_out_min'] = $request->input('warning_check_out');
+                $timetable_data['warning_check_out_plus'] = $request->input('warning_check_out');
 
                 if (!empty($request->input('is_ot_rounding'))) {
                     $timetable_data['ot_roundone_hr'] = !empty($timetable_data['ot_roundone_hr']) ? $timetable_data['ot_roundone_hr']:40;
@@ -311,12 +306,13 @@ class TimetableController extends Controller
                 }
                 if (!empty($request->input('is_ot'))) {
                     $timetable_data['ot_pay'] = str_replace('.', '', $timetable_data['ot_pay']);
+                    $timetable_data['duration_ot_limit_plus'] = $timetable_data['duration_ot_limit_plus'] ?? 0;
                 } else {
                     $timetable_data['ot_period'] = null;
                     $timetable_data['ot_pay'] = null;
                     $timetable_data['duration_count_one_shift'] = null;
                     $timetable_data['duration_ot_limit'] = null;
-                    $timetable_data['duration_ot_limit_plus'] = null;
+                    $timetable_data['duration_ot_limit_plus'] = 0;
                 }
                 if (empty($request->input('is_ot_rice'))) {
                     $timetable_data['duration_rice_shift'] = null;
@@ -330,7 +326,7 @@ class TimetableController extends Controller
 
                 if (!empty($request->input('break_times'))) {
                     // * Insert timetable has breaktime.
-                    foreach ($timetable_data['break_times']  as $item) {
+                    foreach ($request->input('break_times') as $item) {
                         $break_time = BreakTime::find($item);
                         if(!empty($break_time)) {
                             $timetable_data['work_time'] -= $break_time->duration;
