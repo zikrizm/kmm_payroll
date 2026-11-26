@@ -53,7 +53,22 @@
 
     <script type="application/javascript">
     let dataParams = {};
+
+    function openPunchDialog(dialogId) {
+        const template = document.getElementById(dialogId);
+        if (!template) {
+            return;
+        }
+
+        $('.content-main-modal').html(template.innerHTML);
+        openModal({ name: '.main-modal', content: '.content-main-modal' });
+    }
+
     window.addEventListener('DOMContentLoaded', (event) => {
+        $(document).on('click', '.btn-open-punch-dialog', function () {
+            openPunchDialog($(this).data('punch-dialog'));
+        });
+
         $.ajaxSetup({
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')

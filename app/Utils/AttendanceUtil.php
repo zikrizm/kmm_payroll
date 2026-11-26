@@ -2569,13 +2569,20 @@ class AttendanceUtil extends Util
             foreach ($employees as $employee) {
                 $attendance_employees = $attendance_grouping->get($employee['emp_code'], collect());
 
+                // Punch mentah tanggal D diambil sebelum grouping, karena grouping mengubah pool.
+                $raw_today = collect($attendance_employees->get($date_string, collect()))->values();
+
                 $base = [
                     'department' => $department,
                     'employee' => collect($employee),
+                    // Daftar punch tanggal D untuk dialog punch (sama dengan "Daftar punch" di kartu absen).
+                    'punches' => $raw_today
+                        ->map(fn ($item) => !empty($item['punch_time']) ? Carbon::parse($item['punch_time'])->format('H:i') : null)
+                        ->filter()
+                        ->sort()
+                        ->values()
+                        ->all(),
                 ];
-
-                // Punch mentah tanggal D diambil sebelum grouping, karena grouping mengubah pool.
-                $raw_today = collect($attendance_employees->get($date_string, collect()))->values();
 
                 $timetable_groups = $this->attendanceTimetableGrouping($department_shift, $attendance_employees, $range_dates, $employee['emp_code'], $employee);
 
