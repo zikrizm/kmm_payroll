@@ -8,7 +8,7 @@
         <header class="flex justify-between items-start">
             <div class="flex flex-col gap-1">
                 <p class="text-3xl font-medium text-gray-900">Laporan Absensi Tidak Disiplin</p>
-                <p class="text-base font-normal text-gray-500">Daftar laporan absensi tidak disiplin.</p>
+                <p class="text-base font-normal text-gray-500">Daftar karyawan yang telat masuk dan belum absen masuk pada tanggal yang dipilih.</p>
             </div>
             <div class="">
 
@@ -68,44 +68,30 @@
             onInit({department_code: $(this).val()})
         });
 
-        var defaultStartDate = "{{ $start_date ?? '' }}";
-        var defaultEndDate = "{{ $end_date ?? '' }}";
+        var defaultDate = "{{ $date ?? '' }}";
 
         onInit({
             q: $('.search-data-input').val(),
             department_code: $('.select2-dept').val(),
-            start_date: convertLocalTimezone(defaultStartDate || moment().startOf('week'), 'DD-MM-YYYY'), 
-            end_date: convertLocalTimezone(defaultEndDate || moment().endOf('week'), 'DD-MM-YYYY')
+            date: convertLocalTimezone(defaultDate || moment(), 'DD-MM-YYYY')
         });
 
         $('input[name="date"]').daterangepicker({
+            singleDatePicker: true,
+            autoApply: true,
             locale: { format: 'DD-MM-YYYY' },
-            startDate: defaultStartDate ? moment(defaultStartDate, 'DD-MM-YYYY') : moment().startOf('week'),
-            endDate: defaultEndDate ? moment(defaultEndDate, 'DD-MM-YYYY') : moment().endOf('week'),
-            ranges: {
-                'Today': [moment(), moment()],
-                'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
-                'Last 7 Days': [moment().subtract(6, 'days'), moment()],
-                'Last 30 Days': [moment().subtract(29, 'days'), moment()],
-                'This Month': [moment().startOf('month'), moment().endOf('month')],
-                'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
-            },
-            alwaysShowCalendars: true,
-            showCustomRangeLabel: false,
+            startDate: defaultDate ? moment(defaultDate, 'DD-MM-YYYY') : moment(),
+            maxDate: moment(),
             showDropdowns: true,
             minYear: 2000,
             drops: "auto",
             maxYear: parseInt(moment().format('YYYY'), 10)
-        },function(start, end, label) {
-            var dateFormat = 'DD-MM-YYYY';
-
+        }, function(start) {
             delete dataParams.page;
-            onInit({ 
-                start_date: convertLocalTimezone(start, dateFormat),
-                end_date: convertLocalTimezone(end, dateFormat)
+            onInit({
+                date: convertLocalTimezone(start, 'DD-MM-YYYY')
             });
         });
-
 
         $(".search-data-input").on('keyup', debounce(function(e) {
             if(e.key == 'Shift') return 0;
@@ -122,7 +108,7 @@
         // *
         dataParams = { ...dataParams, ...data };
         $('#card-working-export').attr('href', 
-            `/print/card-working-report?department_code=${dataParams.department_code}` 
+            `/print/card-working-report?department_code=${dataParams.department_code}&date=${dataParams.date}` 
         );
 
         const queryString = new URLSearchParams(dataParams).toString();

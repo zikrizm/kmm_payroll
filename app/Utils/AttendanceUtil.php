@@ -2319,6 +2319,200 @@ class AttendanceUtil extends Util
         return $result;
     }
     
+    /**
+     * Laporan telat masuk untuk satu tanggal (working-report).
+     * Telat dihitung dari jam jadwal check-in, bukan dari batas toleransi.
+     * Toleransi (warning_check_in_plus) hanya menentukan keterangan.
+     * Tidak mengubah shiftCheck() supaya perhitungan gaji tidak ikut berubah.
+     *
+     * Status per baris: telat | belum_masuk | ok
+     */
+    public function getLateCheckInReport(Carbon $date, string|array|null $department_codes = null): Collection
+    {
+        $date = $date->copy()->startOfDay();
+        $date_string = $date->format('Y-m-d');
+        $now = Carbon::now();
+
+        $list_department = $this->getDepartment();
+        $list_position = $this->getPosition();
+        $list_device = $this->getDevice();
+
+        $departments_bios = $this->resolveDepartmentsFromCodes($department_codes);
+        $list_employee = $this->getEmployee($departments_bios, $list_department, $list_position);
+        if ($list_employee->isEmpty()) {
+            return collect();
+        }
+
+        $employee_dept_group = $list_employee->groupBy([fn ($item) => $item['department']['id']]);
+        $list_emp_code = $employee_dept_group
+            ->flatMap(fn ($employees) => collect($employees)->pluck('emp_code'))
+            ->all();
+
+        // Rentang D-1 .. D+1. D-1 dipakai untuk menarik punch shift malam, D+1 hanya penanda.
+        $range_dates = $this->getRangeDate($date->copy(), $date->copy(), $date->copy(), $date->copy());
+        $attendances = $this->getMergeAttendance($date->copy(), $date->copy(), $date->copy(), $date->copy(), $list_emp_code, $list_device, $departments_bios);
+        $attendance_grouping = $this->groupingAttendance($attendances);
+
+        $shifts = $this->getShift($departments_bios);
+        $operationals = $this->getOperationals($date->copy(), $date->copy(), $date->copy(), $date->copy(), $departments_bios);
+
+        $range_date = $range_dates->firstWhere('date', $date_string);
+        $is_holiday = (bool) ($range_date['holiday']['status'] ?? false);
+
+        $rows = collect();
+
+        foreach ($employee_dept_group as $key_dept_id => $employees) {
+            $department = $list_department->where('id', $key_dept_id)->first();
+            if (empty($department)) {
+                continue;
+            }
+
+            $department_shift = $shifts->where('dept_id', $key_dept_id)->first();
+            if (empty($department_shift) || empty($department_shift->shiftdays)) {
+                continue;
+            }
+
+            $department_operational = $operationals->where('dept_id', $key_dept_id)->where('date', $date_string)->first();
+            $schedule = $this->getLateCheckInSchedule($department_operational, $department_shift, $date, $is_holiday);
+            if ($schedule->isEmpty()) {
+                continue;
+            }
+
+            foreach ($employees as $employee) {
+                $attendance_employees = $attendance_grouping->get($employee['emp_code'], collect());
+
+                // Hasil grouping: [date => [timetable_id => punches]]. Sama seperti getAttendance.
+                $timetable_groups = $this->attendanceTimetableGrouping($department_shift, $attendance_employees, $range_dates, $employee['emp_code'], $employee);
+                $day_groups = collect($timetable_groups->get($date_string, collect()))
+                    ->filter(fn ($punches) => collect($punches)->isNotEmpty());
+
+                $base = [
+                    'department' => $department,
+                    'employee' => collect($employee),
+                ];
+
+                if ($day_groups->isNotEmpty()) {
+                    $group_id = $day_groups->keys()->first();
+                    $timetable = $schedule->firstWhere('id', $group_id);
+                    if (empty($timetable)) {
+                        continue;
+                    }
+
+                    $first_punch = collect($day_groups->get($group_id))
+                        ->map(fn ($item) => Carbon::parse($item['punch_time']))
+                        ->sortBy(fn (Carbon $punch) => $punch->timestamp)
+                        ->first();
+
+                    $rows->push($this->makeLateCheckInRow($base, $timetable, $date_string, $first_punch, $now));
+                } else {
+                    // Belum ada absensi masuk. Hanya dilaporkan kalau jadwal masuk sudah lewat.
+                    $timetable = $schedule->first();
+                    $row = $this->makeLateCheckInRow($base, $timetable, $date_string, null, $now);
+                    if ($row !== null) {
+                        $rows->push($row);
+                    }
+                }
+            }
+        }
+
+        return $rows;
+    }
+
+    /**
+     * Jadwal masuk untuk satu tanggal. Operational dipakai dulu, lalu shiftday.
+     * Hasil diurutkan dari jam check-in paling awal.
+     */
+    private function getLateCheckInSchedule(
+        ?Operational $operational,
+        Shift $department_shift,
+        Carbon $date,
+        bool $is_holiday,
+    ): Collection {
+        if (!empty($operational)) {
+            $timetables = $operational->operational_has_timetables
+                ->where('status', 'active')
+                ->map(fn ($item) => $item->timetable)
+                ->filter();
+        } else {
+            if ($is_holiday) {
+                return collect();
+            }
+
+            $shiftday = $department_shift->shiftdays->firstWhere('code_day', $date->dayOfWeek);
+            $timetables = $shiftday
+                ? $shiftday->shiftday_has_timetables->map(fn ($item) => $item->timetable)->filter()
+                : collect();
+        }
+
+        return $timetables
+            ->sortBy(fn (Timetable $timetable) => (string) $timetable->check_in)
+            ->values();
+    }
+
+    /**
+     * Susun satu baris laporan. Mengembalikan null jika belum waktunya masuk (belum ada punch dan jadwal belum lewat).
+     */
+    private function makeLateCheckInRow(
+        array $base,
+        Timetable $timetable,
+        string $date_string,
+        ?Carbon $first_punch,
+        Carbon $now,
+    ): ?array {
+        $check_in = Carbon::parse($date_string . ' ' . $timetable->check_in);
+        $tolerance_until = $check_in->copy()->addMinutes((int) ($timetable->warning_check_in_plus ?? 0));
+
+        $common = array_merge($base, [
+            'date' => $date_string,
+            'timetable_id' => $timetable->id,
+            'timetable_name' => $timetable->name,
+            'check_in' => $check_in->format('H:i'),
+            'tolerance_until' => $tolerance_until->format('H:i'),
+            'first_punch' => $first_punch?->format('H:i'),
+        ]);
+
+        if ($first_punch === null) {
+            if ($check_in->gt($now)) {
+                return null;
+            }
+
+            $late = intdiv($now->timestamp - $check_in->timestamp, 60);
+
+            return array_merge($common, [
+                'status' => 'belum_masuk',
+                'late_minutes' => $late,
+                'within_tolerance' => false,
+                'info' => "Belum absen masuk. Jadwal {$check_in->format('H:i')}, sudah lewat {$late} menit",
+            ]);
+        }
+
+        if ($first_punch->gt($check_in)) {
+            $late = intdiv($first_punch->timestamp - $check_in->timestamp, 60);
+
+            if ($late > 0) {
+                $within = $first_punch->lte($tolerance_until);
+
+                return array_merge($common, [
+                    'status' => 'telat',
+                    'late_minutes' => $late,
+                    'within_tolerance' => $within,
+                    'info' => "Terlambat {$late} menit (" . ($within ? 'masih dalam toleransi' : 'melewati toleransi') . ')',
+                ]);
+            }
+        }
+
+        $early = intdiv(max(0, $check_in->timestamp - $first_punch->timestamp), 60);
+
+        return array_merge($common, [
+            'status' => 'ok',
+            'late_minutes' => 0,
+            'within_tolerance' => true,
+            'info' => $early > 0
+                ? "Masuk {$first_punch->format('H:i')}, lebih awal {$early} menit"
+                : "Masuk tepat waktu {$first_punch->format('H:i')}",
+        ]);
+    }
+
     public function getAttendanceDisplayValue(Collection $attendance_data) {
         $result = collect(['text_value' => null]);
 

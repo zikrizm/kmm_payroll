@@ -1216,38 +1216,26 @@ class PrintReportContoller extends Controller
     public function print_card_working_report(Request $request)
     {
         try {
-            $business_id = Session::get('business_id');
-            $result = collect();
-            
-            $business = Business::where('id', $business_id)->select('id', 'pending_day')->first();
-            if ($request->has('start_date') && $request->has('end_date')) {
-                $start_date = Carbon::createFromFormat('d-m-Y', $request['start_date']);
-                $end_date = Carbon::createFromFormat('d-m-Y', $request['end_date']);
+            $departments = collect();
+            $date = $request['date'];
 
-                $start_date_work_day = Carbon::createFromFormat('d-m-Y', $request['start_date']);
-                $end_date_work_day = Carbon::createFromFormat('d-m-Y', $request['end_date']);
-                $start_date_overtime = Carbon::createFromFormat('d-m-Y', $request['start_date'])->subDays($business->pending_day);
-                $end_date_overtime = Carbon::createFromFormat('d-m-Y', $request['end_date'])->subDays($business->pending_day);
+            if ($request->filled('date')) {
+                $date_carbon = Carbon::createFromFormat('d-m-Y', $request['date'])->startOfDay();
 
-                $result = $this->attendanceUtil->getAttendance(
-                    $start_date_work_day,
-                    $end_date_work_day,
-                    $start_date_overtime,
-                    $end_date_overtime,
-                    $request['department_code'],
-                );
-
-                $result['departments']->each(function ($dep) {
-                    $dep['employees'] = $dep['employees']->filter(function ($item) {
-                        $totalLength = $item['attendances']->sum(fn($item) => count($item['working_status_list']->filter(fn($item) => !$item['status'])));
-                        return $totalLength > 0;
-                    });
-                });
-               
-                return view('print.card_working_report', compact('result', 'start_date_work_day', 'end_date_work_day', 'start_date_overtime', 'end_date_overtime'));
-            } else {
-                return view('print.card_working_report', compact('result'));
+                $departments = $this->attendanceUtil
+                    ->getLateCheckInReport($date_carbon, $request['department_code'])
+                    ->filter(fn ($row) => in_array($row['status'], ['telat', 'belum_masuk'], true))
+                    ->groupBy(fn ($row) => $row['department']['id'])
+                    ->map(fn ($rows) => [
+                        'department' => $rows->first()['department'],
+                        'rows' => $rows
+                            ->sortBy(fn ($row) => $row['employee']['first_name'] ?? '')
+                            ->values(),
+                    ])
+                    ->values();
             }
+
+            return view('print.card_working_report', compact('departments', 'date'));
 
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());

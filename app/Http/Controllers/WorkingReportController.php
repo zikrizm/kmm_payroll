@@ -6,7 +6,6 @@ use App\Services\Api\ApiServices;
 use App\Utils\Util;
 use App\Utils\ResponseUtil;
 use App\Utils\AttendanceUtil;
-use App\Models\Business;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Session;
@@ -19,6 +18,9 @@ class WorkingReportController extends Controller
     private $attendanceUtil;
     private $util;
 
+    /** Status yang ditampilkan di laporan: telat masuk dan belum masuk. */
+    private const SHOWN_STATUSES = ['telat', 'belum_masuk'];
+
     public function __construct(ApiServices $service, Util $util, AttendanceUtil $attendanceUtil, ResponseUtil $buildRes)
     {
         $this->service = $service;
@@ -27,7 +29,7 @@ class WorkingReportController extends Controller
         $this->util = $util;
     }
 
-     /**
+    /**
      * Display a listing of the resource.
      *
      * @param  \Illuminate\Http\Request  $request
@@ -40,49 +42,34 @@ class WorkingReportController extends Controller
         }
 
         try {
-            $business_id = Session::get('business_id');
-
             $department_code = $request['department_code'];
-            $start_date = $request['start_date'];
-            $end_date = $request['end_date'];
+            $date = $request['date'];
 
             if (request()->ajax()) {
-                $result = collect();
-                $business = Business::where('id', $business_id)->select('id', 'pending_day')->first();
-                if ($request->has('start_date') && $request->has('end_date')) {
-                    $start_date = Carbon::createFromFormat('d-m-Y', $request['start_date']);
-                    $end_date = Carbon::createFromFormat('d-m-Y', $request['end_date']);
+                $departments = collect();
 
-                    $start_date_work_day = Carbon::createFromFormat('d-m-Y', $request['start_date']);
-                    $end_date_work_day = Carbon::createFromFormat('d-m-Y', $request['end_date']);
-                    $start_date_overtime = Carbon::createFromFormat('d-m-Y', $request['start_date'])->subDays($business->pending_day);
-                    $end_date_overtime = Carbon::createFromFormat('d-m-Y', $request['end_date'])->subDays($business->pending_day);
+                if ($request->filled('date')) {
+                    $date_carbon = Carbon::createFromFormat('d-m-Y', $request['date'])->startOfDay();
 
-                    $result = $this->attendanceUtil->getAttendance(
-                        $start_date_work_day,
-                        $end_date_work_day,
-                        $start_date_overtime,
-                        $end_date_overtime,
-                        $request['department_code'],
-                    );
-
-                    $result['departments']->each(function ($dep) {
-                        $dep['employees'] = $dep['employees']->filter(function ($item) {
-                            $totalLength = $item['attendances']->sum(fn($item) => count($item['working_status_list']->filter(fn($item) => !$item['status'])));
-                            return $totalLength > 0;
-                        });
-                    });
-                   
-                    $render =  view('Report.working_report.table', compact('result', 'start_date_work_day', 'end_date_work_day', 'start_date_overtime', 'end_date_overtime'))->render();
-                    return $this->buildRes->RESPONSE_REQ('success', $render, null);
-                } else {
-                    $render =  view('Report.working_report.table', compact('result'))->render();
-                    return $this->buildRes->RESPONSE_REQ('success', $render, null);
+                    $departments = $this->attendanceUtil
+                        ->getLateCheckInReport($date_carbon, $department_code)
+                        ->filter(fn ($row) => in_array($row['status'], self::SHOWN_STATUSES, true))
+                        ->groupBy(fn ($row) => $row['department']['id'])
+                        ->map(fn ($rows) => [
+                            'department' => $rows->first()['department'],
+                            'rows' => $rows
+                                ->sortBy(fn ($row) => $row['employee']['first_name'] ?? '')
+                                ->values(),
+                        ])
+                        ->values();
                 }
+
+                $render = view('Report.working_report.table', compact('departments', 'date'))->render();
+                return $this->buildRes->RESPONSE_REQ('success', $render, null);
             }
 
             $department_bios = collect($this->service->get_departments(['page_size' => 999])['data']);
-            return view('Report.working_report.index', compact('department_bios', 'department_code', 'start_date', 'end_date'));
+            return view('Report.working_report.index', compact('department_bios', 'department_code', 'date'));
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
 
