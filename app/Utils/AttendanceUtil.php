@@ -2321,8 +2321,11 @@ class AttendanceUtil extends Util
     
     /**
      * Laporan telat masuk untuk satu tanggal (working-report).
-     * Telat dihitung dari jam jadwal check-in, bukan dari batas toleransi.
-     * Toleransi (warning_check_in_plus) hanya menentukan keterangan.
+     * Grouping tanggal sebelumnya dijalankan dulu supaya punch milik hari itu
+     * (termasuk yang fisiknya jatuh di tanggal dipilih) habis terpakai.
+     * Absen masuk tanggal dipilih adalah sisa punch yang jatuh di window
+     * check-in jadwal, tanpa menunggu grupnya lolos level.
+     * Telat dihitung dari jam jadwal. Toleransi hanya menentukan keterangan.
      * Tidak mengubah shiftCheck() supaya perhitungan gaji tidak ikut berubah.
      *
      * Status per baris: telat | belum_masuk | ok
@@ -2381,41 +2384,74 @@ class AttendanceUtil extends Util
             foreach ($employees as $employee) {
                 $attendance_employees = $attendance_grouping->get($employee['emp_code'], collect());
 
-                // Hasil grouping: [date => [timetable_id => punches]]. Sama seperti getAttendance.
+                // Grouping menghabiskan punch milik tanggal sebelumnya. Sisa di pool
+                // ditambah punch yang sudah masuk grup tanggal dipilih (hari lengkap).
                 $timetable_groups = $this->attendanceTimetableGrouping($department_shift, $attendance_employees, $range_dates, $employee['emp_code'], $employee);
-                $day_groups = collect($timetable_groups->get($date_string, collect()))
-                    ->filter(fn ($punches) => collect($punches)->isNotEmpty());
+                $grouped_today = collect($timetable_groups->get($date_string, collect()))->flatten(1);
+                $leftover_today = collect($attendance_employees->get($date_string, collect()));
+                $candidates = $leftover_today->merge($grouped_today)
+                    ->unique(fn ($item) => Carbon::parse($item['punch_time'])->format('Y-m-d H:i:s'))
+                    ->sortBy(fn ($item) => Carbon::parse($item['punch_time'])->timestamp)
+                    ->values();
 
                 $base = [
                     'department' => $department,
                     'employee' => collect($employee),
                 ];
 
-                if ($day_groups->isNotEmpty()) {
-                    $group_id = $day_groups->keys()->first();
-                    $timetable = $schedule->firstWhere('id', $group_id);
-                    if (empty($timetable)) {
-                        continue;
-                    }
+                $matched = $this->matchCheckInPunch($schedule, $date, $candidates);
+                if ($matched !== null) {
+                    $rows->push($this->makeLateCheckInRow($base, $matched['timetable'], $date_string, $matched['punch'], $now));
+                    continue;
+                }
 
-                    $first_punch = collect($day_groups->get($group_id))
-                        ->map(fn ($item) => Carbon::parse($item['punch_time']))
-                        ->sortBy(fn (Carbon $punch) => $punch->timestamp)
-                        ->first();
-
-                    $rows->push($this->makeLateCheckInRow($base, $timetable, $date_string, $first_punch, $now));
-                } else {
-                    // Belum ada absensi masuk. Hanya dilaporkan kalau jadwal masuk sudah lewat.
-                    $timetable = $schedule->first();
-                    $row = $this->makeLateCheckInRow($base, $timetable, $date_string, null, $now);
-                    if ($row !== null) {
-                        $rows->push($row);
-                    }
+                $row = $this->makeLateCheckInRow($base, $schedule->first(), $date_string, null, $now);
+                if ($row !== null) {
+                    $rows->push($row);
                 }
             }
         }
 
         return $rows;
+    }
+
+    /**
+     * Punch masuk adalah punch paling awal yang jatuh di window check-in salah satu jadwal.
+     * Window memakai check_in_min dan check_in_plus, sama seperti grouping.
+     */
+    private function matchCheckInPunch(Collection $schedule, Carbon $date, Collection $punches): ?array
+    {
+        $matched = null;
+
+        foreach ($punches as $item) {
+            if (empty($item['punch_time'])) {
+                continue;
+            }
+
+            $punch = Carbon::parse($item['punch_time']);
+
+            foreach ($schedule as $timetable) {
+                $limits = $this->getTimetableWindowLimits($date, $timetable);
+                if (!$punch->between($limits['check_in_limit_min'], $limits['check_in_limit_plus'])) {
+                    continue;
+                }
+
+                if ($matched === null || $punch->lt($matched['punch'])) {
+                    $matched = [
+                        'timetable' => $timetable,
+                        'punch' => $punch,
+                    ];
+                }
+
+                break;
+            }
+
+            if ($matched !== null) {
+                break;
+            }
+        }
+
+        return $matched;
     }
 
     /**
