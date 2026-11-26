@@ -2543,7 +2543,8 @@ class AttendanceUtil extends Util
                 continue;
             }
 
-            $department_operational = $operationals->where('dept_id', $key_dept_id)->where('date', $date_string)->first();
+            // attendanceTimetableGrouping() memakai keyBy('date'), jadi kalau ada lebih dari satu baris, yang terakhir menang.
+            $department_operational = $operationals->where('dept_id', $key_dept_id)->where('date', $date_string)->last();
             $schedule = $this->getLateCheckInSchedule($department_operational, $department_shift, $date, $is_holiday);
             if ($schedule->isEmpty()) {
                 continue;
@@ -2552,12 +2553,37 @@ class AttendanceUtil extends Util
             foreach ($employees as $employee) {
                 $attendance_employees = $attendance_grouping->get($employee['emp_code'], collect());
 
+                $base = [
+                    'department' => $department,
+                    'employee' => collect($employee),
+                ];
+
                 // Punch mentah tanggal D diambil sebelum grouping, karena grouping mengubah pool.
                 $raw_today = collect($attendance_employees->get($date_string, collect()))->values();
 
-                // Grouping hanya dipakai untuk tahu punch hari D yang sudah dipakai grup D-1 yang valid
-                // (pulang shift lintas hari). Selain itu semua punch hari D tetap kandidat absen masuk.
                 $timetable_groups = $this->attendanceTimetableGrouping($department_shift, $attendance_employees, $range_dates, $employee['emp_code'], $employee);
+
+                // Hari D sudah punya grup valid (level 1/2/3): pakai timetable dan punch grup itu,
+                // sama persis dengan kartu absen. Tidak ada pencocokan window sendiri.
+                $today_groups = collect($timetable_groups->get($date_string, collect()));
+                if ($today_groups->isNotEmpty()) {
+                    $group_timetable_id = $today_groups->keys()->first();
+                    $group_punches = collect($today_groups->first());
+                    $group_timetable = $this->resolveGroupTimetable($group_timetable_id, $department_operational, $department_shift, $date, $is_holiday);
+                    $group_first_punch = $group_punches
+                        ->filter(fn ($item) => !empty($item['punch_time']))
+                        ->map(fn ($item) => Carbon::parse($item['punch_time']))
+                        ->sort()
+                        ->first();
+
+                    if ($group_timetable !== null && $group_first_punch !== null) {
+                        $rows->push($this->makeLateCheckInRow($base, $group_timetable, $date_string, $group_first_punch, $now));
+                        continue;
+                    }
+                }
+
+                // Hari D belum punya grup valid (hari belum lengkap): cocokkan punch sisa ke window check-in.
+                // Punch hari D yang sudah dipakai grup D-1 yang valid (pulang shift lintas hari) dikeluarkan.
                 $prev_date_string = $date->copy()->subDay()->format('Y-m-d');
                 $used_by_prev = collect($timetable_groups->get($prev_date_string, collect()))
                     ->flatten(1)
@@ -2570,11 +2596,6 @@ class AttendanceUtil extends Util
                     ->unique(fn ($item) => Carbon::parse($item['punch_time'])->format('Y-m-d H:i:s'))
                     ->sortBy(fn ($item) => Carbon::parse($item['punch_time'])->timestamp)
                     ->values();
-
-                $base = [
-                    'department' => $department,
-                    'employee' => collect($employee),
-                ];
 
                 $matched = $this->matchCheckInPunch($schedule, $date, $candidates);
                 if ($matched !== null) {
@@ -2679,6 +2700,36 @@ class AttendanceUtil extends Util
     }
 
     /**
+     * Cari objek Timetable untuk id timetable hasil grouping, urutannya sama dengan getAttendance():
+     * operational aktif dulu, lalu shiftday hari itu.
+     */
+    private function resolveGroupTimetable(
+        int|string $timetable_id,
+        ?Operational $operational,
+        Shift $department_shift,
+        Carbon $date,
+        bool $is_holiday,
+    ): ?Timetable {
+        if (!empty($operational)) {
+            $operational_timetable = $operational->operational_has_timetables
+                ->where('timetable_id', $timetable_id)
+                ->where('status', 'active')
+                ->first();
+            if (!empty($operational_timetable?->timetable)) {
+                return $operational_timetable->timetable;
+            }
+        }
+
+        $shiftday = $department_shift->shiftdays->firstWhere('code_day', $is_holiday ? 0 : $date->dayOfWeek);
+        $shiftday_timetable = $shiftday?->shiftday_has_timetables->where('timetable.id', $timetable_id)->first();
+        if (!empty($shiftday_timetable?->timetable)) {
+            return $shiftday_timetable->timetable;
+        }
+
+        return Timetable::find($timetable_id);
+    }
+
+    /**
      * Jadwal masuk untuk satu tanggal. Operational dipakai dulu, lalu shiftday.
      * Hasil diurutkan dari jam check-in paling awal.
      */
@@ -2694,11 +2745,8 @@ class AttendanceUtil extends Util
                 ->map(fn ($item) => $item->timetable)
                 ->filter();
         } else {
-            if ($is_holiday) {
-                return collect();
-            }
-
-            $shiftday = $department_shift->shiftdays->firstWhere('code_day', $date->dayOfWeek);
+            // Sama seperti attendanceTimetableGrouping(): hari libur memakai jadwal code_day 0.
+            $shiftday = $department_shift->shiftdays->firstWhere('code_day', $is_holiday ? 0 : $date->dayOfWeek);
             $timetables = $shiftday
                 ? $shiftday->shiftday_has_timetables->map(fn ($item) => $item->timetable)->filter()
                 : collect();
