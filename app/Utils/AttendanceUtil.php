@@ -2503,6 +2503,7 @@ class AttendanceUtil extends Util
             'timetable_id' => $timetable->id,
             'timetable_name' => $timetable->name,
             'check_in' => $check_in->format('H:i'),
+            'tolerance_minutes' => (int) ($timetable->warning_check_in_plus ?? 0),
             'tolerance_until' => $tolerance_until->format('H:i'),
             'first_punch' => $first_punch?->format('H:i'),
         ]);

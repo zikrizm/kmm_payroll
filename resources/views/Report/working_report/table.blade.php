@@ -7,18 +7,18 @@
         <p class="text-sm font-medium text-gray-700 mb-2">Tanggal: {{ $date }}</p>
         @foreach ($departments as $group)
             <p class="font-semibold text-gray-700 mt-4 mb-2">{{ $group['department']['dept_name'] ?? '-' }}</p>
-            <div class="grid gap-5 grid-cols-3 xl/max:grid-cols-2 lg/max:grid-cols-1 w-max items-start">
+            <div class="grid gap-4 grid-cols-3 xl/max:grid-cols-2 lg/max:grid-cols-1 w-max items-start">
                 @foreach ($group['rows'] as $row)
                     @php
                         $isBelumMasuk = $row['status'] === 'belum_masuk';
-                        $badgeClass = $isBelumMasuk
-                            ? 'bg-gray-200 text-gray-700'
-                            : ($row['within_tolerance'] ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-700');
-                        $badgeLabel = $isBelumMasuk ? 'Belum masuk' : 'Telat ' . $row['late_minutes'] . ' menit';
+                        $statusClass = $isBelumMasuk
+                            ? 'text-gray-500'
+                            : ($row['within_tolerance'] ? 'text-yellow-700' : 'text-red-600');
+                        $statusLabel = $isBelumMasuk ? 'Belum masuk' : 'Telat ' . $row['late_minutes'] . ' menit';
                     @endphp
-                    <div class="flex flex-col gap-2.5 border rounded p-4 w-[300px]" style="min-width: 300px;">
+                    <div class="flex flex-col gap-2 border rounded p-4 w-[280px]" style="min-width: 280px;">
                         <header class="flex items-center gap-3">
-                            <div class="w-12 h-12 bg-white rounded-full overflow-hidden shrink-0">
+                            <div class="w-10 h-10 bg-white rounded-full overflow-hidden shrink-0">
                                 @if (!empty($row['employee']['photo']))
                                     <img class="image w-full h-full object-cover"
                                         src="{{ config('constants.api_zkteco') }}{{ $row['employee']['photo'] }}"
@@ -37,21 +37,18 @@
                             </div>
                         </header>
 
-                        <div class="flex justify-between text-xs text-gray-500">
+                        <div class="flex justify-between items-baseline text-xs text-gray-500">
                             <span>Jadwal masuk</span>
-                            <span>{{ $row['check_in'] }}</span>
+                            <span>
+                                {{ $row['check_in'] }}
+                                <span class="text-gray-400 opacity-60">+{{ $row['tolerance_minutes'] ?? 0 }}</span>
+                            </span>
                         </div>
                         <div class="flex justify-between text-xs text-gray-500">
                             <span>Absen masuk</span>
                             <span>{{ $row['first_punch'] ?? '-' }}</span>
                         </div>
-
-                        <div>
-                            <span class="inline-block px-2 py-0.5 rounded text-xs font-medium {{ $badgeClass }}">
-                                {{ $badgeLabel }}
-                            </span>
-                        </div>
-                        <p class="text-xs text-gray-600">{{ $row['info'] }}</p>
+                        <p class="text-sm font-semibold {{ $statusClass }}">{{ $statusLabel }}</p>
                     </div>
                 @endforeach
             </div>
@@ -59,13 +56,9 @@
     @endif
 </div>
 <script>
-    // Mendapatkan semua gambar dengan class 'image'
     var images = document.querySelectorAll('.image');
-
-    // Menambahkan event error pada setiap gambar
     images.forEach(function(img) {
         img.onerror = function() {
-            // Jika terjadi error, ubah URL gambar
             img.src = img.src.replace('auth_files/photo', 'auth_files/biophoto');
         };
     });

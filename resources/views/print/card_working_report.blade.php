@@ -19,14 +19,14 @@
                         @foreach ($group['rows'] as $row)
                             @php
                                 $isBelumMasuk = $row['status'] === 'belum_masuk';
-                                $badgeClass = $isBelumMasuk
-                                    ? 'bg-gray-200 text-gray-700'
-                                    : ($row['within_tolerance'] ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-700');
-                                $badgeLabel = $isBelumMasuk ? 'Belum masuk' : 'Telat ' . $row['late_minutes'] . ' menit';
+                                $statusClass = $isBelumMasuk
+                                    ? 'text-gray-500'
+                                    : ($row['within_tolerance'] ? 'text-yellow-700' : 'text-red-600');
+                                $statusLabel = $isBelumMasuk ? 'Belum masuk' : 'Telat ' . $row['late_minutes'] . ' menit';
                             @endphp
-                            <div class="flex flex-col gap-2.5 border rounded p-4 w-[330px]" style="min-width: 330px;">
+                            <div class="flex flex-col gap-2 border rounded p-4 w-[300px]" style="min-width: 300px;">
                                 <header class="flex items-center gap-3">
-                                    <div class="w-12 h-12 bg-white rounded-full overflow-hidden shrink-0">
+                                    <div class="w-10 h-10 bg-white rounded-full overflow-hidden shrink-0">
                                         @if (!empty($row['employee']['photo']))
                                             <img class="image w-full h-full object-cover"
                                                 src="{{ config('constants.api_zkteco') }}{{ $row['employee']['photo'] }}"
@@ -45,21 +45,18 @@
                                     </div>
                                 </header>
 
-                                <div class="flex justify-between text-xs text-gray-500">
+                                <div class="flex justify-between items-baseline text-xs text-gray-500">
                                     <span>Jadwal masuk</span>
-                                    <span>{{ $row['check_in'] }}</span>
+                                    <span>
+                                        {{ $row['check_in'] }}
+                                        <span class="text-gray-400 opacity-60">+{{ $row['tolerance_minutes'] ?? 0 }}</span>
+                                    </span>
                                 </div>
                                 <div class="flex justify-between text-xs text-gray-500">
                                     <span>Absen masuk</span>
                                     <span>{{ $row['first_punch'] ?? '-' }}</span>
                                 </div>
-
-                                <div>
-                                    <span class="inline-block px-2 py-0.5 rounded text-xs font-medium {{ $badgeClass }}">
-                                        {{ $badgeLabel }}
-                                    </span>
-                                </div>
-                                <p class="text-xs text-gray-600">{{ $row['info'] }}</p>
+                                <p class="text-sm font-semibold {{ $statusClass }}">{{ $statusLabel }}</p>
 
                                 <div class="w-full h-10 p-1 border">
                                     <p class="text-gray-500 text-xs">Keterangan:</p>

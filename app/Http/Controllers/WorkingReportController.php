@@ -44,12 +44,14 @@ class WorkingReportController extends Controller
         try {
             $department_code = $request['department_code'];
             $date = $request['date'];
+            $sort = $request->input('sort') === 'desc' ? 'desc' : 'asc';
 
             if (request()->ajax()) {
                 $departments = collect();
 
                 if ($request->filled('date')) {
                     $date_carbon = Carbon::createFromFormat('d-m-Y', $request['date'])->startOfDay();
+                    $direction = $sort === 'desc' ? -1 : 1;
 
                     $departments = $this->attendanceUtil
                         ->getLateCheckInReport($date_carbon, $department_code)
@@ -58,7 +60,10 @@ class WorkingReportController extends Controller
                         ->map(fn ($rows) => [
                             'department' => $rows->first()['department'],
                             'rows' => $rows
-                                ->sortBy(fn ($row) => $row['employee']['first_name'] ?? '')
+                                ->sortBy(fn ($row) => [
+                                    $direction * (int) $row['late_minutes'],
+                                    $row['employee']['first_name'] ?? '',
+                                ])
                                 ->values(),
                         ])
                         ->values();
@@ -69,7 +74,7 @@ class WorkingReportController extends Controller
             }
 
             $department_bios = collect($this->service->get_departments(['page_size' => 999])['data']);
-            return view('Report.working_report.index', compact('department_bios', 'department_code', 'date'));
+            return view('Report.working_report.index', compact('department_bios', 'department_code', 'date', 'sort'));
         } catch (\Exception $e) {
             Log::emergency("File:" . $e->getFile() . "Line:" . $e->getLine() . "Message:" . $e->getMessage());
 

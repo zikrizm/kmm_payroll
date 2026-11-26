@@ -35,6 +35,10 @@
                     </select>
                     <label class="font-normal text-xs text-red-500 xs/max:text-xs parent_dept hint-text"></label>
                 </section>
+                <select id="sort-late" class="text-sm px-3 py-1.5 rounded-lg border text-gray-700 bg-white">
+                    <option value="asc" @selected(($sort ?? 'asc') === 'asc')>Telat terkecil</option>
+                    <option value="desc" @selected(($sort ?? 'asc') === 'desc')>Telat terbesar</option>
+                </select>
                 <a id="card-working-export" target="_blank"
                     class="flex  items-center gap-2.5 text-sm px-4 py-1.5 rounded-lg border text-gray-700">
                     <x-icon icon="printer" width=16 height=16 viewBox="20 20" />
@@ -69,11 +73,18 @@
         });
 
         var defaultDate = "{{ $date ?? '' }}";
+        var defaultSort = "{{ $sort ?? 'asc' }}";
+
+        $('#sort-late').on('change', function () {
+            delete dataParams.page;
+            onInit({ sort: $(this).val() });
+        });
 
         onInit({
             q: $('.search-data-input').val(),
             department_code: $('.select2-dept').val(),
-            date: convertLocalTimezone(defaultDate || moment(), 'DD-MM-YYYY')
+            date: convertLocalTimezone(defaultDate || moment(), 'DD-MM-YYYY'),
+            sort: defaultSort === 'desc' ? 'desc' : 'asc'
         });
 
         $('input[name="date"]').daterangepicker({
@@ -108,7 +119,7 @@
         // *
         dataParams = { ...dataParams, ...data };
         $('#card-working-export').attr('href', 
-            `/print/card-working-report?department_code=${dataParams.department_code}&date=${dataParams.date}` 
+            `/print/card-working-report?department_code=${dataParams.department_code}&date=${dataParams.date}&sort=${dataParams.sort || 'asc'}` 
         );
 
         const queryString = new URLSearchParams(dataParams).toString();

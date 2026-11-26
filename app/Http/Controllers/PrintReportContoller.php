@@ -1218,9 +1218,11 @@ class PrintReportContoller extends Controller
         try {
             $departments = collect();
             $date = $request['date'];
+            $sort = $request->input('sort') === 'desc' ? 'desc' : 'asc';
 
             if ($request->filled('date')) {
                 $date_carbon = Carbon::createFromFormat('d-m-Y', $request['date'])->startOfDay();
+                $direction = $sort === 'desc' ? -1 : 1;
 
                 $departments = $this->attendanceUtil
                     ->getLateCheckInReport($date_carbon, $request['department_code'])
@@ -1229,7 +1231,10 @@ class PrintReportContoller extends Controller
                     ->map(fn ($rows) => [
                         'department' => $rows->first()['department'],
                         'rows' => $rows
-                            ->sortBy(fn ($row) => $row['employee']['first_name'] ?? '')
+                            ->sortBy(fn ($row) => [
+                                $direction * (int) $row['late_minutes'],
+                                $row['employee']['first_name'] ?? '',
+                            ])
                             ->values(),
                     ])
                     ->values();
