@@ -39,6 +39,9 @@ class AttendanceUtil extends Util
     /** Diisi false oleh fetchPunchesPaged() kalau ada halaman punch yang gagal diambil. */
     public bool $lastPunchFetchComplete = true;
 
+    /** Nama bagian yang punch-nya gagal diambil pada pemanggilan getLateCheckInReport() terakhir. */
+    public array $lastFailedDepartments = [];
+
     /** @var array<string, mixed>|null Konteks log debug grouping */
     private ?array $groupingLogContext = null;
 
@@ -2335,6 +2338,9 @@ class AttendanceUtil extends Util
      */
     public function getLateCheckInReport(Carbon $date, string|array|null $department_codes = null): Collection
     {
+        // Pengambilan punch per bagian berurutan bisa lebih lama dari batas default PHP.
+        @set_time_limit(300);
+
         $date = $date->copy()->startOfDay();
         $date_string = $date->format('Y-m-d');
 
@@ -2344,16 +2350,20 @@ class AttendanceUtil extends Util
         // Kosong = semua bagian.
         $departments_bios = $this->resolveDepartmentsFromCodes($department_codes);
 
-        // 1. Punch tanggal D-1 dan D diambil halaman per halaman.
-        $attendances = $this->fetchPunchesPaged(
+        // 1. Karyawan dari bagian yang dipilih, atau semua bagian kalau kosong.
+        $list_employee_all = $this->getEmployee($departments_bios, $list_department, $list_position);
+
+        // 2. Punch D-1 sampai D diambil satu bagian per satu, lalu digabung.
+        $attendances = $this->fetchPunchesForDepartments(
             $date->copy()->subDay()->startOfDay(),
             $date->copy()->endOfDay(),
-            $departments_bios,
+            $list_employee_all,
+            $list_department,
         );
         $attendance_grouping = $this->groupingAttendance($attendances);
 
-        // 2. Hanya karyawan yang punya punch di tanggal D yang diproses.
-        $list_employee = $this->getEmployee($departments_bios, $list_department, $list_position)
+        // 3. Hanya karyawan yang punya punch di tanggal D yang diproses.
+        $list_employee = $list_employee_all
             ->filter(fn ($employee) => collect($attendance_grouping->get($employee['emp_code'], collect()))->has($date_string))
             ->values();
 
@@ -2361,20 +2371,60 @@ class AttendanceUtil extends Util
             return collect();
         }
 
-        // 3. Jadwal dibaca dari database lokal, lalu dicek per karyawan.
+        // 4. Jadwal dibaca dari database lokal, lalu dicek per karyawan.
         return $this->buildLateCheckInRows($date, $departments_bios, $list_department, $list_employee, $attendance_grouping);
     }
 
     /**
-     * Ambil punch dari API halaman per halaman. Tiap halaman kecil supaya server
-     * tidak memuat seluruh data dalam satu request. Bentuk datanya sama dengan
-     * getMergeAttendance(), termasuk punch dari tabel Transaction lokal.
+     * Ambil punch D-1 sampai D satu bagian per satu. Setiap bagian diambil lewat
+     * fetchPunchesPaged(), lalu hasilnya disimpan dan digabung. Jeda kecil antar bagian
+     * supaya server tidak dibebani sekaligus. Bagian yang gagal dicatat di $lastFailedDepartments.
      */
-    private function fetchPunchesPaged(Carbon $start, Carbon $end, Collection $departments): Collection
+    private function fetchPunchesForDepartments(Carbon $start, Carbon $end, Collection $list_employee, Collection $list_department): Collection
+    {
+        $department_ids = $list_employee
+            ->map(fn ($employee) => $employee['department']['id'] ?? null)
+            ->filter()
+            ->unique()
+            ->values();
+
+        $this->lastFailedDepartments = [];
+        $punches = collect();
+
+        foreach ($department_ids as $index => $department_id) {
+            if ($index > 0) {
+                usleep(200000);
+            }
+
+            $punches = $punches->merge($this->fetchPunchesPaged($start, $end, $department_id));
+
+            if (!$this->lastPunchFetchComplete) {
+                $name = $list_department->firstWhere('id', $department_id)['dept_name'] ?? (string) $department_id;
+                $this->lastFailedDepartments[] = $name;
+            }
+        }
+
+        // Punch lokal (tabel Transaction) hanya ditambahkan sekali, supaya tidak dobel per bagian.
+        $local = Transaction::whereBetween('punch_time', [$start, $end])
+            ->orderBy('punch_time', 'ASC')
+            ->get();
+        foreach ($local as $item) {
+            $punches->push($item->toArray());
+        }
+
+        return $punches->sortBy('punch_time')->values();
+    }
+
+    /**
+     * Ambil punch satu bagian dari API halaman per halaman. Tiap halaman kecil supaya
+     * server tidak memuat seluruh data dalam satu request. Bentuk datanya sama dengan
+     * getMergeAttendance() untuk jalur bagian.
+     */
+    private function fetchPunchesPaged(Carbon $start, Carbon $end, int|string $department_id): Collection
     {
         $page_size = 200;
         $max_pages = 500;
-        $department_ids = $departments->isNotEmpty() ? $this->departmentsApiIds($departments) : null;
+        $department_ids = (string) $department_id;
 
         $items = collect();
         $seen_ids = [];
@@ -2386,22 +2436,17 @@ class AttendanceUtil extends Util
             $page_items = collect();
             $res = [];
             for ($attempt = 1; $attempt <= 3; $attempt++) {
-                if ($department_ids !== null) {
-                    $res = $this->service->get_transaction_reports([
-                        'page' => $page,
-                        'page_size' => $page_size,
-                        'start_date' => $start->format('Y-m-d'),
-                        'end_date' => $end->format('Y-m-d'),
-                        'departments' => $department_ids,
-                    ]);
-                } else {
-                    $res = $this->service->get_transactions([
-                        'page' => $page,
-                        'page_size' => $page_size,
-                        'start_time' => $start->format('Y-m-d H:i:s'),
-                        'end_time' => $end->format('Y-m-d H:i:s'),
-                    ]);
+                if ($attempt > 1) {
+                    usleep(300000);
                 }
+
+                $res = $this->service->get_transaction_reports([
+                    'page' => $page,
+                    'page_size' => $page_size,
+                    'start_date' => $start->format('Y-m-d'),
+                    'end_date' => $end->format('Y-m-d'),
+                    'departments' => $department_ids,
+                ]);
 
                 $page_items = collect($res['data'] ?? []);
                 if ($page_items->isNotEmpty()) {
@@ -2457,56 +2502,27 @@ class AttendanceUtil extends Util
             }
         }
 
-        Log::info("working-report: punch terkumpul {$items->count()} dari " . ($total ?? 0) . " (D-1 s/d D)");
+        Log::info("working-report: bagian {$department_id} punch terkumpul {$items->count()} dari " . ($total ?? 0) . " (D-1 s/d D)");
 
-        $punches = $items->map(function ($item) use ($department_ids) {
-            if ($department_ids !== null) {
-                return [
-                    "id" => $item['id'],
-                    "emp_code" => $item['emp_code'],
-                    "first_name" => $item['first_name'],
-                    "last_name" => $item['last_name'],
-                    "dept_code" => $item['dept_code'],
-                    "dept_name" => $item['dept_name'],
-                    "position_code" => $item['position_code'],
-                    "position_name" => $item['position_name'],
-                    "punch_time" => $item['att_date'] . " " . $item['punch_time'] . ":00",
-                    "punch_state" => $item['punch_state'],
-                    "verify_type" => $item['verify_type'],
-                    "work_code" => $item['work_code'],
-                    "area_alias" => null,
-                    "terminal_alias" => null,
-                    "source" => $item['source'],
-                ];
-            }
-
+        return $items->map(function ($item) {
             return [
                 "id" => $item['id'],
                 "emp_code" => $item['emp_code'],
                 "first_name" => $item['first_name'],
                 "last_name" => $item['last_name'],
-                "dept_code" => null,
-                "dept_name" => $item['department'],
-                "position_code" => null,
-                "position_name" => $item['position'],
-                "punch_time" => $item['punch_time'],
-                "punch_state" => $item['punch_state_display'],
-                "verify_type" => $item['verify_type_display'],
+                "dept_code" => $item['dept_code'],
+                "dept_name" => $item['dept_name'],
+                "position_code" => $item['position_code'],
+                "position_name" => $item['position_name'],
+                "punch_time" => $item['att_date'] . " " . $item['punch_time'] . ":00",
+                "punch_state" => $item['punch_state'],
+                "verify_type" => $item['verify_type'],
                 "work_code" => $item['work_code'],
-                "area_alias" => $item['area_alias'],
-                "terminal_alias" => $item['terminal_alias'],
-                "source" => null,
+                "area_alias" => null,
+                "terminal_alias" => null,
+                "source" => $item['source'],
             ];
-        });
-
-        $local = Transaction::whereBetween('punch_time', [$start, $end])
-            ->orderBy('punch_time', 'ASC')
-            ->get();
-        foreach ($local as $item) {
-            $punches->push($item->toArray());
-        }
-
-        return $punches->sortBy('punch_time')->values();
+        })->values();
     }
 
     private function buildLateCheckInRows(

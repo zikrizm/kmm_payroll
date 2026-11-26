@@ -48,7 +48,7 @@ class WorkingReportController extends Controller
 
             if (request()->ajax()) {
                 $rows = collect();
-                $is_incomplete = false;
+                $failed_departments = [];
 
                 if ($request->filled('date')) {
                     $date_carbon = Carbon::createFromFormat('d-m-Y', $request['date'])->startOfDay();
@@ -63,10 +63,10 @@ class WorkingReportController extends Controller
                         ])
                         ->values();
 
-                    $is_incomplete = !$this->attendanceUtil->lastPunchFetchComplete;
+                    $failed_departments = $this->attendanceUtil->lastFailedDepartments;
                 }
 
-                $render = view('Report.working_report.table', compact('rows', 'date', 'is_incomplete'))->render();
+                $render = view('Report.working_report.table', compact('rows', 'date', 'failed_departments'))->render();
                 return $this->buildRes->RESPONSE_REQ('success', $render, null);
             }
 

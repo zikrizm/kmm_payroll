@@ -1,7 +1,7 @@
 <div class="w-full overflow-auto flex-1">
-    @if (!empty($is_incomplete))
+    @if (!empty($failed_departments))
         <p class="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded px-3 py-2 mb-3">
-            Sebagian data absensi gagal diambil dari server, jadi daftar ini bisa belum lengkap. Coba muat ulang.
+            Data absensi gagal diambil untuk bagian: {{ implode(', ', $failed_departments) }}. Daftar ini belum lengkap. Coba muat ulang.
         </p>
     @endif
     @if (empty($date))
