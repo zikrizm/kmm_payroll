@@ -2333,56 +2333,160 @@ class AttendanceUtil extends Util
     public function getLateCheckInReport(Carbon $date, string|array|null $department_codes = null): Collection
     {
         $date = $date->copy()->startOfDay();
+        $date_string = $date->format('Y-m-d');
+
         $list_department = $this->getDepartment();
         $list_position = $this->getPosition();
-        $list_device = $this->getDevice();
 
+        // Kosong = semua bagian.
         $departments_bios = $this->resolveDepartmentsFromCodes($department_codes);
-        if ($departments_bios->isEmpty()) {
-            $departments_bios = $list_department->values();
+
+        // 1. Punch tanggal D-1 dan D diambil halaman per halaman.
+        $attendances = $this->fetchPunchesPaged(
+            $date->copy()->subDay()->startOfDay(),
+            $date->copy()->endOfDay(),
+            $departments_bios,
+        );
+        $attendance_grouping = $this->groupingAttendance($attendances);
+
+        // 2. Hanya karyawan yang punya punch di tanggal D yang diproses.
+        $list_employee = $this->getEmployee($departments_bios, $list_department, $list_position)
+            ->filter(fn ($employee) => collect($attendance_grouping->get($employee['emp_code'], collect()))->has($date_string))
+            ->values();
+
+        if ($list_employee->isEmpty()) {
+            return collect();
         }
 
-        // Satu bagian per permintaan. Endpoint absensi memotong page_size,
-        // jadi "semua bagian" tidak boleh diambil dalam satu request.
-        $rows = collect();
-        foreach ($departments_bios as $department) {
-            $rows = $rows->merge($this->buildLateCheckInRows(
-                $date,
-                collect([$department]),
-                $list_department,
-                $list_position,
-                $list_device,
-            ));
+        // 3. Jadwal dibaca dari database lokal, lalu dicek per karyawan.
+        return $this->buildLateCheckInRows($date, $departments_bios, $list_department, $list_employee, $attendance_grouping);
+    }
+
+    /**
+     * Ambil punch dari API halaman per halaman. Tiap halaman kecil supaya server
+     * tidak memuat seluruh data dalam satu request. Bentuk datanya sama dengan
+     * getMergeAttendance(), termasuk punch dari tabel Transaction lokal.
+     */
+    private function fetchPunchesPaged(Carbon $start, Carbon $end, Collection $departments): Collection
+    {
+        $page_size = 200;
+        $max_pages = 500;
+        $department_ids = $departments->isNotEmpty() ? $this->departmentsApiIds($departments) : null;
+
+        $items = collect();
+        $seen_ids = [];
+
+        for ($page = 1; $page <= $max_pages; $page++) {
+            if ($department_ids !== null) {
+                $res = $this->service->get_transaction_reports([
+                    'page' => $page,
+                    'page_size' => $page_size,
+                    'start_date' => $start->format('Y-m-d'),
+                    'end_date' => $end->format('Y-m-d'),
+                    'departments' => $department_ids,
+                ]);
+            } else {
+                $res = $this->service->get_transactions([
+                    'page' => $page,
+                    'page_size' => $page_size,
+                    'start_time' => $start->format('Y-m-d H:i:s'),
+                    'end_time' => $end->format('Y-m-d H:i:s'),
+                ]);
+            }
+
+            $total = (int) ($res['count'] ?? 0);
+            $page_items = collect($res['data'] ?? []);
+            if ($page_items->isEmpty()) {
+                break;
+            }
+
+            // Kalau API mengabaikan paginasi, halaman berikutnya tidak membawa data baru.
+            $new_items = $page_items->filter(function ($item) use (&$seen_ids) {
+                $id = $item['id'] ?? null;
+                if ($id === null) {
+                    return true;
+                }
+                if (isset($seen_ids[$id])) {
+                    return false;
+                }
+                $seen_ids[$id] = true;
+
+                return true;
+            });
+            if ($new_items->isEmpty()) {
+                break;
+            }
+
+            $items = $items->merge($new_items);
+            if ($items->count() >= $total) {
+                break;
+            }
         }
 
-        return $rows->values();
+        $punches = $items->map(function ($item) use ($department_ids) {
+            if ($department_ids !== null) {
+                return [
+                    "id" => $item['id'],
+                    "emp_code" => $item['emp_code'],
+                    "first_name" => $item['first_name'],
+                    "last_name" => $item['last_name'],
+                    "dept_code" => $item['dept_code'],
+                    "dept_name" => $item['dept_name'],
+                    "position_code" => $item['position_code'],
+                    "position_name" => $item['position_name'],
+                    "punch_time" => $item['att_date'] . " " . $item['punch_time'] . ":00",
+                    "punch_state" => $item['punch_state'],
+                    "verify_type" => $item['verify_type'],
+                    "work_code" => $item['work_code'],
+                    "area_alias" => null,
+                    "terminal_alias" => null,
+                    "source" => $item['source'],
+                ];
+            }
+
+            return [
+                "id" => $item['id'],
+                "emp_code" => $item['emp_code'],
+                "first_name" => $item['first_name'],
+                "last_name" => $item['last_name'],
+                "dept_code" => null,
+                "dept_name" => $item['department'],
+                "position_code" => null,
+                "position_name" => $item['position'],
+                "punch_time" => $item['punch_time'],
+                "punch_state" => $item['punch_state_display'],
+                "verify_type" => $item['verify_type_display'],
+                "work_code" => $item['work_code'],
+                "area_alias" => $item['area_alias'],
+                "terminal_alias" => $item['terminal_alias'],
+                "source" => null,
+            ];
+        });
+
+        $local = Transaction::whereBetween('punch_time', [$start, $end])
+            ->orderBy('punch_time', 'ASC')
+            ->get();
+        foreach ($local as $item) {
+            $punches->push($item->toArray());
+        }
+
+        return $punches->sortBy('punch_time')->values();
     }
 
     private function buildLateCheckInRows(
         Carbon $date,
         Collection $departments_bios,
         Collection $list_department,
-        Collection $list_position,
-        Collection $list_device,
+        Collection $list_employee,
+        Collection $attendance_grouping,
     ): Collection {
-        $date = $date->copy()->startOfDay();
         $date_string = $date->format('Y-m-d');
         $now = Carbon::now();
 
-        $list_employee = $this->getEmployee($departments_bios, $list_department, $list_position);
-        if ($list_employee->isEmpty()) {
-            return collect();
-        }
-
         $employee_dept_group = $list_employee->groupBy([fn ($item) => $item['department']['id']]);
-        $list_emp_code = $employee_dept_group
-            ->flatMap(fn ($employees) => collect($employees)->pluck('emp_code'))
-            ->all();
 
         // Rentang D-1 .. D+1. D-1 dipakai untuk menarik punch shift malam, D+1 hanya penanda.
         $range_dates = $this->getRangeDate($date->copy(), $date->copy(), $date->copy(), $date->copy());
-        $attendances = $this->getMergeAttendance($date->copy(), $date->copy(), $date->copy(), $date->copy(), $list_emp_code, $list_device, $departments_bios);
-        $attendance_grouping = $this->groupingAttendance($attendances);
 
         $shifts = $this->getShift($departments_bios);
         $operationals = $this->getOperationals($date->copy(), $date->copy(), $date->copy(), $date->copy(), $departments_bios);
