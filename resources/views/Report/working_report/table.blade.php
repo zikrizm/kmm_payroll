@@ -18,8 +18,7 @@
             <tbody>
                 @foreach ($rows as $row)
                     @php
-                        $isBelumMasuk = $row['status'] === 'belum_masuk';
-                        $statusLabel = $isBelumMasuk ? 'Belum masuk' : 'Telat ' . $row['late_minutes'] . ' menit';
+                        $statusLabel = 'Telat ' . $row['late_minutes'] . ' menit';
                     @endphp
                     <tr class="border-b">
                         <td class="py-2.5 pr-3">

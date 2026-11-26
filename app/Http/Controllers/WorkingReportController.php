@@ -18,8 +18,8 @@ class WorkingReportController extends Controller
     private $attendanceUtil;
     private $util;
 
-    /** Hanya telat dan belum masuk yang sudah melewati batas disiplin. */
-    private const SHOWN_STATUSES = ['telat', 'belum_masuk'];
+    /** Hanya yang sudah absen dan melewati batas disiplin. */
+    private const SHOWN_STATUSES = ['telat'];
 
     public function __construct(ApiServices $service, Util $util, AttendanceUtil $attendanceUtil, ResponseUtil $buildRes)
     {
