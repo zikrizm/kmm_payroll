@@ -2333,14 +2333,42 @@ class AttendanceUtil extends Util
     public function getLateCheckInReport(Carbon $date, string|array|null $department_codes = null): Collection
     {
         $date = $date->copy()->startOfDay();
-        $date_string = $date->format('Y-m-d');
-        $now = Carbon::now();
-
         $list_department = $this->getDepartment();
         $list_position = $this->getPosition();
         $list_device = $this->getDevice();
 
         $departments_bios = $this->resolveDepartmentsFromCodes($department_codes);
+        if ($departments_bios->isEmpty()) {
+            $departments_bios = $list_department->values();
+        }
+
+        // Satu bagian per permintaan. Endpoint absensi memotong page_size,
+        // jadi "semua bagian" tidak boleh diambil dalam satu request.
+        $rows = collect();
+        foreach ($departments_bios as $department) {
+            $rows = $rows->merge($this->buildLateCheckInRows(
+                $date,
+                collect([$department]),
+                $list_department,
+                $list_position,
+                $list_device,
+            ));
+        }
+
+        return $rows->values();
+    }
+
+    private function buildLateCheckInRows(
+        Carbon $date,
+        Collection $departments_bios,
+        Collection $list_department,
+        Collection $list_position,
+        Collection $list_device,
+    ): Collection {
+        $date = $date->copy()->startOfDay();
+        $date_string = $date->format('Y-m-d');
+        $now = Carbon::now();
+
         $list_employee = $this->getEmployee($departments_bios, $list_department, $list_position);
         if ($list_employee->isEmpty()) {
             return collect();
