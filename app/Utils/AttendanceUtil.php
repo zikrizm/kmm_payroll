@@ -568,7 +568,7 @@ class AttendanceUtil extends Util
             return;
         }
 
-        Log::info('[ATTENDANCE_GROUPING] ' . $step, array_merge($this->groupingLogContext, $data));
+        // Log::info('[ATTENDANCE_GROUPING] ' . $step, array_merge($this->groupingLogContext, $data));
     }
 
     private function formatLimitsForLog(array $limits): array
@@ -1482,19 +1482,19 @@ class AttendanceUtil extends Util
 
                 $level = $this->resolveTimetableGroupLevel($groupPunches, $timetable, $limits, $employee);
 
-                $groupingEmpCode = $this->groupingLogContext['emp_code'] ?? null;
-                if (in_array($groupingEmpCode, ['192341'], true)) {
-                    Log::info("[ATTENDANCE_GROUPING][{$groupingEmpCode}] resolveTimetableGroupLevel", [
-                        'date' => $date_string,
-                        'timetable_id' => $timetable->id,
-                        'timetable_name' => $timetable->name,
-                        'level' => $level,
-                        'is_without_break' => (bool) $timetable->is_without_break,
-                        'work_time' => $timetable->work_time,
-                        'windows' => $this->formatLimitsForLog($limits),
-                        'group_punches' => $this->punchTimesFromCollection($groupPunches),
-                    ]);
-                }
+                // $groupingEmpCode = $this->groupingLogContext['emp_code'] ?? null;
+                // if (in_array($groupingEmpCode, ['192341'], true)) {
+                //     Log::info("[ATTENDANCE_GROUPING][{$groupingEmpCode}] resolveTimetableGroupLevel", [
+                //         'date' => $date_string,
+                //         'timetable_id' => $timetable->id,
+                //         'timetable_name' => $timetable->name,
+                //         'level' => $level,
+                //         'is_without_break' => (bool) $timetable->is_without_break,
+                //         'work_time' => $timetable->work_time,
+                //         'windows' => $this->formatLimitsForLog($limits),
+                //         'group_punches' => $this->punchTimesFromCollection($groupPunches),
+                //     ]);
+                // }
 
                 if ($level <= 0) {
                     continue;
@@ -1600,24 +1600,24 @@ class AttendanceUtil extends Util
         $check_out_limit_min = $check_out->copy()->subMinutes($timetable->check_out_min);
         $check_out_limit_plus = $check_out->copy()->addMinutes($timetable->check_out_plus);
 
-        if ($debugEmp) {
-            Log::info("[SHIFT_CHECK][{$empCode}] START", [
-                'date' => $date_string,
-                'timetable_id' => $timetable->id,
-                'timetable_name' => $timetable->name,
-                'check_in_window' => [
-                    $check_in_limit_min->format('Y-m-d H:i'),
-                    $check_in_limit_plus->format('Y-m-d H:i'),
-                ],
-                'check_out_window' => [
-                    $check_out_limit_min->format('Y-m-d H:i'),
-                    $check_out_limit_plus->format('Y-m-d H:i'),
-                ],
-                'work_time' => $work_time,
-                'punches' => $attendances->map(fn ($item) => $item['punch_time'] ?? null)->values()->all(),
-                'attendance_count' => $attendances->count(),
-            ]);
-        }
+        // if ($debugEmp) {
+        //     Log::info("[SHIFT_CHECK][{$empCode}] START", [
+        //         'date' => $date_string,
+        //         'timetable_id' => $timetable->id,
+        //         'timetable_name' => $timetable->name,
+        //         'check_in_window' => [
+        //             $check_in_limit_min->format('Y-m-d H:i'),
+        //             $check_in_limit_plus->format('Y-m-d H:i'),
+        //         ],
+        //         'check_out_window' => [
+        //             $check_out_limit_min->format('Y-m-d H:i'),
+        //             $check_out_limit_plus->format('Y-m-d H:i'),
+        //         ],
+        //         'work_time' => $work_time,
+        //         'punches' => $attendances->map(fn ($item) => $item['punch_time'] ?? null)->values()->all(),
+        //         'attendance_count' => $attendances->count(),
+        //     ]);
+        // }
 
         $warning_check_in_limit_min = $check_in->copy()->subMinutes($timetable->warning_check_in_min);
         $warning_check_in_limit_plus = $check_in->copy()->addMinutes($timetable->warning_check_in_plus);
@@ -1793,19 +1793,19 @@ class AttendanceUtil extends Util
             }
         }
 
-        if ($debugEmp) {
-            Log::info("[SHIFT_CHECK][{$empCode}] RESULT", [
-                'date' => $date_string,
-                'timetable_set' => !empty($result['timetable']),
-                'timetable_name' => $result['timetable']['name'] ?? null,
-                'start_punch' => $result['working']['start_punch'],
-                'end_punch' => $result['working']['end_punch'],
-                'working_status' => $result['working']['status'],
-                'working_info' => $result['working']['info'],
-                'check_in_limit_min' => $check_in_limit_min->format('Y-m-d H:i'),
-                'check_in_limit_plus' => $check_in_limit_plus->format('Y-m-d H:i'),
-            ]);
-        }
+        // if ($debugEmp) {
+        //     Log::info("[SHIFT_CHECK][{$empCode}] RESULT", [
+        //         'date' => $date_string,
+        //         'timetable_set' => !empty($result['timetable']),
+        //         'timetable_name' => $result['timetable']['name'] ?? null,
+        //         'start_punch' => $result['working']['start_punch'],
+        //         'end_punch' => $result['working']['end_punch'],
+        //         'working_status' => $result['working']['status'],
+        //         'working_info' => $result['working']['info'],
+        //         'check_in_limit_min' => $check_in_limit_min->format('Y-m-d H:i'),
+        //         'check_in_limit_plus' => $check_in_limit_plus->format('Y-m-d H:i'),
+        //     ]);
+        // }
 
         return $result;
     }
@@ -2072,16 +2072,16 @@ class AttendanceUtil extends Util
         $start_punch = Carbon::parse($shift_data['working']['start_punch']);
         $end_punch = Carbon::parse($shift_data['working']['end_punch']);
 
-        if (in_array($shift_data['emp_code'] ?? null, ['192341'], true)) {
-            Log::info('[HALF_DAY_CHECK]', [
-                'emp_code' => $shift_data['emp_code'] ?? null,
-                'emp_name' => $shift_data['emp_name'] ?? null,
-                'date' => $date_string,
-                'timetable' => $shift_data['timetable']['name'] ?? null,
-                'start_punch' => $start_punch->format('Y-m-d H:i:s'),
-                'end_punch' => $end_punch->format('Y-m-d H:i:s'),
-            ]);
-        }
+        // if (in_array($shift_data['emp_code'] ?? null, ['192341'], true)) {
+        //     Log::info('[HALF_DAY_CHECK]', [
+        //         'emp_code' => $shift_data['emp_code'] ?? null,
+        //         'emp_name' => $shift_data['emp_name'] ?? null,
+        //         'date' => $date_string,
+        //         'timetable' => $shift_data['timetable']['name'] ?? null,
+        //         'start_punch' => $start_punch->format('Y-m-d H:i:s'),
+        //         'end_punch' => $end_punch->format('Y-m-d H:i:s'),
+        //     ]);
+        // }
         // Log::info($check_out);
         // Log::info($shift_data['timetable']);
         // Log::info($check_out_limit_min);
@@ -2101,19 +2101,19 @@ class AttendanceUtil extends Util
                 $half_work_time = $work_time / 2;
                 $is_half_day = $working_duration >= $half_work_time;
 
-                Log::info('[HALF_DAY_CHECK]', [
-                    'emp_code' => $shift_data['emp_code'] ?? null,
-                    'emp_name' => $shift_data['emp_name'] ?? null,
-                    'date' => $date_string,
-                    'timetable' => $shift_data['timetable']['name'] ?? null,
-                    'start_punch' => $start_punch->format('Y-m-d H:i:s'),
-                    'end_punch' => $end_punch->format('Y-m-d H:i:s'),
-                    'working_duration' => $working_duration,
-                    'work_time' => $work_time,
-                    'half_work_time' => $half_work_time,
-                    'check_out_limit_break_time' => $check_out_limit_break_time->format('Y-m-d H:i:s'),
-                    'is_half_day' => $is_half_day,
-                ]);
+                // Log::info('[HALF_DAY_CHECK]', [
+                //     'emp_code' => $shift_data['emp_code'] ?? null,
+                //     'emp_name' => $shift_data['emp_name'] ?? null,
+                //     'date' => $date_string,
+                //     'timetable' => $shift_data['timetable']['name'] ?? null,
+                //     'start_punch' => $start_punch->format('Y-m-d H:i:s'),
+                //     'end_punch' => $end_punch->format('Y-m-d H:i:s'),
+                //     'working_duration' => $working_duration,
+                //     'work_time' => $work_time,
+                //     'half_work_time' => $half_work_time,
+                //     'check_out_limit_break_time' => $check_out_limit_break_time->format('Y-m-d H:i:s'),
+                //     'is_half_day' => $is_half_day,
+                // ]);
 
                 if($is_half_day) {
                     $result['total_hk'] += 0.5;
@@ -2502,7 +2502,7 @@ class AttendanceUtil extends Util
             }
         }
 
-        Log::info("working-report: bagian {$department_id} punch terkumpul {$items->count()} dari " . ($total ?? 0) . " (D-1 s/d D)");
+        // Log::info("working-report: bagian {$department_id} punch terkumpul {$items->count()} dari " . ($total ?? 0) . " (D-1 s/d D)");
 
         return $items->map(function ($item) {
             return [
@@ -3036,38 +3036,38 @@ class AttendanceUtil extends Util
                     }
                     $attendance_report_employee_data['punches_by_date'] = $punches_by_date;
 
-                    if (in_array($employee['emp_code'] ?? null, ['192341'], true)) {
-                        Log::info("[ATTENDANCE_GROUPING][{$employee['emp_code']}] BEFORE", [
-                            'emp_code' => $employee['emp_code'],
-                            'dept_id' => $department_shift->dept_id ?? null,
-                            'has_shift' => !empty($department_shift),
-                            'raw_punches_by_date' => $attendance_employees->map(function ($dayPunches, $date) {
-                                return [
-                                    'date' => $date,
-                                    'punches' => collect($dayPunches)->map(fn ($item) => $item['punch_time'] ?? null)->values()->all(),
-                                ];
-                            })->values()->all(),
-                        ]);
-                    }
+                    // if (in_array($employee['emp_code'] ?? null, ['192341'], true)) {
+                    //     Log::info("[ATTENDANCE_GROUPING][{$employee['emp_code']}] BEFORE", [
+                    //         'emp_code' => $employee['emp_code'],
+                    //         'dept_id' => $department_shift->dept_id ?? null,
+                    //         'has_shift' => !empty($department_shift),
+                    //         'raw_punches_by_date' => $attendance_employees->map(function ($dayPunches, $date) {
+                    //             return [
+                    //                 'date' => $date,
+                    //                 'punches' => collect($dayPunches)->map(fn ($item) => $item['punch_time'] ?? null)->values()->all(),
+                    //             ];
+                    //         })->values()->all(),
+                    //     ]);
+                    // }
 
                     $attendance_employee_timetables = $this->attendanceTimetableGrouping($department_shift, $attendance_employees, $range_dates, $employee['emp_code'], $employee);
 
-                    if (in_array($employee['emp_code'] ?? null, ['192341'], true)) {
-                        Log::info("[ATTENDANCE_GROUPING][{$employee['emp_code']}] attendance_employee_timetables", [
-                            'emp_code' => $employee['emp_code'],
-                            'is_empty' => $attendance_employee_timetables->isEmpty(),
-                            'dates' => $attendance_employee_timetables->keys()->values()->all(),
-                            'data' => $attendance_employee_timetables->map(function ($timetableGroups, $date) {
-                                return collect($timetableGroups)->map(function ($punches, $timetableId) {
-                                    return [
-                                        'timetable_id' => $timetableId,
-                                        'punch_count' => collect($punches)->count(),
-                                        'punches' => collect($punches)->map(fn ($item) => $item['punch_time'] ?? null)->values()->all(),
-                                    ];
-                                })->all();
-                            })->all(),
-                        ]);
-                    }
+                    // if (in_array($employee['emp_code'] ?? null, ['192341'], true)) {
+                    //     Log::info("[ATTENDANCE_GROUPING][{$employee['emp_code']}] attendance_employee_timetables", [
+                    //         'emp_code' => $employee['emp_code'],
+                    //         'is_empty' => $attendance_employee_timetables->isEmpty(),
+                    //         'dates' => $attendance_employee_timetables->keys()->values()->all(),
+                    //         'data' => $attendance_employee_timetables->map(function ($timetableGroups, $date) {
+                    //             return collect($timetableGroups)->map(function ($punches, $timetableId) {
+                    //                 return [
+                    //                     'timetable_id' => $timetableId,
+                    //                     'punch_count' => collect($punches)->count(),
+                    //                     'punches' => collect($punches)->map(fn ($item) => $item['punch_time'] ?? null)->values()->all(),
+                    //                 ];
+                    //             })->all();
+                    //         })->all(),
+                    //     ]);
+                    // }
 
                     $calculated_job_bonus = $this->calculatedJobBonus($employee, $start_date_work_day->copy(), $end_date_work_day->copy(), $start_date_overtime->copy(), $end_date_overtime->copy());
                     $attendance_report_employee_data['total_job_bonus'] += $calculated_job_bonus['total_job_bonus'];
