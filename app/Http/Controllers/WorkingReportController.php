@@ -48,6 +48,7 @@ class WorkingReportController extends Controller
 
             if (request()->ajax()) {
                 $rows = collect();
+                $is_incomplete = false;
 
                 if ($request->filled('date')) {
                     $date_carbon = Carbon::createFromFormat('d-m-Y', $request['date'])->startOfDay();
@@ -61,9 +62,11 @@ class WorkingReportController extends Controller
                             $row['employee']['first_name'] ?? '',
                         ])
                         ->values();
+
+                    $is_incomplete = !$this->attendanceUtil->lastPunchFetchComplete;
                 }
 
-                $render = view('Report.working_report.table', compact('rows', 'date'))->render();
+                $render = view('Report.working_report.table', compact('rows', 'date', 'is_incomplete'))->render();
                 return $this->buildRes->RESPONSE_REQ('success', $render, null);
             }
 

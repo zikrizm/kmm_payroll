@@ -36,6 +36,9 @@ class AttendanceUtil extends Util
     private $service;
     public $slug_week = ['Mgg', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
 
+    /** Diisi false oleh fetchPunchesPaged() kalau ada halaman punch yang gagal diambil. */
+    public bool $lastPunchFetchComplete = true;
+
     /** @var array<string, mixed>|null Konteks log debug grouping */
     private ?array $groupingLogContext = null;
 
@@ -2375,28 +2378,55 @@ class AttendanceUtil extends Util
 
         $items = collect();
         $seen_ids = [];
+        $total = null;
+        $this->lastPunchFetchComplete = true;
 
         for ($page = 1; $page <= $max_pages; $page++) {
-            if ($department_ids !== null) {
-                $res = $this->service->get_transaction_reports([
-                    'page' => $page,
-                    'page_size' => $page_size,
-                    'start_date' => $start->format('Y-m-d'),
-                    'end_date' => $end->format('Y-m-d'),
-                    'departments' => $department_ids,
-                ]);
-            } else {
-                $res = $this->service->get_transactions([
-                    'page' => $page,
-                    'page_size' => $page_size,
-                    'start_time' => $start->format('Y-m-d H:i:s'),
-                    'end_time' => $end->format('Y-m-d H:i:s'),
-                ]);
+            // API mengembalikan data kosong saat gagal (timeout/server sibuk), jadi dicoba ulang.
+            $page_items = collect();
+            $res = [];
+            for ($attempt = 1; $attempt <= 3; $attempt++) {
+                if ($department_ids !== null) {
+                    $res = $this->service->get_transaction_reports([
+                        'page' => $page,
+                        'page_size' => $page_size,
+                        'start_date' => $start->format('Y-m-d'),
+                        'end_date' => $end->format('Y-m-d'),
+                        'departments' => $department_ids,
+                    ]);
+                } else {
+                    $res = $this->service->get_transactions([
+                        'page' => $page,
+                        'page_size' => $page_size,
+                        'start_time' => $start->format('Y-m-d H:i:s'),
+                        'end_time' => $end->format('Y-m-d H:i:s'),
+                    ]);
+                }
+
+                $page_items = collect($res['data'] ?? []);
+                if ($page_items->isNotEmpty()) {
+                    break;
+                }
+
+                // Halaman pertama kosong dengan count 0 berarti memang tidak ada data.
+                if ($page === 1 && (int) ($res['count'] ?? 0) === 0 && $attempt >= 2) {
+                    break;
+                }
+                // Sudah terkumpul semua menurut count, tidak perlu mencoba lagi.
+                if ($total !== null && $items->count() >= $total) {
+                    break;
+                }
             }
 
-            $total = (int) ($res['count'] ?? 0);
-            $page_items = collect($res['data'] ?? []);
+            if ($total === null) {
+                $total = (int) ($res['count'] ?? 0);
+            }
+
             if ($page_items->isEmpty()) {
+                if ($total > 0 && $items->count() < $total) {
+                    $this->lastPunchFetchComplete = false;
+                    Log::warning("working-report: halaman punch {$page} gagal, terkumpul {$items->count()} dari {$total}");
+                }
                 break;
             }
 
@@ -2414,6 +2444,10 @@ class AttendanceUtil extends Util
                 return true;
             });
             if ($new_items->isEmpty()) {
+                if ($items->count() < $total) {
+                    $this->lastPunchFetchComplete = false;
+                    Log::warning("working-report: API mengabaikan paginasi di halaman {$page}, terkumpul {$items->count()} dari {$total}");
+                }
                 break;
             }
 
@@ -2422,6 +2456,8 @@ class AttendanceUtil extends Util
                 break;
             }
         }
+
+        Log::info("working-report: punch terkumpul {$items->count()} dari " . ($total ?? 0) . " (D-1 s/d D)");
 
         $punches = $items->map(function ($item) use ($department_ids) {
             if ($department_ids !== null) {
@@ -2537,6 +2573,13 @@ class AttendanceUtil extends Util
                     continue;
                 }
 
+                // Tidak ada punch di window check-in: bisa jadi masuk setelah window berakhir (telat berat).
+                $matched = $this->matchLateBeyondWindow($schedule, $date, $candidates);
+                if ($matched !== null) {
+                    $rows->push($this->makeLateCheckInRow($base, $matched['timetable'], $date_string, $matched['punch'], $now));
+                    continue;
+                }
+
                 $row = $this->makeLateCheckInRow($base, $schedule->first(), $date_string, null, $now);
                 if ($row !== null) {
                     $rows->push($row);
@@ -2584,6 +2627,35 @@ class AttendanceUtil extends Util
         }
 
         return $matched;
+    }
+
+    /**
+     * Masuk setelah window check-in berakhir. Punch paling awal yang jatuh setelah
+     * check_in_plus dan sebelum batas awal pulang dianggap absen masuk yang telat berat.
+     * Punch di sekitar jam pulang tidak dihitung, supaya lupa absen masuk tidak terbaca telat seharian.
+     */
+    private function matchLateBeyondWindow(Collection $schedule, Carbon $date, Collection $punches): ?array
+    {
+        foreach ($punches as $item) {
+            if (empty($item['punch_time'])) {
+                continue;
+            }
+
+            $punch = Carbon::parse($item['punch_time']);
+
+            foreach ($schedule as $timetable) {
+                $limits = $this->getTimetableWindowLimits($date, $timetable);
+                $upper = $limits['check_out_limit_min']->gt($limits['check_in_limit_plus'])
+                    ? $limits['check_out_limit_min']
+                    : $limits['check_out'];
+
+                if ($punch->gt($limits['check_in_limit_plus']) && $punch->lt($upper)) {
+                    return ['timetable' => $timetable, 'punch' => $punch];
+                }
+            }
+        }
+
+        return null;
     }
 
     /**
